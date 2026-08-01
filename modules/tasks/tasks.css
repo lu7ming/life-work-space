@@ -619,7 +619,7 @@
 .tasks-fab {
   position: fixed;
   right: 20px;
-  bottom: 24px;
+  bottom: 60px;
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -875,7 +875,7 @@
 
   .tasks-fab {
     right: 16px;
-    bottom: 28px;
+    bottom: 60px;
   }
 
   .pomodoro-timer {
@@ -921,7 +921,7 @@
     height: 44px;
     font-size: 22px;
     right: 12px;
-    bottom: 16px;
+    bottom: 60px;
   }
 
   .pomodoro-timer-ring {

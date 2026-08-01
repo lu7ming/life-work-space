@@ -26,10 +26,12 @@ const App = (() => {
     Router.register('tasks', loadTasks);
     Router.register('study', loadStudy);
     Router.register('health', loadHealth);
-    Router.register('finance', () => loadPlaceholder('财务'));
-    Router.register('relations', () => loadPlaceholder('关系'));
-    Router.register('knowledge', () => loadPlaceholder('知识库'));
-    Router.register('goals', () => loadPlaceholder('目标'));
+    Router.register('finance', loadFinance);
+    Router.register('journal', loadJournal);
+    Router.register('relations', loadRelations);
+    Router.register('knowledge', loadKnowledge);
+    Router.register('goals', loadGoals);
+    Router.register('lifetree', loadLifeTree);
 
     // 3. 监听路由变化，更新侧边栏高亮
     Router.onRouteChange((route) => {
@@ -59,11 +61,21 @@ const App = (() => {
    * 每次进入工作台时自动刷新当前页面数据
    */
   function initAutoRefresh() {
+    let lastRefreshTime = 0;
+    function safeReload() {
+      const now = Date.now();
+      if (now - lastRefreshTime < 30000) return;
+      const active = document.activeElement;
+      if (active && ['INPUT','TEXTAREA','SELECT'].includes(active.tagName)) return;
+      lastRefreshTime = now;
+      reloadCurrentRoute();
+    }
+
     // 页面从后台切换到前台时刷新
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         console.log('[App] 页面激活，自动刷新数据');
-        reloadCurrentRoute();
+        safeReload();
       }
     });
 
@@ -71,7 +83,7 @@ const App = (() => {
     window.addEventListener('pageshow', (e) => {
       if (e.persisted) {
         console.log('[App] PWA 恢复，自动刷新数据');
-        reloadCurrentRoute();
+        safeReload();
       }
     });
 
@@ -79,7 +91,7 @@ const App = (() => {
     let hasFocused = false;
     window.addEventListener('focus', () => {
       if (hasFocused) {
-        reloadCurrentRoute();
+        safeReload();
       }
       hasFocused = true;
     });
@@ -96,10 +108,12 @@ const App = (() => {
       'tasks': loadTasks,
       'study': loadStudy,
       'health': loadHealth,
-      'finance': () => loadPlaceholder('财务'),
-      'relations': () => loadPlaceholder('关系'),
-      'knowledge': () => loadPlaceholder('知识库'),
-      'goals': () => loadPlaceholder('目标')
+      'finance': loadFinance,
+      'journal': loadJournal,
+      'relations': loadRelations,
+      'knowledge': loadKnowledge,
+      'goals': loadGoals,
+      'lifetree': loadLifeTree
     };
     
     const handler = routeHandlers[currentRoute];
@@ -214,6 +228,114 @@ const App = (() => {
   }
 
   /**
+   * 加载财务模块
+   */
+  async function loadFinance() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('finance/finance.html');
+      container.innerHTML = html;
+      loadModuleCSS('finance/finance.css');
+      if (typeof FinanceModule !== 'undefined' && FinanceModule.init) {
+        FinanceModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载财务模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载记录与反思模块
+   */
+  async function loadJournal() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('journal/journal.html');
+      container.innerHTML = html;
+      loadModuleCSS('journal/journal.css');
+      if (typeof JournalModule !== 'undefined' && JournalModule.init) {
+        JournalModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载记录与反思模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载知识库模块
+   */
+  async function loadKnowledge() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('knowledge/knowledge.html');
+      container.innerHTML = html;
+      loadModuleCSS('knowledge/knowledge.css');
+      if (typeof KnowledgeModule !== 'undefined' && KnowledgeModule.init) {
+        KnowledgeModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载知识库模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载目标模块
+   */
+  async function loadGoals() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('goals/goals.html');
+      container.innerHTML = html;
+      loadModuleCSS('goals/goals.css');
+      if (typeof GoalsModule !== 'undefined' && GoalsModule.init) {
+        GoalsModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载目标模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载关系模块
+   */
+  async function loadRelations() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('relations/relations.html');
+      container.innerHTML = html;
+      loadModuleCSS('relations/relations.css');
+      if (typeof RelationsModule !== 'undefined' && RelationsModule.init) {
+        RelationsModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载关系模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载生命树模块
+   */
+  async function loadLifeTree() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('lifetree/lifetree.html');
+      container.innerHTML = html;
+      loadModuleCSS('lifetree/lifetree.css');
+      if (typeof LifeTreeModule !== 'undefined' && LifeTreeModule.init) {
+        LifeTreeModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载生命树模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
    * 加载占位页面（未开发的模块）
    */
   function loadPlaceholder(name) {
@@ -245,7 +367,7 @@ const App = (() => {
     const link = document.createElement('link');
     link.id = id;
     link.rel = 'stylesheet';
-    link.href = `modules/${path}?v=${Date.now()}`;
+    link.href = `modules/${path}`;
     document.head.appendChild(link);
   }
 
@@ -447,7 +569,11 @@ const App = (() => {
     document.querySelectorAll('.topbar-icon-btn:not(#topbar-more-btn)').forEach((btn) => {
       btn.addEventListener('click', () => {
         const tip = btn.dataset.tip || '功能开发中';
-        showToast(tip);
+        if (tip.includes('生命树')) {
+          Router.navigate('lifetree');
+        } else {
+          showToast(tip);
+        }
       });
     });
   }
@@ -533,7 +659,7 @@ const App = (() => {
       if ('caches' in window) {
         caches.keys().then((keys) => {
           keys.forEach((key) => {
-            if (key !== 'life-workspace-v2') {
+            if (key !== 'life-workspace-v6') {
               caches.delete(key);
               console.log('[App] 已清除旧缓存:', key);
             }

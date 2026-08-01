@@ -382,6 +382,7 @@ const StudyModule = (() => {
     };
 
     try {
+      const isEdit = !!editingCourseId;
       if (editingCourseId) {
         const course = allCourses.find((c) => c.id === editingCourseId);
         if (course) {
@@ -395,7 +396,7 @@ const StudyModule = (() => {
       }
       hideCourseModal();
       renderTimetable();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast(editingCourseId ? '已保存 ✅' : '课程已添加 ✅');
+      if (typeof App !== 'undefined' && App.showToast) App.showToast(isEdit ? '已保存 ✅' : '课程已添加 ✅');
     } catch (err) {
       console.error('[Study] 保存课程失败:', err);
     }
@@ -647,6 +648,7 @@ const StudyModule = (() => {
     if (bookData.status === 'done') bookData.progress = 100;
 
     try {
+      const isEdit = !!editingBookId;
       if (editingBookId) {
         const book = allBooks.find((b) => b.id === editingBookId);
         if (book) {
@@ -660,7 +662,7 @@ const StudyModule = (() => {
       }
       hideBookModal();
       renderBooks();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast(editingBookId ? '已保存 ✅' : '书籍已添加 ✅');
+      if (typeof App !== 'undefined' && App.showToast) App.showToast(isEdit ? '已保存 ✅' : '书籍已添加 ✅');
     } catch (err) {
       console.error('[Study] 保存书籍失败:', err);
     }
@@ -802,6 +804,7 @@ const StudyModule = (() => {
     };
 
     try {
+      const isEdit = !!editingSkillId;
       if (editingSkillId) {
         const skill = allSkills.find((s) => s.id === editingSkillId);
         if (skill) {
@@ -815,7 +818,7 @@ const StudyModule = (() => {
       }
       hideSkillModal();
       renderSkills();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast(editingSkillId ? '已保存 ✅' : '技能已添加 ✅');
+      if (typeof App !== 'undefined' && App.showToast) App.showToast(isEdit ? '已保存 ✅' : '技能已添加 ✅');
     } catch (err) {
       console.error('[Study] 保存技能失败:', err);
     }

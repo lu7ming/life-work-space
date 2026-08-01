@@ -162,7 +162,10 @@ const HabitsModule = (() => {
   }
 
   // ===== 切换打卡状态 =====
+  let isToggling = false;
   async function toggleHabit(habitId) {
+    if (isToggling) return;
+    isToggling = true;
     const dateStr = formatDate(currentDate);
     const monthStr = formatMonth(currentDate);
     const now = new Date();
@@ -223,6 +226,8 @@ const HabitsModule = (() => {
 
     } catch (err) {
       console.error('[Habits] 打卡操作失败:', err);
+    } finally {
+      isToggling = false;
     }
   }
 

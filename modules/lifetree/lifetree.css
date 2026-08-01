@@ -1,0 +1,315 @@
+/* ===== 生命树模块样式 ===== */
+
+/* 主容器 */
+.lifetree-main {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  padding: 0 16px 8px;
+}
+
+/* Canvas 包装器 */
+.canvas-wrapper {
+  flex: 0 0 60%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.canvas-wrapper canvas {
+  flex: 1;
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+/* Canvas 底部维度小标签 */
+.canvas-bottom-info {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--text-light);
+  gap: 4px;
+}
+
+.canvas-bottom-info .dim-tag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 40px;
+}
+
+.canvas-bottom-info .dim-tag .dim-icon {
+  font-size: 16px;
+}
+
+.canvas-bottom-info .dim-tag .dim-bar {
+  width: 32px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--text-light);
+  overflow: hidden;
+}
+
+.canvas-bottom-info .dim-tag .dim-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* 右侧详情面板 */
+.detail-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding-right: 4px;
+  min-width: 0;
+}
+
+/* 面板分区 */
+.panel-section {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+}
+
+.panel-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 10px;
+}
+
+/* 土壤状态网格 */
+.soil-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.soil-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+}
+
+.soil-item .soil-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.soil-item .soil-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.soil-item .soil-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.soil-item .soil-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.soil-item .soil-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--text-light);
+  border-radius: 2px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.soil-item .soil-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* 维度列表 */
+.dimension-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dim-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  transition: background var(--transition-fast);
+}
+
+.dim-item:hover {
+  background: var(--bg-hover);
+}
+
+.dim-item .dim-emoji {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.dim-item .dim-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dim-item .dim-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dim-item .dim-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.dim-item .dim-progress {
+  width: 100%;
+  height: 5px;
+  background: var(--text-light);
+  border-radius: 3px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.dim-item .dim-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s ease;
+}
+
+.dim-item .dim-score {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* 统计行 */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 10px 6px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+}
+
+.stat-card .stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-card .stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* 徽章样式 */
+.season-badge,
+.weather-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--bg-sidebar);
+  color: var(--text-secondary);
+}
+
+/* 底部信息 */
+.lifetree-footer {
+  padding: 8px 20px 12px;
+  text-align: center;
+}
+
+.lifetree-footer span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .lifetree-main {
+    flex-direction: column;
+    padding: 0 12px 8px;
+  }
+
+  .canvas-wrapper {
+    flex: none;
+    height: 50vh;
+    min-height: 300px;
+  }
+
+  .detail-panel {
+    flex: none;
+  }
+
+  .soil-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .soil-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-bottom-info .dim-tag {
+    font-size: 10px;
+  }
+}
+
+/* iPad 横屏优化 */
+@media (min-width: 768px) and (orientation: landscape) {
+  .canvas-wrapper {
+    flex: 0 0 62%;
+  }
+
+  .detail-panel {
+    gap: 12px;
+  }
+
+  .panel-section {
+    padding: 12px 14px;
+  }
+}

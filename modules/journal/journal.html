@@ -1,0 +1,143 @@
+<!-- 记录与反思模块 - journal.html -->
+<div class="module-container page-enter" id="journal-container">
+  <!-- 模块头部 -->
+  <div class="module-header">
+    <h1 class="module-title">记录与反思</h1>
+    <div class="module-actions">
+      <!-- Tab 切换 -->
+      <div class="journal-tabs">
+        <button class="journal-tab active" data-tab="diary">日记</button>
+        <button class="journal-tab" data-tab="review">复盘</button>
+        <button class="journal-tab" data-tab="ideas">灵感</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日记 Tab -->
+  <div class="journal-panel active" id="panel-diary">
+    <div class="diary-layout">
+      <!-- 左侧：日历热图 -->
+      <div class="diary-sidebar">
+        <div class="diary-calendar-header">
+          <button class="cal-nav-btn" id="cal-prev">‹</button>
+          <span class="cal-title" id="cal-title"></span>
+          <button class="cal-nav-btn" id="cal-next">›</button>
+        </div>
+        <div class="diary-calendar-grid" id="diary-calendar">
+          <div class="cal-weekdays">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+          </div>
+          <div class="cal-days" id="cal-days"></div>
+        </div>
+        <!-- 视图切换 -->
+        <div class="diary-view-toggle">
+          <button class="view-btn active" data-view="calendar" title="日历视图">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/><line x1="1" y1="6" x2="15" y2="6" stroke="currentColor" stroke-width="1.2"/><line x1="5" y1="2" x2="5" y2="0.5" stroke="currentColor" stroke-width="1.2"/><line x1="11" y1="2" x2="11" y2="0.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          </button>
+          <button class="view-btn" data-view="list" title="列表视图">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><line x1="1" y1="3" x2="15" y2="3" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="13" x2="15" y2="13" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- 右侧：日记列表/编辑器 -->
+      <div class="diary-main" id="diary-main">
+        <!-- 列表视图 -->
+        <div class="diary-list-view" id="diary-list-view"></div>
+        <!-- 编辑视图（隐藏） -->
+        <div class="diary-editor-view hidden" id="diary-editor-view">
+          <div class="editor-topbar">
+            <button class="editor-back-btn" id="diary-editor-back">← 返回</button>
+            <span class="editor-date" id="diary-editor-date"></span>
+            <button class="editor-save-btn" id="diary-editor-save">保存</button>
+          </div>
+          <div class="mood-picker" id="diary-mood-picker">
+            <span class="mood-label">今天心情：</span>
+            <button class="mood-btn" data-mood="😊">😊</button>
+            <button class="mood-btn" data-mood="😐">😐</button>
+            <button class="mood-btn" data-mood="😔">😔</button>
+            <button class="mood-btn" data-mood="😤">😤</button>
+            <button class="mood-btn" data-mood="😴">😴</button>
+          </div>
+          <textarea class="diary-textarea" id="diary-textarea" placeholder="写下今天的想法、感受、经历..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 复盘 Tab -->
+  <div class="journal-panel" id="panel-review">
+    <div class="review-header">
+      <div class="review-type-tabs">
+        <button class="review-type-btn active" data-subtype="weekly">周复盘</button>
+        <button class="review-type-btn" data-subtype="monthly">月复盘</button>
+        <button class="review-type-btn" data-subtype="yearly">年复盘</button>
+      </div>
+    </div>
+    <div class="review-list" id="review-list"></div>
+  </div>
+
+  <!-- 灵感 Tab -->
+  <div class="journal-panel" id="panel-ideas">
+    <div class="ideas-header">
+      <div class="ideas-filter">
+        <input type="text" class="ideas-search" id="ideas-search" placeholder="搜索灵感...">
+        <div class="ideas-tag-filter" id="ideas-tag-filter"></div>
+      </div>
+    </div>
+    <div class="ideas-masonry" id="ideas-masonry"></div>
+  </div>
+
+  <!-- FAB 按钮 -->
+  <button class="module-fab" id="journal-fab" title="添加">+</button>
+</div>
+
+<!-- 弹窗：复盘编辑 -->
+<div class="modal-overlay hidden" id="review-modal">
+  <div class="modal-card review-modal-card">
+    <div class="modal-header">
+      <h3 id="review-modal-title">新建复盘</h3>
+      <button class="modal-close" id="review-modal-close">×</button>
+    </div>
+    <div class="modal-body" id="review-modal-body">
+      <!-- 动态填充 -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="review-modal-cancel">取消</button>
+      <button class="btn-primary" id="review-modal-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：灵感编辑 -->
+<div class="modal-overlay hidden" id="idea-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="idea-modal-title">记录灵感</h3>
+      <button class="modal-close" id="idea-modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <textarea class="idea-textarea" id="idea-textarea" placeholder="一闪而过的想法，赶紧记下来..."></textarea>
+      <div class="idea-tags-input">
+        <label>标签（回车添加）</label>
+        <div class="tag-chips" id="idea-tag-chips"></div>
+        <input type="text" class="idea-tag-input" id="idea-tag-input" placeholder="输入标签后回车">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="idea-modal-cancel">取消</button>
+      <button class="btn-primary" id="idea-modal-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：灵感详情 -->
+<div class="modal-overlay hidden" id="idea-detail-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>灵感详情</h3>
+      <button class="modal-close" id="idea-detail-close">×</button>
+    </div>
+    <div class="modal-body" id="idea-detail-body"></div>
+    <div class="modal-footer" id="idea-detail-footer"></div>
+  </div>
+</div>

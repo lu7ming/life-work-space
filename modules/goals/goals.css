@@ -1,0 +1,721 @@
+/**
+ * goals.css - 目标管理模块样式
+ * 人生工作台 · 暖米色极简风格
+ */
+
+/* ===== 容器 ===== */
+.goals {
+  max-width: 1000px;
+  padding-bottom: 80px;
+}
+
+/* ===== 顶部标题 + 操作 ===== */
+.goals-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.goals-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.goals-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 视图切换 */
+.goals-view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-card);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  box-shadow: var(--shadow-sm);
+}
+
+.goals-view-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.goals-view-btn:hover {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+}
+
+.goals-view-btn.active {
+  background: var(--text-primary);
+  color: #fff;
+}
+
+/* ===== 层级筛选 Tab ===== */
+.goals-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-card);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.goals-tabs::-webkit-scrollbar { display: none; }
+
+.goals-tab {
+  padding: 7px 18px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.goals-tab:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.goals-tab.active {
+  background: var(--text-primary);
+  color: #fff;
+}
+
+/* ===== 统计卡片 ===== */
+.goals-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.goals-stat-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.goals-stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.goals-stat-value.accent {
+  color: var(--accent);
+}
+
+.goals-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ===== 列表视图 ===== */
+.goals-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.goals-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goals-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.goals-group-icon {
+  font-size: 16px;
+}
+
+.goals-group-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.goals-group-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* ===== 目标卡片 ===== */
+.goals-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.goals-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.goals-card.status-completed {
+  border-left-color: #4CAF50;
+  opacity: 0.75;
+}
+
+.goals-card.status-abandoned {
+  border-left-color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.goals-card.status-active {
+  border-left-color: var(--accent);
+}
+
+.goals-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.goals-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.goals-card-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.goals-card-badge.badge-active {
+  background: rgba(232, 168, 124, 0.15);
+  color: var(--accent-hover);
+}
+
+.goals-card-badge.badge-completed {
+  background: rgba(76, 175, 80, 0.12);
+  color: #388E3C;
+}
+
+.goals-card-badge.badge-abandoned {
+  background: rgba(155, 142, 131, 0.15);
+  color: var(--text-muted);
+}
+
+/* 进度条 */
+.goals-progress-bar {
+  height: 6px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.goals-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  transition: width 0.4s ease;
+  min-width: 0;
+}
+
+.goals-progress-fill.fill-done {
+  background: #4CAF50;
+}
+
+.goals-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.goals-card-deadline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.goals-card-deadline.overdue {
+  color: #E74C3C;
+}
+
+.goals-card-progress-text {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* 展开详情 */
+.goals-card-detail {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--text-light);
+  display: none;
+}
+
+.goals-card.expanded .goals-card-detail {
+  display: block;
+}
+
+.goals-card-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.goals-card-tasks {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.goals-card-tasks-title {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.goals-card-task-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  color: var(--text-secondary);
+}
+
+.goals-card-task-item .task-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.goals-card-task-item .task-dot.done {
+  background: #4CAF50;
+}
+
+.goals-card-task-item .task-dot.pending {
+  background: var(--text-muted);
+}
+
+.goals-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.goals-card-action-btn {
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--text-light);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.goals-card-action-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.goals-card-action-btn.danger:hover {
+  background: #FEE;
+  color: #E74C3C;
+  border-color: #E74C3C;
+}
+
+/* ===== 看板视图 ===== */
+.goals-kanban-view {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.goals-kanban-col {
+  background: var(--bg-sidebar);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  min-height: 200px;
+}
+
+.goals-kanban-col-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goals-kanban-col-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.goals-kanban-col-title .col-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.goals-kanban-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goals-kanban-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast);
+}
+
+.goals-kanban-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.goals-kanban-card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.goals-kanban-card .goals-progress-bar {
+  margin-bottom: 6px;
+}
+
+.goals-kanban-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.goals-kanban-card-level {
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: var(--bg-hover);
+  font-size: 11px;
+}
+
+/* ===== 空状态 ===== */
+.goals-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.goals-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.goals-empty-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.goals-empty-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ===== Modal ===== */
+.goals-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(44, 37, 32, 0.35);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.goals-modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(44, 37, 32, 0.15);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.goals-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--text-light);
+}
+
+.goals-modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.goals-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.goals-modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.goals-form {
+  padding: 20px 24px 24px;
+}
+
+.goals-field {
+  margin-bottom: 16px;
+}
+
+.goals-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.goals-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--text-light);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  transition: border-color var(--transition-fast);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.goals-input:focus {
+  border-color: var(--accent);
+}
+
+.goals-textarea {
+  resize: vertical;
+  min-height: 70px;
+  font-family: inherit;
+}
+
+.goals-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239B8E83' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.goals-row {
+  display: flex;
+  gap: 12px;
+}
+
+.goals-field-half {
+  flex: 1;
+}
+
+.goals-progress-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goals-progress-input-wrap .goals-input {
+  flex: 1;
+}
+
+.goals-manual-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.goals-manual-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.goals-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--text-light);
+}
+
+.goals-btn {
+  padding: 9px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all var(--transition-fast);
+}
+
+.goals-btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.goals-btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.goals-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--text-light);
+}
+
+.goals-btn-ghost:hover {
+  background: var(--bg-hover);
+}
+
+.goals-btn-danger {
+  background: transparent;
+  color: #E74C3C;
+  border: 1px solid #E74C3C;
+}
+
+.goals-btn-danger:hover {
+  background: #FEE;
+}
+
+/* ===== FAB ===== */
+.goals-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .goals-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .goals-kanban-view {
+    grid-template-columns: 1fr;
+  }
+
+  .goals-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .goals-modal {
+    max-width: 100%;
+    margin: 0 10px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .goals-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

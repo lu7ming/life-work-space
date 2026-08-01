@@ -49,6 +49,9 @@
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 
+  /* 边框 */
+  --border-light: #E8DDD4;
+
   /* 过渡 */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;

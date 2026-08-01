@@ -3,7 +3,7 @@
  * 支持离线缓存，采用缓存优先策略
  */
 
-const CACHE_NAME = 'life-workspace-v5';
+const CACHE_NAME = 'life-workspace-v6';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -28,7 +28,26 @@ const CACHE_ASSETS = [
   './modules/study/study.js',
   './modules/health/health.html',
   './modules/health/health.css',
-  './modules/health/health.js'
+  './modules/health/health.js',
+  './modules/finance/finance.html',
+  './modules/finance/finance.css',
+  './modules/finance/finance.js',
+  './modules/journal/journal.html',
+  './modules/journal/journal.css',
+  './modules/journal/journal.js',
+  './modules/knowledge/knowledge.html',
+  './modules/knowledge/knowledge.css',
+  './modules/knowledge/knowledge.js',
+  './modules/goals/goals.html',
+  './modules/goals/goals.css',
+  './modules/goals/goals.js',
+  './modules/relations/relations.html',
+  './modules/relations/relations.css',
+  './modules/relations/relations.js',
+  './modules/lifetree/lifetree.html',
+  './modules/lifetree/lifetree.css',
+  './modules/lifetree/lifetree.js',
+  './manifest.json'
 ];
 
 /**

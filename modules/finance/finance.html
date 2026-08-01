@@ -1,0 +1,196 @@
+<!-- finance.html - 财务与资产模块 -->
+<div class="finance page-enter">
+
+  <!-- 顶部标题 -->
+  <div class="finance-header">
+    <h1 class="finance-title">💰 财务与资产</h1>
+    <div class="finance-header-actions">
+      <button class="finance-budget-toggle-btn" id="finance-budget-toggle" title="预算设置">⚙️ 预算</button>
+    </div>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="finance-stats-grid">
+    <div class="finance-stat-card finance-stat-income">
+      <div class="finance-stat-label">本月收入</div>
+      <div class="finance-stat-value" id="finance-month-income">¥0.00</div>
+    </div>
+    <div class="finance-stat-card finance-stat-expense">
+      <div class="finance-stat-label">本月支出</div>
+      <div class="finance-stat-value" id="finance-month-expense">¥0.00</div>
+    </div>
+    <div class="finance-stat-card finance-stat-balance">
+      <div class="finance-stat-label">本月结余</div>
+      <div class="finance-stat-value" id="finance-month-balance">¥0.00</div>
+    </div>
+    <div class="finance-stat-card finance-stat-budget">
+      <div class="finance-stat-label">预算进度</div>
+      <div class="finance-stat-value" id="finance-budget-percent">--%</div>
+      <div class="finance-budget-bar-wrap">
+        <div class="finance-budget-bar" id="finance-budget-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 年度统计卡片 -->
+  <div class="finance-stats-grid finance-yearly-grid">
+    <div class="finance-stat-card finance-stat-income">
+      <div class="finance-stat-label">年度收入</div>
+      <div class="finance-stat-value" id="finance-year-income">¥0.00</div>
+    </div>
+    <div class="finance-stat-card finance-stat-expense">
+      <div class="finance-stat-label">年度支出</div>
+      <div class="finance-stat-value" id="finance-year-expense">¥0.00</div>
+    </div>
+    <div class="finance-stat-card finance-stat-balance">
+      <div class="finance-stat-label">年度结余</div>
+      <div class="finance-stat-value" id="finance-year-balance">¥0.00</div>
+    </div>
+    <div class="finance-stat-card finance-stat-yearly-budget">
+      <div class="finance-stat-label">年度预算进度</div>
+      <div class="finance-stat-value" id="finance-yearly-budget-percent">--%</div>
+      <div class="finance-budget-bar-wrap">
+        <div class="finance-budget-bar finance-yearly-bar" id="finance-yearly-budget-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 超支警告 -->
+  <div class="finance-overbudget-alert" id="finance-overbudget-alert" style="display:none">
+    <span class="finance-overbudget-icon">⚠️</span>
+    <span class="finance-overbudget-text" id="finance-overbudget-text">本月支出已超出预算！</span>
+  </div>
+
+  <!-- 中间区域：预算设置 + 月度分析 -->
+  <div class="finance-middle-grid">
+
+    <!-- 预算设置面板 -->
+    <div class="finance-budget-panel card" id="finance-budget-panel" style="display:none">
+      <div class="finance-section-title">📋 预算设置</div>
+      <div class="finance-budget-form">
+        <div class="finance-budget-row">
+          <label>月度预算 (¥)</label>
+          <input type="number" class="finance-budget-input" id="finance-monthly-budget" placeholder="输入月度预算" min="0" step="100">
+        </div>
+        <div class="finance-budget-row">
+          <label>年度预算 (¥)</label>
+          <input type="number" class="finance-budget-input" id="finance-yearly-budget" placeholder="输入年度预算" min="0" step="1000">
+        </div>
+        <button class="finance-budget-save-btn" id="finance-budget-save">保存预算</button>
+      </div>
+    </div>
+
+    <!-- 月度支出分析 -->
+    <div class="finance-analysis card">
+      <div class="finance-section-title">📊 本月支出分析</div>
+      <div class="finance-category-list" id="finance-category-list">
+        <div class="finance-empty-hint">暂无支出数据</div>
+      </div>
+    </div>
+
+    <!-- 近6个月趋势 -->
+    <div class="finance-trend card">
+      <div class="finance-section-title">📈 近6个月支出趋势</div>
+      <div class="finance-trend-list" id="finance-trend-list">
+        <div class="finance-empty-hint">暂无趋势数据</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 交易记录列表 -->
+  <div class="finance-transactions card">
+    <div class="finance-transactions-header">
+      <div class="finance-section-title">📝 交易记录</div>
+      <div class="finance-filter">
+        <label>月份：</label>
+        <input type="month" class="finance-month-picker" id="finance-month-picker">
+        <button class="finance-filter-reset-btn" id="finance-filter-reset">重置</button>
+      </div>
+    </div>
+    <div class="finance-transaction-list" id="finance-transaction-list">
+      <div class="finance-empty-hint">暂无交易记录</div>
+    </div>
+  </div>
+
+  <!-- FAB 按钮 -->
+  <button class="module-fab" id="finance-fab" title="添加交易">+</button>
+
+  <!-- 添加/编辑交易弹窗 -->
+  <div class="finance-modal-overlay" id="finance-modal-overlay" style="display:none">
+    <div class="finance-modal card">
+      <div class="finance-modal-header">
+        <h3 class="finance-modal-title" id="finance-modal-title">添加交易</h3>
+        <button class="finance-modal-close" id="finance-modal-close">×</button>
+      </div>
+      <div class="finance-modal-body">
+        <!-- 类型切换 -->
+        <div class="finance-type-switch">
+          <button class="finance-type-btn active" data-type="expense" id="finance-type-expense">支出</button>
+          <button class="finance-type-btn" data-type="income" id="finance-type-income">收入</button>
+        </div>
+
+        <!-- 金额 -->
+        <div class="finance-form-group">
+          <label>金额 (¥)</label>
+          <input type="number" class="finance-form-input" id="finance-amount" placeholder="0.00" min="0" step="0.01">
+        </div>
+
+        <!-- 分类（支出） -->
+        <div class="finance-form-group" id="finance-category-group">
+          <label>分类</label>
+          <div class="finance-category-tags" id="finance-category-tags">
+            <!-- 动态生成 -->
+          </div>
+          <div class="finance-custom-category">
+            <input type="text" class="finance-form-input finance-category-input" id="finance-custom-category" placeholder="自定义分类名">
+            <button class="finance-add-category-btn" id="finance-add-category-btn">添加</button>
+          </div>
+        </div>
+
+        <!-- 来源（收入） -->
+        <div class="finance-form-group" id="finance-source-group" style="display:none">
+          <label>来源</label>
+          <div class="finance-category-tags" id="finance-source-tags">
+            <!-- 动态生成 -->
+          </div>
+          <div class="finance-custom-category">
+            <input type="text" class="finance-form-input finance-source-input" id="finance-custom-source" placeholder="自定义来源名">
+            <button class="finance-add-source-btn" id="finance-add-source-btn">添加</button>
+          </div>
+        </div>
+
+        <!-- 备注 -->
+        <div class="finance-form-group">
+          <label>备注</label>
+          <input type="text" class="finance-form-input" id="finance-note" placeholder="可选备注" maxlength="100">
+        </div>
+
+        <!-- 日期 -->
+        <div class="finance-form-group">
+          <label>日期</label>
+          <input type="date" class="finance-form-input" id="finance-date">
+        </div>
+      </div>
+      <div class="finance-modal-footer">
+        <button class="finance-modal-cancel" id="finance-modal-cancel">取消</button>
+        <button class="finance-modal-confirm" id="finance-modal-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 重复检测确认弹窗 -->
+  <div class="finance-modal-overlay" id="finance-duplicate-overlay" style="display:none">
+    <div class="finance-modal card finance-modal-sm">
+      <div class="finance-modal-header">
+        <h3 class="finance-modal-title">⚠️ 疑似重复记录</h3>
+      </div>
+      <div class="finance-modal-body">
+        <p class="finance-duplicate-hint" id="finance-duplicate-hint">已存在相同金额、分类和日期的记录，是否仍要添加？</p>
+      </div>
+      <div class="finance-modal-footer">
+        <button class="finance-modal-cancel" id="finance-duplicate-cancel">取消</button>
+        <button class="finance-modal-confirm" id="finance-duplicate-confirm">仍然添加</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,196 @@
+<!-- relations.html - 关系管理模块 -->
+<div class="relations module-container page-enter">
+
+  <!-- 模块标题 -->
+  <div class="module-header">
+    <h1 class="module-title">🤝 关系管理</h1>
+    <div class="module-actions">
+      <button class="rel-export-btn" id="rel-export-btn" title="导出数据">📤</button>
+    </div>
+  </div>
+
+  <!-- 生日提醒区域 -->
+  <div class="rel-birthday-section card" id="rel-birthday-section">
+    <div class="rel-birthday-header">
+      <span class="rel-birthday-icon">🎂</span>
+      <span class="rel-birthday-title">生日提醒</span>
+    </div>
+    <div class="rel-birthday-list" id="rel-birthday-list">
+      <!-- JS 动态生成 -->
+    </div>
+    <div class="rel-birthday-empty" id="rel-birthday-empty" style="display:none;">
+      <span>未来30天内没有生日 🎈</span>
+    </div>
+  </div>
+
+  <!-- 筛选栏：搜索 + 类型筛选 + 排序 -->
+  <div class="rel-toolbar">
+    <div class="rel-search-wrap">
+      <span class="rel-search-icon">🔍</span>
+      <input type="text" class="rel-search-input" id="rel-search-input" placeholder="搜索姓名...">
+    </div>
+    <div class="rel-type-tabs" id="rel-type-tabs">
+      <button class="rel-type-tab active" data-type="all">全部</button>
+      <button class="rel-type-tab" data-type="家人">🏠 家人</button>
+      <button class="rel-type-tab" data-type="朋友">🎯 朋友</button>
+      <button class="rel-type-tab" data-type="老师">📚 老师</button>
+      <button class="rel-type-tab" data-type="同学">🎓 同学</button>
+      <button class="rel-type-tab" data-type="同事">💼 同事</button>
+    </div>
+    <select class="rel-sort-select" id="rel-sort-select">
+      <option value="name">按姓名排序</option>
+      <option value="recent">最近联系</option>
+      <option value="birthday">生日临近</option>
+    </select>
+  </div>
+
+  <!-- 联系人卡片网格 -->
+  <div class="rel-grid" id="rel-grid">
+    <!-- JS 动态生成 -->
+  </div>
+
+  <!-- 空状态 -->
+  <div class="rel-empty" id="rel-empty" style="display:none;">
+    <div class="rel-empty-icon">👥</div>
+    <p class="rel-empty-text">还没有联系人</p>
+    <p class="rel-empty-hint">点击右下角 + 添加第一个联系人吧</p>
+  </div>
+
+  <!-- 联系人详情弹窗 -->
+  <div class="rel-modal-overlay" id="rel-detail-modal" style="display:none;">
+    <div class="rel-modal-card">
+      <button class="rel-modal-close" id="rel-detail-close">&times;</button>
+      <div class="rel-detail-header">
+        <div class="rel-detail-avatar" id="rel-detail-avatar"></div>
+        <div class="rel-detail-info">
+          <h2 class="rel-detail-name" id="rel-detail-name"></h2>
+          <span class="rel-detail-type-badge" id="rel-detail-type-badge"></span>
+        </div>
+        <div class="rel-detail-header-actions">
+          <button class="rel-icon-btn" id="rel-edit-btn" title="编辑">✏️</button>
+          <button class="rel-icon-btn rel-icon-btn--danger" id="rel-delete-btn" title="删除">🗑️</button>
+        </div>
+      </div>
+
+      <!-- 详情标签页 -->
+      <div class="rel-detail-tabs">
+        <button class="rel-detail-tab active" data-tab="info">基本信息</button>
+        <button class="rel-detail-tab" data-tab="interactions">互动记录</button>
+      </div>
+
+      <!-- 信息面板 -->
+      <div class="rel-detail-panel" id="rel-panel-info">
+        <div class="rel-info-grid">
+          <div class="rel-info-row" id="rel-info-birthday-row">
+            <span class="rel-info-label">🎂 生日</span>
+            <span class="rel-info-value" id="rel-info-birthday"></span>
+          </div>
+          <div class="rel-info-row" id="rel-info-phone-row">
+            <span class="rel-info-label">📱 电话</span>
+            <span class="rel-info-value" id="rel-info-phone"></span>
+          </div>
+          <div class="rel-info-row" id="rel-info-wechat-row">
+            <span class="rel-info-label">💬 微信</span>
+            <span class="rel-info-value" id="rel-info-wechat"></span>
+          </div>
+          <div class="rel-info-row" id="rel-info-email-row">
+            <span class="rel-info-label">📧 邮箱</span>
+            <span class="rel-info-value" id="rel-info-email"></span>
+          </div>
+          <div class="rel-info-row" id="rel-info-notes-row">
+            <span class="rel-info-label">📝 备注</span>
+            <span class="rel-info-value" id="rel-info-notes"></span>
+          </div>
+        </div>
+        <!-- 重要日期 -->
+        <div class="rel-important-dates" id="rel-important-dates">
+          <h4 class="rel-sub-title">📅 重要日期</h4>
+          <div class="rel-dates-list" id="rel-dates-list"></div>
+        </div>
+        <!-- 关系健康度 -->
+        <div class="rel-health" id="rel-health">
+          <h4 class="rel-sub-title">💚 关系健康度</h4>
+          <div class="rel-health-bar" id="rel-health-bar">
+            <div class="rel-health-fill" id="rel-health-fill"></div>
+          </div>
+          <p class="rel-health-text" id="rel-health-text"></p>
+        </div>
+      </div>
+
+      <!-- 互动记录面板 -->
+      <div class="rel-detail-panel" id="rel-panel-interactions" style="display:none;">
+        <div class="rel-interaction-add">
+          <input type="date" class="rel-interaction-date" id="rel-interaction-date">
+          <input type="text" class="rel-interaction-note" id="rel-interaction-note" placeholder="简要记录...">
+          <button class="rel-btn-primary" id="rel-add-interaction-btn">添加</button>
+        </div>
+        <div class="rel-interaction-list" id="rel-interaction-list">
+          <!-- JS 动态生成 -->
+        </div>
+        <div class="rel-interaction-empty" id="rel-interaction-empty" style="display:none;">
+          <p>还没有互动记录</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加/编辑联系人弹窗 -->
+  <div class="rel-modal-overlay" id="rel-form-modal" style="display:none;">
+    <div class="rel-modal-card rel-form-card">
+      <button class="rel-modal-close" id="rel-form-close">&times;</button>
+      <h2 class="rel-form-title" id="rel-form-title">添加联系人</h2>
+      <form class="rel-form" id="rel-form">
+        <div class="rel-form-group">
+          <label>姓名 <span class="rel-required">*</span></label>
+          <input type="text" class="rel-form-input" id="rel-form-name" required placeholder="输入姓名">
+        </div>
+        <div class="rel-form-group">
+          <label>关系类型 <span class="rel-required">*</span></label>
+          <div class="rel-form-type-selector" id="rel-form-type-selector">
+            <button type="button" class="rel-form-type-btn active" data-type="家人">🏠 家人</button>
+            <button type="button" class="rel-form-type-btn" data-type="朋友">🎯 朋友</button>
+            <button type="button" class="rel-form-type-btn" data-type="老师">📚 老师</button>
+            <button type="button" class="rel-form-type-btn" data-type="同学">🎓 同学</button>
+            <button type="button" class="rel-form-type-btn" data-type="同事">💼 同事</button>
+          </div>
+          <input type="text" class="rel-form-input rel-form-custom-type" id="rel-form-custom-type" placeholder="自定义类型" style="display:none;">
+        </div>
+        <div class="rel-form-group">
+          <label>生日 <span class="rel-required">*</span> <span class="rel-hint">（月-日，如 03-15）</span></label>
+          <input type="text" class="rel-form-input" id="rel-form-birthday" required placeholder="MM-DD" pattern="(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])">
+        </div>
+        <div class="rel-form-row">
+          <div class="rel-form-group rel-form-half">
+            <label>📱 电话</label>
+            <input type="tel" class="rel-form-input" id="rel-form-phone" placeholder="手机号码">
+          </div>
+          <div class="rel-form-group rel-form-half">
+            <label>💬 微信</label>
+            <input type="text" class="rel-form-input" id="rel-form-wechat" placeholder="微信号">
+          </div>
+        </div>
+        <div class="rel-form-group">
+          <label>📧 邮箱</label>
+          <input type="email" class="rel-form-input" id="rel-form-email" placeholder="邮箱地址">
+        </div>
+        <div class="rel-form-group">
+          <label>📝 备注</label>
+          <textarea class="rel-form-input rel-form-textarea" id="rel-form-notes" placeholder="关于这个人的备注..."></textarea>
+        </div>
+        <!-- 重要日期 -->
+        <div class="rel-form-group">
+          <label>📅 重要日期</label>
+          <div class="rel-form-dates-list" id="rel-form-dates-list"></div>
+          <button type="button" class="rel-btn-secondary" id="rel-add-date-btn">+ 添加日期</button>
+        </div>
+        <div class="rel-form-actions">
+          <button type="button" class="rel-btn-cancel" id="rel-form-cancel">取消</button>
+          <button type="submit" class="rel-btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="module-fab" id="rel-fab" title="添加联系人">+</button>
+</div>

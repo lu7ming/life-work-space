@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 /**
  * 存储管理器
@@ -106,6 +106,42 @@ const Storage = (() => {
         // 技能表（v3 新增）
         if (!db.objectStoreNames.contains('skills')) {
           db.createObjectStore('skills', { keyPath: 'id', autoIncrement: true });
+        }
+
+        // 记录与反思表（v4 新增）
+        if (!db.objectStoreNames.contains('journal')) {
+          const store = db.createObjectStore('journal', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('date', 'date', { unique: false });
+          store.createIndex('type', 'type', { unique: false });
+        }
+
+        // 目标表（v4 新增）
+        if (!db.objectStoreNames.contains('goals')) {
+          const store = db.createObjectStore('goals', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('level', 'level', { unique: false });
+        }
+
+        // 关系表（v4 新增）
+        if (!db.objectStoreNames.contains('contacts')) {
+          const store = db.createObjectStore('contacts', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('type', 'type', { unique: false });
+        }
+
+        // 知识库表（v4 新增）
+        if (!db.objectStoreNames.contains('knowledge')) {
+          const store = db.createObjectStore('knowledge', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('type', 'type', { unique: false });
+        }
+
+        // 灵感表（v4 新增）
+        if (!db.objectStoreNames.contains('ideas')) {
+          const store = db.createObjectStore('ideas', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('date', 'date', { unique: false });
+        }
+
+        // 生命树表（v4 新增）
+        if (!db.objectStoreNames.contains('lifetree')) {
+          db.createObjectStore('lifetree', { keyPath: 'key' });
         }
       };
 
@@ -258,8 +294,10 @@ const Storage = (() => {
 
     // 填充本月打卡记录（随机几天）
     const checkinDays = [1, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 21, 23, 25];
+    const maxDay = today.getDate();
+    const validDays = checkinDays.filter(d => d <= maxDay);
     const allHabitIds = ['warm-water','breakfast','exercise','drink-water','dinner-light','foot-bath','early-sleep','reading','study','stretch','journal','finance'];
-    for (const day of checkinDays) {
+    for (const day of validDays) {
       const dd = String(day).padStart(2, '0');
       // 每天随机完成 2~5 个习惯
       const count = 2 + (day % 4);

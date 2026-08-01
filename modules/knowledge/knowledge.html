@@ -1,0 +1,131 @@
+<div class="module-container page-enter knowledge-module">
+  <!-- Header -->
+  <div class="module-header">
+    <h1 class="module-title">📚 知识库</h1>
+    <div class="module-actions">
+      <button class="knowledge-stats-btn" id="knowledgeStatsBtn" title="统计">
+        <span>📊</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search & Type Filter -->
+  <div class="knowledge-toolbar">
+    <div class="knowledge-search">
+      <span class="knowledge-search-icon">🔍</span>
+      <input type="text" class="knowledge-search-input" id="knowledgeSearchInput" placeholder="搜索标题或内容...">
+      <button class="knowledge-search-clear" id="knowledgeSearchClear" style="display:none;">✕</button>
+    </div>
+    <div class="knowledge-type-tabs" id="knowledgeTypeTabs">
+      <button class="knowledge-type-tab active" data-type="all">全部</button>
+      <button class="knowledge-type-tab" data-type="article">📄 文章</button>
+      <button class="knowledge-type-tab" data-type="note">📝 笔记</button>
+      <button class="knowledge-type-tab" data-type="excerpt">📖 书摘</button>
+    </div>
+  </div>
+
+  <!-- Main Content: Tags Sidebar + List -->
+  <div class="knowledge-body">
+    <!-- Left: Tags Sidebar -->
+    <aside class="knowledge-sidebar" id="knowledgeSidebar">
+      <div class="knowledge-sidebar-title">标签</div>
+      <div class="knowledge-tag-list" id="knowledgeTagList">
+        <button class="knowledge-tag-item active" data-tag="all">
+          <span class="knowledge-tag-name">全部</span>
+          <span class="knowledge-tag-count" id="knowledgeAllCount">0</span>
+        </button>
+        <!-- Dynamic tags here -->
+      </div>
+    </aside>
+
+    <!-- Right: Entries List -->
+    <main class="knowledge-main">
+      <div class="knowledge-sort-bar" id="knowledgeSortBar">
+        <span class="knowledge-result-count" id="knowledgeResultCount">0 条</span>
+        <div class="knowledge-sort-options">
+          <button class="knowledge-sort-btn active" data-sort="time-desc">最新</button>
+          <button class="knowledge-sort-btn" data-sort="time-asc">最早</button>
+        </div>
+      </div>
+      <div class="knowledge-list" id="knowledgeList">
+        <!-- Dynamic cards here -->
+      </div>
+      <div class="knowledge-empty" id="knowledgeEmpty" style="display:none;">
+        <div class="knowledge-empty-icon">📭</div>
+        <p>还没有知识条目</p>
+        <p class="knowledge-empty-hint">点击右下角 + 添加第一条吧</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- FAB -->
+  <button class="module-fab knowledge-fab" id="knowledgeFabBtn">+</button>
+
+  <!-- Detail / Edit Modal -->
+  <div class="knowledge-modal-overlay" id="knowledgeModal" style="display:none;">
+    <div class="knowledge-modal-card">
+      <div class="knowledge-modal-header">
+        <h2 class="knowledge-modal-title" id="knowledgeModalTitle">新建知识</h2>
+        <button class="knowledge-modal-close" id="knowledgeModalClose">✕</button>
+      </div>
+      <div class="knowledge-modal-body">
+        <div class="knowledge-form-group">
+          <label class="knowledge-form-label">标题 <span class="required">*</span></label>
+          <input type="text" class="knowledge-form-input" id="knowledgeFormTitle" placeholder="输入标题" maxlength="100">
+        </div>
+        <div class="knowledge-form-group">
+          <label class="knowledge-form-label">类型</label>
+          <div class="knowledge-form-types" id="knowledgeFormTypes">
+            <button class="knowledge-form-type-btn active" data-type="article">📄 文章</button>
+            <button class="knowledge-form-type-btn" data-type="note">📝 笔记</button>
+            <button class="knowledge-form-type-btn" data-type="excerpt">📖 书摘</button>
+          </div>
+        </div>
+        <div class="knowledge-form-group">
+          <label class="knowledge-form-label">内容</label>
+          <textarea class="knowledge-form-textarea" id="knowledgeFormContent" placeholder="输入内容..." rows="6"></textarea>
+        </div>
+        <div class="knowledge-form-group">
+          <label class="knowledge-form-label">链接 URL</label>
+          <input type="url" class="knowledge-form-input" id="knowledgeFormUrl" placeholder="https://...">
+        </div>
+        <div class="knowledge-form-group">
+          <label class="knowledge-form-label">来源</label>
+          <input type="text" class="knowledge-form-input" id="knowledgeFormSource" placeholder="来源（如：书名、网站名）" maxlength="50">
+        </div>
+        <div class="knowledge-form-group">
+          <label class="knowledge-form-label">标签</label>
+          <div class="knowledge-form-tags-input-wrap">
+            <div class="knowledge-form-tags-display" id="knowledgeFormTagsDisplay">
+              <!-- Tags shown here -->
+            </div>
+            <input type="text" class="knowledge-form-input knowledge-tag-input-field" id="knowledgeTagInput" placeholder="输入标签后回车">
+          </div>
+          <div class="knowledge-form-tags-suggest" id="knowledgeFormTagsSuggest">
+            <!-- Suggested existing tags -->
+          </div>
+        </div>
+      </div>
+      <div class="knowledge-modal-footer">
+        <button class="knowledge-btn-delete" id="knowledgeFormDelete" style="display:none;">删除</button>
+        <div class="knowledge-modal-footer-right">
+          <button class="knowledge-btn-cancel" id="knowledgeFormCancel">取消</button>
+          <button class="knowledge-btn-save" id="knowledgeFormSave">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Modal -->
+  <div class="knowledge-modal-overlay" id="knowledgeStatsModal" style="display:none;">
+    <div class="knowledge-stats-card">
+      <div class="knowledge-modal-header">
+        <h2 class="knowledge-modal-title">📊 知识库统计</h2>
+        <button class="knowledge-modal-close" id="knowledgeStatsClose">✕</button>
+      </div>
+      <div class="knowledge-stats-body" id="knowledgeStatsBody">
+        <!-- Dynamic stats -->
+      </div>
+    </div>
+  </div>
+</div>

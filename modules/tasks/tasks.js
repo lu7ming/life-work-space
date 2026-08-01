@@ -146,7 +146,7 @@ const TasksModule = (() => {
     let tasks;
     if (panel === 'today') {
       const todayStr = formatDate(new Date());
-      tasks = allTasks.filter((t) => t.status === 'todo' && (!t.dueDate || t.dueDate <= todayStr));
+      tasks = allTasks.filter((t) => t.status === 'todo' && t.date === todayStr);
     } else if (panel === 'all') {
       tasks = allTasks.filter((t) => t.status === 'todo');
       if (currentFilter !== 'all') {

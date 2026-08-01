@@ -692,6 +692,65 @@ const App = (() => {
         }
       });
     });
+
+    // ===== 右下角 FAB 按钮组事件 =====
+    const fabXiaolu = document.getElementById('ai-fab-xiaolu');
+    const fabNicole = document.getElementById('ai-fab-nicole');
+
+    // 🦌 小鹿AI：点击打开面板，长按快捷语音
+    if (fabXiaolu) {
+      let fabLongPressTimer = null;
+      let fabLongPressed = false;
+
+      const onFabLongPressStart = (e) => {
+        fabLongPressed = false;
+        fabLongPressTimer = setTimeout(() => {
+          fabLongPressed = true;
+          if (navigator.vibrate) navigator.vibrate(30);
+          fabXiaolu.classList.add('long-press-active');
+          if (typeof XiaoluModule !== 'undefined') {
+            XiaoluModule.quickVoiceInput();
+          }
+        }, 500);
+      };
+
+      const onFabLongPressEnd = () => {
+        clearTimeout(fabLongPressTimer);
+        fabXiaolu.classList.remove('long-press-active');
+      };
+
+      fabXiaolu.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        onFabLongPressStart(e);
+      }, { passive: false });
+      fabXiaolu.addEventListener('touchend', onFabLongPressEnd);
+      fabXiaolu.addEventListener('touchcancel', onFabLongPressEnd);
+      fabXiaolu.addEventListener('mousedown', onFabLongPressStart);
+      fabXiaolu.addEventListener('mouseup', onFabLongPressEnd);
+      fabXiaolu.addEventListener('mouseleave', onFabLongPressEnd);
+      fabXiaolu.addEventListener('contextmenu', (e) => e.preventDefault());
+      fabXiaolu.addEventListener('selectstart', (e) => e.preventDefault());
+
+      fabXiaolu.addEventListener('click', () => {
+        if (fabLongPressed) return;
+        if (typeof XiaoluModule !== 'undefined') {
+          XiaoluModule.open();
+        } else {
+          showToast('小鹿模块加载中... 🦌');
+        }
+      });
+    }
+
+    // 💎 妮可AI：点击打开面板
+    if (fabNicole) {
+      fabNicole.addEventListener('click', () => {
+        if (typeof NicoleModule !== 'undefined') {
+          NicoleModule.open();
+        } else {
+          showToast('妮可模块加载中... 💎');
+        }
+      });
+    }
   }
 
   /**

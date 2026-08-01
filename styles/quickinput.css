@@ -349,11 +349,68 @@
 }
 
 /* ===== FAB 按钮 ===== */
-.qi-fab {
+/* FAB 按钮组 - 右下角垂直列 */
+.ai-fab-group {
   position: fixed;
   bottom: 28px;
   right: 28px;
   z-index: 8999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-fab-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  font-size: 22px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(80, 60, 40, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.ai-fab-xiaolu {
+  background: linear-gradient(135deg, #6B8E5A, #4A7A3D);
+}
+
+.ai-fab-nicole {
+  background: linear-gradient(135deg, #7B6BA5, #5A4F8A);
+}
+
+.ai-fab-btn:active {
+  transform: scale(0.9);
+}
+
+.ai-fab-btn.long-press-active {
+  transform: scale(1.2);
+  box-shadow: 0 0 16px rgba(64, 179, 112, 0.6);
+}
+
+[data-theme="dark"] .ai-fab-xiaolu {
+  background: linear-gradient(135deg, #4A6B3D, #3A5A2D);
+}
+
+[data-theme="dark"] .ai-fab-nicole {
+  background: linear-gradient(135deg, #5A4F8A, #4A3F7A);
+}
+
+.qi-fab {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  z-index: auto;
   width: 52px;
   height: 52px;
   border: none;
@@ -388,9 +445,21 @@
 }
 
 @media (max-width: 767px) {
-  .qi-fab {
+  .ai-fab-group {
     bottom: 20px;
     right: 20px;
+    gap: 10px;
+  }
+
+  .ai-fab-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+
+  .qi-fab {
+    bottom: auto;
+    right: auto;
     width: 48px;
     height: 48px;
     font-size: 20px;

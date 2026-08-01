@@ -14,6 +14,7 @@ const App = (() => {
     try {
       await Storage.getDB();
       await Storage.initSampleData();
+      await Storage.migrateCourseData();
       console.log('[App] IndexedDB 初始化完成');
     } catch (err) {
       console.error('[App] IndexedDB 初始化失败:', err);
@@ -24,7 +25,7 @@ const App = (() => {
     Router.register('habits', loadHabits);
     Router.register('tasks', loadTasks);
     Router.register('study', loadStudy);
-    Router.register('health', () => loadPlaceholder('健康'));
+    Router.register('health', loadHealth);
     Router.register('finance', () => loadPlaceholder('财务'));
     Router.register('relations', () => loadPlaceholder('关系'));
     Router.register('knowledge', () => loadPlaceholder('知识库'));
@@ -94,7 +95,7 @@ const App = (() => {
       'habits': loadHabits,
       'tasks': loadTasks,
       'study': loadStudy,
-      'health': () => loadPlaceholder('健康'),
+      'health': loadHealth,
       'finance': () => loadPlaceholder('财务'),
       'relations': () => loadPlaceholder('关系'),
       'knowledge': () => loadPlaceholder('知识库'),
@@ -190,6 +191,24 @@ const App = (() => {
       }
     } catch (err) {
       console.error('[App] 加载学习模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载健康模块
+   */
+  async function loadHealth() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('health/health.html');
+      container.innerHTML = html;
+      loadModuleCSS('health/health.css');
+      if (typeof HealthModule !== 'undefined' && HealthModule.init) {
+        HealthModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载健康模块失败:', err);
       container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
     }
   }

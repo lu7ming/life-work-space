@@ -21,10 +21,10 @@
         <select class="study-semester-select" id="study-semester-select"></select>
         <button class="study-semester-manage-btn" id="study-semester-manage-btn" title="学期管理">⚙️</button>
       </div>
-      <!-- 周视图 -->
+      <!-- 周视图（24小时时间轴） -->
       <div class="study-timetable card" id="study-timetable">
-        <div class="study-timetable-header">
-          <div class="study-timetable-corner"></div>
+        <div class="study-timetable-header" id="study-timetable-header">
+          <div class="study-timetable-time-col">时间</div>
           <div class="study-timetable-day">周一</div>
           <div class="study-timetable-day">周二</div>
           <div class="study-timetable-day">周三</div>
@@ -34,7 +34,7 @@
           <div class="study-timetable-day">周日</div>
         </div>
         <div class="study-timetable-body" id="study-timetable-body">
-          <!-- JS 动态生成 5行×7列 -->
+          <!-- JS 动态生成 33行×8列（时间标签+7天） -->
         </div>
       </div>
     </div>
@@ -114,13 +114,16 @@
               <option value="6">周六</option>
               <option value="0">周日</option>
             </select>
-            <select class="study-input study-select" id="course-period-select">
-              <option value="1">第1节</option>
-              <option value="2">第2节</option>
-              <option value="3">第3节</option>
-              <option value="4">第4节</option>
-              <option value="5">第5节</option>
-            </select>
+          </div>
+          <div class="study-form-row" style="margin-top:8px;">
+            <div class="study-form-group" style="margin-bottom:0;flex:1;">
+              <label>开始时间</label>
+              <input type="time" class="study-input" id="course-start-time-input" value="08:00" />
+            </div>
+            <div class="study-form-group" style="margin-bottom:0;flex:1;">
+              <label>结束时间</label>
+              <input type="time" class="study-input" id="course-end-time-input" value="09:30" />
+            </div>
           </div>
         </div>
       </div>

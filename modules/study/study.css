@@ -111,21 +111,32 @@
   background: var(--bg-hover);
 }
 
-/* ===== 课程表周视图 ===== */
+/* ===== 课程表周视图（24小时时间轴） ===== */
 .study-timetable {
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 70vh;
+  border: 1px solid var(--text-light);
+  border-radius: var(--radius-md);
 }
 
 .study-timetable-header {
   display: grid;
-  grid-template-columns: 48px repeat(7, 1fr);
-  background: var(--bg-hover);
+  grid-template-columns: 60px repeat(7, 1fr);
+  background: var(--bg-sidebar);
   border-bottom: 1px solid var(--bg-hover);
+  position: sticky;
+  top: 0;
+  z-index: 3;
 }
 
-.study-timetable-corner {
-  border-right: 1px solid var(--bg-hover);
+.study-timetable-time-col {
+  padding: 10px 4px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding-right: 8px;
 }
 
 .study-timetable-day {
@@ -134,70 +145,89 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
-  border-right: 1px solid var(--bg-hover);
-}
-
-.study-timetable-day:last-child {
-  border-right: none;
+  border-left: 1px solid var(--bg-hover);
 }
 
 .study-timetable-body {
-  display: grid;
-  grid-template-columns: 48px repeat(7, 1fr);
-  grid-template-rows: repeat(5, 72px);
+  position: relative;
 }
 
-.study-timetable-period {
+/* 时间行 */
+.study-timetable-row {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+}
+
+/* 时间标签列 */
+.study-timetable-time-label {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 500;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 2px 8px 0 0;
+  font-size: 11px;
+  font-weight: 400;
   color: var(--text-muted);
   border-right: 1px solid var(--bg-hover);
-  border-bottom: 1px solid var(--bg-hover);
-  background: var(--bg-card);
+  user-select: none;
 }
 
+/* 每天的格子 */
 .study-timetable-cell {
-  border-right: 1px solid var(--bg-hover);
-  border-bottom: 1px solid var(--bg-hover);
+  height: 36px;
+  border-bottom: 1px dashed var(--bg-hover);
+  border-left: 1px solid var(--bg-hover);
+  position: relative;
   cursor: pointer;
   transition: background var(--transition-fast);
-  position: relative;
-  overflow: hidden;
-}
-
-.study-timetable-cell:nth-child(8n) {
-  border-right: none;
 }
 
 .study-timetable-cell:hover {
-  background: var(--bg-hover);
+  background: rgba(232, 168, 124, 0.06);
+}
+
+/* 整点行下边框加粗 */
+.study-timetable-row.is-hour .study-timetable-cell {
+  border-bottom-style: solid;
+  border-bottom-color: var(--bg-hover);
+}
+
+/* 今天列高亮 */
+.study-timetable-cell.today-column {
+  background: var(--bg-sidebar);
+}
+
+/* 点击覆盖层 */
+.study-cell-click-area {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
 }
 
 /* 课程色块 */
 .study-course-block {
   position: absolute;
-  inset: 2px;
+  left: 2px;
+  right: 2px;
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 4px 6px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
   cursor: pointer;
+  z-index: 2;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .study-course-block:hover {
   transform: scale(1.03);
   box-shadow: var(--shadow-md);
-  z-index: 1;
+  z-index: 4;
 }
 
 .study-course-block-name {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #fff;
   white-space: nowrap;
@@ -207,12 +237,12 @@
 }
 
 .study-course-block-room {
-  font-size: 10px;
+  font-size: 9px;
   color: rgba(255, 255, 255, 0.8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 /* 课程颜色 */
@@ -810,16 +840,26 @@
     grid-template-columns: 1fr;
   }
 
-  .study-timetable-body {
-    grid-template-rows: repeat(5, 64px);
+  .study-timetable-header {
+    grid-template-columns: 44px repeat(7, 1fr);
   }
 
-  .study-course-block-name {
+  .study-timetable-row {
+    grid-template-columns: 44px repeat(7, 1fr);
+  }
+
+  .study-timetable-time-col,
+  .study-timetable-time-label {
+    font-size: 10px;
+  }
+
+  .study-timetable-day {
     font-size: 11px;
+    padding: 8px 2px;
   }
 
-  .study-course-block-room {
-    font-size: 9px;
+  .study-timetable-cell {
+    height: 30px;
   }
 }
 
@@ -860,18 +900,23 @@
     grid-template-columns: 36px repeat(7, 1fr);
   }
 
-  .study-timetable-body {
+  .study-timetable-row {
     grid-template-columns: 36px repeat(7, 1fr);
-    grid-template-rows: repeat(5, 56px);
+  }
+
+  .study-timetable-time-col,
+  .study-timetable-time-label {
+    font-size: 9px;
+    padding-right: 4px;
   }
 
   .study-timetable-day {
-    font-size: 11px;
-    padding: 8px 2px;
+    font-size: 10px;
+    padding: 6px 1px;
   }
 
-  .study-timetable-period {
-    font-size: 10px;
+  .study-timetable-cell {
+    height: 26px;
   }
 
   .study-fab {

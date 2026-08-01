@@ -304,13 +304,13 @@ const Storage = (() => {
     // 学习模块示例数据
     const semester1Id = await add('semesters', { name: '2026年春季' });
 
-    // 示例课程
-    await add('courses', { name: '高等数学', room: 'A301', teacher: '李教授', day: 1, period: 1, semesterId: semester1Id });
-    await add('courses', { name: '大学英语', room: 'B205', teacher: '王老师', day: 1, period: 3, semesterId: semester1Id });
-    await add('courses', { name: '数据结构', room: 'C102', teacher: '张教授', day: 2, period: 2, semesterId: semester1Id });
-    await add('courses', { name: '线性代数', room: 'A301', teacher: '李教授', day: 3, period: 1, semesterId: semester1Id });
-    await add('courses', { name: '操作系统', room: 'D401', teacher: '赵教授', day: 4, period: 2, semesterId: semester1Id });
-    await add('courses', { name: '体育', room: '体育馆', teacher: '陈老师', day: 5, period: 4, semesterId: semester1Id });
+    // 示例课程（24小时制时间格式）
+    await add('courses', { name: '高等数学', room: 'A301', teacher: '李教授', day: 1, startTime: '08:00', endTime: '09:30', semesterId: semester1Id });
+    await add('courses', { name: '大学英语', room: 'B205', teacher: '王老师', day: 1, startTime: '10:00', endTime: '11:30', semesterId: semester1Id });
+    await add('courses', { name: '数据结构', room: 'C102', teacher: '张教授', day: 2, startTime: '09:40', endTime: '11:10', semesterId: semester1Id });
+    await add('courses', { name: '线性代数', room: 'A301', teacher: '李教授', day: 3, startTime: '08:00', endTime: '09:30', semesterId: semester1Id });
+    await add('courses', { name: '操作系统', room: 'D401', teacher: '赵教授', day: 4, startTime: '10:00', endTime: '11:30', semesterId: semester1Id });
+    await add('courses', { name: '体育', room: '体育馆', teacher: '陈老师', day: 5, startTime: '14:20', endTime: '15:50', semesterId: semester1Id });
 
     // 示例书籍
     await add('books', { title: '原子习惯', author: 'James Clear', status: 'done', progress: 100, note: '很受启发' });
@@ -333,6 +333,46 @@ const Storage = (() => {
     console.log('[Storage] 示例数据初始化完成');
   }
 
+  /**
+   * 迁移课程数据：将旧 period 格式转为 startTime/endTime 格式
+   * period 映射：1→08:00-09:30, 2→09:40-11:10, 3→11:20-12:50, 4→14:00-15:30, 5→15:40-17:10
+   */
+  async function migrateCourseData() {
+    const migrated = await get('meta', 'courseMigrated');
+    if (migrated) return;
+
+    const PERIOD_MAP = {
+      1: { startTime: '08:00', endTime: '09:30' },
+      2: { startTime: '09:40', endTime: '11:10' },
+      3: { startTime: '11:20', endTime: '12:50' },
+      4: { startTime: '14:00', endTime: '15:30' },
+      5: { startTime: '15:40', endTime: '17:10' },
+    };
+
+    try {
+      const allCourses = await getAll('courses');
+      let changed = false;
+      for (const course of allCourses) {
+        if (course.period !== undefined && course.startTime === undefined) {
+          const mapped = PERIOD_MAP[course.period];
+          if (mapped) {
+            course.startTime = mapped.startTime;
+            course.endTime = mapped.endTime;
+            delete course.period;
+            await put('courses', course);
+            changed = true;
+          }
+        }
+      }
+      if (changed) {
+        console.log('[Storage] 课程数据已从 period 格式迁移为 startTime/endTime 格式');
+      }
+      await put('meta', { key: 'courseMigrated', value: true });
+    } catch (err) {
+      console.error('[Storage] 课程数据迁移失败:', err);
+    }
+  }
+
   return {
     getDB,
     add,
@@ -343,6 +383,7 @@ const Storage = (() => {
     remove,
     clear,
     count,
-    initSampleData
+    initSampleData,
+    migrateCourseData
   };
 })();

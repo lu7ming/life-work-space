@@ -5,9 +5,14 @@
 const StudyModule = (() => {
   // ===== 常量 =====
   const COURSE_COLORS = 8; // 8种颜色自动分配
-  const PERIODS = 5;       // 1-5节
   const DAYS = [1, 2, 3, 4, 5, 6, 0]; // 周一~周日(0=周日)
   const DAY_NAMES = { 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六', 0: '周日' };
+
+  // 时间轴：07:00 - 23:30，每30分钟一格，共33行
+  const TIME_START = 7 * 60;   // 420分 = 07:00
+  const TIME_END = 23 * 60 + 30; // 1410分 = 23:30
+  const TIME_STEP = 30;         // 每格30分钟
+  const CELL_HEIGHT = 36;       // 每格高度(px)
 
   const BOOK_COVER_COLORS = [
     '#7EBF8E', '#E8A87C', '#8BB8D4', '#B8A0D4', '#E08B8B',
@@ -34,6 +39,27 @@ const StudyModule = (() => {
     const div = document.createElement('div');
     div.textContent = str || '';
     return div.innerHTML;
+  }
+
+  // ===== 时间工具函数 =====
+  /** "HH:MM" → 分钟数（如 "08:30" → 510） */
+  function timeToMinutes(timeStr) {
+    if (!timeStr || !timeStr.includes(':')) return 0;
+    const [h, m] = timeStr.split(':').map(Number);
+    return h * 60 + (m || 0);
+  }
+
+  /** 分钟数 → "HH:MM"（如 510 → "08:30"） */
+  function minutesToTime(mins) {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  /** 获取今天是周几（1=周一...6=周六, 0=周日） */
+  function getTodayDay() {
+    const jsDay = new Date().getDay(); // 0=周日, 1=周一...6=周六
+    return jsDay === 0 ? 0 : jsDay;
   }
 
   function getCourseColor(courseId) {
@@ -116,68 +142,124 @@ const StudyModule = (() => {
 
   function renderTimetable() {
     const body = document.getElementById('study-timetable-body');
+    const header = document.getElementById('study-timetable-header');
     if (!body) return;
     body.innerHTML = '';
+
+    const todayDay = getTodayDay();
+
+    // 高亮今天的表头
+    if (header) {
+      const dayHeaders = header.querySelectorAll('.study-timetable-day');
+      dayHeaders.forEach((el, idx) => {
+        el.classList.toggle('today-column', DAYS[idx] === todayDay);
+      });
+    }
 
     // 筛选当前学期的课程
     const semesterCourses = currentSemesterId
       ? allCourses.filter((c) => c.semesterId === currentSemesterId)
       : [];
 
-    // 构建课程映射：key = "day-period"
-    const courseMap = {};
-    semesterCourses.forEach((c) => {
-      const key = `${c.day}-${c.period}`;
-      courseMap[key] = c;
-    });
-
     // 重置颜色映射
     courseColorMap = {};
     nextColorIndex = 0;
     semesterCourses.forEach((c) => getCourseColor(c.id));
 
-    for (let period = 1; period <= PERIODS; period++) {
-      // 节次标签
-      const periodEl = document.createElement('div');
-      periodEl.className = 'study-timetable-period';
-      periodEl.textContent = `${period}`;
-      body.appendChild(periodEl);
+    // 生成时间行：07:00, 07:30, 08:00, ..., 23:30（共33行）
+    for (let mins = TIME_START; mins <= TIME_END; mins += TIME_STEP) {
+      const isHour = mins % 60 === 0;
+      const timeLabel = minutesToTime(mins);
+
+      const row = document.createElement('div');
+      row.className = 'study-timetable-row' + (isHour ? ' is-hour' : '');
+
+      // 时间标签
+      const timeEl = document.createElement('div');
+      timeEl.className = 'study-timetable-time-label';
+      // 只在整点和半点显示，半点用较小字
+      if (isHour) {
+        timeEl.textContent = timeLabel;
+      } else {
+        timeEl.textContent = timeLabel;
+        timeEl.style.opacity = '0.5';
+      }
+      row.appendChild(timeEl);
 
       // 7天的格子
       for (let di = 0; di < DAYS.length; di++) {
         const day = DAYS[di];
         const cell = document.createElement('div');
         cell.className = 'study-timetable-cell';
-        cell.dataset.day = day;
-        cell.dataset.period = period;
-
-        const course = courseMap[`${day}-${period}`];
-        if (course) {
-          const colorIdx = getCourseColor(course.id);
-          const block = document.createElement('div');
-          block.className = `study-course-block study-color-${colorIdx}`;
-          block.dataset.courseId = course.id;
-          block.innerHTML = `
-            <span class="study-course-block-name">${escapeHtml(course.name)}</span>
-            ${course.room ? `<span class="study-course-block-room">${escapeHtml(course.room)}</span>` : ''}
-          `;
-          cell.appendChild(block);
+        if (day === todayDay) {
+          cell.classList.add('today-column');
         }
+        cell.dataset.day = day;
+        cell.dataset.time = timeLabel;
 
-        // 点击空白格添加课程，点击课程编辑
-        cell.addEventListener('click', (e) => {
-          const block = e.target.closest('.study-course-block');
-          if (block) {
-            const courseId = parseInt(block.dataset.courseId);
-            showCourseModal(courseId);
-          } else {
-            showCourseModal(null, day, period);
-          }
+        // 点击空白格添加课程
+        const clickArea = document.createElement('div');
+        clickArea.className = 'study-cell-click-area';
+        clickArea.addEventListener('click', () => {
+          showCourseModal(null, day, timeLabel);
         });
+        cell.appendChild(clickArea);
 
-        body.appendChild(cell);
+        row.appendChild(cell);
       }
+
+      body.appendChild(row);
     }
+
+    // 渲染课程块（绝对定位在对应cell上）
+    semesterCourses.forEach((course) => {
+      const startMins = timeToMinutes(course.startTime);
+      const endMins = timeToMinutes(course.endTime);
+      if (startMins >= endMins) return; // 无效时间跳过
+
+      // 课程跨越的起始行和结束行
+      const startRow = Math.floor((startMins - TIME_START) / TIME_STEP);
+      const endRow = Math.ceil((endMins - TIME_START) / TIME_STEP);
+
+      if (startRow < 0 || endRow <= 0) return; // 超出时间范围
+
+      // 课程所在的day列索引
+      const dayIdx = DAYS.indexOf(course.day);
+      if (dayIdx === -1) return;
+
+      // 计算top和height（相对于第一行格子）
+      const topOffset = (startMins - TIME_START) / TIME_STEP * CELL_HEIGHT;
+      const blockHeight = ((endMins - startMins) / TIME_STEP) * CELL_HEIGHT;
+
+      // 找到课程起始行对应的cell
+      const rows = body.querySelectorAll('.study-timetable-row');
+      const clampedStartRow = Math.max(0, startRow);
+      if (clampedStartRow >= rows.length) return;
+      const targetRow = rows[clampedStartRow];
+      const cells = targetRow.querySelectorAll('.study-timetable-cell');
+      const targetCell = cells[dayIdx];
+      if (!targetCell) return;
+
+      // 创建课程块
+      const colorIdx = getCourseColor(course.id);
+      const block = document.createElement('div');
+      block.className = `study-course-block study-color-${colorIdx}`;
+      block.dataset.courseId = course.id;
+      block.style.top = `${topOffset - clampedStartRow * CELL_HEIGHT}px`;
+      block.style.height = `${blockHeight - 4}px`; // 4px间距
+      block.innerHTML = `
+        <span class="study-course-block-name">${escapeHtml(course.name)}</span>
+        ${course.room ? `<span class="study-course-block-room">${escapeHtml(course.room)}</span>` : ''}
+      `;
+
+      // 点击课程块 → 编辑
+      block.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showCourseModal(parseInt(block.dataset.courseId));
+      });
+
+      targetCell.appendChild(block);
+    });
   }
 
   // ===== 学期选择变化 =====
@@ -196,14 +278,15 @@ const StudyModule = (() => {
   }
 
   // ===== 课程浮层 =====
-  function showCourseModal(courseId, day, period) {
+  function showCourseModal(courseId, day, startTime) {
     const overlay = document.getElementById('study-course-modal-overlay');
     const titleEl = document.getElementById('study-course-modal-title');
     const nameInput = document.getElementById('course-name-input');
     const roomInput = document.getElementById('course-room-input');
     const teacherInput = document.getElementById('course-teacher-input');
     const daySelect = document.getElementById('course-day-select');
-    const periodSelect = document.getElementById('course-period-select');
+    const startTimeInput = document.getElementById('course-start-time-input');
+    const endTimeInput = document.getElementById('course-end-time-input');
     const deleteBtn = document.getElementById('study-course-delete');
     if (!overlay) return;
 
@@ -218,7 +301,8 @@ const StudyModule = (() => {
       if (roomInput) roomInput.value = course.room || '';
       if (teacherInput) teacherInput.value = course.teacher || '';
       if (daySelect) daySelect.value = String(course.day);
-      if (periodSelect) periodSelect.value = String(course.period);
+      if (startTimeInput) startTimeInput.value = course.startTime || '08:00';
+      if (endTimeInput) endTimeInput.value = course.endTime || '09:30';
       if (deleteBtn) deleteBtn.style.display = '';
     } else {
       // 添加模式
@@ -227,7 +311,10 @@ const StudyModule = (() => {
       if (roomInput) roomInput.value = '';
       if (teacherInput) teacherInput.value = '';
       if (daySelect) daySelect.value = day !== undefined ? String(day) : '1';
-      if (periodSelect) periodSelect.value = period !== undefined ? String(period) : '1';
+      if (startTimeInput) startTimeInput.value = startTime || '08:00';
+      // 默认结束时间 = 开始时间 + 90分钟
+      const defaultEnd = minutesToTime(timeToMinutes(startTime || '08:00') + 90);
+      if (endTimeInput) endTimeInput.value = defaultEnd;
       if (deleteBtn) deleteBtn.style.display = 'none';
     }
 
@@ -246,7 +333,8 @@ const StudyModule = (() => {
     const roomInput = document.getElementById('course-room-input');
     const teacherInput = document.getElementById('course-teacher-input');
     const daySelect = document.getElementById('course-day-select');
-    const periodSelect = document.getElementById('course-period-select');
+    const startTimeInput = document.getElementById('course-start-time-input');
+    const endTimeInput = document.getElementById('course-end-time-input');
 
     const name = nameInput?.value.trim();
     if (!name) {
@@ -260,14 +348,24 @@ const StudyModule = (() => {
     }
 
     const day = parseInt(daySelect?.value || '1');
-    const period = parseInt(periodSelect?.value || '1');
+    const startTime = startTimeInput?.value || '08:00';
+    const endTime = endTimeInput?.value || '09:30';
 
-    // 检查同一时段是否已有其他课程
-    const conflict = allCourses.find((c) =>
-      c.semesterId === currentSemesterId &&
-      c.day === day && c.period === period &&
-      c.id !== editingCourseId
-    );
+    // 验证时间
+    if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
+      if (typeof App !== 'undefined' && App.showToast) App.showToast('结束时间必须晚于开始时间');
+      return;
+    }
+
+    // 检查同一时段是否已有其他课程（时间重叠检测）
+    const newStart = timeToMinutes(startTime);
+    const newEnd = timeToMinutes(endTime);
+    const conflict = allCourses.find((c) => {
+      if (c.semesterId !== currentSemesterId || c.day !== day || c.id === editingCourseId) return false;
+      const cStart = timeToMinutes(c.startTime);
+      const cEnd = timeToMinutes(c.endTime);
+      return newStart < cEnd && newEnd > cStart; // 时间重叠
+    });
     if (conflict) {
       if (typeof App !== 'undefined' && App.showToast) App.showToast('该时段已有课程');
       return;
@@ -278,7 +376,8 @@ const StudyModule = (() => {
       room: roomInput?.value.trim() || '',
       teacher: teacherInput?.value.trim() || '',
       day,
-      period,
+      startTime,
+      endTime,
       semesterId: currentSemesterId,
     };
 

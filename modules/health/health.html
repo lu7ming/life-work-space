@@ -1,0 +1,192 @@
+<!-- health.html - 健康与身体模块 -->
+<div class="health page-enter">
+
+  <!-- 顶部：日期切换 -->
+  <div class="health-header">
+    <h1 class="health-title">💪 健康与身体</h1>
+    <div class="health-date-switcher">
+      <button class="health-date-btn" id="health-prev-day" title="前一天">‹</button>
+      <div class="health-date-display">
+        <span class="health-date-text" id="health-date-text"></span>
+        <span class="health-date-weekday" id="health-date-weekday"></span>
+      </div>
+      <button class="health-date-btn" id="health-next-day" title="后一天">›</button>
+      <button class="health-today-btn" id="health-today-btn">今天</button>
+    </div>
+  </div>
+
+  <!-- 主区域：卡片网格 -->
+  <div class="health-body">
+
+    <!-- 体重卡片 -->
+    <div class="health-card card" id="health-weight-card">
+      <div class="health-card-header">
+        <span class="health-card-icon">⚖️</span>
+        <span class="health-card-name">体重</span>
+        <span class="health-card-unit">(kg)</span>
+      </div>
+      <div class="health-card-body">
+        <input type="number" class="health-input health-weight-input" id="health-weight-input"
+               placeholder="输入体重" step="0.1" min="20" max="300">
+        <div class="health-weight-trend" id="health-weight-trend"></div>
+      </div>
+    </div>
+
+    <!-- 睡眠卡片 -->
+    <div class="health-card card" id="health-sleep-card">
+      <div class="health-card-header">
+        <span class="health-card-icon">😴</span>
+        <span class="health-card-name">睡眠</span>
+      </div>
+      <div class="health-card-body">
+        <div class="health-sleep-row">
+          <label>入睡</label>
+          <input type="time" class="health-time-input" id="health-sleep-bedtime" value="23:00">
+        </div>
+        <div class="health-sleep-row">
+          <label>起床</label>
+          <input type="time" class="health-time-input" id="health-sleep-waketime" value="07:00">
+        </div>
+        <div class="health-sleep-duration" id="health-sleep-duration">
+          <span class="health-sleep-hours">--</span>
+          <span class="health-sleep-label">小时</span>
+        </div>
+        <div class="health-sleep-nap">
+          <label>午休(分钟)</label>
+          <input type="number" class="health-mini-input" id="health-sleep-nap" placeholder="0" min="0" max="180">
+        </div>
+      </div>
+    </div>
+
+    <!-- 运动卡片 -->
+    <div class="health-card card" id="health-exercise-card">
+      <div class="health-card-header">
+        <span class="health-card-icon">🏃</span>
+        <span class="health-card-name">运动</span>
+      </div>
+      <div class="health-card-body">
+        <div class="health-exercise-list" id="health-exercise-list">
+          <!-- JS 动态生成已添加的运动 -->
+        </div>
+        <div class="health-exercise-add">
+          <select class="health-select" id="health-exercise-type">
+            <option value="">选择运动类型</option>
+            <option value="walking">🚶 散步</option>
+            <option value="running">🏃 跑步</option>
+            <option value="cycling">🚴 骑行</option>
+            <option value="swimming">🏊 游泳</option>
+            <option value="yoga">🧘 瑜伽</option>
+            <option value="strength">🏋️ 力量训练</option>
+            <option value="basketball">🏀 篮球</option>
+            <option value="badminton">🏸 羽毛球</option>
+            <option value="hiking">🥾 徒步</option>
+            <option value="custom">✏️ 自定义...</option>
+          </select>
+          <input type="text" class="health-mini-input health-custom-type" id="health-exercise-custom" placeholder="输入运动名称" style="display:none">
+          <input type="number" class="health-mini-input" id="health-exercise-duration" placeholder="时长(分钟)" min="1" max="600">
+          <button class="health-add-btn" id="health-exercise-add-btn">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 饮水卡片 -->
+    <div class="health-card card" id="health-water-card">
+      <div class="health-card-header">
+        <span class="health-card-icon">💧</span>
+        <span class="health-card-name">饮水</span>
+        <span class="health-card-target">目标 1500ml</span>
+      </div>
+      <div class="health-card-body">
+        <div class="health-water-display">
+          <span class="health-water-amount" id="health-water-amount">0</span>
+          <span class="health-water-unit">ml</span>
+        </div>
+        <div class="health-water-bar">
+          <div class="health-water-fill" id="health-water-fill"></div>
+        </div>
+        <div class="health-water-actions">
+          <button class="health-water-btn" data-amount="100">+100ml</button>
+          <button class="health-water-btn" data-amount="200">+200ml</button>
+          <button class="health-water-btn" data-amount="350">+350ml</button>
+          <button class="health-water-btn health-water-btn--custom" id="health-water-custom-btn">自定义</button>
+        </div>
+        <input type="number" class="health-mini-input health-water-custom-input" id="health-water-custom-input"
+               placeholder="输入ml数" min="1" max="5000" style="display:none">
+      </div>
+    </div>
+
+    <!-- 饮食卡片 -->
+    <div class="health-card card health-card--wide" id="health-diet-card">
+      <div class="health-card-header">
+        <span class="health-card-icon">🥗</span>
+        <span class="health-card-name">饮食记录</span>
+        <button class="health-card-add-btn" id="health-diet-add-btn">+ 添加</button>
+      </div>
+      <div class="health-card-body">
+        <div class="health-diet-list" id="health-diet-list">
+          <!-- JS 动态生成 -->
+        </div>
+        <div class="health-diet-form" id="health-diet-form" style="display:none">
+          <div class="health-diet-form-row">
+            <select class="health-select" id="health-diet-meal">
+              <option value="breakfast">🌅 早餐</option>
+              <option value="lunch">☀️ 午餐</option>
+              <option value="dinner">🌙 晚餐</option>
+              <option value="snack">🍪 加餐</option>
+            </select>
+          </div>
+          <textarea class="health-textarea" id="health-diet-content" placeholder="吃了什么？简单记录即可..." rows="2"></textarea>
+          <div class="health-diet-form-actions">
+            <button class="health-btn health-btn--cancel" id="health-diet-cancel">取消</button>
+            <button class="health-btn health-btn--confirm" id="health-diet-confirm">记录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 底部：每日参考 -->
+  <div class="health-reference card">
+    <h3 class="health-ref-title">📋 每日健康参考</h3>
+    <div class="health-ref-grid">
+      <div class="health-ref-item">
+        <span class="health-ref-emoji">💧</span>
+        <span class="health-ref-text">喝水 1500-1700ml</span>
+      </div>
+      <div class="health-ref-item">
+        <span class="health-ref-emoji">🥩</span>
+        <span class="health-ref-text">蛋白质 50-60g</span>
+      </div>
+      <div class="health-ref-item">
+        <span class="health-ref-emoji">🍚</span>
+        <span class="health-ref-text">碳水 150-200g</span>
+      </div>
+      <div class="health-ref-item">
+        <span class="health-ref-emoji">🥬</span>
+        <span class="health-ref-text">蔬菜 200g</span>
+      </div>
+      <div class="health-ref-item">
+        <span class="health-ref-emoji">🍎</span>
+        <span class="health-ref-text">水果半个</span>
+      </div>
+      <div class="health-ref-item">
+        <span class="health-ref-emoji">😴</span>
+        <span class="health-ref-text">23:00前入睡</span>
+      </div>
+      <div class="health-ref-item">
+        <span class="health-ref-emoji">🌅</span>
+        <span class="health-ref-text">07:00-07:30起床</span>
+      </div>
+      <div class="health-ref-item">
+        <span class="health-ref-emoji">💤</span>
+        <span class="health-ref-text">午休 15-20分钟</span>
+      </div>
+      <div class="health-ref-item">
+        <span class="health-ref-emoji">🔥</span>
+        <span class="health-ref-text">能量 1800-2000千卡</span>
+      </div>
+    </div>
+  </div>
+
+</div>

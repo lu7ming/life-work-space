@@ -1045,28 +1045,33 @@ const XiaoluModule = (() => {
 
     if (tool === 'record_finance') {
       const now = new Date();
-      const dateStr = now.toISOString().slice(0, 10);
+      const dateStr = params.date || now.toISOString().slice(0, 10);
       const monthStr = dateStr.slice(0, 7);
 
+      // 不设置 id，让 IndexedDB autoIncrement 自动生成
       const record = {
         type: params.type || 'expense',
         amount: Number(params.amount) || 0,
         category: params.category || '其他',
-        source: params.source || '其他',
+        source: params.source || '',
         note: params.note || '',
         date: dateStr,
-        month: monthStr,
-        id: Date.now()
+        month: monthStr
       };
+
+      // 金额校验
+      if (record.amount <= 0) {
+        return { success: false, message: '金额无效，请检查输入' };
+      }
 
       try {
         await Storage.add('finance', record);
         const typeLabel = record.type === 'income' ? '收入' : '支出';
-        const detailField = record.type === 'income' ? `来源：${record.source}` : `分类：${record.category}`;
+        const detailField = record.type === 'income' ? `来源：${record.source || '其他'}` : `分类：${record.category || '其他'}`;
         return { success: true, message: `✅ 已记录${typeLabel} ¥${record.amount}（${detailField}）` };
       } catch (e) {
         console.error('[Xiaolu] 记录收支失败:', e);
-        return { success: false, message: '记录收支时写入数据库失败' };
+        return { success: false, message: '记录收支时写入数据库失败：' + (e.message || e) };
       }
     }
 
@@ -1076,8 +1081,7 @@ const XiaoluModule = (() => {
         priority: params.priority || 'medium',
         status: 'pending',
         created_at: new Date().toISOString(),
-        due_date: params.due_date || '',
-        id: Date.now()
+        due_date: params.due_date || ''
       };
 
       try {
@@ -1152,20 +1156,36 @@ const XiaoluModule = (() => {
       // 使用链式意图识别
       const reply = await decomposedIntentChain(token, text);
 
-      // 解析AI回复中的ACTION标签
-      const actionMatch = reply.match(/\[ACTION:({.*?})\]/);
+      // 健壮地解析AI回复中的ACTION标签（支持嵌套JSON）
       let finalReply = reply;
       let actionObj = null;
 
-      if (actionMatch) {
+      // 先尝试 QuickInput 解析（更可靠：单次API + 关键词降级）
+      if (typeof QuickInput !== 'undefined' && QuickInput.parseQuickInput) {
         try {
-          actionObj = JSON.parse(actionMatch[1]);
-          // 移除 ACTION 标签，保留文字部分
-          finalReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
+          const qiParsed = await QuickInput.parseQuickInput(text);
+          if (qiParsed && qiParsed.intent && qiParsed.intent !== 'unknown' && qiParsed.intent !== 'journal_entry') {
+            // QuickInput 识别到可执行意图，直接构建 actionObj
+            const toolMap = {
+              'finance_record': { tool: 'record_finance', params: qiParsed.params },
+              'task_create': { tool: 'create_task', params: qiParsed.params },
+              'habit_checkin': { tool: 'habit_log', params: { habit: qiParsed.params.habit_name, status: 'completed' } }
+            };
+            actionObj = toolMap[qiParsed.intent] || null;
+            if (actionObj) {
+              console.log('[Xiaolu] handleSend: QuickInput 识别到操作:', actionObj);
+              finalReply = ''; // 将由确认卡片展示
+            }
+          }
         } catch (e) {
-          console.error('[Xiaolu] ACTION标签解析失败:', e);
-          finalReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
+          console.warn('[Xiaolu] handleSend: QuickInput 解析失败:', e);
         }
+      }
+
+      // 如果 QuickInput 没识别到，尝试从 AI 回复中提取 ACTION 标签
+      if (!actionObj) {
+        actionObj = _extractActionFromReply(reply);
+        finalReply = actionObj ? _removeActionTag(reply) : reply;
       }
 
       removeLoading();
@@ -1444,6 +1464,61 @@ const XiaoluModule = (() => {
     _processQuickVoiceText(text);
   }
 
+  /**
+   * 健壮地从回复中提取 ACTION 标签（支持嵌套 JSON、换行、多余空格）
+   */
+  function _extractActionFromReply(reply) {
+    if (!reply) return null;
+    const startMarker = '[ACTION:';
+    const startIdx = reply.indexOf(startMarker);
+    if (startIdx === -1) return null;
+
+    const afterStart = reply.substring(startIdx + startMarker.length);
+    const endIdx = afterStart.lastIndexOf(']');
+    if (endIdx === -1) return null;
+
+    const jsonStr = afterStart.substring(0, endIdx).trim();
+    try {
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      console.warn('[Xiaolu] ACTION JSON 解析失败:', jsonStr, e);
+      return null;
+    }
+  }
+
+  /**
+   * 从回复中移除 ACTION 标签，保留纯文字
+   */
+  function _removeActionTag(reply) {
+    if (!reply) return '';
+    const startMarker = '[ACTION:';
+    const startIdx = reply.indexOf(startMarker);
+    if (startIdx === -1) return reply;
+
+    const afterStart = reply.substring(startIdx + startMarker.length);
+    const endIdx = afterStart.lastIndexOf(']');
+    if (endIdx === -1) return reply;
+
+    const tagEnd = startIdx + startMarker.length + endIdx + 1;
+    return (reply.substring(0, startIdx) + reply.substring(tagEnd)).trim();
+  }
+
+  /**
+   * 操作执行后刷新对应模块的数据
+   */
+  function _refreshAfterAction(intentOrTool) {
+    const map = {
+      'finance_record': () => typeof FinanceModule !== 'undefined' && FinanceModule.init && FinanceModule.init(),
+      'task_create': () => typeof TasksModule !== 'undefined' && TasksModule.init && TasksModule.init(),
+      'habit_checkin': () => typeof HabitsModule !== 'undefined' && HabitsModule.init && HabitsModule.init(),
+      'record_finance': () => typeof FinanceModule !== 'undefined' && FinanceModule.init && FinanceModule.init(),
+      'create_task': () => typeof TasksModule !== 'undefined' && TasksModule.init && TasksModule.init(),
+      'habit_log': () => typeof HabitsModule !== 'undefined' && HabitsModule.init && HabitsModule.init(),
+    };
+    const fn = map[intentOrTool];
+    if (fn) { try { fn(); } catch (e) { console.warn('[Xiaolu] 刷新模块失败:', e); } }
+  }
+
   async function _processQuickVoiceText(text) {
     const token = await getDeepseekToken();
 
@@ -1456,44 +1531,64 @@ const XiaoluModule = (() => {
       return;
     }
 
+    // 显示识别到的文字 + 处理中
+    _updateQuickBubbleText('💭 ' + text + '\n⏳ 处理中...');
+
     try {
-      const reply = await decomposedIntentChain(token, text);
+      // ===== 策略1：优先走 QuickInput 引擎（单次API + 关键词降级，更可靠） =====
+      if (typeof QuickInput !== 'undefined' && QuickInput.parseQuickInput) {
+        const parsed = await QuickInput.parseQuickInput(text);
+        console.log('[Xiaolu] QuickInput 解析结果:', parsed);
 
-      // 解析 ACTION 标签
-      const actionMatch = reply.match(/\[ACTION:({.*?})\]/);
-      let displayReply = reply;
-      let actionObj = null;
+        if (parsed && parsed.intent && parsed.intent !== 'unknown' && parsed.intent !== 'journal_entry') {
+          const result = await QuickInput.executeQuickInput(parsed);
+          console.log('[Xiaolu] QuickInput 执行结果:', result);
 
-      if (actionMatch) {
-        try {
-          actionObj = JSON.parse(actionMatch[1]);
-          displayReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
-        } catch (e) {
-          displayReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
+          const iconMap = { 'finance_record': '💰', 'task_create': '📋', 'habit_checkin': '✅', 'pomodoro_start': '🍅' };
+          const icon = iconMap[parsed.intent] || '✅';
+          const msg = icon + ' ' + (result.message || '已完成');
+
+          _updateQuickBubbleText(msg);
+          if (typeof App !== 'undefined') App.showToast(msg, 3000);
+
+          _chatHistory.push({ role: 'user', content: text });
+          _chatHistory.push({ role: 'assistant', content: result.message });
+          trimContext();
+
+          _refreshAfterAction(parsed.intent);
+          setTimeout(_removeQuickBubble, 5000);
+          return;
         }
       }
 
-      // 如果有操作，直接执行
+      // ===== 策略2：走小鹿链式意图识别（聊天意图） =====
+      const reply = await decomposedIntentChain(token, text);
+
+      const actionObj = _extractActionFromReply(reply);
+      let displayReply = actionObj ? _removeActionTag(reply) : reply;
+
       if (actionObj) {
         const result = await executeLocalAction(actionObj);
         displayReply = result.success
           ? displayReply + '\n' + result.message
           : displayReply + '\n❌ ' + result.message;
+        if (typeof App !== 'undefined') App.showToast(result.message, 3000);
+        _refreshAfterAction(actionObj.tool || '');
       }
 
-      // 保存聊天记录
       _chatHistory.push({ role: 'user', content: text });
       _chatHistory.push({ role: 'assistant', content: displayReply });
       trimContext();
 
-      // 显示气泡结果
       _updateQuickBubbleText(displayReply.replace(/\n/g, ' '));
-      setTimeout(_removeQuickBubble, 4000);
+      setTimeout(_removeQuickBubble, 5000);
 
     } catch (err) {
       console.error('[Xiaolu] 快捷语音 AI 处理失败:', err);
-      _updateQuickBubbleText('❌ ' + (err.message || '处理失败'));
-      setTimeout(_removeQuickBubble, 3000);
+      const errMsg = '❌ ' + (err.message || '处理失败');
+      _updateQuickBubbleText(errMsg);
+      if (typeof App !== 'undefined') App.showToast(errMsg, 3000);
+      setTimeout(_removeQuickBubble, 5000);
     }
   }
 

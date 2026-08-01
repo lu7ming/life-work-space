@@ -296,13 +296,17 @@
   padding: 10px 14px;
   border: 1.5px solid var(--border-color, #F0E8DE);
   border-radius: var(--radius-md, 12px);
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main, #F5EDE4) !important;
+  -webkit-appearance: none;
+  appearance: none;
   font-size: 14px;
   color: var(--text-primary, #3D3027);
   font-family: inherit;
   resize: none;
   outline: none;
   max-height: 100px;
+  min-height: 40px;
+  height: 40px;
   line-height: 1.5;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -313,6 +317,12 @@
 
 .xiaolu-input::placeholder {
   color: var(--text-muted, #A99E93);
+}
+
+/* Safari autofill 覆盖 */
+.xiaolu-input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100px var(--bg-main, #F5EDE4) inset !important;
+  background: var(--bg-main, #F5EDE4) !important;
 }
 
 /* 录音时输入框脉冲动画 */

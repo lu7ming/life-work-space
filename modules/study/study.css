@@ -433,10 +433,10 @@
 /* ===== FAB 浮动按钮 ===== */
 .study-fab {
   position: fixed;
-  bottom: 32px;
-  right: 32px;
-  width: 52px;
-  height: 52px;
+  bottom: 24px;
+  right: 16px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--accent-orange);
   color: #fff;
@@ -869,10 +869,10 @@
   }
 
   .study-fab {
-    bottom: 24px;
-    right: 24px;
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
+    bottom: 16px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
   }
 }

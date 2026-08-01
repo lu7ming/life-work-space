@@ -1,0 +1,245 @@
+/**
+ * dashboard.css - 总面板模块样式
+ * 人生工作台 · 暖米色极简风格
+ */
+
+/* ===== 总面板容器 ===== */
+.dashboard {
+  max-width: 960px;
+}
+
+/* ===== 问候区域 ===== */
+.dash-greeting {
+  margin-bottom: 28px;
+}
+
+.dash-greeting-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.dash-greeting-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ===== 两列布局 ===== */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* ===== 日历卡片 ===== */
+.dash-calendar {
+  padding: 20px;
+}
+
+.dash-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.dash-calendar-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dash-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.dash-calendar-weekdays span {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 0;
+  font-weight: 500;
+}
+
+.dash-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.dash-calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: default;
+  transition: background var(--transition-fast);
+  position: relative;
+}
+
+.dash-calendar-day.empty {
+  cursor: default;
+}
+
+.dash-calendar-day:not(.empty):hover {
+  background: var(--bg-hover);
+}
+
+.dash-calendar-day.today {
+  background: var(--text-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.dash-calendar-day.checked::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  position: absolute;
+  bottom: 4px;
+}
+
+.dash-calendar-day.today.checked::after {
+  background: #fff;
+}
+
+/* ===== 亮点卡片区域 ===== */
+.dash-highlights {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.dash-highlight-card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-light, #fff);
+  border-left: 3px solid var(--accent, var(--text-light));
+  text-align: center;
+}
+
+.dash-highlight-icon {
+  font-size: 28px;
+}
+
+.dash-highlight-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dash-highlight-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dash-highlight-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== 今日推送 ===== */
+.dash-feed {
+  padding: 20px;
+}
+
+.dash-feed-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.dash-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dash-feed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-main);
+  transition: background var(--transition-fast);
+  cursor: pointer;
+}
+
+.dash-feed-item:hover {
+  background: var(--bg-hover);
+}
+
+.dash-feed-item-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.dash-feed-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-feed-item-title {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dash-feed-item-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 900px) {
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-greeting-title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dash-highlights {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .dash-highlight-card {
+    padding: 14px;
+  }
+
+  .dash-highlight-value {
+    font-size: 18px;
+  }
+
+  .dash-greeting-title {
+    font-size: 20px;
+  }
+}

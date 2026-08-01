@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#F5EDE4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="人生工作台">
+  <title>人生工作台</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- 样式 -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/sidebar.css">
+  <link rel="stylesheet" href="styles/dashboard.css">
+</head>
+<body>
+
+  <!-- 移动端侧边栏遮罩 -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- 应用容器 -->
+  <div class="app-container">
+
+    <!-- ========== 左侧边栏 ========== -->
+    <aside class="sidebar" id="sidebar">
+      <!-- 头像 -->
+      <div class="sidebar-avatar">
+        <div class="sidebar-avatar-img">
+          <!-- 占位：后续替换为萨摩耶照片 -->
+          🐕
+        </div>
+      </div>
+
+      <!-- AI 每日金句 -->
+      <div class="sidebar-quote">
+        <p class="sidebar-quote-text">
+          每一个优秀的人，都有一段沉默的时光。<br>
+          那段时光，是付出了很多努力却得不到结果的日子。
+        </p>
+      </div>
+
+      <!-- 打卡签到 -->
+      <div class="sidebar-checkin">
+        <button class="sidebar-checkin-btn" id="checkin-btn">打卡签到</button>
+        <p class="sidebar-streak">连续坚持：<strong id="streak-count">0</strong> 天</p>
+      </div>
+
+      <!-- 分割线 -->
+      <div class="sidebar-divider"></div>
+
+      <!-- 导航菜单 -->
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-item active" data-route="dashboard">
+          <span class="nav-icon">🏠</span>
+          <span>今日总览</span>
+        </div>
+        <div class="sidebar-nav-item" data-route="habits">
+          <span class="nav-icon">✅</span>
+          <span>习惯打卡</span>
+        </div>
+        <div class="sidebar-nav-item" data-route="tasks">
+          <span class="nav-icon">📋</span>
+          <span>任务</span>
+        </div>
+        <div class="sidebar-nav-item" data-route="study">
+          <span class="nav-icon">📚</span>
+          <span>学习</span>
+        </div>
+        <div class="sidebar-nav-item" data-route="health">
+          <span class="nav-icon">💪</span>
+          <span>健康</span>
+        </div>
+        <div class="sidebar-nav-item" data-route="finance">
+          <span class="nav-icon">💰</span>
+          <span>财务</span>
+        </div>
+
+        <!-- 更多（展开子菜单） -->
+        <div class="sidebar-nav-group">
+          <div class="sidebar-nav-item" data-toggle="submenu">
+            <span class="nav-icon">⋯</span>
+            <span>更多</span>
+            <span class="nav-arrow">›</span>
+          </div>
+          <div class="sidebar-submenu">
+            <div class="sidebar-submenu-item" data-route="relations">🤝 关系</div>
+            <div class="sidebar-submenu-item" data-route="knowledge">🧠 知识库</div>
+            <div class="sidebar-submenu-item" data-route="goals">🎯 目标</div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- 底部 -->
+      <div class="sidebar-footer">
+        人生工作台 v1.0
+      </div>
+    </aside>
+
+    <!-- ========== 主区域 ========== -->
+    <div class="main-area">
+
+      <!-- 顶部栏 -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <!-- 移动端菜单按钮 -->
+          <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+          <span class="topbar-date" id="topbar-date"></span>
+          <!-- AI 按钮 -->
+          <div class="topbar-ai-btns">
+            <button class="topbar-ai-btn" title="小鹿AI">🦌</button>
+            <button class="topbar-ai-btn" title="妮可AI">🔵</button>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-icon-btn" data-tip="🌳 生命树功能开发中">🌳</button>
+          <button class="topbar-icon-btn" data-tip="⚙️ 设置功能开发中">⚙️</button>
+          <div style="position:relative;">
+            <button class="topbar-icon-btn" id="topbar-more-btn">⋮</button>
+            <div class="topbar-more-menu" id="topbar-more-menu">
+              <button data-action="search">🔍 搜索</button>
+              <button data-action="save">💾 保存</button>
+              <button data-action="refresh">🔄 刷新</button>
+              <button data-action="theme">🎨 主题</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- 内容区 -->
+      <main class="content-area" id="content-area">
+        <!-- 页面内容由路由动态加载 -->
+        <div style="text-align:center;padding:80px 20px;color:var(--text-muted);">
+          加载中...
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- 核心脚本（按依赖顺序加载） -->
+  <script src="core/storage.js"></script>
+  <script src="core/router.js"></script>
+  <script src="modules/dashboard/dashboard.js"></script>
+  <script src="core/app.js"></script>
+
+</body>
+</html>

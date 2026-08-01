@@ -1,0 +1,65 @@
+<!-- dashboard.html - 总面板模板 -->
+<div class="dashboard page-enter">
+  <!-- 问候区域 -->
+  <div class="dash-greeting">
+    <h1 class="dash-greeting-title" id="dash-greeting-text">下午好，鹿7铭。</h1>
+    <p class="dash-greeting-subtitle" id="dash-greeting-sub"></p>
+  </div>
+
+  <!-- 两列布局 -->
+  <div class="dash-grid">
+    <!-- 左列：日历 -->
+    <div class="dash-calendar card">
+      <div class="dash-calendar-header">
+        <span class="dash-calendar-title" id="dash-calendar-month"></span>
+      </div>
+      <div class="dash-calendar-weekdays">
+        <span>日</span><span>一</span><span>二</span><span>三</span>
+        <span>四</span><span>五</span><span>六</span>
+      </div>
+      <div class="dash-calendar-days" id="dash-calendar-days">
+        <!-- JS 动态生成 -->
+      </div>
+    </div>
+
+    <!-- 右列：亮点卡片 -->
+    <div class="dash-highlights">
+      <div class="dash-highlight-card card" style="--accent: var(--accent-green); --accent-light: var(--accent-green-light);">
+        <span class="dash-highlight-icon">📅</span>
+        <div class="dash-highlight-info">
+          <span class="dash-highlight-value" id="dash-checkin-count">0</span>
+          <span class="dash-highlight-label">已签到天数</span>
+        </div>
+      </div>
+      <div class="dash-highlight-card card" style="--accent: var(--accent-blue); --accent-light: var(--accent-blue-light);">
+        <span class="dash-highlight-icon">📖</span>
+        <div class="dash-highlight-info">
+          <span class="dash-highlight-value" id="dash-study-hours">0h</span>
+          <span class="dash-highlight-label">学习时长</span>
+        </div>
+      </div>
+      <div class="dash-highlight-card card" style="--accent: var(--accent-orange); --accent-light: var(--accent-orange-light);">
+        <span class="dash-highlight-icon">💰</span>
+        <div class="dash-highlight-info">
+          <span class="dash-highlight-value" id="dash-month-expense">¥0</span>
+          <span class="dash-highlight-label">本月支出</span>
+        </div>
+      </div>
+      <div class="dash-highlight-card card" style="--accent: var(--accent-purple); --accent-light: var(--accent-purple-light);">
+        <span class="dash-highlight-icon">💎</span>
+        <div class="dash-highlight-info">
+          <span class="dash-highlight-value" id="dash-month-balance">¥0</span>
+          <span class="dash-highlight-label">本月结余</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 今日推送 -->
+  <div class="dash-feed card">
+    <h3 class="dash-feed-title">📰 今日推送</h3>
+    <div class="dash-feed-list" id="dash-feed-list">
+      <!-- JS 动态生成 -->
+    </div>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+{
+  "name": "人生工作台",
+  "short_name": "工作台",
+  "description": "极简温暖的人生管理工作台",
+  "start_url": "./life.html",
+  "display": "standalone",
+  "background_color": "#F5EDE4",
+  "theme_color": "#F5EDE4",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

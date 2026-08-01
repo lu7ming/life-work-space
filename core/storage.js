@@ -1,0 +1,278 @@
+/**
+ * storage.js - IndexedDB 封装（Promise 化）
+ * 人生工作台 · 数据持久层
+ */
+
+const DB_NAME = 'LifeWorkSpace';
+const DB_VERSION = 1;
+
+/**
+ * 存储管理器
+ * 提供对 IndexedDB 的 Promise 风格封装
+ */
+const Storage = (() => {
+  let _db = null;
+
+  /**
+   * 获取/创建数据库实例
+   */
+  function getDB() {
+    if (_db) return Promise.resolve(_db);
+
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+
+        // 打卡记录表
+        if (!db.objectStoreNames.contains('checkins')) {
+          const store = db.createObjectStore('checkins', { keyPath: 'date' });
+          store.createIndex('month', 'month', { unique: false });
+        }
+
+        // 习惯表
+        if (!db.objectStoreNames.contains('habits')) {
+          const store = db.createObjectStore('habits', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('category', 'category', { unique: false });
+        }
+
+        // 任务表
+        if (!db.objectStoreNames.contains('tasks')) {
+          const store = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('status', 'status', { unique: false });
+          store.createIndex('date', 'date', { unique: false });
+        }
+
+        // 学习记录表
+        if (!db.objectStoreNames.contains('study')) {
+          const store = db.createObjectStore('study', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('date', 'date', { unique: false });
+        }
+
+        // 健康记录表
+        if (!db.objectStoreNames.contains('health')) {
+          const store = db.createObjectStore('health', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('date', 'date', { unique: false });
+        }
+
+        // 财务记录表
+        if (!db.objectStoreNames.contains('finance')) {
+          const store = db.createObjectStore('finance', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('month', 'month', { unique: false });
+          store.createIndex('type', 'type', { unique: false });
+        }
+
+        // 设置表
+        if (!db.objectStoreNames.contains('settings')) {
+          db.createObjectStore('settings', { keyPath: 'key' });
+        }
+
+        // 初始化标记
+        if (!db.objectStoreNames.contains('meta')) {
+          db.createObjectStore('meta', { keyPath: 'key' });
+        }
+      };
+
+      request.onsuccess = (event) => {
+        _db = event.target.result;
+        resolve(_db);
+      };
+
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  }
+
+  /**
+   * 获取 Object Store 的事务
+   * @param {string} storeName - 表名
+   * @param {'readonly'|'readwrite'} mode - 事务模式
+   */
+  function getStore(storeName, mode = 'readonly') {
+    return getDB().then((db) => {
+      const tx = db.transaction(storeName, mode);
+      return tx.objectStore(storeName);
+    });
+  }
+
+  /**
+   * 添加一条记录
+   * @param {string} storeName - 表名
+   * @param {Object} data - 数据
+   */
+  async function add(storeName, data) {
+    const store = await getStore(storeName, 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.add(data);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 更新/插入一条记录（put）
+   * @param {string} storeName - 表名
+   * @param {Object} data - 数据（需包含 keyPath 字段）
+   */
+  async function put(storeName, data) {
+    const store = await getStore(storeName, 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.put(data);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 获取一条记录
+   * @param {string} storeName - 表名
+   * @param {*} key - 主键值
+   */
+  async function get(storeName, key) {
+    const store = await getStore(storeName, 'readonly');
+    return new Promise((resolve, reject) => {
+      const request = store.get(key);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 获取全部记录
+   * @param {string} storeName - 表名
+   */
+  async function getAll(storeName) {
+    const store = await getStore(storeName, 'readonly');
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 通过索引查询
+   * @param {string} storeName - 表名
+   * @param {string} indexName - 索引名
+   * @param {*} value - 索引值
+   */
+  async function getByIndex(storeName, indexName, value) {
+    const store = await getStore(storeName, 'readonly');
+    return new Promise((resolve, reject) => {
+      const index = store.index(indexName);
+      const request = index.getAll(value);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 删除一条记录
+   * @param {string} storeName - 表名
+   * @param {*} key - 主键值
+   */
+  async function remove(storeName, key) {
+    const store = await getStore(storeName, 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.delete(key);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 清空表
+   * @param {string} storeName - 表名
+   */
+  async function clear(storeName) {
+    const store = await getStore(storeName, 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 统计记录数
+   * @param {string} storeName - 表名
+   */
+  async function count(storeName) {
+    const store = await getStore(storeName, 'readonly');
+    return new Promise((resolve, reject) => {
+      const request = store.count();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 初始化示例数据（首次访问时调用）
+   */
+  async function initSampleData() {
+    const initialized = await get('meta', 'initialized');
+    if (initialized) return;
+
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${String(today.getDate()).padStart(2, '0')}`;
+    const monthStr = `${yyyy}-${mm}`;
+
+    // 填充本月打卡记录（随机几天）
+    const checkinDays = [1, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 21, 23, 25];
+    for (const day of checkinDays) {
+      const dd = String(day).padStart(2, '0');
+      await put('checkins', {
+        date: `${yyyy}-${mm}-${dd}`,
+        month: monthStr,
+        time: `0${8 + (day % 3)}:${String(day % 60).padStart(2, '0')}`,
+        habits: ['早起', '阅读']
+      });
+    }
+
+    // 填充几条任务
+    const tasks = [
+      { title: '完成周报', status: 'done', date: todayStr, category: 'work' },
+      { title: '读完《原子习惯》第5章', status: 'todo', date: todayStr, category: 'study' },
+      { title: '跑步3公里', status: 'todo', date: todayStr, category: 'health' },
+      { title: '整理本月账单', status: 'todo', date: todayStr, category: 'finance' },
+    ];
+    for (const task of tasks) {
+      await add('tasks', task);
+    }
+
+    // 填充学习记录
+    await add('study', { date: todayStr, minutes: 45, subject: '阅读' });
+
+    // 填充财务记录
+    await add('finance', { month: monthStr, type: 'expense', amount: 35.5, note: '午餐', date: todayStr });
+    await add('finance', { month: monthStr, type: 'expense', amount: 128, note: '书籍', date: todayStr });
+    await add('finance', { month: monthStr, type: 'expense', amount: 2560, note: '房租', date: todayStr });
+    await add('finance', { month: monthStr, type: 'income', amount: 15000, note: '工资', date: todayStr });
+
+    // 设置
+    await put('settings', { key: 'username', value: '鹿7铭' });
+    await put('settings', { key: 'streak', value: 14 });
+
+    // 标记已初始化
+    await put('meta', { key: 'initialized', value: true, date: todayStr });
+
+    console.log('[Storage] 示例数据初始化完成');
+  }
+
+  return {
+    getDB,
+    add,
+    put,
+    get,
+    getAll,
+    getByIndex,
+    remove,
+    clear,
+    count,
+    initSampleData
+  };
+})();

@@ -1,0 +1,329 @@
+/**
+ * main.css - 全局样式、CSS 变量、重置
+ * 人生工作台 · 暖米色极简风格
+ */
+
+/* ===== CSS 变量 ===== */
+:root {
+  /* 主色调 - 暖米色系 */
+  --bg-main: #F5EDE4;
+  --bg-sidebar: #E8DDD4;
+  --bg-card: #FFFFFF;
+  --bg-hover: #F0E6DA;
+
+  /* 文字色 */
+  --text-primary: #3D3027;
+  --text-secondary: #7A6E63;
+  --text-muted: #A99E93;
+  --text-light: #C4B9AD;
+
+  /* 强调色 */
+  --accent-green: #7EBF8E;
+  --accent-green-light: #E8F5EC;
+  --accent-orange: #E8A87C;
+  --accent-orange-light: #FFF0E5;
+  --accent-blue: #8BB8D4;
+  --accent-blue-light: #E8F2FA;
+  --accent-red: #E08B8B;
+  --accent-red-light: #FDECEC;
+  --accent-purple: #B8A0D4;
+  --accent-purple-light: #F0E8FA;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 3px rgba(61, 48, 39, 0.06);
+  --shadow-md: 0 2px 8px rgba(61, 48, 39, 0.08);
+  --shadow-lg: 0 4px 16px rgba(61, 48, 39, 0.10);
+
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* 布局 */
+  --sidebar-width: 18%;
+  --content-width: 82%;
+  --topbar-height: 56px;
+
+  /* 字体 */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* 过渡 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}
+
+/* ===== 重置 ===== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  outline: none;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ===== 全局布局 ===== */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ===== 顶部栏 ===== */
+.topbar {
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--text-light);
+  flex-shrink: 0;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-date {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.topbar-ai-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.topbar-ai-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.topbar-ai-btn:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--text-secondary);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  position: relative;
+}
+
+.topbar-icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* 更多菜单下拉 */
+.topbar-more-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  min-width: 140px;
+  padding: 6px 0;
+  z-index: 100;
+  display: none;
+}
+
+.topbar-more-menu.show {
+  display: block;
+}
+
+.topbar-more-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: background var(--transition-fast);
+}
+
+.topbar-more-menu button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ===== 主内容区 ===== */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 28px 32px;
+}
+
+/* 自定义滚动条 */
+.content-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content-area::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 3px;
+}
+
+.content-area::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ===== 通用卡片 ===== */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  transition: box-shadow var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* ===== 通用工具类 ===== */
+.text-muted { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+.text-green { color: var(--accent-green); }
+.text-orange { color: var(--accent-orange); }
+.text-blue { color: var(--accent-blue); }
+
+/* ===== 响应式 ===== */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 22%;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0%;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 200;
+    transition: left var(--transition-normal);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(61, 48, 39, 0.3);
+    z-index: 199;
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+
+  .content-area {
+    padding: 20px 16px;
+  }
+}
+
+/* 手机端菜单按钮（默认隐藏） */
+.mobile-menu-btn {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--text-secondary);
+}

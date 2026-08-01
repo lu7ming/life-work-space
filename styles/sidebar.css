@@ -1,0 +1,235 @@
+/**
+ * sidebar.css - 左侧边栏样式
+ * 人生工作台 · 暖米色极简风格
+ */
+
+/* ===== 侧边栏容器 ===== */
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: 200px;
+  max-width: 280px;
+  height: 100vh;
+  background: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 2px;
+}
+
+/* ===== 头像区域 ===== */
+.sidebar-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sidebar-avatar-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--bg-hover);
+  border: 3px solid var(--bg-card);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  overflow: hidden;
+  transition: transform var(--transition-fast);
+}
+
+.sidebar-avatar-img:hover {
+  transform: scale(1.05);
+}
+
+.sidebar-avatar-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== AI 每日金句 ===== */
+.sidebar-quote {
+  text-align: center;
+  padding: 12px 8px;
+  margin-bottom: 16px;
+}
+
+.sidebar-quote-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  font-style: italic;
+}
+
+/* ===== 打卡按钮 ===== */
+.sidebar-checkin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sidebar-checkin-btn {
+  width: 100%;
+  padding: 14px 0;
+  background: var(--text-primary);
+  color: #FFFFFF;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-checkin-btn:hover {
+  background: #2D2218;
+  transform: translateY(-1px);
+}
+
+.sidebar-checkin-btn:active {
+  transform: translateY(0);
+}
+
+.sidebar-checkin-btn.checked {
+  background: var(--accent-green);
+}
+
+.sidebar-checkin-btn.checked::after {
+  content: ' ✓';
+}
+
+/* 连续天数 */
+.sidebar-streak {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  text-align: center;
+}
+
+.sidebar-streak strong {
+  color: var(--accent-orange);
+  font-weight: 600;
+}
+
+/* ===== 分割线 ===== */
+.sidebar-divider {
+  height: 1px;
+  background: var(--text-light);
+  margin: 16px 8px;
+  opacity: 0.6;
+}
+
+/* ===== 导航菜单 ===== */
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  position: relative;
+  user-select: none;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-nav-item.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-nav-item .nav-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sidebar-nav-item .nav-arrow {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.sidebar-nav-item.expanded .nav-arrow {
+  transform: rotate(90deg);
+}
+
+/* ===== 子菜单 ===== */
+.sidebar-submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--transition-normal);
+  padding-left: 36px;
+}
+
+.sidebar-submenu.open {
+  max-height: 200px;
+}
+
+.sidebar-submenu-item {
+  padding: 9px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.sidebar-submenu-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.sidebar-submenu-item.active {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ===== 侧边栏底部 ===== */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    min-width: 280px;
+    box-shadow: var(--shadow-lg);
+  }
+}

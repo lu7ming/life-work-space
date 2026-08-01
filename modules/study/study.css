@@ -430,33 +430,38 @@
   font-size: 14px;
 }
 
-/* ===== FAB 浮动按钮 ===== */
+/* ===== FAB 浮动按钮（iPad 横屏最右下角） ===== */
 .study-fab {
   position: fixed;
-  bottom: 12px;
-  right: 12px;
-  width: 48px;
-  height: 48px;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--accent-orange);
   color: #fff;
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 300;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(232, 168, 124, 0.4);
-  z-index: 100;
+  box-shadow: 0 4px 18px rgba(232, 168, 124, 0.45);
+  z-index: 1000;
+  cursor: pointer;
+  border: none;
+  margin: 0;
+  padding: 0;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .study-fab:hover {
   transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(232, 168, 124, 0.5);
+  box-shadow: 0 6px 24px rgba(232, 168, 124, 0.55);
 }
 
 .study-fab:active {
-  transform: scale(0.96);
+  transform: scale(0.94);
 }
 
 /* ===== 浮层通用 ===== */
@@ -870,10 +875,10 @@
   }
 
   .study-fab {
-    bottom: 8px;
-    right: 8px;
-    width: 44px;
-    height: 44px;
-    font-size: 22px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    right: 12px;
+    width: 46px;
+    height: 46px;
+    font-size: 24px;
   }
 }

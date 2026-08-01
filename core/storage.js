@@ -258,13 +258,21 @@ const Storage = (() => {
 
     // 填充本月打卡记录（随机几天）
     const checkinDays = [1, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 21, 23, 25];
+    const allHabitIds = ['warm-water','breakfast','exercise','drink-water','dinner-light','foot-bath','early-sleep','reading','study','stretch','journal','finance'];
     for (const day of checkinDays) {
       const dd = String(day).padStart(2, '0');
+      // 每天随机完成 2~5 个习惯
+      const count = 2 + (day % 4);
+      const dayHabits = [];
+      for (let i = 0; i < count && i < allHabitIds.length; i++) {
+        const idx = (day + i * 3) % allHabitIds.length;
+        dayHabits.push(allHabitIds[idx]);
+      }
       await put('checkins', {
         date: `${yyyy}-${mm}-${dd}`,
         month: monthStr,
         time: `0${8 + (day % 3)}:${String(day % 60).padStart(2, '0')}`,
-        habits: ['早起', '阅读']
+        habits: dayHabits
       });
     }
 

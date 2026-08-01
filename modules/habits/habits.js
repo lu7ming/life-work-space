@@ -176,17 +176,13 @@ const HabitsModule = (() => {
       }
 
       if (habits.includes(habitId)) {
-        // 取消打卡
         habits = habits.filter((h) => h !== habitId);
       } else {
-        // 打卡
         habits.push(habitId);
       }
 
       // 保存到 IndexedDB
-      if (habits.length === 0 && !record) {
-        // 无打卡，不创建记录（但如果已有记录需保留）
-        // 如果已有记录且 habits 清空了，保留记录（time 等信息可能有用）
+      if (habits.length === 0) {
         if (record) {
           await Storage.put('checkins', {
             date: dateStr,
@@ -204,11 +200,15 @@ const HabitsModule = (() => {
         });
       }
 
-      // 更新 UI
-      const card = document.querySelector(`.habits-card[data-habit-id="${habitId}"]`);
-      if (card) {
-        card.classList.toggle('checked');
-      }
+      // 数据驱动渲染：重新从数据刷新所有卡片状态
+      const cards = document.querySelectorAll('.habits-card');
+      cards.forEach((card) => {
+        if (habits.includes(card.dataset.habitId)) {
+          card.classList.add('checked');
+        } else {
+          card.classList.remove('checked');
+        }
+      });
 
       // 更新进度
       updateProgress(habits.length);

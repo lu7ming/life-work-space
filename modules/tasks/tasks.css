@@ -681,8 +681,9 @@
 .tasks-modal {
   width: 100%;
   max-width: 420px;
-  max-height: 85vh;
+  max-height: 70vh;
   overflow-y: auto;
+  margin-top: 40px;
   transform: translateY(20px) scale(0.95);
   transition: transform 0.25s ease;
 }

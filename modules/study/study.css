@@ -482,8 +482,9 @@
 .study-modal {
   width: 100%;
   max-width: 440px;
-  max-height: 90vh;
+  max-height: 70vh;
   overflow-y: auto;
+  margin-top: 40px;
   transform: translateY(20px) scale(0.96);
   transition: transform var(--transition-normal);
 }

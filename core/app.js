@@ -226,7 +226,7 @@ const App = (() => {
     const link = document.createElement('link');
     link.id = id;
     link.rel = 'stylesheet';
-    link.href = `modules/${path}`;
+    link.href = `modules/${path}?v=${Date.now()}`;
     document.head.appendChild(link);
   }
 

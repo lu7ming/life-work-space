@@ -165,10 +165,11 @@ img {
   background: var(--bg-card);
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .topbar-ai-btn.long-press-active {

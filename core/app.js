@@ -604,14 +604,19 @@ const App = (() => {
         btn.classList.remove('long-press-active');
       };
 
-      // 触屏长按
-      btn.addEventListener('touchstart', onLongPressStart, { passive: true });
+      // 触屏长按（阻止默认防止 Safari 弹出菜单）
+      btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        onLongPressStart(e);
+      }, { passive: false });
       btn.addEventListener('touchend', onLongPressEnd);
       btn.addEventListener('touchcancel', onLongPressEnd);
       // 鼠标长按（兼容）
       btn.addEventListener('mousedown', onLongPressStart);
       btn.addEventListener('mouseup', onLongPressEnd);
       btn.addEventListener('mouseleave', onLongPressEnd);
+      btn.addEventListener('contextmenu', (e) => e.preventDefault());
+      btn.addEventListener('selectstart', (e) => e.preventDefault());
 
       // 普通点击（非长按时触发）
       btn.addEventListener('click', () => {

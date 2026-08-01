@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="styles/search.css">
   <link rel="stylesheet" href="styles/nicole.css">
   <link rel="stylesheet" href="styles/xiaolu.css">
+  <link rel="stylesheet" href="styles/quickinput.css">
   <link rel="stylesheet" href="modules/whitenoise/whitenoise.css">
 
   <!-- 防闪白：在页面渲染前立即应用主题 -->
@@ -44,6 +45,7 @@
     })();
   </script>
   <link rel="stylesheet" href="modules/rest/rest.css">
+  <link rel="stylesheet" href="styles/templates.css">
 </head>
 <body>
 
@@ -112,6 +114,10 @@
         <div class="sidebar-nav-item" data-route="lifetree">
           <span class="nav-icon">🌳</span>
           <span>生命树</span>
+        </div>
+        <div class="sidebar-nav-item" data-route="templates">
+          <span class="nav-icon">📊</span>
+          <span>复盘模板</span>
         </div>
 
         <!-- 更多（展开子菜单） -->
@@ -201,6 +207,9 @@
     </div>
   </div>
 
+  <!-- 快速录入 FAB 按钮 -->
+  <button class="qi-fab" id="qi-fab" title="快速录入 (按 / 键)">⚡</button>
+
   <!-- 休息模式 -->
   <div id="rest-overlay" class="rest-overlay">
     <canvas id="rest-canvas"></canvas>
@@ -227,10 +236,13 @@
   <script src="core/nicole.js"></script>
   <script src="core/xiaolu.js"></script>
   <script src="modules/whitenoise/whitenoise.js"></script>
+  <script src="core/templates.js"></script>
+  <script src="modules/templates/templates_module.js"></script>
   <script src="core/export.js"></script>
   <script src="core/search.js"></script>
   <script src="core/theme.js"></script>
   <script src="core/sync.js"></script>
+  <script src="core/quickinput.js"></script>
   <script src="core/app.js"></script>
   <script src="modules/rest/rest.js"></script>
 

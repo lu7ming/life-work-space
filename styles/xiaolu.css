@@ -645,3 +645,97 @@
     width: 2.5px;
   }
 }
+
+/* ===== 本地操作确认卡片 ===== */
+.xiaolu-action-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 88%;
+  align-self: flex-start;
+  margin-left: 36px; /* 与头像对齐（28px + 8px gap） */
+  animation: xiaoluMsgIn 0.25s ease;
+}
+
+.xiaolu-action-confirm-desc {
+  background: #EEE9E3;
+  border: 1.5px solid #D4BA9F;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary, #3D3027);
+  flex: 1;
+}
+
+.xiaolu-action-confirm-btns {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.xiaolu-action-btn {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.xiaolu-action-btn:active {
+  transform: scale(0.95);
+}
+
+.xiaolu-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.xiaolu-action-btn.confirm {
+  background: linear-gradient(135deg, #E8A87C, #D4956B);
+  color: #fff;
+}
+
+.xiaolu-action-btn.confirm:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.xiaolu-action-btn.cancel {
+  background: var(--bg-main, #F5F0EB);
+  color: var(--text-secondary, #7A6E63);
+  border: 1.5px solid var(--border-color, #F0E8DE);
+}
+
+.xiaolu-action-btn.cancel:hover:not(:disabled) {
+  background: var(--bg-hover, #EEE9E3);
+}
+
+/* 操作结果展示 */
+.xiaolu-action-result {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 88%;
+  align-self: flex-start;
+  margin-left: 36px;
+  padding: 8px 14px;
+  background: #EEE9E3;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary, #3D3027);
+  animation: xiaoluMsgIn 0.25s ease;
+}
+
+.xiaolu-action-result.xiaolu-action-cancelled {
+  color: var(--text-muted, #A99E93);
+}
+
+.xiaolu-action-result-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}

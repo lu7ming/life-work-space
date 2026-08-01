@@ -32,6 +32,7 @@ const App = (() => {
     Router.register('knowledge', loadKnowledge);
     Router.register('goals', loadGoals);
     Router.register('lifetree', loadLifeTree);
+    Router.register('templates', loadTemplates);
 
     // 3. 监听路由变化，更新侧边栏高亮
     Router.onRouteChange((route) => {
@@ -66,6 +67,21 @@ const App = (() => {
     // 10. 初始化主题系统
     if (typeof ThemeManager !== 'undefined') {
       await ThemeManager.init();
+    }
+
+    // 11. 初始化快速录入引擎
+    if (typeof QuickInput !== 'undefined') {
+      QuickInput.init();
+      // 绑定 FAB 按钮
+      const qiFab = document.getElementById('qi-fab');
+      if (qiFab) {
+        qiFab.addEventListener('click', () => QuickInput.open());
+      }
+    }
+
+    // 12. 初始化模板系统
+    if (typeof Templates !== 'undefined') {
+      await Templates.init();
     }
 
     console.log('[App] 人生工作台已就绪 🎉');
@@ -128,7 +144,8 @@ const App = (() => {
       'relations': loadRelations,
       'knowledge': loadKnowledge,
       'goals': loadGoals,
-      'lifetree': loadLifeTree
+      'lifetree': loadLifeTree,
+      'templates': loadTemplates
     };
     
     const handler = routeHandlers[currentRoute];
@@ -346,6 +363,23 @@ const App = (() => {
       }
     } catch (err) {
       console.error('[App] 加载生命树模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载模板系统模块
+   */
+  async function loadTemplates() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('templates/templates.html');
+      container.innerHTML = html;
+      if (typeof TemplatesModule !== 'undefined' && TemplatesModule.init) {
+        TemplatesModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载模板模块失败:', err);
       container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
     }
   }

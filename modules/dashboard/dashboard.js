@@ -21,7 +21,8 @@ const DashboardModule = (() => {
         renderHighlights(),
         renderBirthdayReminder(),
         renderFeed(),
-        renderFocusCard()
+        renderFocusCard(),
+        renderTemplateReminder()
       ]);
       bindFocusEvents();
       bindAnnualEvents();
@@ -140,6 +141,48 @@ const DashboardModule = (() => {
     const div = document.createElement('div');
     div.textContent = str || '';
     return div.innerHTML;
+  }
+
+  /**
+   * 渲染月末复盘提醒卡片
+   */
+  async function renderTemplateReminder() {
+    const container = document.getElementById('dash-template-reminder');
+    if (!container) return;
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const today = now.getDate();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+
+    // 月末前3天或当月最后一天显示提醒
+    const isNearMonthEnd = today >= lastDay - 2;
+
+    if (!isNearMonthEnd) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const hasReport = (() => {
+      try {
+        // 简单检查是否已有本月总结报告（通过 localStorage 标记）
+        return localStorage.getItem(`template_has_report_${monthKey}`) === '1';
+      } catch (e) { return false; }
+    })();
+
+    if (hasReport) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    container.classList.remove('hidden');
+    container.addEventListener('click', () => {
+      if (typeof Router !== 'undefined') {
+        Router.navigate('templates');
+      }
+    });
   }
 
   /**

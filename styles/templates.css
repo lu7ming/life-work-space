@@ -1,0 +1,562 @@
+/* ========== templates.css - 模板系统样式 ========== */
+
+/* ===== 页面布局 ===== */
+.templates-page {
+  padding: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.templates-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.templates-header-left h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary, #2C2C2C);
+  margin: 0 0 4px 0;
+}
+
+.templates-header-left p {
+  font-size: 13px;
+  color: var(--text-muted, #999);
+  margin: 0;
+}
+
+/* 月份选择器 */
+.templates-month-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.templates-month-picker button {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #e8e0d8);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-secondary, #666);
+  transition: all 0.2s;
+}
+
+.templates-month-picker button:hover {
+  background: #D4BA9F;
+  color: #fff;
+  border-color: #D4BA9F;
+}
+
+.templates-month-picker span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2C2C);
+  min-width: 100px;
+  text-align: center;
+}
+
+/* ===== 月末提醒卡片 ===== */
+.templates-reminder-card {
+  background: linear-gradient(135deg, #D4BA9F 0%, #C8AD94 100%);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(212, 186, 159, 0.3);
+}
+
+.templates-reminder-card.hidden {
+  display: none;
+}
+
+.templates-reminder-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.templates-reminder-icon {
+  font-size: 32px;
+}
+
+.templates-reminder-text h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.templates-reminder-text p {
+  font-size: 13px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.templates-reminder-btn {
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 10px;
+  padding: 10px 20px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.templates-reminder-btn:hover {
+  background: rgba(255,255,255,0.4);
+}
+
+/* ===== 模板卡片网格 ===== */
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 768px) {
+  .templates-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.template-card {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #e8e0d8);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.template-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  border-color: var(--card-color, #D4BA9F);
+}
+
+.template-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--card-color, #D4BA9F);
+}
+
+.template-card-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.template-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2C2C);
+  margin: 0 0 6px 0;
+}
+
+.template-card-desc {
+  font-size: 12px;
+  color: var(--text-muted, #999);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.template-card-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--card-color-light, #EEE9E3);
+  color: var(--card-color, #D4BA9F);
+  font-weight: 600;
+}
+
+/* ===== 报告详情视图 ===== */
+.report-detail {
+  display: none;
+}
+
+.report-detail.active {
+  display: block;
+}
+
+.report-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.report-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--border-color, #e8e0d8);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-secondary, #666);
+  transition: all 0.2s;
+}
+
+.report-back-btn:hover {
+  background: var(--bg-hover, #f5f0eb);
+}
+
+.report-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.report-action-btn {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #e8e0d8);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-secondary, #666);
+  transition: all 0.2s;
+}
+
+.report-action-btn:hover {
+  background: #D4BA9F;
+  color: #fff;
+  border-color: #D4BA9F;
+}
+
+.report-action-btn.primary {
+  background: #D4BA9F;
+  color: #fff;
+  border-color: #D4BA9F;
+}
+
+.report-action-btn.primary:hover {
+  background: #C8AD94;
+}
+
+/* 报告内容卡片 */
+.report-content-card {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #e8e0d8);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.report-content-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary, #2C2C2C);
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-content-subtitle {
+  font-size: 13px;
+  color: var(--text-muted, #999);
+  margin: 0 0 20px 0;
+}
+
+/* 数据项 */
+.report-data-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.report-data-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-subtle, #f9f6f3);
+  border-radius: 10px;
+}
+
+.report-data-label {
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+  flex-shrink: 0;
+  min-width: 120px;
+}
+
+.report-data-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2C2C);
+  text-align: right;
+  word-break: break-all;
+}
+
+.report-data-value.highlight {
+  color: #D4BA9F;
+  font-size: 18px;
+}
+
+/* AI 分析区域 */
+.report-ai-analysis {
+  background: linear-gradient(135deg, #EEE9E3 0%, #f9f6f3 100%);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-top: 16px;
+}
+
+.report-ai-analysis-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2C2C);
+}
+
+.report-ai-analysis-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary, #555);
+}
+
+/* 用户输入区域 */
+.report-user-input-section {
+  margin-top: 20px;
+}
+
+.report-user-input-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2C2C);
+  margin: 0 0 14px 0;
+}
+
+.report-input-group {
+  margin-bottom: 16px;
+}
+
+.report-input-label {
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.report-input-field {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color, #e8e0d8);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary, #2C2C2C);
+  background: var(--bg-card, #fff);
+  transition: border-color 0.2s;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.report-input-field:focus {
+  outline: none;
+  border-color: #D4BA9F;
+}
+
+textarea.report-input-field {
+  min-height: 80px;
+}
+
+/* 无数据提示 */
+.report-no-data {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted, #999);
+}
+
+.report-no-data-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.report-no-data-text {
+  font-size: 14px;
+  margin: 0 0 4px 0;
+}
+
+.report-no-data-hint {
+  font-size: 12px;
+  color: var(--text-muted, #bbb);
+  margin: 0;
+}
+
+/* ===== 历史报告列表 ===== */
+.report-history-section {
+  margin-top: 32px;
+}
+
+.report-history-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2C2C);
+  margin: 0 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #e8e0d8);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.report-history-item:hover {
+  border-color: #D4BA9F;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.report-history-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.report-history-item-icon {
+  font-size: 20px;
+}
+
+.report-history-item-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2C2C);
+  margin: 0 0 2px 0;
+}
+
+.report-history-item-info p {
+  font-size: 12px;
+  color: var(--text-muted, #999);
+  margin: 0;
+}
+
+.report-history-item-arrow {
+  color: var(--text-muted, #ccc);
+  font-size: 16px;
+}
+
+.report-history-empty {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-muted, #999);
+  font-size: 13px;
+}
+
+/* ===== Dashboard 月末提醒卡片 ===== */
+.dash-template-reminder {
+  background: linear-gradient(135deg, #D4BA9F 0%, #C8AD94 100%);
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(212, 186, 159, 0.25);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dash-template-reminder:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(212, 186, 159, 0.35);
+}
+
+.dash-template-reminder.hidden {
+  display: none;
+}
+
+.dash-template-reminder-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dash-template-reminder-icon {
+  font-size: 26px;
+}
+
+.dash-template-reminder-text h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+
+.dash-template-reminder-text p {
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.dash-template-reminder-arrow {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+/* ===== 加载状态 ===== */
+.templates-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted, #999);
+}
+
+.templates-loading-spinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color, #e8e0d8);
+  border-top-color: #D4BA9F;
+  border-radius: 50%;
+  animation: template-spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes template-spin {
+  to { transform: rotate(360deg); }
+}

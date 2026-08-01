@@ -3,7 +3,7 @@
  * 支持离线缓存，采用缓存优先策略
  */
 
-const CACHE_NAME = 'life-workspace-v16';
+const CACHE_NAME = 'life-workspace-v17';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -22,6 +22,8 @@ const CACHE_ASSETS = [
   './styles/nicole.css',
   './core/xiaolu.js',
   './styles/xiaolu.css',
+  './core/quickinput.js',
+  './styles/quickinput.css',
   './core/theme.js',
   './core/sync.js',
   './modules/dashboard/dashboard.html',
@@ -62,6 +64,11 @@ const CACHE_ASSETS = [
   './modules/rest/rest.js',
   './modules/whitenoise/whitenoise.css',
   './modules/whitenoise/whitenoise.js',
+  // [模板系统] 新增缓存文件（版本号由其他子Agent统一管理）
+  './core/templates.js',
+  './modules/templates/templates.html',
+  './modules/templates/templates_module.js',
+  './styles/templates.css',
   './manifest.json'
 ];
 

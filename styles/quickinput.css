@@ -1,0 +1,398 @@
+/**
+ * quickinput.css - F9 快速录入引擎样式
+ * 人生工作台 · 暖棕色系
+ */
+
+/* ===== 面板 ===== */
+.qi-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9000;
+  background: #EEE9E3;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -8px 40px rgba(80, 60, 40, 0.18);
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+}
+
+.qi-panel.qi-open {
+  transform: translateY(0);
+}
+
+/* 暗色主题 */
+[data-theme="dark"] .qi-panel {
+  background: #2A2A3E;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== Header ===== */
+.qi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 8px;
+}
+
+.qi-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #5D4E3C;
+  letter-spacing: 0.5px;
+}
+
+[data-theme="dark"] .qi-title {
+  color: #D4C5B5;
+}
+
+.qi-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(93, 78, 60, 0.1);
+  border-radius: 50%;
+  font-size: 14px;
+  color: #8B7D6B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.qi-close:hover {
+  background: rgba(93, 78, 60, 0.2);
+}
+
+[data-theme="dark"] .qi-close {
+  background: rgba(255, 255, 255, 0.08);
+  color: #A89B8C;
+}
+
+/* ===== 输入区 ===== */
+.qi-input-area {
+  display: flex;
+  align-items: flex-end;
+  padding: 8px 16px 12px;
+  gap: 10px;
+}
+
+.qi-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  font-family: inherit;
+  color: #3D3228;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+  min-height: 40px;
+  max-height: 120px;
+  padding: 6px 0;
+}
+
+.qi-input::placeholder {
+  color: #B8A99A;
+}
+
+[data-theme="dark"] .qi-input {
+  color: #E8DDD0;
+}
+
+[data-theme="dark"] .qi-input::placeholder {
+  color: #6B5F53;
+}
+
+.qi-send-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #C8AD94;
+  border-radius: 12px;
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.qi-send-btn:hover {
+  background: #B89B80;
+  transform: scale(1.05);
+}
+
+.qi-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+[data-theme="dark"] .qi-send-btn {
+  background: #5A4D40;
+  color: #E8DDD0;
+}
+
+[data-theme="dark"] .qi-send-btn:hover {
+  background: #6B5D4E;
+}
+
+/* ===== 预览区 ===== */
+.qi-preview {
+  margin: 0 16px;
+  padding: 14px 16px;
+  background: rgba(200, 173, 148, 0.15);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: qiFadeIn 0.25s ease;
+}
+
+[data-theme="dark"] .qi-preview {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.qi-preview-label {
+  font-size: 12px;
+  color: #8B7D6B;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+[data-theme="dark"] .qi-preview-label {
+  color: #8B8B9E;
+}
+
+.qi-preview-details {
+  font-size: 15px;
+  color: #3D3228;
+  line-height: 1.6;
+}
+
+.qi-preview-details strong {
+  color: #5D4E3C;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .qi-preview-details {
+  color: #D4C5B5;
+}
+
+[data-theme="dark"] .qi-preview-details strong {
+  color: #E8DDD0;
+}
+
+.qi-preview-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ===== 按钮 ===== */
+.qi-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.qi-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qi-btn-cancel {
+  background: rgba(93, 78, 60, 0.1);
+  color: #8B7D6B;
+}
+
+.qi-btn-cancel:hover {
+  background: rgba(93, 78, 60, 0.18);
+}
+
+[data-theme="dark"] .qi-btn-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: #A89B8C;
+}
+
+.qi-btn-confirm {
+  background: #C8AD94;
+  color: #fff;
+}
+
+.qi-btn-confirm:hover {
+  background: #B89B80;
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .qi-btn-confirm {
+  background: #6B5D4E;
+  color: #E8DDD0;
+}
+
+/* ===== 提示标签 ===== */
+.qi-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 16px 20px;
+}
+
+.qi-hint-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  background: rgba(200, 173, 148, 0.2);
+  border-radius: 20px;
+  font-size: 12px;
+  color: #6B5D4E;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.qi-hint-tag:hover {
+  background: rgba(200, 173, 148, 0.35);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .qi-hint-tag {
+  background: rgba(255, 255, 255, 0.06);
+  color: #A89B8C;
+}
+
+[data-theme="dark"] .qi-hint-tag:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ===== 动画 ===== */
+@keyframes qiFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== iPad 适配 ===== */
+@media (min-width: 768px) {
+  .qi-panel {
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    max-width: 560px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .qi-panel.qi-open {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .qi-input {
+    font-size: 20px;
+  }
+
+  .qi-hints {
+    padding: 16px 20px 24px;
+  }
+}
+
+/* ===== 小屏幕适配 ===== */
+@media (max-width: 400px) {
+  .qi-panel {
+    border-radius: 12px 12px 0 0;
+  }
+
+  .qi-header {
+    padding: 12px 16px 6px;
+  }
+
+  .qi-input-area {
+    padding: 6px 12px 10px;
+  }
+
+  .qi-input {
+    font-size: 16px;
+  }
+
+  .qi-hints {
+    gap: 6px;
+    padding: 10px 12px 16px;
+  }
+
+  .qi-hint-tag {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}
+
+/* ===== 安全区域适配（iPhone 底部） ===== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .qi-panel {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ===== FAB 按钮 ===== */
+.qi-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 8999;
+  width: 52px;
+  height: 52px;
+  border: none;
+  background: #C8AD94;
+  border-radius: 50%;
+  font-size: 22px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(80, 60, 40, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.qi-fab:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 24px rgba(80, 60, 40, 0.35);
+}
+
+.qi-fab:active {
+  transform: scale(0.95);
+}
+
+[data-theme="dark"] .qi-fab {
+  background: #5A4D40;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .qi-fab:hover {
+  background: #6B5D4E;
+}
+
+@media (max-width: 767px) {
+  .qi-fab {
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+}

@@ -453,6 +453,106 @@
   border: 1px solid rgba(224, 139, 139, 0.2);
 }
 
+/* ===== 今日洞察卡片 ===== */
+.nicole-insight-card {
+  margin: 12px 16px 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #D4BA9F;
+  background: #EEE9E3;
+  animation: nicoleInsightIn 0.4s ease;
+  flex-shrink: 0;
+}
+
+@keyframes nicoleInsightIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nicole-insight-card.nicole-insight-alert {
+  border-color: #D4A07A;
+  background: linear-gradient(135deg, #EEE9E3 0%, #F5EDE4 100%);
+}
+
+.nicole-insight-card.nicole-insight-good {
+  border-color: #B8C9A0;
+  background: linear-gradient(135deg, #EEE9E3 0%, #EFF3EA 100%);
+}
+
+.nicole-insight-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.nicole-insight-icon {
+  font-size: 16px;
+}
+
+.nicole-insight-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3D3027;
+  flex: 1;
+}
+
+.nicole-insight-time {
+  font-size: 11px;
+  color: #A99E93;
+}
+
+.nicole-insight-body {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #5A4E43;
+  margin-bottom: 10px;
+}
+
+.nicole-insight-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nicole-insight-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.nicole-tag-high {
+  background: rgba(212, 160, 122, 0.2);
+  border-color: rgba(212, 160, 122, 0.4);
+  color: #B07A4A;
+}
+
+.nicole-tag-medium {
+  background: rgba(212, 187, 159, 0.3);
+  border-color: rgba(212, 187, 159, 0.5);
+  color: #8B7355;
+}
+
+.nicole-tag-low {
+  background: rgba(184, 201, 160, 0.2);
+  border-color: rgba(184, 201, 160, 0.4);
+  color: #6B8050;
+}
+
+/* Dashboard 中的妮可洞察区域 */
+.dashboard-nicole-insight {
+  margin: 12px 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #EEE9E3;
+  border: 1px solid #D4BA9F;
+}
+
 /* ===== 响应式 ===== */
 @media (max-width: 480px) {
   .nicole-panel {

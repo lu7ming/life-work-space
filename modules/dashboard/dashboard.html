@@ -9,6 +9,18 @@
   <!-- 生日提醒区域 -->
   <div id="dash-birthday-reminder" style="display:none;"></div>
 
+  <!-- 月末复盘提醒 -->
+  <div class="dash-template-reminder hidden" id="dash-template-reminder">
+    <div class="dash-template-reminder-left">
+      <span class="dash-template-reminder-icon">📊</span>
+      <div class="dash-template-reminder-text">
+        <h3>该做月度复盘啦！</h3>
+        <p>回顾这个月的收获，为下月做好规划</p>
+      </div>
+    </div>
+    <span class="dash-template-reminder-arrow">›</span>
+  </div>
+
   <!-- F1: 今日聚焦卡片 -->
   <div class="dash-focus-card card" id="dash-focus-card">
     <div class="dash-focus-header">
@@ -21,6 +33,15 @@
     <div class="dash-focus-list" id="dash-focus-list">
       <!-- JS 动态生成 -->
     </div>
+  </div>
+
+  <!-- 妮可洞察区域 -->
+  <div class="dashboard-nicole-insight" id="dashboard-nicole-insight" style="display:none;">
+    <div class="nicole-insight-header">
+      <span class="nicole-insight-icon">🔵</span>
+      <span class="nicole-insight-title">妮可洞察</span>
+    </div>
+    <div class="nicole-insight-body" id="dashboard-nicole-insight-body">正在分析中...</div>
   </div>
 
   <!-- 两列布局 -->

@@ -2,7 +2,7 @@
  * xiaolu.js - 小鹿AI伙伴
  * 人生工作台 · 基于 DeepSeek API 的 AI 对话功能
  * 小鹿定位：幽默轻松的 AI 伙伴，负责日常聊天、灵感整理、按需分析
- * v2.0 - 新增长按语音输入功能
+ * v3.0 - 新增链式意图识别(Decomposed LLM) + 本地操作确认机制
  */
 
 const XiaoluModule = (() => {
@@ -12,6 +12,7 @@ const XiaoluModule = (() => {
   const MAX_CONTEXT = 20; // 最多保留最近20条消息
   const LONG_PRESS_DELAY = 500; // 长按触发语音的延迟（ms）
 
+  // --- 原始系统提示词（降级兜底用） ---
   const SYSTEM_PROMPT = `你是「小鹿」，人生工作台的 AI 伙伴，服务主人「鹿7铭」。
 性格幽默轻松，像朋友一样聊天，偶尔皮一下但很靠谱。
 你的职责：
@@ -29,6 +30,75 @@ const XiaoluModule = (() => {
 当用户想执行这些操作时，在回复的最前面插入一个action标签，然后正常回复用户。格式如下：
 [ACTION:{"tool":"record_finance","params":{"type":"income","amount":200,"source":"工资"}}]
 注意：action标签必须放在回复的最前面，且只能有一个action标签。参数要完整，不要省略。`;
+
+  // --- 链式意图识别：三跳 Prompt ---
+
+  // 第一跳：意图分类
+  const INTENT_CLASSIFY_PROMPT = `你是意图分类器。根据用户消息判断意图类别。
+只输出 JSON，不要输出任何其他内容。
+可选意图：
+- finance_record：记录收入或支出
+- task_create：创建待办任务
+- habit_log：记录习惯打卡
+- chat：日常聊天、闲聊、提问
+- unknown：无法判断
+
+用户消息："{message}"
+输出JSON：`;
+
+  // 第二跳：参数提取（按意图分别定义）
+  const PARAM_EXTRACT_PROMPTS = {
+    finance_record: `从用户消息中提取财务记录参数，输出JSON格式：
+{"type":"income或expense","amount":数字,"category":"支出分类(餐饮/交通/购物/娱乐/其他)","source":"收入来源(工资/奖金/兼职/其他)","note":"可选备注","date":"YYYY-MM-DD或空"}
+规则：
+- 根据上下文推断type，提到"花/买/交"等=expense，提到"赚/发/收"等=income
+- amount必须是数字
+- 当前日期：{today}
+
+用户消息："{message}"
+输出JSON：`,
+
+    task_create: `从用户消息中提取任务参数，输出JSON格式：
+{"title":"任务标题","priority":"high/medium/low","due_date":"YYYY-MM-DD或空"}
+规则：
+- title要简洁明确
+- priority默认medium，除非用户明确说"紧急/重要"=high，"不急"=low
+- due_date如有明确日期则提取，否则为空
+
+用户消息："{message}"
+输出JSON：`,
+
+    habit_log: `从用户消息中提取习惯打卡参数，输出JSON格式：
+{"habit":"习惯名称","status":"completed/missed","note":"可选备注"}
+
+用户消息："{message}"
+输出JSON：`,
+
+    chat: `无需提取参数。输出：{"needs_action":false}`,
+    unknown: `无需提取参数。输出：{"needs_action":false}`
+  };
+
+  // 第三跳：自然回复生成
+  const REPLY_GENERATE_PROMPT = `你是「小鹿」，人生工作台的 AI 伙伴，服务主人「鹿7铭」。
+性格幽默轻松，像朋友一样聊天，偶尔皮一下但很靠谱。
+回复要简洁，不超过3句话，适当使用 emoji 🦌
+
+意图：{intent}
+提取的参数：{params}
+用户原始消息："{message}"
+
+请生成一段自然、有趣的回复。
+{action_instruction}
+注意：回复中不要包含JSON，不要暴露内部参数细节。`;
+
+  // 工具动作标签（给第三跳的指令片段）
+  const ACTION_INSTRUCTIONS = {
+    finance_record: '如果参数完整（至少有type和amount），在回复最前面加上：\n[ACTION:{"tool":"record_finance","params":{提取到的参数JSON}}]\n然后正常回复。',
+    task_create: '如果参数完整（至少有title），在回复最前面加上：\n[ACTION:{"tool":"create_task","params":{提取到的参数JSON}}]\n然后正常回复。',
+    habit_log: '如果参数完整（至少有habit），在回复最前面加上：\n[ACTION:{"tool":"habit_log","params":{提取到的参数JSON}}]\n然后正常回复。',
+    chat: '',
+    unknown: ''
+  };
 
   // ===== 状态 =====
   let panelEl = null;
@@ -91,6 +161,40 @@ const XiaoluModule = (() => {
     html = html.replace(/\n/g, '<br>');
 
     return html;
+  }
+
+  /**
+   * 安全解析 JSON，失败返回 null
+   */
+  function safeParseJSON(str) {
+    try {
+      // 尝试提取 JSON 部分（LLM 有时输出多余文字）
+      const match = str.match(/\{[\s\S]*\}/);
+      if (match) {
+        return JSON.parse(match[0]);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * 获取今天的日期字符串
+   */
+  function getTodayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  /**
+   * 检查是否开启了自动确认
+   */
+  function isAutoConfirm() {
+    try {
+      return localStorage.getItem('xiaolu_auto_confirm') === 'true';
+    } catch (e) {
+      return false;
+    }
   }
 
   // ===== Token 管理 =====
@@ -174,22 +278,52 @@ const XiaoluModule = (() => {
   // ===== DeepSeek API 调用 =====
 
   /**
-   * 发送消息到 DeepSeek API
+   * 通用 DeepSeek API 调用（支持自定义 temperature 和 max_tokens）
    * @param {string} token - API Key
-   * @param {string} userMessage - 用户消息
-   * @returns {Promise<string>} AI 回复内容
+   * @param {Array} messages - 消息列表
+   * @param {Object} options - { temperature, max_tokens }
+   * @returns {Promise<string>} 回复内容
+   */
+  async function callDeepSeekStep(token, messages, options = {}) {
+    const { temperature = 0.7, max_tokens = 500 } = options;
+
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: MODEL_NAME,
+        messages: messages,
+        temperature: temperature,
+        max_tokens: max_tokens,
+        stream: false
+      })
+    });
+
+    if (resp.status === 401) throw new Error('AUTH_ERROR');
+    if (resp.status === 429) throw new Error('API 额度已用完或请求太频繁，请稍后再试 😅');
+    if (!resp.ok) throw new Error(`请求失败 (${resp.status})`);
+
+    const data = await resp.json();
+    if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+      const reply = data.choices[0].message.content;
+      if (reply) return reply.trim();
+    }
+    throw new Error('未获取到有效回复');
+  }
+
+  /**
+   * 发送消息到 DeepSeek API（原始单次调用，降级兜底用）
    */
   async function callDeepSeekAPI(token, userMessage) {
-    // 构建消息列表
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT }
     ];
 
-    // 添加历史上下文（最多 MAX_CONTEXT 条）
     const historySlice = _chatHistory.slice(-MAX_CONTEXT);
     messages.push(...historySlice);
-
-    // 添加当前用户消息
     messages.push({ role: 'user', content: userMessage });
 
     let resp;
@@ -211,7 +345,6 @@ const XiaoluModule = (() => {
       throw new Error('网络连接失败，请检查网络后重试 🦌');
     }
 
-    // 处理 HTTP 状态码
     if (resp.status === 401) {
       throw new Error('AUTH_ERROR');
     }
@@ -229,7 +362,6 @@ const XiaoluModule = (() => {
       throw new Error('解析回复失败，请稍后重试');
     }
 
-    // 提取回复内容
     if (data.choices && data.choices.length > 0 && data.choices[0].message) {
       const reply = data.choices[0].message.content;
       if (reply) return reply;
@@ -238,28 +370,143 @@ const XiaoluModule = (() => {
     throw new Error('未获取到有效回复，请重试');
   }
 
-  // ===== 语音输入功能 =====
+  // ===== 链式意图识别（Decomposed LLM） =====
 
   /**
-   * 检测浏览器是否支持语音识别
+   * 链式意图识别：三跳调用
+   * 第一跳 - 意图分类
+   * 第二跳 - 参数提取
+   * 第三跳 - 自然回复生成
+   * 失败时降级到原始单次 prompt
+   * @param {string} token - API Key
+   * @param {string} userMessage - 用户消息
+   * @returns {Promise<string>} AI 回复（可能包含 [ACTION:...] 标签）
    */
+  async function decomposedIntentChain(token, userMessage) {
+    const today = getTodayStr();
+
+    // --- 第一跳：意图分类 ---
+    let intent = 'chat'; // 默认
+    try {
+      const classifyPrompt = INTENT_CLASSIFY_PROMPT.replace('{message}', userMessage);
+      const step1Messages = [
+        { role: 'system', content: '你是意图分类器，只输出JSON，不输出其他内容。' },
+        { role: 'user', content: classifyPrompt }
+      ];
+      const step1Result = await callDeepSeekStep(token, step1Messages, { temperature: 0, max_tokens: 50 });
+      const parsed = safeParseJSON(step1Result);
+      if (parsed && parsed.intent) {
+        const validIntents = ['finance_record', 'task_create', 'chat', 'habit_log', 'unknown'];
+        if (validIntents.includes(parsed.intent)) {
+          intent = parsed.intent;
+        }
+      }
+      console.log('[Xiaolu] 第一跳意图分类:', intent);
+    } catch (err) {
+      console.warn('[Xiaolu] 第一跳失败，降级到单次调用:', err.message);
+      // 降级到原始单次 prompt
+      return await callDeepSeekAPI(token, userMessage);
+    }
+
+    // --- 第二跳：参数提取 ---
+    let extractedParams = null;
+    try {
+      const extractTemplate = PARAM_EXTRACT_PROMPTS[intent] || PARAM_EXTRACT_PROMPTS.chat;
+      const extractPrompt = extractTemplate
+        .replace(/{message}/g, userMessage)
+        .replace(/{today}/g, today);
+      const step2Messages = [
+        { role: 'system', content: '你是参数提取器，只输出JSON，不输出其他内容。' },
+        { role: 'user', content: extractPrompt }
+      ];
+      const step2Result = await callDeepSeekStep(token, step2Messages, { temperature: 0, max_tokens: 100 });
+      extractedParams = safeParseJSON(step2Result);
+      console.log('[Xiaolu] 第二跳参数提取:', extractedParams);
+    } catch (err) {
+      console.warn('[Xiaolu] 第二跳失败，降级到单次调用:', err.message);
+      return await callDeepSeekAPI(token, userMessage);
+    }
+
+    // --- 第三跳：自然回复生成 ---
+    try {
+      // 检查是否有需要执行的操作
+      const needsAction = intent !== 'chat' && intent !== 'unknown'
+        && extractedParams && extractedParams.needs_action !== false;
+
+      const actionInstruction = needsAction
+        ? (ACTION_INSTRUCTIONS[intent] || '')
+        : '';
+
+      const replyPrompt = REPLY_GENERATE_PROMPT
+        .replace('{intent}', intent)
+        .replace('{params}', JSON.stringify(extractedParams || {}))
+        .replace('{message}', userMessage)
+        .replace('{action_instruction}', actionInstruction);
+
+      const step3Messages = [
+        { role: 'system', content: '你是小鹿，幽默轻松的AI伙伴。' },
+        { role: 'user', content: replyPrompt }
+      ];
+      const reply = await callDeepSeekStep(token, step3Messages, { temperature: 0.8, max_tokens: 300 });
+      console.log('[Xiaolu] 第三跳回复生成完成');
+      return reply;
+    } catch (err) {
+      console.warn('[Xiaolu] 第三跳失败，使用模板化回复:', err.message);
+      // 模板化兜底
+      return generateTemplateReply(intent, extractedParams, userMessage);
+    }
+  }
+
+  /**
+   * 模板化回复（第三跳失败时的兜底）
+   */
+  function generateTemplateReply(intent, params, userMessage) {
+    const templates = {
+      finance_record: () => {
+        if (!params || !params.amount) return '收到！不过我没能看清具体金额，能再说一遍吗？ 🦌';
+        const typeLabel = params.type === 'income' ? '收入' : '支出';
+        const actionParams = JSON.stringify({ type: params.type || 'expense', amount: Number(params.amount), category: params.category || '其他', source: params.source || '其他', note: params.note || '' });
+        return `[ACTION:{"tool":"record_finance","params":${actionParams}}]\n已记录${typeLabel} ¥${params.amount}，记下来啦~ 📝`;
+      },
+      task_create: () => {
+        const title = (params && params.title) || '未命名任务';
+        const priority = (params && params.priority) || 'medium';
+        const dueDate = (params && params.due_date) || '';
+        const actionParams = JSON.stringify({ title, priority, due_date: dueDate });
+        return `[ACTION:{"tool":"create_task","params":${actionParams}}]\n好的，任务「${title}」已创建，加油冲！ 🚀`;
+      },
+      habit_log: () => {
+        const habit = (params && params.habit) || '未知习惯';
+        return `打卡记录：${habit}，坚持就是胜利！ 💪🦌`;
+      },
+      chat: () => null, // 聊天意图不该走到这里
+      unknown: () => null
+    };
+
+    const generator = templates[intent];
+    if (generator) {
+      const result = generator();
+      if (result) return result;
+    }
+
+    // 最终兜底
+    return '嗯...让我想想 🤔 能再说详细一点吗？';
+  }
+
+  // ===== 语音输入功能 =====
+
   function checkVoiceSupport() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     _isVoiceSupported = !!SpeechRecognition;
     return _isVoiceSupported;
   }
 
-  /**
-   * 初始化语音识别
-   */
   function initVoice() {
     if (!checkVoiceSupport()) {
       console.warn('[Xiaolu] 当前浏览器不支持 Web Speech API，语音功能不可用');
-      // 隐藏语音按钮
       if (voiceBtn) {
         voiceBtn.style.display = 'none';
       }
-      // 更新提示文字
       const hintEl = inputAreaEl.querySelector('.xiaolu-input-hint');
       if (hintEl) {
         hintEl.textContent = 'Enter 发送 · Shift+Enter 换行';
@@ -267,7 +514,6 @@ const XiaoluModule = (() => {
       return;
     }
 
-    // 创建 SpeechRecognition 实例
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     _voiceRecognition = new SpeechRecognition();
     _voiceRecognition.lang = 'zh-CN';
@@ -275,7 +521,6 @@ const XiaoluModule = (() => {
     _voiceRecognition.interimResults = true;
     _voiceRecognition.maxAlternatives = 1;
 
-    // 识别结果事件
     _voiceRecognition.onresult = (event) => {
       _voiceFinalTranscript = '';
       _voiceInterimTranscript = '';
@@ -289,19 +534,15 @@ const XiaoluModule = (() => {
         }
       }
 
-      // 实时更新输入框（已有最终结果 + 中间结果）
       const currentInput = inputEl.value;
-      // 找到之前语音输入的起点，替换中间结果
       const baseText = _voiceBaseText;
       const displayText = baseText + _voiceFinalTranscript + _voiceInterimTranscript;
       inputEl.value = displayText;
 
-      // 自动调整高度
       inputEl.style.height = 'auto';
       inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
     };
 
-    // 识别错误
     _voiceRecognition.onerror = (event) => {
       console.error('[Xiaolu] 语音识别错误:', event.error);
       if (event.error === 'not-allowed') {
@@ -310,9 +551,9 @@ const XiaoluModule = (() => {
           App.showToast('🎤 麦克风权限被拒绝，请在浏览器设置中开启');
         }
       } else if (event.error === 'no-speech') {
-        // 没有检测到语音，不中断，继续等待
+        // 没有检测到语音，不中断
       } else if (event.error === 'aborted') {
-        // 被中止，正常情况
+        // 被中止
       } else {
         stopRecording();
         if (typeof App !== 'undefined') {
@@ -321,48 +562,37 @@ const XiaoluModule = (() => {
       }
     };
 
-    // 识别结束（自动停止时触发）
     _voiceRecognition.onend = () => {
       if (_isRecording) {
-        // 如果还在录音状态但识别结束了（可能是超时），重新启动
         try {
           _voiceRecognition.start();
         } catch (e) {
-          // 如果已经在运行中则忽略
           stopRecording();
         }
       }
     };
 
-    // 绑定长按事件
     bindVoiceEvents();
-
     console.log('[Xiaolu] 语音输入功能已就绪 🎤');
   }
 
-  // 录音前的基础文本（用于拼接）
   let _voiceBaseText = '';
 
-  /**
-   * 绑定语音按钮的长按事件
-   */
   function bindVoiceEvents() {
     if (!voiceBtn) return;
 
-    // 阻止默认的触摸行为（避免滚动、文字选择等）
     const preventDefault = (e) => {
       if (_longPressTriggered) {
         e.preventDefault();
       }
     };
 
-    // --- 触摸事件（移动端） ---
+    // 触摸事件
     voiceBtn.addEventListener('touchstart', (e) => {
       _longPressTriggered = false;
       _longPressTimer = setTimeout(() => {
         _longPressTriggered = true;
         startRecording();
-        // 触觉反馈（如果支持）
         if (navigator.vibrate) {
           navigator.vibrate(30);
         }
@@ -372,14 +602,13 @@ const XiaoluModule = (() => {
     voiceBtn.addEventListener('touchend', (e) => {
       clearTimeout(_longPressTimer);
       if (_longPressTriggered) {
-        e.preventDefault(); // 阻止触发 click
+        e.preventDefault();
         stopRecording();
         _longPressTriggered = false;
       }
     });
 
     voiceBtn.addEventListener('touchmove', (e) => {
-      // 手指移动超过一定距离则取消长按
       clearTimeout(_longPressTimer);
     }, { passive: true });
 
@@ -391,9 +620,9 @@ const XiaoluModule = (() => {
       }
     });
 
-    // --- 鼠标事件（桌面端） ---
+    // 鼠标事件
     voiceBtn.addEventListener('mousedown', (e) => {
-      e.preventDefault(); // 防止失焦
+      e.preventDefault();
       _longPressTriggered = false;
       _longPressTimer = setTimeout(() => {
         _longPressTriggered = true;
@@ -417,14 +646,11 @@ const XiaoluModule = (() => {
       }
     });
 
-    // 点击事件：短按切换录音（作为备用交互）
     voiceBtn.addEventListener('click', (e) => {
-      // 如果是长按触发的，忽略 click
       if (_longPressTriggered) {
         e.preventDefault();
         return;
       }
-      // 短按切换录音状态
       if (_isRecording) {
         stopRecording();
       } else {
@@ -432,14 +658,12 @@ const XiaoluModule = (() => {
       }
     });
 
-    // 停止按钮
     if (voiceStopBtn) {
       voiceStopBtn.addEventListener('click', () => {
         stopRecording();
       });
     }
 
-    // 全局 ESC 键停止录音
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && _isRecording) {
         stopRecording();
@@ -447,94 +671,72 @@ const XiaoluModule = (() => {
     });
   }
 
-  /**
-   * 开始录音
-   */
   function startRecording() {
     if (_isRecording || !_voiceRecognition) return;
 
     _isRecording = true;
     _voiceFinalTranscript = '';
     _voiceInterimTranscript = '';
-    _voiceBaseText = inputEl.value; // 记住当前输入框的内容
+    _voiceBaseText = inputEl.value;
 
-    // 更新 UI
     inputAreaEl.classList.add('voice-active');
     voiceBtn.classList.add('recording');
     voiceStatusEl.classList.add('show');
     inputEl.placeholder = '🎤 正在聆听...';
     inputEl.setAttribute('readonly', true);
 
-    // 开始语音识别
     try {
       _voiceRecognition.start();
     } catch (e) {
-      // 可能已经在运行中
       console.warn('[Xiaolu] 语音识别启动失败:', e);
       stopRecording();
     }
   }
 
-  /**
-   * 停止录音
-   */
   function stopRecording() {
     if (!_isRecording) return;
 
     _isRecording = false;
 
-    // 停止语音识别
     if (_voiceRecognition) {
       try {
         _voiceRecognition.stop();
       } catch (e) {
-        // 忽略已停止的错误
+        // 忽略
       }
     }
 
-    // 更新 UI
     inputAreaEl.classList.remove('voice-active');
     voiceBtn.classList.remove('recording');
     voiceStatusEl.classList.remove('show');
     inputEl.placeholder = '跟小鹿聊聊...';
     inputEl.removeAttribute('readonly');
 
-    // 确保最终文本在输入框中
     const finalText = _voiceBaseText + _voiceFinalTranscript;
     inputEl.value = finalText;
 
-    // 自动调整高度
     inputEl.style.height = 'auto';
     inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
 
-    // 清空语音临时变量
     _voiceFinalTranscript = '';
     _voiceInterimTranscript = '';
     _voiceBaseText = '';
 
-    // 语音识别完成自动发送
     if (finalText.trim()) {
-      // 短暂延迟确保UI更新完成
       setTimeout(() => handleSend(), 100);
-      return; // handleSend 里会处理后续
+      return;
     }
 
-    // 聚焦输入框
     inputEl.focus();
   }
 
   // ===== UI 构建 =====
 
-  /**
-   * 构建面板 DOM
-   */
   function buildPanel() {
-    // 遮罩
     overlayEl = document.createElement('div');
     overlayEl.className = 'xiaolu-overlay';
     overlayEl.addEventListener('click', close);
 
-    // 面板
     panelEl = document.createElement('div');
     panelEl.className = 'xiaolu-panel';
     panelEl.innerHTML = `
@@ -576,7 +778,6 @@ const XiaoluModule = (() => {
       </div>
     `;
 
-    // 缓存 DOM 引用
     messagesEl = panelEl.querySelector('#xiaolu-messages');
     inputEl = panelEl.querySelector('#xiaolu-input');
     sendBtn = panelEl.querySelector('#xiaolu-send');
@@ -585,28 +786,17 @@ const XiaoluModule = (() => {
     voiceStopBtn = panelEl.querySelector('#xiaolu-voice-stop');
     inputAreaEl = panelEl.querySelector('#xiaolu-input-area');
 
-    // 插入 DOM
     document.body.appendChild(overlayEl);
     document.body.appendChild(panelEl);
 
-    // 绑定事件
     bindEvents();
-
-    // 初始化语音功能
     initVoice();
-
-    // 显示欢迎消息
     showWelcome();
   }
 
-  /**
-   * 绑定事件
-   */
   function bindEvents() {
-    // 关闭按钮
     panelEl.querySelector('#xiaolu-close').addEventListener('click', close);
 
-    // 新对话
     panelEl.querySelector('#xiaolu-new-chat').addEventListener('click', () => {
       _chatHistory = [];
       messagesEl.innerHTML = '';
@@ -614,10 +804,8 @@ const XiaoluModule = (() => {
       if (typeof App !== 'undefined') App.showToast('已开始新对话 🦌');
     });
 
-    // 发送按钮
     sendBtn.addEventListener('click', handleSend);
 
-    // 输入框事件
     inputEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -625,7 +813,6 @@ const XiaoluModule = (() => {
       }
     });
 
-    // 自动调整高度
     inputEl.addEventListener('input', () => {
       inputEl.style.height = 'auto';
       inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
@@ -648,7 +835,6 @@ const XiaoluModule = (() => {
   }
 
   function addUserMessage(text) {
-    // 移除欢迎消息
     const welcome = messagesEl.querySelector('.xiaolu-welcome');
     if (welcome) welcome.remove();
 
@@ -671,6 +857,7 @@ const XiaoluModule = (() => {
     `;
     messagesEl.appendChild(msgEl);
     scrollToBottom();
+    return msgEl;
   }
 
   function addErrorMessage(text) {
@@ -713,20 +900,131 @@ const XiaoluModule = (() => {
     });
   }
 
-  // ===== 本地操作执行器 =====
+  // ===== 本地操作确认机制 =====
 
   /**
-   * 执行AI回复中解析出的本地操作
-   * @param {Object} actionObj - {tool: string, params: Object}
-   * @returns {Promise<{success: boolean, message: string}>}
+   * 格式化操作描述（给用户看的可读文本）
+   * @param {Object} actionObj - {tool, params}
+   * @returns {string} 人类可读的操作描述
    */
+  function formatActionDescription(actionObj) {
+    const { tool, params } = actionObj;
+
+    if (tool === 'record_finance') {
+      const typeLabel = params.type === 'income' ? '收入' : '支出';
+      const amount = Number(params.amount) || 0;
+      let detail = '';
+      if (params.type === 'income') {
+        detail = `来源：${params.source || '其他'}`;
+      } else {
+        detail = `分类：${params.category || '其他'}`;
+      }
+      if (params.note) detail += `，备注：${params.note}`;
+      return `帮你记录了：${typeLabel} ¥${amount}，${detail}。确认记录？`;
+    }
+
+    if (tool === 'create_task') {
+      const title = params.title || '未命名任务';
+      const priorityMap = { high: '🔴高', medium: '🟡中', low: '🟢低' };
+      const pLabel = priorityMap[params.priority] || '🟡中';
+      const dueInfo = params.due_date ? `，截止 ${params.due_date}` : '';
+      return `帮你创建任务：「${title}」，${pLabel}优先级${dueInfo}。确认创建？`;
+    }
+
+    if (tool === 'habit_log') {
+      const habit = params.habit || '未知习惯';
+      const statusLabel = params.status === 'completed' ? '✅ 完成' : '❌ 未完成';
+      return `帮你记录习惯打卡：${habit} ${statusLabel}。确认记录？`;
+    }
+
+    return `执行操作：${tool}。确认执行？`;
+  }
+
+  /**
+   * 显示操作确认卡片（带确认/取消按钮）
+   * @param {Object} actionObj - {tool, params}
+   * @param {string} replyText - AI 的文字回复（已去除 ACTION 标签）
+   * @param {string} userMessage - 用户原始消息（用于上下文）
+   */
+  function showActionConfirmation(actionObj, replyText, userMessage) {
+    // 先显示 AI 的文字回复
+    const msgEl = addAIMessage(replyText);
+
+    // 在消息下方添加确认卡片
+    const confirmCard = document.createElement('div');
+    confirmCard.className = 'xiaolu-action-confirm';
+
+    const desc = formatActionDescription(actionObj);
+    confirmCard.innerHTML = `
+      <div class="xiaolu-action-confirm-desc">${escapeHtml(desc)}</div>
+      <div class="xiaolu-action-confirm-btns">
+        <button class="xiaolu-action-btn confirm">✅ 确认</button>
+        <button class="xiaolu-action-btn cancel">❌ 取消</button>
+      </div>
+    `;
+    messagesEl.appendChild(confirmCard);
+    scrollToBottom();
+
+    const confirmBtn = confirmCard.querySelector('.xiaolu-action-btn.confirm');
+    const cancelBtn = confirmCard.querySelector('.xiaolu-action-btn.cancel');
+
+    confirmBtn.addEventListener('click', async () => {
+      // 禁用按钮防止重复点击
+      confirmBtn.disabled = true;
+      cancelBtn.disabled = true;
+
+      const result = await executeLocalAction(actionObj);
+
+      // 替换确认卡片为执行结果
+      const resultEl = document.createElement('div');
+      resultEl.className = 'xiaolu-action-result';
+      if (result.success) {
+        resultEl.innerHTML = `<span class="xiaolu-action-result-icon">✅</span><span>${escapeHtml(result.message.replace('✅ ', ''))}</span>`;
+      } else {
+        resultEl.innerHTML = `<span class="xiaolu-action-result-icon">❌</span><span>${escapeHtml(result.message)}</span>`;
+      }
+      confirmCard.replaceWith(resultEl);
+      scrollToBottom();
+
+      // 更新对话上下文
+      _chatHistory.push({ role: 'user', content: userMessage });
+      _chatHistory.push({ role: 'assistant', content: replyText + '\n' + result.message });
+      trimContext();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      // 替换确认卡片为取消提示
+      const cancelEl = document.createElement('div');
+      cancelEl.className = 'xiaolu-action-result xiaolu-action-cancelled';
+      cancelEl.innerHTML = `<span class="xiaolu-action-result-icon">🚫</span><span>好的，已取消</span>`;
+      confirmCard.replaceWith(cancelEl);
+      scrollToBottom();
+
+      // 更新对话上下文
+      _chatHistory.push({ role: 'user', content: userMessage });
+      _chatHistory.push({ role: 'assistant', content: replyText + '\n（用户取消了操作）' });
+      trimContext();
+    });
+  }
+
+  /**
+   * 裁剪上下文到 MAX_CONTEXT 条
+   */
+  function trimContext() {
+    if (_chatHistory.length > MAX_CONTEXT) {
+      _chatHistory = _chatHistory.slice(-MAX_CONTEXT);
+    }
+  }
+
+  // ===== 本地操作执行器 =====
+
   async function executeLocalAction(actionObj) {
     const { tool, params } = actionObj;
 
     if (tool === 'record_finance') {
       const now = new Date();
-      const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
-      const monthStr = dateStr.slice(0, 7); // YYYY-MM
+      const dateStr = now.toISOString().slice(0, 10);
+      const monthStr = dateStr.slice(0, 7);
 
       const record = {
         type: params.type || 'expense',
@@ -772,6 +1070,25 @@ const XiaoluModule = (() => {
       }
     }
 
+    if (tool === 'habit_log') {
+      const record = {
+        habit: params.habit || '未知习惯',
+        status: params.status || 'completed',
+        note: params.note || '',
+        date: getTodayStr(),
+        id: Date.now()
+      };
+
+      try {
+        await Storage.add('habits', record);
+        const statusLabel = record.status === 'completed' ? '完成' : '未完成';
+        return { success: true, message: `✅ 已记录习惯打卡：${record.habit}（${statusLabel}）` };
+      } catch (e) {
+        console.error('[Xiaolu] 习惯打卡失败:', e);
+        return { success: false, message: '记录习惯打卡时写入数据库失败' };
+      }
+    }
+
     return { success: false, message: `未知工具：${tool}` };
   }
 
@@ -781,17 +1098,14 @@ const XiaoluModule = (() => {
     const text = inputEl.value.trim();
     if (!text || _isLoading) return;
 
-    // 如果正在录音，先停止
     if (_isRecording) {
       stopRecording();
       return;
     }
 
-    // 清空输入
     inputEl.value = '';
     inputEl.style.height = 'auto';
 
-    // 显示用户消息
     addUserMessage(text);
 
     // 获取 token
@@ -813,41 +1127,49 @@ const XiaoluModule = (() => {
     showLoading();
 
     try {
-      const reply = await callDeepSeekAPI(token, text);
+      // 使用链式意图识别
+      const reply = await decomposedIntentChain(token, text);
 
       // 解析AI回复中的ACTION标签
       const actionMatch = reply.match(/\[ACTION:({.*?})\]/);
       let finalReply = reply;
+      let actionObj = null;
+
       if (actionMatch) {
         try {
-          const action = JSON.parse(actionMatch[1]);
-          const result = await executeLocalAction(action);
-          // 移除action标签，保留文字部分
+          actionObj = JSON.parse(actionMatch[1]);
+          // 移除 ACTION 标签，保留文字部分
           finalReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
-          // 追加执行结果提示
-          if (result.success) {
-            finalReply += '\n\n' + result.message;
-          } else {
-            finalReply += '\n\n❌ 操作失败：' + result.message;
-          }
         } catch (e) {
-          console.error('[Xiaolu] 本地操作执行失败:', e);
-          // 解析或执行失败时，仅移除标签，保留文字
+          console.error('[Xiaolu] ACTION标签解析失败:', e);
           finalReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
         }
       }
 
-      // 更新上下文
-      _chatHistory.push({ role: 'user', content: text });
-      _chatHistory.push({ role: 'assistant', content: finalReply });
-
-      // 裁剪上下文，保留最近 MAX_CONTEXT 条
-      if (_chatHistory.length > MAX_CONTEXT) {
-        _chatHistory = _chatHistory.slice(-MAX_CONTEXT);
-      }
-
       removeLoading();
-      addAIMessage(finalReply);
+
+      // 如果有操作且未开启自动确认 → 显示确认卡片
+      if (actionObj && !isAutoConfirm()) {
+        showActionConfirmation(actionObj, finalReply, text);
+      } else if (actionObj && isAutoConfirm()) {
+        // 自动确认模式：直接执行
+        const result = await executeLocalAction(actionObj);
+        if (result.success) {
+          finalReply += '\n\n' + result.message;
+        } else {
+          finalReply += '\n\n❌ 操作失败：' + result.message;
+        }
+        _chatHistory.push({ role: 'user', content: text });
+        _chatHistory.push({ role: 'assistant', content: finalReply });
+        trimContext();
+        addAIMessage(finalReply);
+      } else {
+        // 没有操作，纯文字回复
+        _chatHistory.push({ role: 'user', content: text });
+        _chatHistory.push({ role: 'assistant', content: finalReply });
+        trimContext();
+        addAIMessage(finalReply);
+      }
     } catch (err) {
       removeLoading();
       const errMsg = err.message || '未知错误';
@@ -855,7 +1177,6 @@ const XiaoluModule = (() => {
       if (errMsg === 'AUTH_ERROR') {
         addErrorMessage('认证失败，API Key 可能无效或已过期，请重新配置 🔑');
         _chatHistory = [];
-        // 提示重新配置
         setTimeout(async () => {
           const newToken = await showTokenDialog();
           if (newToken) {
@@ -880,12 +1201,10 @@ const XiaoluModule = (() => {
   function open() {
     if (_isOpen) return;
 
-    // 关闭妮可面板（两个AI面板不能同时打开）
     if (typeof NicoleModule !== 'undefined' && NicoleModule.close) {
       NicoleModule.close();
     }
 
-    // 首次打开时构建 DOM
     if (!panelEl) {
       buildPanel();
     }
@@ -894,14 +1213,12 @@ const XiaoluModule = (() => {
     overlayEl.classList.add('show');
     panelEl.classList.add('show');
 
-    // 聚焦输入框
     setTimeout(() => inputEl.focus(), 350);
   }
 
   function close() {
     if (!_isOpen) return;
 
-    // 如果正在录音，先停止
     if (_isRecording) {
       stopRecording();
     }

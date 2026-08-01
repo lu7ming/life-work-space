@@ -1481,20 +1481,25 @@ const XiaoluModule = (() => {
    * 语音解析后显示确认界面（类似 QuickInput 面板的确认/取消）
    */
   async function _parseAndConfirmVoice(text) {
+    console.log('[Xiaolu] _parseAndConfirmVoice 开始处理:', text);
     try {
       // 第一步：先用关键词解析（零API成本，即时响应）
       let parsed = null;
       if (typeof QuickInput !== 'undefined' && QuickInput.parseKeywordsOnly) {
         parsed = QuickInput.parseKeywordsOnly(text);
-        console.log('[Xiaolu] 语音关键词解析结果:', parsed);
+        console.log('[Xiaolu] 语音关键词解析结果:', JSON.stringify(parsed));
+      } else {
+        console.warn('[Xiaolu] QuickInput 或 parseKeywordsOnly 不可用');
       }
 
       // 第二步：关键词命中了可执行意图，直接执行
       if (parsed && parsed.intent && parsed.intent !== 'unknown' && parsed.intent !== 'journal_entry') {
-        _executeVoiceWithUndo(text, parsed);
+        console.log('[Xiaolu] 关键词命中，执行操作:', parsed.intent);
+        await _executeVoiceWithUndo(text, parsed);
         return;
       }
 
+      console.log('[Xiaolu] 关键词未命中，走 AI 聊天流程');
       // 第三步：关键词没命中，走 AI 聊天流程（链式意图识别）
       _processQuickVoiceText(text, parsed);
     } catch (err) {
@@ -1509,9 +1514,10 @@ const XiaoluModule = (() => {
    * 执行语音操作并支持 15 分钟内撤销
    */
   async function _executeVoiceWithUndo(text, parsed) {
+    console.log('[Xiaolu] _executeVoiceWithUndo 开始执行:', parsed.intent, JSON.stringify(parsed.params));
     try {
       const result = await QuickInput.executeQuickInput(parsed);
-      console.log('[Xiaolu] 语音执行结果:', result);
+      console.log('[Xiaolu] 语音执行结果:', JSON.stringify(result));
 
       const iconMap = { 'finance_record': '💰', 'task_create': '📋', 'habit_checkin': '✅', 'pomodoro_start': '🍅' };
       const icon = iconMap[parsed.intent] || '✅';

@@ -1,4 +1,4 @@
-/* ===== 生命树模块样式 ===== */
+/* ===== 生命树模块样式（SVG版） ===== */
 
 /* 主容器 */
 .lifetree-main {
@@ -9,8 +9,8 @@
   padding: 0 16px 8px;
 }
 
-/* Canvas 包装器 */
-.canvas-wrapper {
+/* ===== SVG 树容器 ===== */
+.svg-wrapper {
   flex: 0 0 60%;
   display: flex;
   flex-direction: column;
@@ -21,15 +21,16 @@
   position: relative;
 }
 
-.canvas-wrapper canvas {
+.tree-svg {
   flex: 1;
   width: 100%;
   display: block;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  min-height: 0;
 }
 
-/* Canvas 底部维度小标签 */
-.canvas-bottom-info {
+/* 树底部维度标签 */
+.tree-bottom-info {
   display: flex;
   justify-content: space-around;
   padding: 8px 12px;
@@ -38,7 +39,7 @@
   gap: 4px;
 }
 
-.canvas-bottom-info .dim-tag {
+.tree-bottom-info .dim-tag {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -48,11 +49,11 @@
   min-width: 40px;
 }
 
-.canvas-bottom-info .dim-tag .dim-icon {
+.tree-bottom-info .dim-tag .dim-icon {
   font-size: 16px;
 }
 
-.canvas-bottom-info .dim-tag .dim-bar {
+.tree-bottom-info .dim-tag .dim-bar {
   width: 32px;
   height: 3px;
   border-radius: 2px;
@@ -60,13 +61,147 @@
   overflow: hidden;
 }
 
-.canvas-bottom-info .dim-tag .dim-bar-fill {
+.tree-bottom-info .dim-tag .dim-bar-fill {
   height: 100%;
   border-radius: 2px;
   transition: width 0.6s ease;
 }
 
-/* 右侧详情面板 */
+/* ===== SVG 动画 ===== */
+
+/* 树枝微风摇摆 */
+.branches-group {
+  animation: branch-sway 5s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+
+@keyframes branch-sway {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(0.5deg); }
+  75% { transform: rotate(-0.4deg); }
+}
+
+/* 叶簇轻柔摆动 */
+.leaf {
+  animation: leaf-sway 3.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes leaf-sway {
+  0%, 100% { transform: rotate(0deg) translate(0, 0); }
+  30% { transform: rotate(1.5deg) translate(0.5px, -0.3px); }
+  70% { transform: rotate(-1deg) translate(-0.3px, 0.2px); }
+}
+
+/* 树冠整体呼吸 */
+.canopy-fill {
+  animation: canopy-breathe 6s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+@keyframes canopy-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.008); }
+}
+
+/* 维度标记浮动 */
+.dim-marker {
+  animation: marker-float 4s ease-in-out infinite;
+}
+
+@keyframes marker-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* 树干微动 */
+.tree-trunk-group {
+  animation: trunk-sway 7s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+@keyframes trunk-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(0.2deg); }
+}
+
+/* ===== 天气动画 ===== */
+
+/* 云朵飘动 */
+.cloud {
+  animation: cloud-drift 20s linear infinite;
+}
+
+@keyframes cloud-drift {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(30px); }
+  100% { transform: translateX(0); }
+}
+
+/* 雨滴下落 */
+.raindrop {
+  animation: rain-fall 1.2s linear infinite;
+}
+
+@keyframes rain-fall {
+  0% { opacity: 0.5; transform: translateY(0); }
+  70% { opacity: 0.4; }
+  100% { opacity: 0; transform: translateY(120px); }
+}
+
+/* 星星闪烁 */
+.star-dot {
+  animation: star-twinkle 3s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* 太阳光晕脉动 */
+.sun-glow {
+  animation: sun-pulse 4s ease-in-out infinite;
+}
+
+@keyframes sun-pulse {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.sun-core {
+  animation: sun-core-pulse 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes sun-core-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.7; }
+}
+
+/* 彩虹弧呼吸 */
+.rainbow-arc {
+  animation: rainbow-fade 6s ease-in-out infinite;
+}
+
+@keyframes rainbow-fade {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.6; }
+}
+
+/* 休眠光点飘落 */
+.dormant-dot {
+  animation: dormant-fall 6s ease-in-out infinite;
+}
+
+@keyframes dormant-fall {
+  0% { opacity: 0.3; transform: translateY(0) translateX(0); }
+  50% { opacity: 0.5; transform: translateY(30px) translateX(5px); }
+  100% { opacity: 0; transform: translateY(60px) translateX(-3px); }
+}
+
+/* ===== 右侧详情面板 ===== */
 .detail-panel {
   flex: 1;
   display: flex;
@@ -270,7 +405,7 @@
     padding: 0 12px 8px;
   }
 
-  .canvas-wrapper {
+  .svg-wrapper {
     flex: none;
     height: 50vh;
     min-height: 300px;
@@ -294,14 +429,14 @@
     grid-template-columns: 1fr;
   }
 
-  .canvas-bottom-info .dim-tag {
+  .tree-bottom-info .dim-tag {
     font-size: 10px;
   }
 }
 
 /* iPad 横屏优化 */
 @media (min-width: 768px) and (orientation: landscape) {
-  .canvas-wrapper {
+  .svg-wrapper {
     flex: 0 0 62%;
   }
 

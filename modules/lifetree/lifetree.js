@@ -1,17 +1,13 @@
 /**
  * 生命树模块 - 人生工作台
- * Canvas 2D 渲染可视化生命树，用户的日常行为滋养这棵树
+ * SVG 渲染可视化生命树，用户的日常行为滋养这棵树
  */
 const LifeTreeModule = (() => {
   'use strict';
 
   // ===== 状态 =====
-  let canvas, ctx;
-  let animFrame = null;
-  let canvasW = 0, canvasH = 0;
-  let dpr = 1;
-  let particles = [];
-  let time = 0;
+  let svgWrapper = null;
+  let svgEl = null;
 
   // 数据状态
   let weatherData = { type: 'cloudy', label: '多云', emoji: '☁️' };
@@ -21,6 +17,29 @@ const LifeTreeModule = (() => {
   let checkinRate7d = 0;
   let totalCheckins = 0;
   let recentActive = true;
+
+  // ===== SVG 常量 =====
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const VB_W = 600;
+  const VB_H = 800;
+
+  // 树结构参数
+  const TRUNK_BASE_X = 300;
+  const TRUNK_BASE_Y = 660;
+  const TRUNK_TOP_X = 300;
+  const TRUNK_TOP_Y = 270;
+  const TRUNK_BASE_HALF_W = 22;
+  const TRUNK_TOP_HALF_W = 5;
+
+  // 分支配置（角度为SVG标准：0=右，负值=向上）
+  const BRANCH_CONFIGS = [
+    { angleDeg: -150, length: 155, startT: 0.35 },  // 左下
+    { angleDeg: -115, length: 170, startT: 0.48 },  // 左上
+    { angleDeg: -75,  length: 175, startT: 0.58 },  // 右上
+    { angleDeg: -35,  length: 150, startT: 0.68 },  // 右下
+    { angleDeg: -135, length: 145, startT: 0.80 },  // 高位左
+    { angleDeg: -55,  length: 148, startT: 0.88 },  // 高位右
+  ];
 
   // ===== 配置常量 =====
   const DIMENSIONS = [
@@ -40,7 +59,7 @@ const LifeTreeModule = (() => {
 
   const WEATHER_TYPES = {
     sunny:    { emoji: '☀️', label: '晴天',  skyTop: '#87CEEB', skyBot: '#E8F4FD', particle: 'sparkle' },
-    cloudy:   { emoji: '☁️', label: '多云',  skyTop: '#B0C4DE', skyBot: '#D6E4F0', particle: 'none' },
+    cloudy:   { emoji: '☁️', label: '多云',  skyTop: '#B0C4DE', skyBot: '#D6E4F0', particle: 'cloud' },
     rainy:    { emoji: '🌧️', label: '小雨',  skyTop: '#708090', skyBot: '#A9B8C8', particle: 'rain' },
     starry:   { emoji: '🌙', label: '星空',  skyTop: '#1a1a3e', skyBot: '#2d2d5e', particle: 'star' },
     rainbow:  { emoji: '🌈', label: '彩虹',  skyTop: '#87CEEB', skyBot: '#F0E6FF', particle: 'sparkle' },
@@ -65,18 +84,38 @@ const LifeTreeModule = (() => {
 
   function lerp(a, b, t) { return a + (b - a) * t; }
 
+  function rand(min, max) { return min + Math.random() * (max - min); }
+
   function daysBetween(d1, d2) {
     const ms = 86400000;
     return Math.abs(Math.floor(new Date(d1) / ms) - Math.floor(new Date(d2) / ms));
   }
 
   function getMonth() { return new Date().getMonth() + 1; }
-
   function getHour() { return new Date().getHours(); }
 
   function dateStr(d) {
     const dt = d || new Date();
     return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+
+  // ===== SVG 工具函数 =====
+  function svgCreate(tag) {
+    return document.createElementNS(SVG_NS, tag);
+  }
+
+  function svgAttr(el, attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      el.setAttribute(k, v);
+    }
+    return el;
+  }
+
+  function svgAdd(parent, tag, attrs) {
+    const el = svgCreate(tag);
+    if (attrs) svgAttr(el, attrs);
+    parent.appendChild(el);
+    return el;
   }
 
   // ===== 安全数据加载 =====
@@ -98,18 +137,16 @@ const LifeTreeModule = (() => {
     const health = await safeGetAll('health');
     const contacts = await safeGetAll('contacts');
 
-    // journal 可能不存在
     let journal = [];
     try { journal = await Storage.getAll('journal') || []; } catch(e) {}
 
-    // 计算近7天打卡率
     const today = new Date();
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(today.getDate() - 7);
     const sevenDaysAgoStr = dateStr(sevenDaysAgo);
 
     let checkinsIn7d = 0;
-    let maxPossible = 7; // 最多7天
+    let maxPossible = 7;
     const checkinDates = new Set();
 
     checkins.forEach(c => {
@@ -122,7 +159,6 @@ const LifeTreeModule = (() => {
     checkinRate7d = Math.round((checkinsIn7d / maxPossible) * 100);
     totalCheckins = checkins.length;
 
-    // 检测连续3天无数据
     const allDates = new Set();
     checkins.forEach(c => c.date && allDates.add(c.date));
     const last3 = [];
@@ -133,42 +169,28 @@ const LifeTreeModule = (() => {
     }
     recentActive = last3.some(d => allDates.has(d));
 
-    // 季节
     const month = getMonth();
     if (month >= 3 && month <= 5) seasonData = { type: 'spring', label: '春', emoji: '🌱' };
     else if (month >= 6 && month <= 8) seasonData = { type: 'summer', label: '夏', emoji: '☀️' };
     else if (month >= 9 && month <= 11) seasonData = { type: 'autumn', label: '秋', emoji: '🍂' };
     else seasonData = { type: 'winter', label: '冬', emoji: '❄️' };
 
-    // 天气
     weatherData = calculateWeather();
-
-    // 土壤状态
     soilState = calculateSoil(checkins, health, journal);
-
-    // 六大维度分数
     dimensions = calculateDimensions(checkins, tasks, finance, books, journal, contacts);
   }
 
   function calculateWeather() {
     const hour = getHour();
-
-    // 深夜优先
     if (hour >= 0 && hour < 5) {
       return { type: 'starry', label: '星空', emoji: '🌙' };
     }
-
-    // 休眠检测
     if (!recentActive) {
       return { type: 'dormant', label: '休眠', emoji: '💤' };
     }
-
-    // 彩虹：本月里程碑（简化：近7天打卡率100%）
     if (checkinRate7d >= 100) {
       return { type: 'rainbow', label: '彩虹', emoji: '🌈' };
     }
-
-    // 常规天气
     if (checkinRate7d >= 80) {
       return { type: 'sunny', label: '晴天', emoji: '☀️' };
     } else if (checkinRate7d >= 50) {
@@ -179,16 +201,13 @@ const LifeTreeModule = (() => {
   }
 
   function calculateSoil(checkins, health, journal) {
-    // 湿度：喝水打卡
     const waterCount = checkins.filter(c => c.checkins && c.checkins.includes('drink-water')).length;
     const moisture = clamp(waterCount * 8, 0, 100);
 
-    // 肥力：运动
     const exerciseCount = checkins.filter(c => c.checkins && c.checkins.includes('exercise')).length;
     const healthCount = health.length;
     const fertility = clamp((exerciseCount * 10 + healthCount * 3), 0, 100);
 
-    // 温度：情绪（日记 mood）
     let moodSum = 0, moodCount = 0;
     journal.forEach(j => {
       if (j.mood) {
@@ -199,7 +218,6 @@ const LifeTreeModule = (() => {
     const avgMood = moodCount > 0 ? moodSum / moodCount : 3;
     const temperature = clamp((avgMood / 5) * 100, 10, 100);
 
-    // 阳光：作息规律
     const earlySleepCount = checkins.filter(c => c.checkins && c.checkins.includes('early-sleep')).length;
     const sunlight = clamp(earlySleepCount * 12, 0, 100);
 
@@ -241,318 +259,608 @@ const LifeTreeModule = (() => {
     });
   }
 
-  // ===== Canvas 渲染 =====
-  function initCanvas() {
-    canvas = document.getElementById('lifetreeCanvas');
-    ctx = canvas.getContext('2d');
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-  }
+  // ===================================================
+  // SVG 树生成
+  // ===================================================
 
-  function resizeCanvas() {
-    dpr = window.devicePixelRatio || 1;
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const bottomInfo = document.getElementById('canvasBottomInfo');
-    const bottomH = bottomInfo ? bottomInfo.offsetHeight : 40;
-    canvasW = rect.width;
-    canvasH = rect.height - bottomH;
-    canvas.width = canvasW * dpr;
-    canvas.height = canvasH * dpr;
-    canvas.style.width = canvasW + 'px';
-    canvas.style.height = canvasH + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
+  function buildSVG() {
+    // 清除旧SVG
+    const old = svgWrapper.querySelector('svg');
+    if (old) old.remove();
 
-  function drawFrame() {
-    time += 0.016;
-    ctx.clearRect(0, 0, canvasW, canvasH);
+    const svg = svgCreate('svg');
+    svgAttr(svg, {
+      viewBox: `0 0 ${VB_W} ${VB_H}`,
+      preserveAspectRatio: 'xMidYMid meet'
+    });
+    svg.classList.add('tree-svg');
 
-    drawSky();
-    drawWeatherParticles();
-    drawGround();
-    drawTree();
-    drawWeatherEffects();
-
-    animFrame = requestAnimationFrame(drawFrame);
-  }
-
-  // 天空渐变
-  function drawSky() {
-    const wConfig = WEATHER_TYPES[weatherData.type] || WEATHER_TYPES.cloudy;
-    const grad = ctx.createLinearGradient(0, 0, 0, canvasH * 0.7);
-    grad.addColorStop(0, wConfig.skyTop);
-    grad.addColorStop(1, wConfig.skyBot);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvasW, canvasH);
-  }
-
-  // 地面
-  function drawGround() {
+    // 计算树相关数据
+    const healthFactor = soilState.moisture / 100;
     const season = SEASON_THEMES[seasonData.type] || SEASON_THEMES.spring;
-    const groundY = canvasH * 0.78;
+    const weatherConfig = WEATHER_TYPES[weatherData.type] || WEATHER_TYPES.cloudy;
 
-    // 土壤层渐变
-    const grad = ctx.createLinearGradient(0, groundY, 0, canvasH);
-    grad.addColorStop(0, season.groundColor);
-    grad.addColorStop(0.3, '#6D4C2A');
-    grad.addColorStop(1, '#4A3520');
-    ctx.fillStyle = grad;
+    // 1. Defs（渐变 + 滤镜）
+    buildDefs(svg, weatherConfig);
 
-    // 地面曲线
-    ctx.beginPath();
-    ctx.moveTo(0, groundY);
-    ctx.quadraticCurveTo(canvasW * 0.25, groundY - 12, canvasW * 0.5, groundY - 4);
-    ctx.quadraticCurveTo(canvasW * 0.75, groundY + 6, canvasW, groundY - 2);
-    ctx.lineTo(canvasW, canvasH);
-    ctx.lineTo(0, canvasH);
-    ctx.closePath();
-    ctx.fill();
+    // 2. 天空背景
+    buildSky(svg, weatherConfig);
 
-    // 土壤纹理点
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    for (let i = 0; i < 20; i++) {
-      const px = (i * 53 + time * 2) % canvasW;
-      const py = groundY + 15 + (i * 17) % 30;
-      ctx.beginPath();
-      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
-      ctx.fill();
+    // 3. 天气层
+    buildWeatherLayer(svg, weatherData.type);
+
+    // 4. 远景小山
+    buildHills(svg, season);
+
+    // 5. 地面
+    buildGround(svg, season);
+
+    // 6. 树干
+    buildTrunk(svg);
+
+    // 7. 树枝 + 叶簇 + emoji标记
+    buildBranches(svg, healthFactor, season);
+
+    // 8. 树冠装饰叶（填充区域）
+    buildCanopyFill(svg, healthFactor, season);
+
+    svgEl = svg;
+    svgWrapper.insertBefore(svg, svgWrapper.firstChild);
+  }
+
+  // ----- Defs -----
+  function buildDefs(svg, wConfig) {
+    const defs = svgCreate('defs');
+
+    // 天空渐变
+    const skyGrad = svgAdd(defs, 'linearGradient', { id: 'sky-grad', x1: '0', y1: '0', x2: '0', y2: '1' });
+    svgAdd(skyGrad, 'stop', { offset: '0%', 'stop-color': wConfig.skyTop });
+    svgAdd(skyGrad, 'stop', { offset: '100%', 'stop-color': wConfig.skyBot });
+
+    // 树干渐变
+    const trunkGrad = svgAdd(defs, 'linearGradient', { id: 'trunk-grad', x1: '0', y1: '1', x2: '0', y2: '0' });
+    svgAdd(trunkGrad, 'stop', { offset: '0%', 'stop-color': '#6B4423' });
+    svgAdd(trunkGrad, 'stop', { offset: '50%', 'stop-color': '#8B6914' });
+    svgAdd(trunkGrad, 'stop', { offset: '100%', 'stop-color': '#A0845C' });
+
+    // 树枝渐变
+    const branchGrad = svgAdd(defs, 'linearGradient', { id: 'branch-grad', x1: '0', y1: '1', x2: '0', y2: '0' });
+    svgAdd(branchGrad, 'stop', { offset: '0%', 'stop-color': '#7B5B3A' });
+    svgAdd(branchGrad, 'stop', { offset: '100%', 'stop-color': '#9B7B5A' });
+
+    // 地面渐变
+    const groundGrad = svgAdd(defs, 'linearGradient', { id: 'ground-grad', x1: '0', y1: '0', x2: '0', y2: '1' });
+    svgAdd(groundGrad, 'stop', { offset: '0%', 'stop-color': '#7CB342' });
+    svgAdd(groundGrad, 'stop', { offset: '40%', 'stop-color': '#6D4C2A' });
+    svgAdd(groundGrad, 'stop', { offset: '100%', 'stop-color': '#4A3520' });
+
+    // 阴影滤镜
+    const shadowFilter = svgAdd(defs, 'filter', { id: 'shadow-filter', x: '-30%', y: '-30%', width: '160%', height: '160%' });
+    svgAdd(shadowFilter, 'feDropShadow', { dx: '0', dy: '1.5', stdDeviation: '2.5', 'flood-color': 'rgba(0,0,0,0.25)' });
+
+    // 发光滤镜（太阳/星星用）
+    const glowFilter = svgAdd(defs, 'filter', { id: 'glow-filter', x: '-50%', y: '-50%', width: '200%', height: '200%' });
+    const glowBlur = svgAdd(glowFilter, 'feGaussianBlur', { stdDeviation: '3', result: 'blur' });
+    const glowMerge = svgAdd(glowFilter, 'feMerge');
+    svgAdd(glowMerge, 'feMergeNode', { in: 'blur' });
+    svgAdd(glowMerge, 'feMergeNode', { in: 'SourceGraphic' });
+
+    // 太阳光晕渐变
+    const sunGrad = svgAdd(defs, 'radialGradient', { id: 'sun-glow-grad', cx: '50%', cy: '50%', r: '50%' });
+    svgAdd(sunGrad, 'stop', { offset: '0%', 'stop-color': 'rgba(255,240,180,0.6)' });
+    svgAdd(sunGrad, 'stop', { offset: '50%', 'stop-color': 'rgba(255,220,100,0.2)' });
+    svgAdd(sunGrad, 'stop', { offset: '100%', 'stop-color': 'rgba(255,200,50,0)' });
+
+    // 彩虹渐变
+    const rainbowGrad = svgAdd(defs, 'linearGradient', { id: 'rainbow-grad', x1: '0', y1: '0', x2: '1', y2: '0' });
+    svgAdd(rainbowGrad, 'stop', { offset: '0%', 'stop-color': 'rgba(255,0,0,0.2)' });
+    svgAdd(rainbowGrad, 'stop', { offset: '17%', 'stop-color': 'rgba(255,165,0,0.2)' });
+    svgAdd(rainbowGrad, 'stop', { offset: '33%', 'stop-color': 'rgba(255,255,0,0.18)' });
+    svgAdd(rainbowGrad, 'stop', { offset: '50%', 'stop-color': 'rgba(0,180,0,0.15)' });
+    svgAdd(rainbowGrad, 'stop', { offset: '67%', 'stop-color': 'rgba(0,100,255,0.15)' });
+    svgAdd(rainbowGrad, 'stop', { offset: '83%', 'stop-color': 'rgba(75,0,130,0.12)' });
+    svgAdd(rainbowGrad, 'stop', { offset: '100%', 'stop-color': 'rgba(148,0,211,0.1)' });
+
+    svg.appendChild(defs);
+  }
+
+  // ----- 天空 -----
+  function buildSky(svg, wConfig) {
+    svgAdd(svg, 'rect', {
+      x: '0', y: '0', width: VB_W, height: VB_H,
+      fill: 'url(#sky-grad)'
+    });
+  }
+
+  // ----- 天气层 -----
+  function buildWeatherLayer(svg, weatherType) {
+    const g = svgAdd(svg, 'g', { class: 'weather-layer' });
+
+    if (weatherType === 'sunny') {
+      // 太阳光晕
+      svgAdd(g, 'circle', {
+        cx: '480', cy: '100', r: '80',
+        fill: 'url(#sun-glow-grad)',
+        class: 'sun-glow'
+      });
+      svgAdd(g, 'circle', {
+        cx: '480', cy: '100', r: '30',
+        fill: 'rgba(255,230,120,0.5)',
+        filter: 'url(#glow-filter)',
+        class: 'sun-core'
+      });
+    }
+
+    if (weatherType === 'cloudy' || weatherType === 'rainy') {
+      // 云朵
+      const clouds = [
+        { x: 80, y: 80, scale: 1.0 },
+        { x: 350, y: 50, scale: 1.3 },
+        { x: 500, y: 110, scale: 0.8 }
+      ];
+      clouds.forEach((c, i) => {
+        const cloud = svgAdd(g, 'g', {
+          class: 'cloud',
+          transform: `translate(${c.x},${c.y}) scale(${c.scale})`
+        });
+        cloud.style.animationDelay = `${i * 3}s`;
+        // 云朵由多个椭圆组成
+        svgAdd(cloud, 'ellipse', { cx: '0', cy: '0', rx: '40', ry: '18', fill: 'rgba(255,255,255,0.6)' });
+        svgAdd(cloud, 'ellipse', { cx: '-25', cy: '5', rx: '28', ry: '14', fill: 'rgba(255,255,255,0.5)' });
+        svgAdd(cloud, 'ellipse', { cx: '25', cy: '5', rx: '30', ry: '15', fill: 'rgba(255,255,255,0.55)' });
+        svgAdd(cloud, 'ellipse', { cx: '10', cy: '-8', rx: '25', ry: '13', fill: 'rgba(255,255,255,0.5)' });
+      });
+    }
+
+    if (weatherType === 'rainy') {
+      // 细密雨丝
+      for (let i = 0; i < 35; i++) {
+        const x = rand(20, VB_W - 20);
+        const y = rand(50, 500);
+        const line = svgAdd(g, 'line', {
+          x1: x, y1: y,
+          x2: x - 2, y2: y + rand(10, 18),
+          stroke: 'rgba(180,200,220,0.4)',
+          'stroke-width': rand(0.5, 1.2).toFixed(1),
+          'stroke-linecap': 'round',
+          class: 'raindrop'
+        });
+        line.style.animationDelay = `${rand(0, 2).toFixed(2)}s`;
+        line.style.animationDuration = `${rand(0.8, 1.5).toFixed(2)}s`;
+      }
+    }
+
+    if (weatherType === 'starry') {
+      // 月亮
+      svgAdd(g, 'circle', {
+        cx: '480', cy: '90', r: '25',
+        fill: 'rgba(240,240,210,0.8)',
+        filter: 'url(#glow-filter)'
+      });
+      svgAdd(g, 'circle', {
+        cx: '492', cy: '82', r: '20',
+        fill: weatherData.type === 'starry' ? (WEATHER_TYPES.starry.skyTop) : '#1a1a3e'
+      });
+      // 星星
+      for (let i = 0; i < 30; i++) {
+        const star = svgAdd(g, 'circle', {
+          cx: rand(20, VB_W - 20).toFixed(0),
+          cy: rand(20, 400).toFixed(0),
+          r: rand(0.5, 2).toFixed(1),
+          fill: `rgba(220,230,255,${rand(0.3, 0.8).toFixed(2)})`,
+          class: 'star-dot'
+        });
+        star.style.animationDelay = `${rand(0, 4).toFixed(2)}s`;
+        star.style.animationDuration = `${rand(2, 5).toFixed(2)}s`;
+      }
+    }
+
+    if (weatherType === 'rainbow') {
+      // 彩虹弧
+      svgAdd(g, 'path', {
+        d: `M ${50} 580 A 280 280 0 0 1 550 580`,
+        fill: 'none',
+        stroke: 'url(#rainbow-grad)',
+        'stroke-width': '18',
+        'stroke-linecap': 'round',
+        opacity: '0.5',
+        class: 'rainbow-arc'
+      });
+      // 太阳光晕
+      svgAdd(g, 'circle', {
+        cx: '480', cy: '100', r: '60',
+        fill: 'url(#sun-glow-grad)',
+        class: 'sun-glow'
+      });
+    }
+
+    if (weatherType === 'dormant') {
+      // 飘落光点
+      for (let i = 0; i < 15; i++) {
+        const dot = svgAdd(g, 'circle', {
+          cx: rand(50, VB_W - 50).toFixed(0),
+          cy: rand(100, 600).toFixed(0),
+          r: rand(1, 2.5).toFixed(1),
+          fill: `rgba(200,200,180,${rand(0.2, 0.5).toFixed(2)})`,
+          class: 'dormant-dot'
+        });
+        dot.style.animationDelay = `${rand(0, 5).toFixed(2)}s`;
+        dot.style.animationDuration = `${rand(4, 8).toFixed(2)}s`;
+      }
     }
   }
 
-  // 树
-  function drawTree() {
-    const baseX = canvasW * 0.5;
-    const baseY = canvasH * 0.78;
-    const treeHeight = canvasH * 0.45;
+  // ----- 远景小山 -----
+  function buildHills(svg, season) {
+    const hillColor1 = season.groundColor;
+    const hillColor2 = adjustColor(hillColor1, -20);
+    const g = svgAdd(svg, 'g', { class: 'hills', opacity: '0.3' });
 
-    // 土壤影响：肥力影响树干粗细
-    const trunkWidth = lerp(6, 18, soilState.fertility / 100);
-    const healthFactor = soilState.moisture / 100; // 翠绿程度
+    // 远处山丘1
+    svgAdd(g, 'path', {
+      d: `M -20 660 Q 100 590, 200 640 Q 280 660, 350 650 L 350 670 L -20 670 Z`,
+      fill: hillColor2
+    });
+    // 远处山丘2
+    svgAdd(g, 'path', {
+      d: `M 250 660 Q 400 580, 500 630 Q 580 655, 620 645 L 620 670 L 250 670 Z`,
+      fill: hillColor1
+    });
+  }
 
-    // 树干（贝塞尔曲线）
-    drawTrunk(baseX, baseY, treeHeight, trunkWidth);
+  // ----- 地面 -----
+  function buildGround(svg, season) {
+    const g = svgAdd(svg, 'g', { class: 'ground-group' });
 
-    // 6个分支
+    // 草地层（弧线顶部）
+    svgAdd(g, 'path', {
+      d: `M 0 650 Q 100 638, 200 645 Q 300 655, 400 642 Q 500 632, 600 648 L 600 680 L 0 680 Z`,
+      fill: season.groundColor,
+      opacity: '0.85'
+    });
+
+    // 土壤层
+    svgAdd(g, 'path', {
+      d: `M 0 670 Q 150 662, 300 668 Q 450 674, 600 665 L 600 ${VB_H} L 0 ${VB_H} Z`,
+      fill: '#8B6914',
+      opacity: '0.7'
+    });
+
+    // 草根纹理
+    svgAdd(g, 'path', {
+      d: `M 0 660 Q 80 650, 180 658 Q 280 666, 380 654 Q 480 646, 600 658 L 600 675 Q 480 665, 380 672 Q 280 680, 180 672 Q 80 665, 0 674 Z`,
+      fill: '#6D4C2A',
+      opacity: '0.5'
+    });
+
+    // 小草装饰
+    const grassPositions = [80, 150, 220, 380, 450, 520];
+    grassPositions.forEach(gx => {
+      const gy = 648 + Math.sin(gx * 0.05) * 8;
+      svgAdd(g, 'path', {
+        d: `M ${gx} ${gy} Q ${gx-3} ${gy-12}, ${gx-1} ${gy-18} M ${gx} ${gy} Q ${gx+4} ${gy-14}, ${gx+2} ${gy-20}`,
+        stroke: '#5A8A30',
+        'stroke-width': '1.5',
+        fill: 'none',
+        'stroke-linecap': 'round',
+        opacity: '0.6'
+      });
+    });
+  }
+
+  // ----- 树干 -----
+  function buildTrunk(svg) {
+    const g = svgAdd(svg, 'g', { class: 'tree-trunk-group' });
+
+    const bx = TRUNK_BASE_X;
+    const by = TRUNK_BASE_Y;
+    const tx = TRUNK_TOP_X;
+    const ty = TRUNK_TOP_Y;
+    const bw = TRUNK_BASE_HALF_W;
+    const tw = TRUNK_TOP_HALF_W;
+
+    // 有机弯曲的树干轮廓
+    const d = [
+      `M ${bx - bw} ${by}`,
+      // 左边向上（微弯）
+      `C ${bx - bw - 3} ${by - 130}, ${tx - tw - 8} ${ty + 130}, ${tx - tw} ${ty}`,
+      // 顶部弧
+      `Q ${tx} ${ty - tw * 0.8}, ${tx + tw} ${ty}`,
+      // 右边向下
+      `C ${tx + tw + 6} ${ty + 130}, ${bx + bw + 2} ${by - 130}, ${bx + bw} ${by}`,
+      // 底部弧（圆润）
+      `Q ${bx} ${by + 6}, ${bx - bw} ${by}`,
+      'Z'
+    ].join(' ');
+
+    svgAdd(g, 'path', {
+      d: d,
+      fill: 'url(#trunk-grad)',
+      class: 'tree-trunk'
+    });
+
+    // 树干纹理线
+    const textures = [0.2, 0.4, 0.6, 0.8];
+    textures.forEach(t => {
+      const y = lerp(by, ty, t);
+      const w = lerp(bw, tw, t);
+      const cx = lerp(bx, tx, t);
+      svgAdd(g, 'path', {
+        d: `M ${cx - w * 0.6} ${y} Q ${cx} ${y - 4}, ${cx + w * 0.5} ${y + 2}`,
+        stroke: 'rgba(60,35,10,0.15)',
+        'stroke-width': '1',
+        fill: 'none'
+      });
+    });
+  }
+
+  // ----- 获取树干上某位置的x坐标和宽度 -----
+  function getTrunkPoint(t) {
+    const x = lerp(TRUNK_BASE_X, TRUNK_TOP_X, t);
+    const y = lerp(TRUNK_BASE_Y, TRUNK_TOP_Y, t);
+    const w = lerp(TRUNK_BASE_HALF_W, TRUNK_TOP_HALF_W, t);
+    return { x, y, w };
+  }
+
+  // ----- 树枝 + 叶簇 + emoji -----
+  function buildBranches(svg, healthFactor, season) {
+    const branchesG = svgAdd(svg, 'g', { class: 'branches-group' });
+    const foliageG = svgAdd(svg, 'g', { class: 'foliage-group' });
+    const markersG = svgAdd(svg, 'g', { class: 'markers-group' });
+
     const avgScore = dimensions.length > 0
       ? dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length
       : 30;
-    const branchLength = lerp(40, 90, avgScore / 100);
 
     dimensions.forEach((dim, i) => {
-      const angle = -Math.PI / 2 + (i - 2.5) * (Math.PI / 7);
-      const len = lerp(branchLength * 0.5, branchLength, dim.score / 100);
-      const thickness = lerp(2, 6, dim.score / 100);
-      const startX = baseX;
-      const startY = baseY - treeHeight * (0.4 + i * 0.08);
+      const cfg = BRANCH_CONFIGS[i];
+      const tp = getTrunkPoint(cfg.startT);
 
-      drawBranch(startX, startY, angle, len, thickness, dim.color);
-      drawLeafCluster(startX + Math.cos(angle) * len, startY + Math.sin(angle) * len, dim.score, healthFactor, dim.color);
-      drawBranchIcon(startX + Math.cos(angle) * len, startY + Math.sin(angle) * len, dim.icon);
+      // 分支长度和粗细受分数影响
+      const lengthFactor = lerp(0.6, 1.0, dim.score / 100);
+      const branchLen = cfg.length * lengthFactor;
+      const thickness = lerp(3, 9, dim.score / 100);
+
+      // 分支角度（转弧度）
+      const angleRad = cfg.angleDeg * Math.PI / 180;
+
+      // 计算分支终点
+      const endX = tp.x + Math.cos(angleRad) * branchLen;
+      const endY = tp.y + Math.sin(angleRad) * branchLen;
+
+      // 控制点（在起点和终点之间，加入弯曲）
+      const midX = tp.x + Math.cos(angleRad) * branchLen * 0.5;
+      const midY = tp.y + Math.sin(angleRad) * branchLen * 0.5;
+      // 垂直于分支方向的偏移，产生自然弯曲
+      const perpAngle = angleRad + Math.PI / 2;
+      const curveOffset = (i % 2 === 0 ? 1 : -1) * branchLen * 0.12;
+      const cpX = midX + Math.cos(perpAngle) * curveOffset;
+      const cpY = midY + Math.sin(perpAngle) * curveOffset;
+
+      // 绘制主分支（填充的锥形路径）
+      const branchPath = createBranchPath(tp.x, tp.y, cpX, cpY, endX, endY, thickness);
+      const branchEl = svgAdd(branchesG, 'path', {
+        d: branchPath,
+        fill: '#7B5B3A',
+        class: `branch branch-${dim.key}`,
+        'data-dim': dim.key
+      });
+      branchEl.style.animationDelay = `${i * 0.3}s`;
+
+      // 次级分支（2-3个）
+      const subCount = 2 + (dim.score > 50 ? 1 : 0);
+      for (let s = 0; s < subCount; s++) {
+        const t = 0.4 + s * 0.22;
+        // 分支上的点（通过二次贝塞尔插值）
+        const pt = quadBezierPoint(tp.x, tp.y, cpX, cpY, endX, endY, t);
+        // 次级分支角度（在主分支基础上偏移）
+        const subAngle = angleRad + (s % 2 === 0 ? -0.5 : 0.5) + rand(-0.2, 0.2);
+        const subLen = branchLen * rand(0.25, 0.4);
+        const subEndX = pt.x + Math.cos(subAngle) * subLen;
+        const subEndY = pt.y + Math.sin(subAngle) * subLen;
+        const subCpX = pt.x + Math.cos(subAngle) * subLen * 0.5 + rand(-8, 8);
+        const subCpY = pt.y + Math.sin(subAngle) * subLen * 0.5 + rand(-8, 8);
+        const subThick = thickness * rand(0.2, 0.35);
+
+        const subPath = createBranchPath(pt.x, pt.y, subCpX, subCpY, subEndX, subEndY, subThick);
+        svgAdd(branchesG, 'path', {
+          d: subPath,
+          fill: '#8B6B4A',
+          class: 'sub-branch',
+          opacity: '0.8'
+        });
+
+        // 次级分支末端叶子
+        addLeafCluster(foliageG, subEndX, subEndY, dim.score * 0.7, healthFactor, season, i * 10 + s * 3);
+      }
+
+      // 主分支末端叶簇
+      addLeafCluster(foliageG, endX, endY, dim.score, healthFactor, season, i * 7);
+
+      // 维度emoji标记
+      addDimMarker(markersG, endX, endY, dim.icon, i);
     });
-
-    // 树冠顶部叶子
-    drawCanopy(baseX, baseY - treeHeight, healthFactor);
   }
 
-  function drawTrunk(x, y, height, width) {
-    const sway = Math.sin(time * 0.8) * 2;
+  // ----- 创建分支填充路径（锥形） -----
+  function createBranchPath(x1, y1, cpX, cpY, x2, y2, maxThick) {
+    const minThick = Math.max(0.8, maxThick * 0.15);
+    // 计算垂直方向
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const perpX = Math.cos(angle + Math.PI / 2);
+    const perpY = Math.sin(angle + Math.PI / 2);
 
-    ctx.save();
-    ctx.strokeStyle = '#6B4423';
-    ctx.lineWidth = width;
-    ctx.lineCap = 'round';
+    // 起点两端
+    const s1x = x1 + perpX * maxThick / 2;
+    const s1y = y1 + perpY * maxThick / 2;
+    const s2x = x1 - perpX * maxThick / 2;
+    const s2y = y1 - perpY * maxThick / 2;
 
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.bezierCurveTo(
-      x - width * 0.3, y - height * 0.3,
-      x + sway + width * 0.2, y - height * 0.6,
-      x + sway, y - height
-    );
-    ctx.stroke();
+    // 终点两端
+    const e1x = x2 + perpX * minThick / 2;
+    const e1y = y2 + perpY * minThick / 2;
+    const e2x = x2 - perpX * minThick / 2;
+    const e2y = y2 - perpY * minThick / 2;
 
-    // 树干纹理
-    ctx.strokeStyle = 'rgba(90,50,20,0.3)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 4; i++) {
-      const ty = y - height * (0.15 + i * 0.2);
-      ctx.beginPath();
-      ctx.moveTo(x - width * 0.3, ty);
-      ctx.quadraticCurveTo(x, ty - 5, x + width * 0.3, ty);
-      ctx.stroke();
-    }
+    // 控制点偏移
+    const cp1x = cpX + perpX * maxThick * 0.35;
+    const cp1y = cpY + perpY * maxThick * 0.35;
+    const cp2x = cpX - perpX * maxThick * 0.35;
+    const cp2y = cpY - perpY * maxThick * 0.35;
 
-    ctx.restore();
+    return `M ${s1x.toFixed(1)} ${s1y.toFixed(1)} `
+         + `Q ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${e1x.toFixed(1)} ${e1y.toFixed(1)} `
+         + `Q ${cpX.toFixed(1)} ${cpY.toFixed(1)}, ${e2x.toFixed(1)} ${e2y.toFixed(1)} `
+         + `Q ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${s2x.toFixed(1)} ${s2y.toFixed(1)} `
+         + `Q ${cpX.toFixed(1)} ${cpY.toFixed(1)}, ${s1x.toFixed(1)} ${s1y.toFixed(1)} Z`;
   }
 
-  function drawBranch(x, y, angle, length, thickness, color) {
-    const sway = Math.sin(time * 1.2 + angle * 3) * 3;
-    const endX = x + Math.cos(angle) * length + sway;
-    const endY = y + Math.sin(angle) * length;
-    const cpX = x + Math.cos(angle) * length * 0.5 + sway * 0.5;
-    const cpY = y + Math.sin(angle) * length * 0.5 - 10;
-
-    ctx.save();
-    ctx.strokeStyle = '#7B5B3A';
-    ctx.lineWidth = thickness;
-    ctx.lineCap = 'round';
-
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.quadraticCurveTo(cpX, cpY, endX, endY);
-    ctx.stroke();
-    ctx.restore();
+  // ----- 二次贝塞尔曲线上的点 -----
+  function quadBezierPoint(x0, y0, cx, cy, x1, y1, t) {
+    const mt = 1 - t;
+    return {
+      x: mt * mt * x0 + 2 * mt * t * cx + t * t * x1,
+      y: mt * mt * y0 + 2 * mt * t * cy + t * t * y1
+    };
   }
 
-  function drawLeafCluster(x, y, score, healthFactor, color) {
-    const season = SEASON_THEMES[seasonData.type] || SEASON_THEMES.spring;
+  // ----- 叶簇 -----
+  function addLeafCluster(parent, cx, cy, score, healthFactor, season, seed) {
     const tint = season.leafTint;
-    const size = lerp(10, 28, score / 100);
-    const count = Math.floor(lerp(3, 10, score / 100));
+    const count = Math.floor(lerp(6, 16, score / 100));
+    const spread = lerp(12, 30, score / 100);
 
-    ctx.save();
     for (let i = 0; i < count; i++) {
-      const a = (i / count) * Math.PI * 2 + time * 0.3;
-      const r = size * (0.5 + Math.sin(a * 2 + time) * 0.2);
-      const lx = x + Math.cos(a) * r;
-      const ly = y + Math.sin(a) * r;
-      const leafSize = lerp(4, 8, score / 100);
+      const angle = (i / count) * Math.PI * 2 + seed * 0.1;
+      const dist = spread * (0.3 + Math.abs(Math.sin(angle * 2.5 + seed)) * 0.7);
+      const lx = cx + Math.cos(angle) * dist;
+      const ly = cy + Math.sin(angle) * dist;
 
-      // 翠绿程度由 healthFactor 决定
-      const green = Math.floor(lerp(120, tint[1], healthFactor));
-      const alpha = lerp(0.3, 0.8, score / 100);
-      ctx.fillStyle = `rgba(${tint[0]},${green},${tint[2]},${alpha})`;
+      // 叶子大小
+      const rx = lerp(5, 14, score / 100) * rand(0.7, 1.2);
+      const ry = rx * rand(0.5, 0.7);
 
-      ctx.beginPath();
-      ctx.ellipse(lx, ly, leafSize, leafSize * 0.6, a, 0, Math.PI * 2);
-      ctx.fill();
+      // 颜色：healthFactor 控制翠绿度
+      const baseGreen = lerp(140, tint[1], healthFactor);
+      const greenVar = rand(-15, 15);
+      const g = Math.floor(clamp(baseGreen + greenVar, 80, 220));
+      const r = Math.floor(clamp(tint[0] + rand(-20, 20), 50, 220));
+      const b = Math.floor(clamp(tint[2] + rand(-15, 15), 30, 160));
+      const alpha = lerp(0.4, 0.85, score / 100);
+
+      const rotation = (angle * 180 / Math.PI + rand(-20, 20)).toFixed(0);
+
+      const leaf = svgAdd(parent, 'ellipse', {
+        cx: lx.toFixed(1),
+        cy: ly.toFixed(1),
+        rx: rx.toFixed(1),
+        ry: ry.toFixed(1),
+        fill: `rgba(${r},${g},${b},${alpha.toFixed(2)})`,
+        class: 'leaf',
+        transform: `rotate(${rotation} ${lx.toFixed(1)} ${ly.toFixed(1)})`
+      });
+
+      // 随机延迟让摆动更自然
+      leaf.style.animationDelay = `${rand(0, 3).toFixed(2)}s`;
+      leaf.style.animationDuration = `${rand(2.5, 4.5).toFixed(2)}s`;
     }
-    ctx.restore();
   }
 
-  function drawBranchIcon(x, y, icon) {
-    ctx.save();
-    ctx.font = '16px serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const bob = Math.sin(time * 1.5 + x) * 2;
-    ctx.fillText(icon, x, y + bob - 12);
-    ctx.restore();
-  }
-
-  function drawCanopy(x, y, healthFactor) {
-    const season = SEASON_THEMES[seasonData.type] || SEASON_THEMES.spring;
+  // ----- 树冠装饰叶（填充中央区域使树冠更茂密） -----
+  function buildCanopyFill(svg, healthFactor, season) {
+    const g = svgAdd(svg, 'g', { class: 'canopy-fill' });
     const tint = season.leafTint;
-    const green = Math.floor(lerp(120, tint[1], healthFactor));
+
+    // 在树冠中心区域添加大量叶子
+    const canopyCenterX = 300;
+    const canopyCenterY = 380;
+    const canopyRadiusX = 160;
+    const canopyRadiusY = 120;
+
     const avgScore = dimensions.length > 0
-      ? dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length : 30;
-    const canopySize = lerp(20, 50, avgScore / 100);
+      ? dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length
+      : 30;
 
-    ctx.save();
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2 + time * 0.15;
-      const r = canopySize * (0.6 + Math.sin(a * 3 + time) * 0.15);
-      const lx = x + Math.cos(a) * r + Math.sin(time + i) * 2;
-      const ly = y + Math.sin(a) * r * 0.6 - canopySize * 0.3;
-      const leafSize = lerp(6, 14, avgScore / 100);
-      const alpha = lerp(0.3, 0.7, avgScore / 100);
+    // 基础叶子数（即使数据少也要茂盛）
+    const baseCount = 50;
+    const dataCount = Math.floor(lerp(0, 40, avgScore / 100));
+    const totalCount = baseCount + dataCount;
 
-      ctx.fillStyle = `rgba(${tint[0]},${green},${tint[2]},${alpha})`;
-      ctx.beginPath();
-      ctx.ellipse(lx, ly, leafSize, leafSize * 0.7, a * 0.5, 0, Math.PI * 2);
-      ctx.fill();
+    for (let i = 0; i < totalCount; i++) {
+      // 使用黄金角分布实现自然散布
+      const goldenAngle = 2.399963;
+      const a = i * goldenAngle;
+      const r = Math.sqrt(i / totalCount);
+      const lx = canopyCenterX + Math.cos(a) * r * canopyRadiusX + rand(-15, 15);
+      const ly = canopyCenterY + Math.sin(a) * r * canopyRadiusY + rand(-10, 10);
+
+      // 排除树干区域
+      if (Math.abs(lx - 300) < 25 && ly > 350) continue;
+
+      const rx = rand(6, 16);
+      const ry = rx * rand(0.45, 0.65);
+
+      const baseGreen = lerp(130, tint[1], healthFactor);
+      const greenVar = rand(-20, 20);
+      const gv = Math.floor(clamp(baseGreen + greenVar, 70, 230));
+      const rv = Math.floor(clamp(tint[0] + rand(-25, 25), 40, 220));
+      const bv = Math.floor(clamp(tint[2] + rand(-15, 15), 20, 170));
+      const alpha = rand(0.3, 0.7);
+
+      const rotation = rand(0, 360).toFixed(0);
+
+      const leaf = svgAdd(g, 'ellipse', {
+        cx: lx.toFixed(1),
+        cy: ly.toFixed(1),
+        rx: rx.toFixed(1),
+        ry: ry.toFixed(1),
+        fill: `rgba(${rv},${gv},${bv},${alpha.toFixed(2)})`,
+        class: 'leaf canopy-leaf',
+        transform: `rotate(${rotation} ${lx.toFixed(1)} ${ly.toFixed(1)})`
+      });
+      leaf.style.animationDelay = `${rand(0, 4).toFixed(2)}s`;
+      leaf.style.animationDuration = `${rand(3, 5).toFixed(2)}s`;
     }
-    ctx.restore();
   }
 
-  // ===== 天气效果 =====
-  function drawWeatherParticles() {
-    const wType = weatherData.type;
-    const pType = WEATHER_TYPES[wType]?.particle || 'none';
-
-    if (pType === 'none') return;
-
-    // 维护粒子池
-    while (particles.length < 40) {
-      particles.push(createParticle(pType));
-    }
-
-    ctx.save();
-    particles.forEach(p => {
-      updateParticle(p, pType);
-      drawParticle(p, pType);
+  // ----- 维度emoji标记 -----
+  function addDimMarker(parent, x, y, emoji, index) {
+    const g = svgAdd(parent, 'g', {
+      class: 'dim-marker',
+      transform: `translate(${x.toFixed(0)},${(y - 28).toFixed(0)})`
     });
-    ctx.restore();
-  }
+    g.style.animationDelay = `${index * 0.5}s`;
 
-  function createParticle(type) {
-    if (type === 'rain') {
-      return { x: Math.random() * canvasW, y: -10, speed: 3 + Math.random() * 4, size: 1 + Math.random() };
-    } else if (type === 'sparkle') {
-      return { x: Math.random() * canvasW, y: Math.random() * canvasH * 0.7, phase: Math.random() * Math.PI * 2, size: 1 + Math.random() * 2 };
-    } else if (type === 'star') {
-      return { x: Math.random() * canvasW, y: Math.random() * canvasH * 0.6, phase: Math.random() * Math.PI * 2, size: 0.5 + Math.random() * 1.5 };
-    }
-    return { x: 0, y: 0, speed: 0, size: 1 };
-  }
-
-  function updateParticle(p, type) {
-    if (type === 'rain') {
-      p.y += p.speed;
-      if (p.y > canvasH * 0.8) { p.y = -10; p.x = Math.random() * canvasW; }
-    }
-    // sparkle and star just twinkle (phase-based, no movement)
-  }
-
-  function drawParticle(p, type) {
-    if (type === 'rain') {
-      ctx.strokeStyle = 'rgba(180,200,220,0.5)';
-      ctx.lineWidth = p.size;
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(p.x - 1, p.y + 8);
-      ctx.stroke();
-    } else if (type === 'sparkle') {
-      const alpha = 0.3 + Math.sin(time * 2 + p.phase) * 0.4;
-      ctx.fillStyle = `rgba(255,240,180,${Math.max(0, alpha)})`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (type === 'star') {
-      const alpha = 0.2 + Math.sin(time * 1.5 + p.phase) * 0.5;
-      ctx.fillStyle = `rgba(220,230,255,${Math.max(0, alpha)})`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // 额外天气特效（彩虹弧等）
-  function drawWeatherEffects() {
-    if (weatherData.type === 'rainbow') {
-      drawRainbow();
-    }
-  }
-
-  function drawRainbow() {
-    const colors = ['rgba(255,0,0,0.15)', 'rgba(255,165,0,0.15)', 'rgba(255,255,0,0.12)',
-      'rgba(0,128,0,0.12)', 'rgba(0,0,255,0.12)', 'rgba(75,0,130,0.1)'];
-    const cx = canvasW * 0.5;
-    const cy = canvasH * 0.75;
-    const baseR = canvasW * 0.35;
-
-    ctx.save();
-    colors.forEach((c, i) => {
-      ctx.strokeStyle = c;
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseR + i * 7, Math.PI, 0);
-      ctx.stroke();
+    // 背景圆
+    svgAdd(g, 'circle', {
+      cx: '0', cy: '0', r: '18',
+      fill: 'rgba(255,255,255,0.85)',
+      stroke: 'rgba(255,255,255,0.4)',
+      'stroke-width': '2',
+      filter: 'url(#shadow-filter)'
     });
-    ctx.restore();
+
+    // emoji文字
+    const text = svgAdd(g, 'text', {
+      x: '0', y: '1',
+      'font-size': '20',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central',
+      class: 'marker-emoji'
+    });
+    text.textContent = emoji;
   }
 
-  // ===== HTML 面板渲染 =====
+  // ----- 辅助：调整颜色亮度 -----
+  function adjustColor(hex, amount) {
+    hex = hex.replace('#', '');
+    const r = clamp(parseInt(hex.substr(0, 2), 16) + amount, 0, 255);
+    const g = clamp(parseInt(hex.substr(2, 2), 16) + amount, 0, 255);
+    const b = clamp(parseInt(hex.substr(4, 2), 16) + amount, 0, 255);
+    return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+  }
+
+  // ===== 右侧面板渲染 =====
   function renderPanels() {
     renderSeasonWeather();
     renderSoil();
@@ -617,7 +925,7 @@ const LifeTreeModule = (() => {
   }
 
   function renderBottomTags() {
-    const container = document.getElementById('canvasBottomInfo');
+    const container = document.getElementById('treeBottomInfo');
     if (!container) return;
 
     container.innerHTML = dimensions.map(d => `
@@ -635,7 +943,6 @@ const LifeTreeModule = (() => {
     const row = document.getElementById('statsRow');
     if (!row) return;
 
-    const w = WEATHER_TYPES[weatherData.type] || WEATHER_TYPES.cloudy;
     const totalScore = dimensions.length > 0
       ? Math.round(dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length) : 0;
 
@@ -673,19 +980,24 @@ const LifeTreeModule = (() => {
 
   // ===== 事件绑定 =====
   function bindEvents() {
-    // 窗口大小变化时重绘
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        resizeCanvas();
+        // SVG自适应，无需重绘，但面板可能需要刷新
       }, 200);
     });
   }
 
   // ===== 初始化入口 =====
   async function init() {
-    console.log('[LifeTree] 模块初始化...');
+    console.log('[LifeTree] 模块初始化（SVG模式）...');
+
+    svgWrapper = document.getElementById('svgWrapper');
+    if (!svgWrapper) {
+      console.error('[LifeTree] 找不到 svgWrapper 容器');
+      return;
+    }
 
     try {
       await loadData();
@@ -693,17 +1005,13 @@ const LifeTreeModule = (() => {
       console.warn('[LifeTree] 数据加载异常，使用默认值:', e);
     }
 
-    initCanvas();
+    buildSVG();
     renderPanels();
     bindEvents();
-
-    // 启动动画
-    drawFrame();
 
     console.log('[LifeTree] 初始化完成，天气:', weatherData.label, '季节:', seasonData.label);
   }
 
-  // 必须返回 { init }
   return { init };
 })();
 

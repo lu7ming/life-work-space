@@ -285,33 +285,47 @@ const XiaoluModule = (() => {
    * @returns {Promise<string>} 回复内容
    */
   async function callDeepSeekStep(token, messages, options = {}) {
-    const { temperature = 0.7, max_tokens = 500 } = options;
+    const { temperature = 0.7, max_tokens = 500, timeout = 15000 } = options;
 
-    const resp = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: MODEL_NAME,
-        messages: messages,
-        temperature: temperature,
-        max_tokens: max_tokens,
-        stream: false
-      })
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
 
-    if (resp.status === 401) throw new Error('AUTH_ERROR');
-    if (resp.status === 429) throw new Error('API 额度已用完或请求太频繁，请稍后再试 😅');
-    if (!resp.ok) throw new Error(`请求失败 (${resp.status})`);
+    try {
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: MODEL_NAME,
+          messages: messages,
+          temperature: temperature,
+          max_tokens: max_tokens,
+          stream: false
+        }),
+        signal: controller.signal
+      });
 
-    const data = await resp.json();
-    if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-      const reply = data.choices[0].message.content;
-      if (reply) return reply.trim();
+      clearTimeout(timer);
+
+      if (resp.status === 401) throw new Error('AUTH_ERROR');
+      if (resp.status === 429) throw new Error('API 额度已用完或请求太频繁，请稍后再试 😅');
+      if (!resp.ok) throw new Error(`请求失败 (${resp.status})`);
+
+      const data = await resp.json();
+      if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+        const reply = data.choices[0].message.content;
+        if (reply) return reply.trim();
+      }
+      throw new Error('未获取到有效回复');
+    } catch (err) {
+      clearTimeout(timer);
+      if (err.name === 'AbortError') {
+        throw new Error('请求超时，请稍后再试');
+      }
+      throw err;
     }
-    throw new Error('未获取到有效回复');
   }
 
   /**
@@ -327,6 +341,8 @@ const XiaoluModule = (() => {
     messages.push({ role: 'user', content: userMessage });
 
     let resp;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
     try {
       resp = await fetch(API_URL, {
         method: 'POST',
@@ -338,9 +354,15 @@ const XiaoluModule = (() => {
           model: MODEL_NAME,
           messages: messages,
           stream: false
-        })
+        }),
+        signal: controller.signal
       });
+      clearTimeout(timer);
     } catch (err) {
+      clearTimeout(timer);
+      if (err.name === 'AbortError') {
+        throw new Error('请求超时，请稍后再试 🦌');
+      }
       console.error('[Xiaolu] 网络请求失败:', err);
       throw new Error('网络连接失败，请检查网络后重试 🦌');
     }

@@ -1256,9 +1256,21 @@ const XiaoluModule = (() => {
     console.log('[Xiaolu] 小鹿AI就绪 🦌');
   }
 
+  /**
+   * 打开面板并立即开始语音输入（长按触发）
+   */
+  function openAndStartVoice() {
+    open();
+    // 等待面板动画完成后再启动录音
+    setTimeout(() => {
+      startRecording();
+    }, 400);
+  }
+
   return {
     init,
     open,
-    close
+    close,
+    openAndStartVoice
   };
 })();

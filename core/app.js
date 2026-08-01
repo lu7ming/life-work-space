@@ -579,10 +579,45 @@ const App = (() => {
     // AI 按钮点击事件
     const aiBtns = document.querySelectorAll('.topbar-ai-btn');
     aiBtns.forEach((btn) => {
+      let longPressTimer = null;
+      let longPressed = false;
+
+      // 长按 500ms → 打开小鹿并直接语音输入
+      const onLongPressStart = (e) => {
+        const title = btn.getAttribute('title') || '';
+        if (!title.includes('小鹿')) return; // 只对🦌按钮生效
+
+        longPressed = false;
+        longPressTimer = setTimeout(() => {
+          longPressed = true;
+          // 触觉反馈 + 视觉反馈
+          if (navigator.vibrate) navigator.vibrate(30);
+          btn.classList.add('long-press-active');
+          if (typeof XiaoluModule !== 'undefined') {
+            XiaoluModule.openAndStartVoice();
+          }
+        }, 500);
+      };
+
+      const onLongPressEnd = () => {
+        clearTimeout(longPressTimer);
+        btn.classList.remove('long-press-active');
+      };
+
+      // 触屏长按
+      btn.addEventListener('touchstart', onLongPressStart, { passive: true });
+      btn.addEventListener('touchend', onLongPressEnd);
+      btn.addEventListener('touchcancel', onLongPressEnd);
+      // 鼠标长按（兼容）
+      btn.addEventListener('mousedown', onLongPressStart);
+      btn.addEventListener('mouseup', onLongPressEnd);
+      btn.addEventListener('mouseleave', onLongPressEnd);
+
+      // 普通点击（非长按时触发）
       btn.addEventListener('click', () => {
+        if (longPressed) return; // 刚长按过，忽略点击
         const title = btn.getAttribute('title') || '';
         if (title.includes('妮可')) {
-          // 打开妮可系统管家
           if (typeof NicoleModule !== 'undefined') {
             NicoleModule.open();
           } else {

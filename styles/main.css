@@ -165,6 +165,15 @@ img {
   background: var(--bg-card);
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.topbar-ai-btn.long-press-active {
+  transform: scale(1.2);
+  box-shadow: 0 0 12px rgba(64, 179, 112, 0.5);
 }
 
 .topbar-ai-btn:hover {

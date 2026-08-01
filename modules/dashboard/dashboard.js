@@ -387,8 +387,8 @@ const DashboardModule = (() => {
     if (focusTasks.length === 0) {
       try {
         // 使用 NotificationEngine F7 API 获取推荐任务
-        if (window.NotificationEngine && typeof window.NotificationEngine.getTodayTasks === 'function') {
-          const recommended = await window.NotificationEngine.getTodayTasks();
+        if (NotificationEngine && typeof NotificationEngine.getTodayTasks === 'function') {
+          const recommended = await NotificationEngine.getTodayTasks();
           focusTasks = recommended.slice(focusOffset, focusOffset + 3);
           // 如果不够，从头补充
           if (focusTasks.length < 3 && recommended.length > focusTasks.length) {

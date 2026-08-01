@@ -20,7 +20,15 @@ const XiaoluModule = (() => {
 3. 按需分析数据（用户问了才分析）
 4. 帮写复盘草稿（周/月/年）
 回复要简洁，不超过3句话，除非用户要求详细回答。
-适当使用 emoji 让对话更生动 🦌`;
+适当使用 emoji 让对话更生动 🦌
+
+你可以帮用户执行本地操作，支持以下工具：
+1. record_finance：记录收支。参数：type(income/expense), amount(数字), category(支出分类如餐饮/交通/购物/娱乐/其他), source(收入来源如工资/奖金/兼职/其他), note(可选备注)
+2. create_task：创建任务。参数：title(标题), priority(high/medium/low), due_date(可选，格式YYYY-MM-DD)
+
+当用户想执行这些操作时，在回复的最前面插入一个action标签，然后正常回复用户。格式如下：
+[ACTION:{"tool":"record_finance","params":{"type":"income","amount":200,"source":"工资"}}]
+注意：action标签必须放在回复的最前面，且只能有一个action标签。参数要完整，不要省略。`;
 
   // ===== 状态 =====
   let panelEl = null;
@@ -504,6 +512,13 @@ const XiaoluModule = (() => {
     _voiceInterimTranscript = '';
     _voiceBaseText = '';
 
+    // 语音识别完成自动发送
+    if (finalText.trim()) {
+      // 短暂延迟确保UI更新完成
+      setTimeout(() => handleSend(), 100);
+      return; // handleSend 里会处理后续
+    }
+
     // 聚焦输入框
     inputEl.focus();
   }
@@ -698,6 +713,68 @@ const XiaoluModule = (() => {
     });
   }
 
+  // ===== 本地操作执行器 =====
+
+  /**
+   * 执行AI回复中解析出的本地操作
+   * @param {Object} actionObj - {tool: string, params: Object}
+   * @returns {Promise<{success: boolean, message: string}>}
+   */
+  async function executeLocalAction(actionObj) {
+    const { tool, params } = actionObj;
+
+    if (tool === 'record_finance') {
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+      const monthStr = dateStr.slice(0, 7); // YYYY-MM
+
+      const record = {
+        type: params.type || 'expense',
+        amount: Number(params.amount) || 0,
+        category: params.category || '其他',
+        source: params.source || '其他',
+        note: params.note || '',
+        date: dateStr,
+        month: monthStr,
+        id: Date.now()
+      };
+
+      try {
+        await Storage.add('finance', record);
+        const typeLabel = record.type === 'income' ? '收入' : '支出';
+        const detailField = record.type === 'income' ? `来源：${record.source}` : `分类：${record.category}`;
+        return { success: true, message: `✅ 已记录${typeLabel} ¥${record.amount}（${detailField}）` };
+      } catch (e) {
+        console.error('[Xiaolu] 记录收支失败:', e);
+        return { success: false, message: '记录收支时写入数据库失败' };
+      }
+    }
+
+    if (tool === 'create_task') {
+      const task = {
+        title: params.title || '未命名任务',
+        priority: params.priority || 'medium',
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        due_date: params.due_date || '',
+        id: Date.now()
+      };
+
+      try {
+        await Storage.add('tasks', task);
+        const priorityMap = { high: '🔴高', medium: '🟡中', low: '🟢低' };
+        const pLabel = priorityMap[task.priority] || '🟡中';
+        const dueInfo = task.due_date ? `，截止 ${task.due_date}` : '';
+        return { success: true, message: `✅ 已创建任务「${task.title}」${pLabel}优先级${dueInfo}` };
+      } catch (e) {
+        console.error('[Xiaolu] 创建任务失败:', e);
+        return { success: false, message: '创建任务时写入数据库失败' };
+      }
+    }
+
+    return { success: false, message: `未知工具：${tool}` };
+  }
+
   // ===== 交互逻辑 =====
 
   async function handleSend() {
@@ -738,9 +815,31 @@ const XiaoluModule = (() => {
     try {
       const reply = await callDeepSeekAPI(token, text);
 
+      // 解析AI回复中的ACTION标签
+      const actionMatch = reply.match(/\[ACTION:({.*?})\]/);
+      let finalReply = reply;
+      if (actionMatch) {
+        try {
+          const action = JSON.parse(actionMatch[1]);
+          const result = await executeLocalAction(action);
+          // 移除action标签，保留文字部分
+          finalReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
+          // 追加执行结果提示
+          if (result.success) {
+            finalReply += '\n\n' + result.message;
+          } else {
+            finalReply += '\n\n❌ 操作失败：' + result.message;
+          }
+        } catch (e) {
+          console.error('[Xiaolu] 本地操作执行失败:', e);
+          // 解析或执行失败时，仅移除标签，保留文字
+          finalReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
+        }
+      }
+
       // 更新上下文
       _chatHistory.push({ role: 'user', content: text });
-      _chatHistory.push({ role: 'assistant', content: reply });
+      _chatHistory.push({ role: 'assistant', content: finalReply });
 
       // 裁剪上下文，保留最近 MAX_CONTEXT 条
       if (_chatHistory.length > MAX_CONTEXT) {
@@ -748,7 +847,7 @@ const XiaoluModule = (() => {
       }
 
       removeLoading();
-      addAIMessage(reply);
+      addAIMessage(finalReply);
     } catch (err) {
       removeLoading();
       const errMsg = err.message || '未知错误';

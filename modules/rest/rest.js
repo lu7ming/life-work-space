@@ -164,15 +164,15 @@ const RestModule = (() => {
   // ====== 通知轮询控制 ======
   function pauseNotifications() {
     // 尝试停止全局定时器
-    if (window.NotificationEngine && typeof window.NotificationEngine.pause === 'function') {
-      window.NotificationEngine.pause();
+    if (NotificationEngine && typeof NotificationEngine.pause === 'function') {
+      NotificationEngine.pause();
       notifPaused = true;
     }
   }
 
   function resumeNotifications() {
-    if (notifPaused && window.NotificationEngine && typeof window.NotificationEngine.resume === 'function') {
-      window.NotificationEngine.resume();
+    if (notifPaused && NotificationEngine && typeof NotificationEngine.resume === 'function') {
+      NotificationEngine.resume();
       notifPaused = false;
     }
   }

@@ -118,7 +118,7 @@ const ThemeManager = (() => {
     // 更新 meta theme-color
     const metaColor = document.querySelector('meta[name="theme-color"]');
     if (metaColor) {
-      metaColor.setAttribute('content', effectiveTheme === THEMES.DARK ? '#1A1A2E' : '#F5EDE4');
+      metaColor.setAttribute('content', effectiveTheme === THEMES.DARK ? '#1A1A2E' : '#D4BA9F');
     }
 
     // 更新 apple-mobile-web-app-status-bar-style

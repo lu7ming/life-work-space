@@ -32,7 +32,7 @@
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main);
   box-shadow: -8px 0 30px rgba(61, 48, 39, 0.12);
   transform: translateX(100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -93,7 +93,7 @@
   width: 32px;
   height: 32px;
   border: none;
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main);
   border-radius: 50%;
   font-size: 14px;
   color: var(--text-secondary, #7A6E63);
@@ -105,7 +105,7 @@
 }
 
 .nicole-header-btn:hover {
-  background: var(--bg-hover, #F0E6DA);
+  background: var(--bg-hover);
 }
 
 /* ===== 消息列表区域 ===== */
@@ -199,7 +199,7 @@
 
 /* AI 消息中的代码块 */
 .nicole-msg.ai .nicole-msg-bubble pre {
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main);
   border-radius: 6px;
   padding: 8px 10px;
   margin: 6px 0;
@@ -280,7 +280,7 @@
 .nicole-shortcut-btn {
   padding: 6px 12px;
   border: 1px solid var(--border-color, #F0E8DE);
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main);
   border-radius: var(--radius-full, 9999px);
   font-size: 12px;
   color: var(--text-secondary, #7A6E63);
@@ -314,7 +314,7 @@
   padding: 10px 14px;
   border: 1.5px solid var(--border-color, #F0E8DE);
   border-radius: var(--radius-md, 12px);
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main);
   font-size: 14px;
   color: var(--text-primary, #3D3027);
   font-family: inherit;
@@ -405,7 +405,7 @@
   font-size: 13px;
   font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
   color: var(--text-primary, #3D3027);
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main);
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.15s ease;
@@ -433,7 +433,7 @@
 }
 
 .nicole-token-btn.cancel {
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main);
   color: var(--text-secondary, #7A6E63);
 }
 

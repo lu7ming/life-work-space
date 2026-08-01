@@ -111,7 +111,7 @@
 .knowledge-sidebar {
   width: 160px;
   flex-shrink: 0;
-  background: var(--bg-sidebar, #E8DDD4);
+  background: var(--bg-sidebar);
   border-right: 1px solid var(--text-light, #D4C8BC);
   display: flex;
   flex-direction: column;
@@ -150,7 +150,7 @@
 }
 
 .knowledge-tag-item:hover {
-  background: var(--bg-hover, #E8DDD4);
+  background: var(--bg-hover);
 }
 
 .knowledge-tag-item.active {
@@ -328,7 +328,7 @@
   font-size: 11px;
   padding: 2px 8px;
   border-radius: var(--radius-full, 999px);
-  background: var(--bg-sidebar, #E8DDD4);
+  background: var(--bg-sidebar);
   color: var(--text-secondary, #6B5E53);
   white-space: nowrap;
 }
@@ -466,7 +466,7 @@
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: var(--bg-sidebar, #E8DDD4);
+  background: var(--bg-sidebar);
   color: var(--text-secondary, #6B5E53);
   font-size: 14px;
   cursor: pointer;
@@ -618,7 +618,7 @@
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  background: var(--bg-sidebar, #E8DDD4);
+  background: var(--bg-sidebar);
   border-radius: var(--radius-full, 999px);
   font-size: 12px;
   color: var(--text-secondary, #6B5E53);
@@ -705,7 +705,7 @@
 }
 
 .knowledge-btn-cancel:hover {
-  background: var(--bg-sidebar, #E8DDD4);
+  background: var(--bg-sidebar);
 }
 
 .knowledge-btn-delete {
@@ -763,7 +763,7 @@
   justify-content: space-between;
   padding: 8px 12px;
   border-radius: var(--radius-sm, 8px);
-  background: var(--bg-sidebar, #E8DDD4);
+  background: var(--bg-sidebar);
   margin-bottom: 6px;
 }
 
@@ -795,7 +795,7 @@
 
 .knowledge-stats-btn:hover {
   border-color: var(--accent, #E8A87C);
-  background: var(--bg-sidebar, #E8DDD4);
+  background: var(--bg-sidebar);
 }
 
 /* ========================================

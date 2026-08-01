@@ -6,10 +6,10 @@
 /* ===== CSS 变量 ===== */
 :root {
   /* 主色调 - 暖米色系 */
-  --bg-main: #F5EDE4;
-  --bg-sidebar: #E8DDD4;
-  --bg-card: #FFFFFF;
-  --bg-hover: #F0E6DA;
+  --bg-main: #D4BA9F;
+  --bg-sidebar: #C8AD94;
+  --bg-card: #EEE9E3;
+  --bg-hover: #DCC5AD;
 
   /* 文字色 */
   --text-primary: #3D3027;
@@ -50,7 +50,7 @@
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 
   /* 边框 */
-  --border-light: #E8DDD4;
+  --border-light: #C8AD94;
 
   /* 过渡 */
   --transition-fast: 0.15s ease;
@@ -70,12 +70,12 @@ html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
-  background-color: #F5EDE4;
+  background-color: var(--bg-main);
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #F5EDE4;
+  background-color: var(--bg-main);
   color: var(--text-primary);
   line-height: 1.6;
   overflow: hidden;

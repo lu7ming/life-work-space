@@ -29,7 +29,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--border-light, #E8DDD4);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .wn-panel-title {
@@ -51,7 +51,7 @@
 }
 
 .wn-panel-close:hover {
-  background: var(--bg-hover, #F0E6DA);
+  background: var(--bg-hover);
   color: var(--text-primary, #3D3027);
 }
 
@@ -75,13 +75,13 @@
   gap: 4px;
   padding: 12px 8px;
   border-radius: 12px;
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main);
   transition: all 0.15s ease;
   cursor: pointer;
 }
 
 .wn-type-btn:hover {
-  background: var(--bg-hover, #F0E6DA);
+  background: var(--bg-hover);
 }
 
 .wn-type-btn.active {
@@ -126,7 +126,7 @@
   appearance: none;
   height: 4px;
   border-radius: 2px;
-  background: var(--border-light, #E8DDD4);
+  background: var(--border-light);
   outline: none;
 }
 
@@ -177,14 +177,14 @@
   padding: 7px 4px;
   font-size: 12px;
   color: var(--text-secondary, #7A6E63);
-  background: var(--bg-main, #F5EDE4);
+  background: var(--bg-main);
   border-radius: 20px;
   transition: all 0.15s ease;
   cursor: pointer;
 }
 
 .wn-timer-btn:hover {
-  background: var(--bg-hover, #F0E6DA);
+  background: var(--bg-hover);
 }
 
 .wn-timer-btn.active {

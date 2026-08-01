@@ -4,8 +4,8 @@
   "description": "极简温暖的人生管理工作台",
   "start_url": "./life.html",
   "display": "standalone",
-  "background_color": "#F5EDE4",
-  "theme_color": "#F5EDE4",
+  "background_color": "#D4BA9F",
+  "theme_color": "#D4BA9F",
   "orientation": "any",
   "icons": [
     {

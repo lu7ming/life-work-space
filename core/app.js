@@ -47,7 +47,64 @@ const App = (() => {
     // 7. 注册 Service Worker
     registerSW();
 
+    // 8. 监听页面可见性变化，自动刷新数据
+    initAutoRefresh();
+
     console.log('[App] 人生工作台已就绪 🎉');
+  }
+
+  /**
+   * 初始化自动刷新
+   * 每次进入工作台时自动刷新当前页面数据
+   */
+  function initAutoRefresh() {
+    // 页面从后台切换到前台时刷新
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[App] 页面激活，自动刷新数据');
+        reloadCurrentRoute();
+      }
+    });
+
+    // PWA 从后台恢复时刷新（移动端）
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) {
+        console.log('[App] PWA 恢复，自动刷新数据');
+        reloadCurrentRoute();
+      }
+    });
+
+    // 窗口获得焦点时刷新（桌面端）
+    let hasFocused = false;
+    window.addEventListener('focus', () => {
+      if (hasFocused) {
+        reloadCurrentRoute();
+      }
+      hasFocused = true;
+    });
+  }
+
+  /**
+   * 重新加载当前路由对应的模块
+   */
+  function reloadCurrentRoute() {
+    const currentRoute = Router.getCurrentRoute?.() || 'dashboard';
+    const routeHandlers = {
+      'dashboard': loadDashboard,
+      'habits': loadHabits,
+      'tasks': () => loadPlaceholder('任务'),
+      'study': () => loadPlaceholder('学习'),
+      'health': () => loadPlaceholder('健康'),
+      'finance': () => loadPlaceholder('财务'),
+      'relations': () => loadPlaceholder('关系'),
+      'knowledge': () => loadPlaceholder('知识库'),
+      'goals': () => loadPlaceholder('目标')
+    };
+    
+    const handler = routeHandlers[currentRoute];
+    if (handler && typeof handler === 'function') {
+      handler();
+    }
   }
 
   /**

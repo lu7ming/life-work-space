@@ -2,6 +2,7 @@
  * xiaolu.js - 小鹿AI伙伴
  * 人生工作台 · 基于 DeepSeek API 的 AI 对话功能
  * 小鹿定位：幽默轻松的 AI 伙伴，负责日常聊天、灵感整理、按需分析
+ * v2.0 - 新增长按语音输入功能
  */
 
 const XiaoluModule = (() => {
@@ -9,6 +10,7 @@ const XiaoluModule = (() => {
   const API_URL = 'https://api.deepseek.com/v1/chat/completions';
   const MODEL_NAME = 'deepseek-chat';
   const MAX_CONTEXT = 20; // 最多保留最近20条消息
+  const LONG_PRESS_DELAY = 500; // 长按触发语音的延迟（ms）
 
   const SYSTEM_PROMPT = `你是「小鹿」，人生工作台的 AI 伙伴，服务主人「鹿7铭」。
 性格幽默轻松，像朋友一样聊天，偶尔皮一下但很靠谱。
@@ -18,7 +20,7 @@ const XiaoluModule = (() => {
 3. 按需分析数据（用户问了才分析）
 4. 帮写复盘草稿（周/月/年）
 回复要简洁，不超过3句话，除非用户要求详细回答。
-适当使用 emoji 让对话更生动。`;
+适当使用 emoji 让对话更生动 🦌`;
 
   // ===== 状态 =====
   let panelEl = null;
@@ -29,6 +31,19 @@ const XiaoluModule = (() => {
   let _isOpen = false;
   let _isLoading = false;
   let _chatHistory = []; // 多轮对话上下文 [{role, content}, ...]
+
+  // ===== 语音输入状态 =====
+  let voiceBtn = null;
+  let voiceStatusEl = null;
+  let voiceStopBtn = null;
+  let inputAreaEl = null;
+  let _voiceRecognition = null;
+  let _isRecording = false;
+  let _isVoiceSupported = false;
+  let _longPressTimer = null;
+  let _longPressTriggered = false;
+  let _voiceFinalTranscript = '';
+  let _voiceInterimTranscript = '';
 
   // ===== 工具函数 =====
   function escapeHtml(str) {
@@ -215,6 +230,284 @@ const XiaoluModule = (() => {
     throw new Error('未获取到有效回复，请重试');
   }
 
+  // ===== 语音输入功能 =====
+
+  /**
+   * 检测浏览器是否支持语音识别
+   */
+  function checkVoiceSupport() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    _isVoiceSupported = !!SpeechRecognition;
+    return _isVoiceSupported;
+  }
+
+  /**
+   * 初始化语音识别
+   */
+  function initVoice() {
+    if (!checkVoiceSupport()) {
+      console.warn('[Xiaolu] 当前浏览器不支持 Web Speech API，语音功能不可用');
+      // 隐藏语音按钮
+      if (voiceBtn) {
+        voiceBtn.style.display = 'none';
+      }
+      // 更新提示文字
+      const hintEl = inputAreaEl.querySelector('.xiaolu-input-hint');
+      if (hintEl) {
+        hintEl.textContent = 'Enter 发送 · Shift+Enter 换行';
+      }
+      return;
+    }
+
+    // 创建 SpeechRecognition 实例
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    _voiceRecognition = new SpeechRecognition();
+    _voiceRecognition.lang = 'zh-CN';
+    _voiceRecognition.continuous = true;
+    _voiceRecognition.interimResults = true;
+    _voiceRecognition.maxAlternatives = 1;
+
+    // 识别结果事件
+    _voiceRecognition.onresult = (event) => {
+      _voiceFinalTranscript = '';
+      _voiceInterimTranscript = '';
+
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          _voiceFinalTranscript += result[0].transcript;
+        } else {
+          _voiceInterimTranscript += result[0].transcript;
+        }
+      }
+
+      // 实时更新输入框（已有最终结果 + 中间结果）
+      const currentInput = inputEl.value;
+      // 找到之前语音输入的起点，替换中间结果
+      const baseText = _voiceBaseText;
+      const displayText = baseText + _voiceFinalTranscript + _voiceInterimTranscript;
+      inputEl.value = displayText;
+
+      // 自动调整高度
+      inputEl.style.height = 'auto';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+    };
+
+    // 识别错误
+    _voiceRecognition.onerror = (event) => {
+      console.error('[Xiaolu] 语音识别错误:', event.error);
+      if (event.error === 'not-allowed') {
+        stopRecording();
+        if (typeof App !== 'undefined') {
+          App.showToast('🎤 麦克风权限被拒绝，请在浏览器设置中开启');
+        }
+      } else if (event.error === 'no-speech') {
+        // 没有检测到语音，不中断，继续等待
+      } else if (event.error === 'aborted') {
+        // 被中止，正常情况
+      } else {
+        stopRecording();
+        if (typeof App !== 'undefined') {
+          App.showToast('🎤 语音识别出错: ' + event.error);
+        }
+      }
+    };
+
+    // 识别结束（自动停止时触发）
+    _voiceRecognition.onend = () => {
+      if (_isRecording) {
+        // 如果还在录音状态但识别结束了（可能是超时），重新启动
+        try {
+          _voiceRecognition.start();
+        } catch (e) {
+          // 如果已经在运行中则忽略
+          stopRecording();
+        }
+      }
+    };
+
+    // 绑定长按事件
+    bindVoiceEvents();
+
+    console.log('[Xiaolu] 语音输入功能已就绪 🎤');
+  }
+
+  // 录音前的基础文本（用于拼接）
+  let _voiceBaseText = '';
+
+  /**
+   * 绑定语音按钮的长按事件
+   */
+  function bindVoiceEvents() {
+    if (!voiceBtn) return;
+
+    // 阻止默认的触摸行为（避免滚动、文字选择等）
+    const preventDefault = (e) => {
+      if (_longPressTriggered) {
+        e.preventDefault();
+      }
+    };
+
+    // --- 触摸事件（移动端） ---
+    voiceBtn.addEventListener('touchstart', (e) => {
+      _longPressTriggered = false;
+      _longPressTimer = setTimeout(() => {
+        _longPressTriggered = true;
+        startRecording();
+        // 触觉反馈（如果支持）
+        if (navigator.vibrate) {
+          navigator.vibrate(30);
+        }
+      }, LONG_PRESS_DELAY);
+    }, { passive: false });
+
+    voiceBtn.addEventListener('touchend', (e) => {
+      clearTimeout(_longPressTimer);
+      if (_longPressTriggered) {
+        e.preventDefault(); // 阻止触发 click
+        stopRecording();
+        _longPressTriggered = false;
+      }
+    });
+
+    voiceBtn.addEventListener('touchmove', (e) => {
+      // 手指移动超过一定距离则取消长按
+      clearTimeout(_longPressTimer);
+    }, { passive: true });
+
+    voiceBtn.addEventListener('touchcancel', () => {
+      clearTimeout(_longPressTimer);
+      if (_longPressTriggered) {
+        stopRecording();
+        _longPressTriggered = false;
+      }
+    });
+
+    // --- 鼠标事件（桌面端） ---
+    voiceBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault(); // 防止失焦
+      _longPressTriggered = false;
+      _longPressTimer = setTimeout(() => {
+        _longPressTriggered = true;
+        startRecording();
+      }, LONG_PRESS_DELAY);
+    });
+
+    voiceBtn.addEventListener('mouseup', (e) => {
+      clearTimeout(_longPressTimer);
+      if (_longPressTriggered) {
+        stopRecording();
+        _longPressTriggered = false;
+      }
+    });
+
+    voiceBtn.addEventListener('mouseleave', () => {
+      clearTimeout(_longPressTimer);
+      if (_longPressTriggered) {
+        stopRecording();
+        _longPressTriggered = false;
+      }
+    });
+
+    // 点击事件：短按切换录音（作为备用交互）
+    voiceBtn.addEventListener('click', (e) => {
+      // 如果是长按触发的，忽略 click
+      if (_longPressTriggered) {
+        e.preventDefault();
+        return;
+      }
+      // 短按切换录音状态
+      if (_isRecording) {
+        stopRecording();
+      } else {
+        startRecording();
+      }
+    });
+
+    // 停止按钮
+    if (voiceStopBtn) {
+      voiceStopBtn.addEventListener('click', () => {
+        stopRecording();
+      });
+    }
+
+    // 全局 ESC 键停止录音
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && _isRecording) {
+        stopRecording();
+      }
+    });
+  }
+
+  /**
+   * 开始录音
+   */
+  function startRecording() {
+    if (_isRecording || !_voiceRecognition) return;
+
+    _isRecording = true;
+    _voiceFinalTranscript = '';
+    _voiceInterimTranscript = '';
+    _voiceBaseText = inputEl.value; // 记住当前输入框的内容
+
+    // 更新 UI
+    inputAreaEl.classList.add('voice-active');
+    voiceBtn.classList.add('recording');
+    voiceStatusEl.classList.add('show');
+    inputEl.placeholder = '🎤 正在聆听...';
+    inputEl.setAttribute('readonly', true);
+
+    // 开始语音识别
+    try {
+      _voiceRecognition.start();
+    } catch (e) {
+      // 可能已经在运行中
+      console.warn('[Xiaolu] 语音识别启动失败:', e);
+      stopRecording();
+    }
+  }
+
+  /**
+   * 停止录音
+   */
+  function stopRecording() {
+    if (!_isRecording) return;
+
+    _isRecording = false;
+
+    // 停止语音识别
+    if (_voiceRecognition) {
+      try {
+        _voiceRecognition.stop();
+      } catch (e) {
+        // 忽略已停止的错误
+      }
+    }
+
+    // 更新 UI
+    inputAreaEl.classList.remove('voice-active');
+    voiceBtn.classList.remove('recording');
+    voiceStatusEl.classList.remove('show');
+    inputEl.placeholder = '跟小鹿聊聊...';
+    inputEl.removeAttribute('readonly');
+
+    // 确保最终文本在输入框中
+    const finalText = _voiceBaseText + _voiceFinalTranscript;
+    inputEl.value = finalText;
+
+    // 自动调整高度
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+
+    // 清空语音临时变量
+    _voiceFinalTranscript = '';
+    _voiceInterimTranscript = '';
+    _voiceBaseText = '';
+
+    // 聚焦输入框
+    inputEl.focus();
+  }
+
   // ===== UI 构建 =====
 
   /**
@@ -244,12 +537,27 @@ const XiaoluModule = (() => {
         </div>
       </div>
       <div class="xiaolu-messages" id="xiaolu-messages"></div>
-      <div class="xiaolu-input-area">
+      <div class="xiaolu-input-area" id="xiaolu-input-area">
         <div class="xiaolu-input-row">
           <textarea class="xiaolu-input" id="xiaolu-input" rows="1" placeholder="跟小鹿聊聊..."></textarea>
+          <button class="xiaolu-voice-btn" id="xiaolu-voice-btn" title="长按语音输入">
+            <svg class="xiaolu-voice-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
           <button class="xiaolu-send-btn" id="xiaolu-send" title="发送">➤</button>
         </div>
-        <div class="xiaolu-input-hint">Enter 发送 · Shift+Enter 换行</div>
+        <div class="xiaolu-voice-status" id="xiaolu-voice-status">
+          <div class="xiaolu-voice-wave">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <span class="xiaolu-voice-label">正在聆听...</span>
+          <button class="xiaolu-voice-stop-btn" id="xiaolu-voice-stop">停止</button>
+        </div>
+        <div class="xiaolu-input-hint">Enter 发送 · 长按 🎤 语音输入</div>
       </div>
     `;
 
@@ -257,6 +565,10 @@ const XiaoluModule = (() => {
     messagesEl = panelEl.querySelector('#xiaolu-messages');
     inputEl = panelEl.querySelector('#xiaolu-input');
     sendBtn = panelEl.querySelector('#xiaolu-send');
+    voiceBtn = panelEl.querySelector('#xiaolu-voice-btn');
+    voiceStatusEl = panelEl.querySelector('#xiaolu-voice-status');
+    voiceStopBtn = panelEl.querySelector('#xiaolu-voice-stop');
+    inputAreaEl = panelEl.querySelector('#xiaolu-input-area');
 
     // 插入 DOM
     document.body.appendChild(overlayEl);
@@ -264,6 +576,9 @@ const XiaoluModule = (() => {
 
     // 绑定事件
     bindEvents();
+
+    // 初始化语音功能
+    initVoice();
 
     // 显示欢迎消息
     showWelcome();
@@ -389,6 +704,12 @@ const XiaoluModule = (() => {
     const text = inputEl.value.trim();
     if (!text || _isLoading) return;
 
+    // 如果正在录音，先停止
+    if (_isRecording) {
+      stopRecording();
+      return;
+    }
+
     // 清空输入
     inputEl.value = '';
     inputEl.style.height = 'auto';
@@ -411,6 +732,7 @@ const XiaoluModule = (() => {
     _isLoading = true;
     sendBtn.disabled = true;
     inputEl.disabled = true;
+    if (voiceBtn) voiceBtn.disabled = true;
     showLoading();
 
     try {
@@ -449,6 +771,7 @@ const XiaoluModule = (() => {
       _isLoading = false;
       sendBtn.disabled = false;
       inputEl.disabled = false;
+      if (voiceBtn) voiceBtn.disabled = false;
       inputEl.focus();
     }
   }
@@ -478,6 +801,12 @@ const XiaoluModule = (() => {
 
   function close() {
     if (!_isOpen) return;
+
+    // 如果正在录音，先停止
+    if (_isRecording) {
+      stopRecording();
+    }
+
     _isOpen = false;
     overlayEl.classList.remove('show');
     panelEl.classList.remove('show');

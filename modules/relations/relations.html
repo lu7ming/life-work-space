@@ -23,6 +23,15 @@
     </div>
   </div>
 
+  <!-- ABCD 分类筛选 -->
+  <div class="rel-category-tabs" id="rel-category-tabs">
+    <button class="rel-category-tab active" data-category="all">全部</button>
+    <button class="rel-category-tab rel-cat-a" data-category="A"><span class="rel-cat-dot rel-cat-dot-a"></span>A 核心圈</button>
+    <button class="rel-category-tab rel-cat-b" data-category="B"><span class="rel-cat-dot rel-cat-dot-b"></span>B 重要圈</button>
+    <button class="rel-category-tab rel-cat-c" data-category="C"><span class="rel-cat-dot rel-cat-dot-c"></span>C 维护圈</button>
+    <button class="rel-category-tab rel-cat-d" data-category="D"><span class="rel-cat-dot rel-cat-dot-d"></span>D 观察圈</button>
+  </div>
+
   <!-- 筛选栏：搜索 + 类型筛选 + 排序 -->
   <div class="rel-toolbar">
     <div class="rel-search-wrap">
@@ -64,7 +73,10 @@
         <div class="rel-detail-avatar" id="rel-detail-avatar"></div>
         <div class="rel-detail-info">
           <h2 class="rel-detail-name" id="rel-detail-name"></h2>
-          <span class="rel-detail-type-badge" id="rel-detail-type-badge"></span>
+          <div class="rel-detail-badges">
+            <span class="rel-detail-type-badge" id="rel-detail-type-badge"></span>
+            <span class="rel-detail-cat-badge" id="rel-detail-cat-badge"></span>
+          </div>
         </div>
         <div class="rel-detail-header-actions">
           <button class="rel-icon-btn" id="rel-edit-btn" title="编辑">✏️</button>
@@ -154,6 +166,40 @@
             <button type="button" class="rel-form-type-btn" data-type="同事">💼 同事</button>
           </div>
           <input type="text" class="rel-form-input rel-form-custom-type" id="rel-form-custom-type" placeholder="自定义类型" style="display:none;">
+        </div>
+        <!-- ABCD 分类选择 -->
+        <div class="rel-form-group">
+          <label>🔗 关系圈层 <span class="rel-hint">（影响跟进提醒频率）</span></label>
+          <div class="rel-form-category-selector" id="rel-form-category-selector">
+            <button type="button" class="rel-form-cat-btn rel-cat-a active" data-cat="A">
+              <span class="rel-form-cat-indicator rel-cat-dot-a"></span>
+              <span class="rel-form-cat-text">
+                <strong>A 核心圈</strong>
+                <small>每周至少联系1次</small>
+              </span>
+            </button>
+            <button type="button" class="rel-form-cat-btn rel-cat-b" data-cat="B">
+              <span class="rel-form-cat-indicator rel-cat-dot-b"></span>
+              <span class="rel-form-cat-text">
+                <strong>B 重要圈</strong>
+                <small>每月至少联系1次</small>
+              </span>
+            </button>
+            <button type="button" class="rel-form-cat-btn rel-cat-c" data-cat="C">
+              <span class="rel-form-cat-indicator rel-cat-dot-c"></span>
+              <span class="rel-form-cat-text">
+                <strong>C 维护圈</strong>
+                <small>每季度联系1次</small>
+              </span>
+            </button>
+            <button type="button" class="rel-form-cat-btn rel-cat-d" data-cat="D">
+              <span class="rel-form-cat-indicator rel-cat-dot-d"></span>
+              <span class="rel-form-cat-text">
+                <strong>D 观察圈</strong>
+                <small>随缘联系</small>
+              </span>
+            </button>
+          </div>
         </div>
         <div class="rel-form-group">
           <label>生日 <span class="rel-required">*</span> <span class="rel-hint">（月-日，如 03-15）</span></label>

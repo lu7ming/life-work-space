@@ -938,3 +938,431 @@
     height: 48px;
   }
 }
+
+/* ========================================
+   F8: 优先级矩阵视图
+   ======================================== */
+
+.matrix-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 12px;
+}
+
+.matrix-quadrant {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.matrix-quadrant:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* 象限顶部颜色条 */
+.matrix-quadrant::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.matrix-quadrant[data-priority="A"]::before { background: #E74C3C; }
+.matrix-quadrant[data-priority="B"]::before { background: #F5A623; }
+.matrix-quadrant[data-priority="C"]::before { background: #E67E22; }
+.matrix-quadrant[data-priority="D"]::before { background: #95A5A6; }
+
+.matrix-quadrant-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bg-hover);
+}
+
+.matrix-quadrant-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.matrix-quadrant-title {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.matrix-quadrant-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.matrix-quadrant-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.matrix-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.matrix-quadrant-tasks {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.matrix-quadrant-tasks::-webkit-scrollbar {
+  width: 3px;
+}
+
+.matrix-quadrant-tasks::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 2px;
+}
+
+.matrix-task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-main);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.matrix-task:hover {
+  background: var(--bg-hover);
+}
+
+.matrix-task-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.matrix-task-check:hover {
+  border-color: var(--accent-green);
+  background: var(--accent-green-light);
+}
+
+.matrix-task-check.checked {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.matrix-task-check.checked::after {
+  content: '✓';
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.matrix-task-title {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.matrix-empty {
+  font-size: 12px;
+  color: var(--text-light);
+  text-align: center;
+  padding: 16px 0;
+}
+
+/* ========================================
+   F6: 周计划视图
+   ======================================== */
+
+.weekly-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.weekly-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.weekly-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.weekly-nav-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.weekly-nav-btn:active {
+  transform: scale(0.92);
+}
+
+.weekly-nav-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 80px;
+  text-align: center;
+}
+
+.weekly-columns {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+}
+
+.weekly-columns::-webkit-scrollbar {
+  height: 4px;
+}
+
+.weekly-columns::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 2px;
+}
+
+.weekly-column {
+  flex: 1;
+  min-width: 100px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow var(--transition-fast);
+}
+
+.weekly-column:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* 今日列高亮 */
+.weekly-column.weekly-today {
+  border: 2px solid var(--accent-green);
+  box-shadow: 0 2px 12px rgba(126, 191, 142, 0.15);
+}
+
+.weekly-column-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px 8px;
+  border-bottom: 1px solid var(--bg-hover);
+  gap: 2px;
+}
+
+.weekly-day-name {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.weekly-day-date {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.weekly-today .weekly-day-name {
+  color: var(--accent-green);
+}
+
+.weekly-today-date {
+  color: var(--accent-green) !important;
+}
+
+.weekly-column-tasks {
+  flex: 1;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.weekly-column-tasks::-webkit-scrollbar {
+  width: 3px;
+}
+
+.weekly-column-tasks::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 2px;
+}
+
+.weekly-task {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-main);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.weekly-task:hover {
+  background: var(--bg-hover);
+}
+
+.weekly-task-title {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.weekly-empty {
+  font-size: 12px;
+  color: var(--text-light);
+  text-align: center;
+  padding: 16px 0;
+}
+
+/* ===== 矩阵 + 周计划 响应式 ===== */
+
+/* iPad 竖屏 */
+@media (max-width: 1024px) {
+  .matrix-grid {
+    gap: 10px;
+  }
+
+  .matrix-quadrant {
+    min-height: 150px;
+    padding: 14px;
+  }
+
+  .weekly-column {
+    min-width: 90px;
+  }
+}
+
+/* 手机端 */
+@media (max-width: 768px) {
+  .matrix-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .matrix-quadrant {
+    min-height: 100px;
+  }
+
+  .matrix-quadrant-tasks {
+    max-height: 200px;
+  }
+
+  .weekly-column {
+    min-width: 80px;
+    flex: 0 0 calc(33.333% - 6px);
+  }
+
+  .weekly-column-header {
+    padding: 8px 6px 6px;
+  }
+
+  .weekly-day-date {
+    font-size: 14px;
+  }
+
+  .weekly-column-tasks {
+    padding: 6px;
+    max-height: 300px;
+  }
+
+  .weekly-task {
+    padding: 5px 6px;
+  }
+
+  .weekly-task-title {
+    font-size: 11px;
+  }
+}
+
+/* 小手机 */
+@media (max-width: 480px) {
+  .matrix-quadrant {
+    padding: 12px;
+    min-height: 80px;
+  }
+
+  .matrix-quadrant-header {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+  }
+
+  .matrix-quadrant-name {
+    font-size: 12px;
+  }
+
+  .matrix-task {
+    padding: 5px 6px;
+    gap: 6px;
+  }
+
+  .matrix-task-title {
+    font-size: 11px;
+  }
+
+  .weekly-column {
+    min-width: 70px;
+  }
+}

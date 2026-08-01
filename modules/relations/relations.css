@@ -1,5 +1,225 @@
 /* relations.css - 关系管理模块样式 */
 /* 暖米色调 · iPad横屏优先 */
+/* 含 ABCD 四层分类系统样式 */
+
+/* ===== ABCD 分类筛选 Tabs ===== */
+.rel-category-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.rel-category-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--text-light);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.rel-category-tab:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.rel-category-tab.active {
+  color: #fff;
+  border-color: transparent;
+}
+
+/* 分类 tab 激活态颜色 */
+.rel-category-tab[data-category="all"].active {
+  background: var(--accent);
+}
+.rel-category-tab.rel-cat-a.active {
+  background: #D4605A;
+  border-color: #D4605A;
+}
+.rel-category-tab.rel-cat-b.active {
+  background: #E8943A;
+  border-color: #E8943A;
+}
+.rel-category-tab.rel-cat-c.active {
+  background: #4A90D9;
+  border-color: #4A90D9;
+}
+.rel-category-tab.rel-cat-d.active {
+  background: #9E9E9E;
+  border-color: #9E9E9E;
+}
+
+/* 分类小圆点（筛选tab内） */
+.rel-cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.rel-cat-dot-a { background: #D4605A; }
+.rel-cat-dot-b { background: #E8943A; }
+.rel-cat-dot-c { background: #4A90D9; }
+.rel-cat-dot-d { background: #9E9E9E; }
+
+/* 激活时圆点变白 */
+.rel-category-tab.active .rel-cat-dot {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* ===== 联系人卡片上的分类标签 ===== */
+.rel-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.rel-card-cat-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+
+.rel-card-cat-a { background: #D4605A; }
+.rel-card-cat-b { background: #E8943A; }
+.rel-card-cat-c { background: #4A90D9; }
+.rel-card-cat-d { background: #9E9E9E; }
+
+/* ===== 跟进提醒标记 ===== */
+.rel-card-followup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #D4605A;
+  background: #FDE8EC;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  margin-top: 6px;
+  font-weight: 500;
+  width: fit-content;
+}
+
+/* ===== 详情页分类标签 ===== */
+.rel-detail-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.rel-detail-cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+}
+
+.rel-detail-cat-a {
+  background: #FDE8EC;
+  color: #D4605A;
+}
+.rel-detail-cat-b {
+  background: #FFF3E0;
+  color: #C67A20;
+}
+.rel-detail-cat-c {
+  background: #E3F0FC;
+  color: #3A78C0;
+}
+.rel-detail-cat-d {
+  background: #F0F0F0;
+  color: #757575;
+}
+
+/* ===== 表单分类选择器 ===== */
+.rel-form-category-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rel-form-cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--text-light);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.rel-form-cat-btn:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.rel-form-cat-btn.active {
+  border-width: 2px;
+}
+
+.rel-form-cat-btn.rel-cat-a.active {
+  border-color: #D4605A;
+  background: #FDF2F3;
+}
+.rel-form-cat-btn.rel-cat-b.active {
+  border-color: #E8943A;
+  background: #FFF8EE;
+}
+.rel-form-cat-btn.rel-cat-c.active {
+  border-color: #4A90D9;
+  background: #EFF6FD;
+}
+.rel-form-cat-btn.rel-cat-d.active {
+  border-color: #9E9E9E;
+  background: #F7F7F7;
+}
+
+.rel-form-cat-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rel-form-cat-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rel-form-cat-text strong {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.rel-form-cat-text small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
 
 /* ===== 生日提醒区域 ===== */
 .rel-birthday-section {
@@ -215,6 +435,14 @@
     flex-wrap: nowrap;
     padding-bottom: 4px;
   }
+  .rel-category-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+  .rel-category-tab {
+    flex-shrink: 0;
+  }
 }
 
 /* ===== 联系人卡片 ===== */
@@ -236,9 +464,14 @@
 
 .rel-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.rel-card-header-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .rel-card-avatar {

@@ -1,13 +1,31 @@
 /**
  * search.js - 全局搜索模块
- * 人生工作台 · 跨模块关键词搜索
+ * 人生工作台 · 跨模块关键词搜索 + 快捷指令导航
  */
 
 const SearchModule = (() => {
   let panelEl = null;
   let inputEl = null;
   let resultsEl = null;
+  let hintEl = null;
   let debounceTimer = null;
+  let commandMode = false; // 是否处于指令模式
+  let activeCommandIdx = 0; // 当前高亮的指令索引
+
+  // ===== 快捷指令映射表 =====
+  const COMMANDS = [
+    { keys: ['总览', 'dashboard', 'overview', '今日'],  icon: '🏠', label: '今日总览',   route: 'dashboard' },
+    { keys: ['习惯', 'habits', '打卡'],                  icon: '✅', label: '习惯打卡',   route: 'habits' },
+    { keys: ['任务', 'tasks', 'todo'],                   icon: '📋', label: '任务',       route: 'tasks' },
+    { keys: ['学习', 'study', 'learn'],                  icon: '📚', label: '学习',       route: 'study' },
+    { keys: ['健康', 'health', '运动'],                  icon: '💪', label: '健康',       route: 'health' },
+    { keys: ['财务', 'finance', '记账', '钱'],           icon: '💰', label: '财务',       route: 'finance' },
+    { keys: ['日记', 'journal', '反思', '记录'],         icon: '📝', label: '记录与反思', route: 'journal' },
+    { keys: ['生命树', 'lifetree', 'tree'],              icon: '🌳', label: '生命树',     route: 'lifetree' },
+    { keys: ['关系', 'relations', 'contacts', '联系人'], icon: '🤝', label: '关系',       route: 'relations' },
+    { keys: ['知识库', 'knowledge', '知识'],             icon: '🧠', label: '知识库',     route: 'knowledge' },
+    { keys: ['目标', 'goals', 'goal'],                   icon: '🎯', label: '目标',       route: 'goals' },
+  ];
 
   // 搜索范围定义
   const SCOPE = [
@@ -41,6 +59,11 @@ const SearchModule = (() => {
     panelEl.classList.remove('show');
     inputEl.value = '';
     resultsEl.innerHTML = '';
+    commandMode = false;
+    activeCommandIdx = 0;
+    if (hintEl) {
+      hintEl.textContent = '输入关键词搜索 · 输入 / 使用快捷指令 · 点击结果跳转到对应模块';
+    }
   }
 
   /**
@@ -58,12 +81,13 @@ const SearchModule = (() => {
           <button class="global-search-close" title="关闭">✕</button>
         </div>
         <div class="global-search-results"></div>
-        <div class="global-search-hint">输入关键词后按回车或自动搜索 · 点击结果跳转到对应模块</div>
+        <div class="global-search-hint">输入关键词搜索 · 输入 / 使用快捷指令 · 点击结果跳转到对应模块</div>
       </div>
     `;
 
     inputEl = panelEl.querySelector('.global-search-input');
     resultsEl = panelEl.querySelector('.global-search-results');
+    hintEl = panelEl.querySelector('.global-search-hint');
 
     // 事件绑定
     panelEl.querySelector('.global-search-backdrop').addEventListener('click', close);
@@ -71,11 +95,33 @@ const SearchModule = (() => {
 
     inputEl.addEventListener('input', () => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => doSearch(inputEl.value.trim()), 200);
+      const value = inputEl.value;
+      
+      // 检测是否进入指令模式
+      if (value.startsWith('/')) {
+        commandMode = true;
+        activeCommandIdx = 0;
+        renderCommands(value.slice(1).trim().toLowerCase());
+      } else {
+        if (commandMode) {
+          commandMode = false;
+          activeCommandIdx = 0;
+        }
+        debounceTimer = setTimeout(() => doSearch(value.trim()), 200);
+      }
     });
 
     inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') close();
+      if (e.key === 'Escape') {
+        close();
+        return;
+      }
+
+      if (commandMode) {
+        handleCommandKeydown(e);
+        return;
+      }
+
       if (e.key === 'Enter') {
         clearTimeout(debounceTimer);
         doSearch(inputEl.value.trim());
@@ -88,6 +134,98 @@ const SearchModule = (() => {
         close();
       }
     });
+  }
+
+  /**
+   * 指令模式下的键盘事件处理
+   */
+  function handleCommandKeydown(e) {
+    const matchedCmds = getMatchedCommands(inputEl.value.slice(1).trim().toLowerCase());
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeCommandIdx = Math.min(activeCommandIdx + 1, matchedCmds.length - 1);
+      highlightCommand(matchedCmds);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeCommandIdx = Math.max(activeCommandIdx - 1, 0);
+      highlightCommand(matchedCmds);
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      if (matchedCmds.length > 0 && activeCommandIdx < matchedCmds.length) {
+        executeCommand(matchedCmds[activeCommandIdx]);
+      }
+    }
+  }
+
+  /**
+   * 获取匹配的指令列表
+   */
+  function getMatchedCommands(query) {
+    if (!query) return [...COMMANDS];
+    return COMMANDS.filter(cmd => {
+      return cmd.keys.some(key => key.toLowerCase().includes(query)) ||
+             cmd.label.toLowerCase().includes(query);
+    });
+  }
+
+  /**
+   * 渲染指令列表
+   */
+  function renderCommands(query) {
+    const matchedCmds = getMatchedCommands(query);
+    
+    if (matchedCmds.length === 0) {
+      resultsEl.innerHTML = `<div class="global-search-empty">没有找到匹配的指令</div>`;
+      if (hintEl) hintEl.textContent = '输入 / 后面的关键词筛选指令';
+      return;
+    }
+
+    let html = `<div class="search-command-list">`;
+    matchedCmds.forEach((cmd, idx) => {
+      html += `
+        <div class="search-command-item ${idx === activeCommandIdx ? 'active' : ''}" data-route="${cmd.route}" data-idx="${idx}">
+          <span class="search-command-icon">${cmd.icon}</span>
+          <span class="search-command-label">${cmd.label}</span>
+          <span class="search-command-hint">/${cmd.keys[0]}</span>
+        </div>
+      `;
+    });
+    html += `</div>`;
+    
+    resultsEl.innerHTML = html;
+    if (hintEl) hintEl.textContent = '↑↓ 选择 · Enter 跳转 · Esc 关闭';
+
+    // 绑定点击事件
+    resultsEl.querySelectorAll('.search-command-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const route = el.dataset.route;
+        if (route) {
+          Router.navigate(route);
+          close();
+        }
+      });
+    });
+  }
+
+  /**
+   * 高亮当前选中的指令
+   */
+  function highlightCommand(matchedCmds) {
+    resultsEl.querySelectorAll('.search-command-item').forEach((el, idx) => {
+      el.classList.toggle('active', idx === activeCommandIdx);
+      if (idx === activeCommandIdx) {
+        el.scrollIntoView({ block: 'nearest' });
+      }
+    });
+  }
+
+  /**
+   * 执行指令（导航跳转）
+   */
+  function executeCommand(cmd) {
+    Router.navigate(cmd.route);
+    close();
   }
 
   /**

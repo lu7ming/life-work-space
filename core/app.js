@@ -58,6 +58,16 @@ const App = (() => {
       NotificationEngine.init();
     }
 
+    // 9.5 初始化白噪音模块
+    if (typeof WhiteNoiseModule !== 'undefined') {
+      WhiteNoiseModule.init();
+    }
+
+    // 10. 初始化主题系统
+    if (typeof ThemeManager !== 'undefined') {
+      await ThemeManager.init();
+    }
+
     console.log('[App] 人生工作台已就绪 🎉');
   }
 
@@ -588,7 +598,10 @@ const App = (() => {
           if (typeof ExportModule !== 'undefined') ExportModule.showImportDialog();
           else showToast('导入模块加载中...');
         } else if (action === 'theme') {
-          showToast('主题切换功能开发中 🎨');
+          showThemePicker();
+        } else if (action === 'whitenoise') {
+          if (typeof WhiteNoiseModule !== 'undefined') WhiteNoiseModule.togglePanel();
+          else showToast('白噪音模块加载中...');
         }
         moreMenu?.classList.remove('show');
       });
@@ -703,6 +716,78 @@ const App = (() => {
           console.warn('[App] Service Worker 注册失败:', err);
         });
     }
+  }
+
+  /**
+   * 显示主题选择器
+   */
+  function showThemePicker() {
+    // 移除已有的选择器
+    document.querySelectorAll('.theme-picker-overlay').forEach(el => el.remove());
+
+    const currentTheme = typeof ThemeManager !== 'undefined' ? ThemeManager.getTheme() : 'light';
+    const overlay = document.createElement('div');
+    overlay.className = 'theme-picker-overlay';
+    overlay.innerHTML = `
+      <div class="theme-picker-backdrop"></div>
+      <div class="theme-picker-container">
+        <div class="theme-picker-title">🎨 选择主题</div>
+        <div class="theme-picker-options">
+          <button class="theme-picker-option ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">
+            <span class="theme-icon">☀️</span>
+            <span class="theme-label">浅色模式</span>
+            ${currentTheme === 'light' ? '<span class="theme-check">✓</span>' : ''}
+          </button>
+          <button class="theme-picker-option ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-label">深色模式</span>
+            ${currentTheme === 'dark' ? '<span class="theme-check">✓</span>' : ''}
+          </button>
+          <button class="theme-picker-option ${currentTheme === 'auto' ? 'active' : ''}" data-theme="auto">
+            <span class="theme-icon">💻</span>
+            <span class="theme-label">跟随系统</span>
+            ${currentTheme === 'auto' ? '<span class="theme-check">✓</span>' : ''}
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // 绑定事件
+    overlay.querySelector('.theme-picker-backdrop').addEventListener('click', () => overlay.remove());
+
+    overlay.querySelectorAll('.theme-picker-option').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const theme = btn.dataset.theme;
+        if (typeof ThemeManager !== 'undefined') {
+          await ThemeManager.setTheme(theme);
+        }
+        // 更新选中状态
+        overlay.querySelectorAll('.theme-picker-option').forEach(b => {
+          b.classList.remove('active');
+          const check = b.querySelector('.theme-check');
+          if (check) check.remove();
+        });
+        btn.classList.add('active');
+        const checkSpan = document.createElement('span');
+        checkSpan.className = 'theme-check';
+        checkSpan.textContent = '✓';
+        btn.appendChild(checkSpan);
+
+        // 短暂延迟后关闭
+        setTimeout(() => overlay.remove(), 300);
+      });
+    });
+
+    // ESC 关闭
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
   }
 
   return {

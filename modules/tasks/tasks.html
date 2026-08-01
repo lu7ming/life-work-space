@@ -8,6 +8,8 @@
       <button class="tasks-tab active" data-tab="today">今日任务</button>
       <button class="tasks-tab" data-tab="all">全部任务</button>
       <button class="tasks-tab" data-tab="done">已完成</button>
+      <button class="tasks-tab" data-tab="matrix">矩阵</button>
+      <button class="tasks-tab" data-tab="weekly">周计划</button>
       <button class="tasks-tab" data-tab="projects">项目</button>
       <button class="tasks-tab tasks-tab--pomodoro" data-tab="pomodoro">🍅</button>
     </div>
@@ -47,6 +49,23 @@
       <div class="tasks-empty" id="tasks-empty-done" style="display:none;">
         <div class="tasks-empty-icon">📊</div>
         <p>暂无已完成的任务</p>
+      </div>
+    </div>
+
+    <!-- ===== 矩阵视图面板 ===== -->
+    <div class="tasks-panel" data-panel="matrix">
+      <div class="matrix-grid" id="matrix-grid"></div>
+    </div>
+
+    <!-- ===== 周计划面板 ===== -->
+    <div class="tasks-panel" data-panel="weekly">
+      <div class="weekly-view" id="weekly-view">
+        <div class="weekly-nav">
+          <button class="weekly-nav-btn" id="weekly-prev">◀</button>
+          <span class="weekly-nav-label" id="weekly-label">本周</span>
+          <button class="weekly-nav-btn" id="weekly-next">▶</button>
+        </div>
+        <div class="weekly-columns" id="weekly-columns"></div>
       </div>
     </div>
 

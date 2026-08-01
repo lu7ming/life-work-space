@@ -9,6 +9,20 @@
   <!-- 生日提醒区域 -->
   <div id="dash-birthday-reminder" style="display:none;"></div>
 
+  <!-- F1: 今日聚焦卡片 -->
+  <div class="dash-focus-card card" id="dash-focus-card">
+    <div class="dash-focus-header">
+      <h3 class="dash-focus-title">🎯 今日聚焦</h3>
+      <div class="dash-focus-actions">
+        <button class="dash-focus-btn" id="dash-focus-customize" title="自定义今日三件事">✏️ 自定义</button>
+        <button class="dash-focus-btn" id="dash-focus-refresh" title="换一批">🔄 换一批</button>
+      </div>
+    </div>
+    <div class="dash-focus-list" id="dash-focus-list">
+      <!-- JS 动态生成 -->
+    </div>
+  </div>
+
   <!-- 两列布局 -->
   <div class="dash-grid">
     <!-- 左列：日历 -->
@@ -63,6 +77,43 @@
     <h3 class="dash-feed-title">📰 今日动态</h3>
     <div class="dash-feed-list" id="dash-feed-list">
       <!-- JS 动态生成 -->
+    </div>
+  </div>
+
+  <!-- F5: 年度回顾入口 -->
+  <div class="dash-annual-entry">
+    <button class="dash-annual-btn" id="dash-annual-btn">📊 年度回顾</button>
+  </div>
+
+  <!-- F1: 自定义今日三件事弹窗 -->
+  <div class="dash-modal-overlay" id="dash-custom-focus-overlay" style="display:none;">
+    <div class="dash-modal card">
+      <div class="dash-modal-header">
+        <h3>选择今日聚焦</h3>
+        <button class="dash-modal-close" id="dash-custom-focus-close">✕</button>
+      </div>
+      <div class="dash-modal-body">
+        <p class="dash-modal-tip">选择最多3个任务作为今日聚焦</p>
+        <div class="dash-modal-task-list" id="dash-custom-task-list">
+          <!-- JS 动态生成 -->
+        </div>
+      </div>
+      <div class="dash-modal-footer">
+        <button class="dash-modal-confirm" id="dash-custom-focus-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- F5: 年度回顾弹窗 -->
+  <div class="dash-modal-overlay" id="dash-annual-overlay" style="display:none;">
+    <div class="dash-modal dash-modal-wide card">
+      <div class="dash-modal-header">
+        <h3>📊 <span id="dash-annual-year"></span> 年度回顾</h3>
+        <button class="dash-modal-close" id="dash-annual-close">✕</button>
+      </div>
+      <div class="dash-modal-body" id="dash-annual-body">
+        <!-- JS 动态生成 -->
+      </div>
     </div>
   </div>
 </div>

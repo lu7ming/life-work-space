@@ -19,6 +19,31 @@
   <link rel="stylesheet" href="styles/search.css">
   <link rel="stylesheet" href="styles/nicole.css">
   <link rel="stylesheet" href="styles/xiaolu.css">
+  <link rel="stylesheet" href="modules/whitenoise/whitenoise.css">
+
+  <!-- 防闪白：在页面渲染前立即应用主题 -->
+  <script>
+    (function() {
+      try {
+        var raw = localStorage.getItem('life-workspace-theme');
+        if (raw) {
+          var t = JSON.parse(raw);
+          if (t && t.value) {
+            var theme = t.value;
+            if (theme === 'auto') {
+              theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+            if (theme === 'dark') {
+              var meta = document.querySelector('meta[name="theme-color"]');
+              if (meta) meta.setAttribute('content', '#1A1A2E');
+            }
+          }
+        }
+      } catch(e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="modules/rest/rest.css">
 </head>
 <body>
 
@@ -132,12 +157,14 @@
             🔔
             <span class="topbar-notif-badge" id="notif-badge" style="display:none;">0</span>
           </button>
+          <button class="topbar-rest-btn" id="rest-mode-btn" title="休息模式 - 魁北克雪夜">❄️</button>
           <button class="topbar-icon-btn" data-tip="🌳 生命树">🌳</button>
           <button class="topbar-icon-btn" data-tip="⚙️ 设置功能开发中">⚙️</button>
           <div style="position:relative;">
             <button class="topbar-icon-btn" id="topbar-more-btn">⋮</button>
             <div class="topbar-more-menu" id="topbar-more-menu">
               <button data-action="search">🔍 搜索</button>
+              <button data-action="whitenoise">🎵 白噪音</button>
               <button data-action="save">💾 保存</button>
               <button data-action="sync">☁️ 同步到云端</button>
               <button data-action="export">📤 导出数据</button>
@@ -175,6 +202,14 @@
     </div>
   </div>
 
+  <!-- 休息模式 -->
+  <div id="rest-overlay" class="rest-overlay">
+    <canvas id="rest-canvas"></canvas>
+    <div id="rest-time" class="rest-time"></div>
+    <div id="rest-quote" class="rest-quote"></div>
+    <div class="rest-hint">轻触屏幕退出</div>
+  </div>
+
   <!-- 核心脚本（按依赖顺序加载） -->
   <script src="core/storage.js"></script>
   <script src="core/router.js"></script>
@@ -192,10 +227,13 @@
   <script src="core/notifications.js"></script>
   <script src="core/nicole.js"></script>
   <script src="core/xiaolu.js"></script>
+  <script src="modules/whitenoise/whitenoise.js"></script>
   <script src="core/export.js"></script>
   <script src="core/search.js"></script>
+  <script src="core/theme.js"></script>
   <script src="core/sync.js"></script>
   <script src="core/app.js"></script>
+  <script src="modules/rest/rest.js"></script>
 
 </body>
 </html>

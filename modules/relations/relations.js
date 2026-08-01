@@ -1,19 +1,30 @@
 /**
  * relations.js - 关系管理模块
  * 人生工作台 · 联系人管理与生日提醒
+ * 支持 ABCD 四层分类 + 跟进频率提醒
  */
 
 const RelationsModule = (() => {
   const STORE = 'contacts';
 
+  // ABCD 分类配置
+  const CATEGORY_CONFIG = {
+    A: { label: '核心圈', color: '#D4605A', bgColor: '#FDE8EC', followUpDays: 7, desc: '每周至少联系1次' },
+    B: { label: '重要圈', color: '#E8943A', bgColor: '#FFF3E0', followUpDays: 30, desc: '每月至少联系1次' },
+    C: { label: '维护圈', color: '#4A90D9', bgColor: '#E3F0FC', followUpDays: 90, desc: '每季度联系1次' },
+    D: { label: '观察圈', color: '#9E9E9E', bgColor: '#F0F0F0', followUpDays: Infinity, desc: '随缘联系' }
+  };
+
   // 状态
   let allContacts = [];
-  let currentFilter = 'all';
+  let currentFilter = 'all';       // 类型筛选
+  let currentCategoryFilter = 'all'; // ABCD分类筛选
   let currentSort = 'name';
   let searchQuery = '';
   let selectedContact = null;
   let editingContact = null;
   let formType = '家人';
+  let formCategory = 'A';
 
   // ===== 工具函数 =====
   function escapeHtml(str) {
@@ -55,18 +66,96 @@ const RelationsModule = (() => {
     return name ? name.charAt(0) : '?';
   }
 
-  // 关系健康度计算
-  function getHealthStatus(lastContactDate) {
-    if (!lastContactDate) return { level: 'none', days: -1, text: '暂无联系记录', percent: 0 };
+  // 获取分类配置，默认为 C
+  function getCategoryConfig(category) {
+    return CATEGORY_CONFIG[category] || CATEGORY_CONFIG['C'];
+  }
+
+  // 是否需要跟进提醒
+  function needsFollowUp(contact) {
+    const cat = contact.category || 'C';
+    const config = getCategoryConfig(cat);
+    if (config.followUpDays === Infinity) return false; // D层不需要提醒
+    if (!contact.lastContactDate) return true; // 从未联系过，需要提醒
+    const last = new Date(contact.lastContactDate);
+    const now = new Date();
+    const days = Math.ceil((now - last) / (1000 * 60 * 60 * 24));
+    return days > config.followUpDays;
+  }
+
+  // 获取距离超过跟进阈值的天数
+  function getOverdueDays(contact) {
+    const cat = contact.category || 'C';
+    const config = getCategoryConfig(cat);
+    if (config.followUpDays === Infinity) return 0;
+    if (!contact.lastContactDate) return config.followUpDays; // 从未联系
+    const last = new Date(contact.lastContactDate);
+    const now = new Date();
+    const days = Math.ceil((now - last) / (1000 * 60 * 60 * 24));
+    return Math.max(0, days - config.followUpDays);
+  }
+
+  // 关系健康度计算（结合ABCD分类）
+  function getHealthStatus(contact) {
+    const lastContactDate = contact.lastContactDate;
+    const category = contact.category || 'C';
+    const config = getCategoryConfig(category);
+
+    if (!lastContactDate) {
+      if (category === 'D') return { level: 'none', days: -1, text: '暂无联系记录', percent: 50 };
+      return { level: 'none', days: -1, text: '暂无联系记录', percent: 0 };
+    }
+
     const last = new Date(lastContactDate);
     const now = new Date();
     const days = Math.ceil((now - last) / (1000 * 60 * 60 * 24));
-    if (days <= 30) return { level: 'good', days, text: `${days}天前联系过，关系良好 💚`, percent: Math.max(20, 100 - days * 2.5) };
-    if (days <= 90) return { level: 'warning', days, text: `${days}天未联系，该关心一下了 ⚠️`, percent: Math.max(10, 60 - (days - 30)) };
-    return { level: 'danger', days, text: `${days}天未联系，关系亮红灯 🚨`, percent: Math.max(5, 30 - (days - 90) * 0.2) };
+    const threshold = config.followUpDays;
+
+    // D层不扣分
+    if (category === 'D') {
+      return { level: 'good', days, text: `${days}天前联系过（随缘圈，不扣分）💚`, percent: 60 };
+    }
+
+    // 未超过阈值：健康
+    if (days <= threshold) {
+      const ratio = days / threshold;
+      const percent = Math.max(40, 100 - ratio * 40);
+      return { level: 'good', days, text: `${days}天前联系过，关系良好 💚`, percent };
+    }
+
+    // 超过阈值：开始扣分
+    const overdueDays = days - threshold;
+    let percent, level, emoji;
+
+    if (overdueDays <= threshold * 0.5) {
+      // 轻度超时
+      level = 'warning';
+      percent = Math.max(20, 40 - overdueDays * 0.5);
+      emoji = '⚠️';
+    } else {
+      // 严重超时
+      level = 'danger';
+      percent = Math.max(5, 20 - (overdueDays - threshold * 0.5) * 0.2);
+      emoji = '🚨';
+    }
+
+    return {
+      level,
+      days,
+      text: `${days}天未联系（超过${threshold}天阈值），该关心一下了 ${emoji}`,
+      percent
+    };
   }
 
-  // 拼音排序辅助（简化：直接按 localeCompare）
+  // 兼容旧版调用（传入字符串而非对象时）
+  function getHealthStatusCompat(contactOrDate) {
+    if (typeof contactOrDate === 'string' || contactOrDate === null) {
+      return getHealthStatus({ lastContactDate: contactOrDate, category: 'C' });
+    }
+    return getHealthStatus(contactOrDate);
+  }
+
+  // 拼音排序辅助
   function sortByPinyin(a, b) {
     return (a.name || '').localeCompare(b.name || '', 'zh-CN');
   }
@@ -75,6 +164,23 @@ const RelationsModule = (() => {
   async function loadData() {
     try {
       allContacts = await Storage.getAll(STORE);
+      // 数据迁移：为没有category字段的联系人设置默认值（仅首次执行）
+      const migrated = await Storage.get('meta', 'categoryMigrated');
+      if (!migrated) {
+        let needSave = false;
+        for (const c of allContacts) {
+          if (!c.category) {
+            c.category = 'C'; // 默认为维护圈
+            needSave = true;
+          }
+        }
+        if (needSave) {
+          for (const c of allContacts) {
+            try { await Storage.put(STORE, c); } catch (e) { /* ignore */ }
+          }
+        }
+        await Storage.put('meta', { key: 'categoryMigrated', value: true });
+      }
     } catch (e) {
       console.warn('[Relations] 加载数据失败:', e);
       allContacts = [];
@@ -84,6 +190,11 @@ const RelationsModule = (() => {
   // ===== 过滤与排序 =====
   function getFilteredContacts() {
     let list = [...allContacts];
+
+    // ABCD分类筛选
+    if (currentCategoryFilter !== 'all') {
+      list = list.filter(c => (c.category || 'C') === currentCategoryFilter);
+    }
 
     // 类型筛选
     if (currentFilter !== 'all') {
@@ -168,19 +279,25 @@ const RelationsModule = (() => {
     grid.style.display = 'grid';
 
     grid.innerHTML = list.map(c => {
-      const health = getHealthStatus(c.lastContactDate);
+      const health = getHealthStatus(c);
+      const catConfig = getCategoryConfig(c.category || 'C');
       const daysLeft = daysUntilBirthday(c.birthday);
       const birthdayText = daysLeft === 0 ? '🎂 今天生日！' : `还有${daysLeft}天`;
       const daysClass = daysLeft === 0 ? 'today' : (daysLeft <= 7 ? 'soon' : '');
+      const showFollowUp = needsFollowUp(c);
+      const overdueDays = getOverdueDays(c);
 
       return `
         <div class="rel-card" data-id="${c.id}">
           <div class="rel-card-health ${health.level}" title="${escapeHtml(health.text)}"></div>
           <div class="rel-card-header">
             <div class="rel-card-avatar">${escapeHtml(getInitial(c.name))}</div>
-            <div>
+            <div class="rel-card-header-text">
               <div class="rel-card-name">${escapeHtml(c.name)}</div>
-              <span class="rel-card-type-badge">${escapeHtml(c.type)}</span>
+              <div class="rel-card-badges">
+                <span class="rel-card-type-badge">${escapeHtml(c.type)}</span>
+                <span class="rel-card-cat-badge rel-card-cat-${(c.category || 'C').toLowerCase()}" title="${escapeHtml(catConfig.label)} · ${escapeHtml(catConfig.desc)}">${(c.category || 'C')}</span>
+              </div>
             </div>
           </div>
           <div class="rel-card-body">
@@ -188,6 +305,7 @@ const RelationsModule = (() => {
               🎂 ${escapeHtml(c.birthday)}
               <span class="rel-card-days-left ${daysClass}">${birthdayText}</span>
             </div>
+            ${showFollowUp ? `<div class="rel-card-followup">⚠️ 超过${overdueDays}天未跟进</div>` : ''}
           </div>
         </div>
       `;
@@ -206,10 +324,17 @@ const RelationsModule = (() => {
     const avatar = document.getElementById('rel-detail-avatar');
     const name = document.getElementById('rel-detail-name');
     const badge = document.getElementById('rel-detail-type-badge');
+    const catBadge = document.getElementById('rel-detail-cat-badge');
 
     avatar.textContent = getInitial(contact.name);
     name.textContent = contact.name;
     badge.textContent = contact.type;
+
+    // ABCD 分类标签
+    const catConfig = getCategoryConfig(contact.category || 'C');
+    const cat = contact.category || 'C';
+    catBadge.textContent = `${cat} ${catConfig.label}`;
+    catBadge.className = `rel-detail-cat-badge rel-detail-cat-${cat.toLowerCase()}`;
 
     // 基本信息
     const birthdayRow = document.getElementById('rel-info-birthday-row');
@@ -248,8 +373,8 @@ const RelationsModule = (() => {
       datesSection.style.display = 'none';
     }
 
-    // 关系健康度
-    const health = getHealthStatus(contact.lastContactDate);
+    // 关系健康度（使用新版，传入完整contact对象）
+    const health = getHealthStatus(contact);
     const healthFill = document.getElementById('rel-health-fill');
     const healthText = document.getElementById('rel-health-text');
     healthFill.style.width = health.percent + '%';
@@ -341,6 +466,13 @@ const RelationsModule = (() => {
       renderInteractions();
       renderGrid();
       renderBirthdaySection();
+      // 更新详情中的健康度
+      const health = getHealthStatus(selectedContact);
+      const healthFill = document.getElementById('rel-health-fill');
+      const healthText = document.getElementById('rel-health-text');
+      healthFill.style.width = health.percent + '%';
+      healthFill.className = 'rel-health-fill' + (health.level === 'warning' ? ' warning' : health.level === 'danger' ? ' danger' : '');
+      healthText.textContent = health.text;
       noteInput.value = '';
     } catch (e) {
       console.error('[Relations] 添加互动失败:', e);
@@ -350,10 +482,10 @@ const RelationsModule = (() => {
   async function deleteInteraction(date, note) {
     if (!selectedContact) return;
     if (!selectedContact.interactions) return;
-    
+
     const idx = selectedContact.interactions.findIndex(i => i.date === date && (i.note || '') === note);
     if (idx === -1) return;
-    
+
     selectedContact.interactions.splice(idx, 1);
 
     // 重新计算 lastContactDate
@@ -406,6 +538,10 @@ const RelationsModule = (() => {
       }
       updateTypeButtons();
 
+      // 设置分类
+      formCategory = editingContact.category || 'C';
+      updateCategoryButtons();
+
       // 重要日期
       datesList.innerHTML = '';
       if (editingContact.importantDates) {
@@ -415,8 +551,10 @@ const RelationsModule = (() => {
       title.textContent = '添加联系人';
       document.getElementById('rel-form').reset();
       formType = '家人';
+      formCategory = 'A'; // 新增联系人默认为核心圈
       document.getElementById('rel-form-custom-type').style.display = 'none';
       updateTypeButtons();
+      updateCategoryButtons();
       datesList.innerHTML = '';
     }
 
@@ -431,6 +569,12 @@ const RelationsModule = (() => {
   function updateTypeButtons() {
     document.querySelectorAll('.rel-form-type-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.type === formType);
+    });
+  }
+
+  function updateCategoryButtons() {
+    document.querySelectorAll('.rel-form-cat-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.cat === formCategory);
     });
   }
 
@@ -482,6 +626,7 @@ const RelationsModule = (() => {
     const data = {
       name,
       type,
+      category: formCategory,
       birthday,
       phone: document.getElementById('rel-form-phone').value.trim(),
       wechat: document.getElementById('rel-form-wechat').value.trim(),
@@ -540,7 +685,6 @@ const RelationsModule = (() => {
       if (typeof App !== 'undefined' && App.showToast) App.showToast('没有数据可导出');
       return;
     }
-    // 简化：复制JSON到剪贴板
     const json = JSON.stringify(allContacts, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -559,6 +703,16 @@ const RelationsModule = (() => {
     // 搜索
     document.getElementById('rel-search-input').addEventListener('input', (e) => {
       searchQuery = e.target.value;
+      renderGrid();
+    });
+
+    // ABCD 分类筛选
+    document.getElementById('rel-category-tabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.rel-category-tab');
+      if (!tab) return;
+      currentCategoryFilter = tab.dataset.category;
+      document.querySelectorAll('.rel-category-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
       renderGrid();
     });
 
@@ -652,10 +806,7 @@ const RelationsModule = (() => {
       updateTypeButtons();
     });
 
-    // 自定义类型双击切换（长按第5个按钮变输入框）
-    // 简单方案：点击空白区域切换为自定义
-    // 更实用的方案：在类型选择器后增加一个自定义入口
-    // 这里用更简单的方式：如果点击当前已选中的类型，则切换到自定义输入
+    // 自定义类型双击切换
     document.getElementById('rel-form-type-selector').addEventListener('dblclick', (e) => {
       const btn = e.target.closest('.rel-form-type-btn');
       if (!btn) return;
@@ -663,6 +814,14 @@ const RelationsModule = (() => {
       document.querySelectorAll('.rel-form-type-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('rel-form-custom-type').style.display = '';
       document.getElementById('rel-form-custom-type').focus();
+    });
+
+    // ABCD 分类选择
+    document.getElementById('rel-form-category-selector').addEventListener('click', (e) => {
+      const btn = e.target.closest('.rel-form-cat-btn');
+      if (!btn) return;
+      formCategory = btn.dataset.cat;
+      updateCategoryButtons();
     });
 
     // 添加重要日期

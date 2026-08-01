@@ -13,6 +13,7 @@ const NotificationEngine = (() => {
   // ===== 状态 =====
   let _intervalId = null;
   let _panelOpen = false;
+  let _paused = false;
 
   // ===== 工具函数 =====
   function formatDate(date) {
@@ -317,8 +318,192 @@ const NotificationEngine = (() => {
     }
   }
 
+  // ===== F7 智能建议引擎 =====
+
+  /**
+   * 生成智能建议（纯规则引擎，不调用AI API）
+   * 扫描各模块数据，生成模板化建议，存入 notifications 表
+   */
+  async function generateSmartSuggestions() {
+    const todayStr = formatDate(new Date());
+    const sentId = 'suggestions_' + todayStr;
+    if (wasSent('suggestion', sentId)) return;
+
+    const suggestions = [];
+
+    try {
+      // 1. 习惯模块：连续打卡天数
+      const allCheckins = await Storage.getAll('checkins');
+      if (allCheckins.length > 0) {
+        const dates = allCheckins.map(c => c.date).sort().reverse();
+        let streak = 0;
+        const now = new Date();
+        for (let i = 0; i < 365; i++) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+          if (dates.includes(ds)) { streak++; }
+          else { if (i === 0) continue; break; }
+        }
+        if (streak >= 3) {
+          suggestions.push({
+            type: 'suggestion',
+            title: '💡 习惯洞察',
+            message: `你已经连续打卡 ${streak} 天了，继续保持！`,
+            icon: '💡',
+            link: '#habits'
+          });
+        }
+      }
+
+      // 2. 任务模块：逾期任务
+      const allTasks = await Storage.getAll('tasks');
+      const overdueTasks = allTasks.filter(t =>
+        t.status === 'todo' && t.dueDate && t.dueDate < todayStr
+      );
+      if (overdueTasks.length > 0) {
+        suggestions.push({
+          type: 'suggestion',
+          title: '💡 任务洞察',
+          message: `你有 ${overdueTasks.length} 个任务已逾期，优先处理一下？`,
+          icon: '💡',
+          link: '#tasks'
+        });
+      }
+
+      // 3. 健康模块：7天无运动记录
+      const allHealth = await Storage.getAll('health');
+      let hasRecentExercise = false;
+      const now = new Date();
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const healthRec = allHealth.find(h => h.date === ds || h.id === ds);
+        if (healthRec && healthRec.exercises && healthRec.exercises.length > 0) {
+          hasRecentExercise = true;
+          break;
+        }
+      }
+      if (!hasRecentExercise && allHealth.length > 0) {
+        suggestions.push({
+          type: 'suggestion',
+          title: '💡 健康洞察',
+          message: '好久没运动了，今天动一动？',
+          icon: '💡',
+          link: '#health'
+        });
+      }
+
+      // 4. 财务模块：本月支出超预算80%
+      try {
+        const budgetSetting = await Storage.get('settings', 'finance_budget');
+        if (budgetSetting && budgetSetting.value && budgetSetting.value.monthly) {
+          const monthlyBudget = budgetSetting.value.monthly;
+          const monthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+          const allFinance = await Storage.getByIndex('finance', 'month', monthStr);
+          const totalExpense = allFinance
+            .filter(f => f.type === 'expense')
+            .reduce((sum, f) => sum + (f.amount || 0), 0);
+          const pct = totalExpense / monthlyBudget;
+          if (pct >= 0.8 && pct < 1) {
+            suggestions.push({
+              type: 'suggestion',
+              title: '💡 财务洞察',
+              message: `本月支出已达预算 ${Math.round(pct * 100)}%，注意控制`,
+              icon: '💡',
+              link: '#finance'
+            });
+          }
+        }
+      } catch (e) { /* 无预算设置 */ }
+
+      // 5. 关系模块：超30天未联系
+      try {
+        const contacts = await Storage.getAll('contacts');
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const cutoffStr = formatDate(thirtyDaysAgo);
+        const staleContacts = contacts.filter(c =>
+          c.lastContactDate && c.lastContactDate < cutoffStr
+        );
+        if (staleContacts.length > 0) {
+          const names = staleContacts.slice(0, 2).map(c => c.name).join('、');
+          suggestions.push({
+            type: 'suggestion',
+            title: '💡 关系洞察',
+            message: `${names} 很久没联系了，打个招呼？`,
+            icon: '💡',
+            link: '#relations'
+          });
+        }
+      } catch (e) { /* */ }
+
+    } catch (err) {
+      console.error('[Notif] 生成智能建议失败:', err);
+    }
+
+    // 将建议存入 notifications 表
+    for (const s of suggestions) {
+      await addNotification(s);
+    }
+
+    markSent('suggestion', sentId);
+    return suggestions;
+  }
+
+  /**
+   * 获取今日推荐任务（优先级最高 + 最紧急的3个）
+   * 供 dashboard「今日三件事」调用
+   */
+  async function getTodayTasks() {
+    try {
+      const allTasks = await Storage.getAll('tasks');
+      const todayStr = formatDate(new Date());
+
+      // 筛选未完成任务
+      const todoTasks = allTasks.filter(t => t.status === 'todo');
+
+      // 优先级映射（数值越小越优先）
+      const priorityOrder = { A: 1, B: 2, C: 3, D: 4, high: 1, medium: 2, low: 3 };
+
+      // 排序：先按优先级，再按截止日期（近的优先），无日期的排后面
+      todoTasks.sort((a, b) => {
+        const pa = priorityOrder[a.priority] || 5;
+        const pb = priorityOrder[b.priority] || 5;
+        if (pa !== pb) return pa - pb;
+        const da = a.dueDate || '9999-99-99';
+        const db = b.dueDate || '9999-99-99';
+        return da.localeCompare(db);
+      });
+
+      return todoTasks.slice(0, 3);
+    } catch (err) {
+      console.error('[Notif] 获取今日任务失败:', err);
+      return [];
+    }
+  }
+
+  /**
+   * 获取最新建议列表
+   * 供 dashboard 调用
+   */
+  async function getSuggestions() {
+    try {
+      const all = await Storage.getAll('notifications');
+      return all
+        .filter(n => n.type === 'suggestion' && !n.read)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 10);
+    } catch (err) {
+      console.error('[Notif] 获取建议失败:', err);
+      return [];
+    }
+  }
+
   // ===== 主检查流程 =====
   async function runAllChecks() {
+    if (_paused) return;
     console.log('[Notif] 执行提醒检查...');
     try {
       await checkHabitReminder();
@@ -326,6 +511,7 @@ const NotificationEngine = (() => {
       await checkTaskDueReminder();
       await checkBirthdayReminder();
       await checkBudgetWarning();
+      await generateSmartSuggestions();
       await clearOldNotifications();
       cleanupSentMarkers();
     } catch (err) {
@@ -382,16 +568,18 @@ const NotificationEngine = (() => {
       return `${d.getMonth() + 1}/${d.getDate()}`;
     }
 
-    listEl.innerHTML = unread.map(n => `
-      <div class="notif-item" data-id="${n.id}" data-link="${escapeHtml(n.link)}">
-        <span class="notif-item-icon">${n.icon || '🔔'}</span>
+    listEl.innerHTML = unread.map(n => {
+      const isSuggestion = n.type === 'suggestion';
+      return `
+      <div class="notif-item${isSuggestion ? ' notif-item-suggestion' : ''}" data-id="${n.id}" data-link="${escapeHtml(n.link)}">
+        <span class="notif-item-icon">${isSuggestion ? '💡' : (n.icon || '🔔')}</span>
         <div class="notif-item-content">
           <div class="notif-item-title">${escapeHtml(n.title)}</div>
           <div class="notif-item-msg">${escapeHtml(n.message)}</div>
           <div class="notif-item-time">${timeAgo(n.createdAt)}</div>
         </div>
       </div>
-    `).join('');
+    `}).join('');
 
     // 绑定点击事件
     listEl.querySelectorAll('.notif-item').forEach(el => {
@@ -492,6 +680,11 @@ const NotificationEngine = (() => {
   return {
     init,
     updateBadge,
-    runAllChecks
+    runAllChecks,
+    generateSmartSuggestions,
+    getTodayTasks,
+    getSuggestions,
+    pause: () => { _paused = true; },
+    resume: () => { _paused = false; }
   };
 })();

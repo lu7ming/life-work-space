@@ -4,6 +4,11 @@
  */
 
 const DashboardModule = (() => {
+  // ===== F1: 今日聚焦状态 =====
+  let focusTasks = [];          // 当前显示的3个任务
+  let focusOffset = 0;          // 换一批的偏移量
+  let customFocusIds = null;    // 用户自定义的任务ID列表
+
   /**
    * 初始化总面板
    */
@@ -15,8 +20,11 @@ const DashboardModule = (() => {
         renderCalendar(),
         renderHighlights(),
         renderBirthdayReminder(),
-        renderFeed()
+        renderFeed(),
+        renderFocusCard()
       ]);
+      bindFocusEvents();
+      bindAnnualEvents();
     } catch (err) {
       console.error('[Dashboard] 初始化失败:', err);
     }
@@ -352,5 +360,395 @@ const DashboardModule = (() => {
     });
   }
 
-  return { init };
+  // ===== F1: 今日聚焦卡片 =====
+
+  /**
+   * 渲染今日聚焦卡片
+   */
+  async function renderFocusCard() {
+    const container = document.getElementById('dash-focus-list');
+    if (!container) return;
+
+    // 优先使用用户自定义的任务
+    if (customFocusIds && customFocusIds.length > 0) {
+      try {
+        const tasks = [];
+        for (const id of customFocusIds) {
+          const task = await Storage.get('tasks', id);
+          if (task) tasks.push(task);
+        }
+        focusTasks = tasks;
+      } catch (e) {
+        focusTasks = [];
+      }
+    }
+
+    // 如果没有自定义，使用推荐
+    if (focusTasks.length === 0) {
+      try {
+        // 使用 NotificationEngine F7 API 获取推荐任务
+        if (window.NotificationEngine && typeof window.NotificationEngine.getTodayTasks === 'function') {
+          const recommended = await window.NotificationEngine.getTodayTasks();
+          focusTasks = recommended.slice(focusOffset, focusOffset + 3);
+          // 如果不够，从头补充
+          if (focusTasks.length < 3 && recommended.length > focusTasks.length) {
+            const remaining = recommended.filter(t => !focusTasks.includes(t));
+            focusTasks = focusTasks.concat(remaining.slice(0, 3 - focusTasks.length));
+          }
+        } else {
+          // 降级：无 NotificationEngine 时本地排序
+          const allTasks = await Storage.getAll('tasks');
+          const todoTasks = allTasks.filter(t => t.status === 'todo');
+          const priorityOrder = { A: 1, B: 2, C: 3, D: 4, high: 1, medium: 2, low: 3 };
+
+          todoTasks.sort((a, b) => {
+            const pa = priorityOrder[a.priority] || 5;
+            const pb = priorityOrder[b.priority] || 5;
+            if (pa !== pb) return pa - pb;
+            const da = a.dueDate || '9999-99-99';
+            const db = b.dueDate || '9999-99-99';
+            return da.localeCompare(db);
+          });
+
+          focusTasks = todoTasks.slice(focusOffset, focusOffset + 3);
+          if (focusTasks.length < 3 && todoTasks.length > focusTasks.length) {
+            const remaining = todoTasks.filter(t => !focusTasks.includes(t));
+            focusTasks = focusTasks.concat(remaining.slice(0, 3 - focusTasks.length));
+          }
+        }
+      } catch (e) {
+        focusTasks = [];
+      }
+    }
+
+    if (focusTasks.length === 0) {
+      container.innerHTML = `
+        <div class="dash-focus-empty">
+          <span class="dash-focus-empty-icon">✨</span>
+          <p>暂无待办任务，享受当下吧！</p>
+        </div>
+      `;
+      return;
+    }
+
+    const priorityLabels = { A: '紧急重要', B: '重要', C: '一般', D: '低', high: '高', medium: '中', low: '低' };
+    const priorityColors = { A: '#E74C3C', B: '#F5A623', C: '#E67E22', D: '#95A5A6', high: '#E74C3C', medium: '#F5A623', low: '#95A5A6' };
+
+    container.innerHTML = focusTasks.map((task, idx) => {
+      const pLabel = priorityLabels[task.priority] || '普通';
+      const pColor = priorityColors[task.priority] || '#95A5A6';
+      const dueInfo = task.dueDate ? `截止 ${task.dueDate.slice(5)}` : '无截止日';
+      return `
+        <div class="dash-focus-item" data-task-id="${task.id}">
+          <div class="dash-focus-check">
+            <input type="checkbox" class="dash-focus-checkbox" data-task-id="${task.id}" id="focus-check-${task.id}">
+            <label for="focus-check-${task.id}"></label>
+          </div>
+          <div class="dash-focus-info">
+            <span class="dash-focus-task-title">${escapeHtml(task.title || '未命名任务')}</span>
+            <span class="dash-focus-task-meta">
+              <span class="dash-focus-priority" style="background:${pColor}20;color:${pColor}">${pLabel}</span>
+              <span class="dash-focus-due">${dueInfo}</span>
+            </span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // 绑定勾选事件
+    container.querySelectorAll('.dash-focus-checkbox').forEach(cb => {
+      cb.addEventListener('change', async (e) => {
+        const taskId = parseInt(e.target.dataset.taskId);
+        if (e.target.checked) {
+          await completeFocusTask(taskId);
+        }
+      });
+    });
+  }
+
+  /**
+   * 完成聚焦任务
+   */
+  async function completeFocusTask(taskId) {
+    try {
+      const task = await Storage.get('tasks', taskId);
+      if (task) {
+        task.status = 'done';
+        task.completedAt = new Date().toISOString();
+        await Storage.put('tasks', task);
+      }
+      // 视觉反馈
+      const item = document.querySelector(`.dash-focus-item[data-task-id="${taskId}"]`);
+      if (item) {
+        item.classList.add('completed');
+        setTimeout(() => {
+          // 从列表中移除并刷新
+          focusTasks = focusTasks.filter(t => t.id !== taskId);
+          renderFocusCard();
+        }, 600);
+      }
+    } catch (err) {
+      console.error('[Dashboard] 完成任务失败:', err);
+    }
+  }
+
+  /**
+   * 绑定聚焦卡片事件
+   */
+  function bindFocusEvents() {
+    // 换一批
+    const refreshBtn = document.getElementById('dash-focus-refresh');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => {
+        customFocusIds = null;
+        focusTasks = [];
+        focusOffset += 3;
+        renderFocusCard();
+      });
+    }
+
+    // 自定义
+    const customizeBtn = document.getElementById('dash-focus-customize');
+    if (customizeBtn) {
+      customizeBtn.addEventListener('click', () => showCustomFocusModal());
+    }
+
+    // 自定义弹窗关闭
+    const closeBtn = document.getElementById('dash-custom-focus-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        document.getElementById('dash-custom-focus-overlay').style.display = 'none';
+      });
+    }
+
+    // 自定义弹窗确认
+    const confirmBtn = document.getElementById('dash-custom-focus-confirm');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => {
+        const checked = document.querySelectorAll('#dash-custom-task-list input:checked');
+        customFocusIds = Array.from(checked).slice(0, 3).map(cb => parseInt(cb.dataset.taskId));
+        focusTasks = [];
+        focusOffset = 0;
+        document.getElementById('dash-custom-focus-overlay').style.display = 'none';
+        renderFocusCard();
+      });
+    }
+
+    // 点击遮罩关闭
+    const overlay = document.getElementById('dash-custom-focus-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.style.display = 'none';
+      });
+    }
+  }
+
+  /**
+   * 显示自定义任务选择弹窗
+   */
+  async function showCustomFocusModal() {
+    const overlay = document.getElementById('dash-custom-focus-overlay');
+    const listEl = document.getElementById('dash-custom-task-list');
+    if (!overlay || !listEl) return;
+
+    try {
+      const allTasks = await Storage.getAll('tasks');
+      const todoTasks = allTasks.filter(t => t.status === 'todo');
+
+      if (todoTasks.length === 0) {
+        listEl.innerHTML = '<div class="dash-modal-empty">暂无待办任务</div>';
+      } else {
+        listEl.innerHTML = todoTasks.map(task => `
+          <label class="dash-modal-task-item">
+            <input type="checkbox" data-task-id="${task.id}" ${customFocusIds && customFocusIds.includes(task.id) ? 'checked' : ''}>
+            <span class="dash-modal-task-name">${escapeHtml(task.title || '未命名任务')}</span>
+            ${task.dueDate ? `<span class="dash-modal-task-due">${task.dueDate.slice(5)}</span>` : ''}
+          </label>
+        `).join('');
+
+        // 限制最多选3个
+        const checkboxes = listEl.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+          cb.addEventListener('change', () => {
+            const checked = listEl.querySelectorAll('input:checked');
+            if (checked.length > 3) {
+              cb.checked = false;
+            }
+          });
+        });
+      }
+    } catch (e) {
+      listEl.innerHTML = '<div class="dash-modal-empty">加载失败</div>';
+    }
+
+    overlay.style.display = 'flex';
+  }
+
+  // ===== F5: 年度回顾 =====
+
+  /**
+   * 绑定年度回顾事件
+   */
+  function bindAnnualEvents() {
+    const btn = document.getElementById('dash-annual-btn');
+    const closeBtn = document.getElementById('dash-annual-close');
+    const overlay = document.getElementById('dash-annual-overlay');
+
+    if (btn) {
+      btn.addEventListener('click', () => showAnnualReview(new Date().getFullYear()));
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        if (overlay) overlay.style.display = 'none';
+      });
+    }
+    if (overlay) {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.style.display = 'none';
+      });
+    }
+  }
+
+  /**
+   * 显示年度回顾
+   */
+  async function showAnnualReview(year) {
+    const yearEl = document.getElementById('dash-annual-year');
+    const bodyEl = document.getElementById('dash-annual-body');
+    const overlay = document.getElementById('dash-annual-overlay');
+    if (!yearEl || !bodyEl || !overlay) return;
+
+    yearEl.textContent = year;
+    bodyEl.innerHTML = '<div class="dash-annual-loading">加载中...</div>';
+    overlay.style.display = 'flex';
+
+    try {
+      const yearStr = String(year);
+      const cards = [];
+
+      // 1. 习惯：全年打卡总次数、最长连续天数
+      try {
+        const allCheckins = await Storage.getAll('checkins');
+        const yearCheckins = allCheckins.filter(c => c.date && c.date.startsWith(yearStr));
+        const totalCheckins = yearCheckins.length;
+        // 最长连续天数
+        const dates = yearCheckins.map(c => c.date).sort();
+        let maxStreak = 0, curStreak = 1;
+        for (let i = 1; i < dates.length; i++) {
+          const prev = new Date(dates[i-1]);
+          const curr = new Date(dates[i]);
+          const diff = (curr - prev) / (1000*60*60*24);
+          if (diff === 1) { curStreak++; } else { maxStreak = Math.max(maxStreak, curStreak); curStreak = 1; }
+        }
+        if (dates.length > 0) maxStreak = Math.max(maxStreak, curStreak);
+        cards.push({ icon: '✅', title: '习惯打卡', items: [
+          { label: '打卡天数', value: `${totalCheckins} 天` },
+          { label: '最长连续', value: `${maxStreak} 天` }
+        ]});
+      } catch (e) { cards.push({ icon: '✅', title: '习惯打卡', items: [{ label: '数据', value: '暂无' }]}); }
+
+      // 2. 任务：完成总数、各优先级完成数
+      try {
+        const allTasks = await Storage.getAll('tasks');
+        const yearTasks = allTasks.filter(t => t.completedAt && t.completedAt.startsWith(yearStr));
+        const doneCount = yearTasks.length;
+        const byPriority = {};
+        yearTasks.forEach(t => {
+          const p = t.priority || '未分类';
+          byPriority[p] = (byPriority[p] || 0) + 1;
+        });
+        const prioStr = Object.entries(byPriority).map(([k,v]) => `${k}: ${v}`).join('、') || '无';
+        cards.push({ icon: '📋', title: '任务管理', items: [
+          { label: '完成任务', value: `${doneCount} 个` },
+          { label: '优先级分布', value: prioStr }
+        ]});
+      } catch (e) { cards.push({ icon: '📋', title: '任务管理', items: [{ label: '数据', value: '暂无' }]}); }
+
+      // 3. 健康：运动总次数、总时长
+      try {
+        const allHealth = await Storage.getAll('health');
+        const yearHealth = allHealth.filter(h => h.date && h.date.startsWith(yearStr));
+        let totalExercises = 0, totalDuration = 0;
+        yearHealth.forEach(h => {
+          if (h.exercises && Array.isArray(h.exercises)) {
+            totalExercises += h.exercises.length;
+            totalDuration += h.exercises.reduce((s, e) => s + (e.duration || 0), 0);
+          }
+        });
+        cards.push({ icon: '💪', title: '健康运动', items: [
+          { label: '运动次数', value: `${totalExercises} 次` },
+          { label: '运动时长', value: `${totalDuration} 分钟` }
+        ]});
+      } catch (e) { cards.push({ icon: '💪', title: '健康运动', items: [{ label: '数据', value: '暂无' }]}); }
+
+      // 4. 财务：总收入/总支出/净储蓄
+      try {
+        const allFinance = await Storage.getAll('finance');
+        const yearFinance = allFinance.filter(f => f.date && f.date.startsWith(yearStr));
+        const totalIncome = yearFinance.filter(f => f.type === 'income').reduce((s, f) => s + (f.amount || 0), 0);
+        const totalExpense = yearFinance.filter(f => f.type === 'expense').reduce((s, f) => s + (f.amount || 0), 0);
+        const netSavings = totalIncome - totalExpense;
+        cards.push({ icon: '💰', title: '财务管理', items: [
+          { label: '总收入', value: `¥${totalIncome.toLocaleString()}` },
+          { label: '总支出', value: `¥${totalExpense.toLocaleString()}` },
+          { label: '净储蓄', value: `¥${netSavings.toLocaleString()}` }
+        ]});
+      } catch (e) { cards.push({ icon: '💰', title: '财务管理', items: [{ label: '数据', value: '暂无' }]}); }
+
+      // 5. 学习：学习总时长、完成课程数
+      try {
+        const allStudy = await Storage.getAll('study');
+        const yearStudy = allStudy.filter(s => s.date && s.date.startsWith(yearStr));
+        const totalMinutes = yearStudy.reduce((s, r) => s + (r.minutes || 0), 0);
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        cards.push({ icon: '📚', title: '学习成长', items: [
+          { label: '学习时长', value: `${hours}h ${mins}m` },
+          { label: '学习记录', value: `${yearStudy.length} 次` }
+        ]});
+      } catch (e) { cards.push({ icon: '📚', title: '学习成长', items: [{ label: '数据', value: '暂无' }]}); }
+
+      // 6. 关系：新增联系人数、健康度最高的人
+      try {
+        const allContacts = await Storage.getAll('contacts');
+        const yearContacts = allContacts.filter(c => c.createdAt && c.createdAt.startsWith(yearStr));
+        let bestContact = '—';
+        if (allContacts.length > 0) {
+          // 找 lastContactDate 最近的人
+          const sorted = allContacts
+            .filter(c => c.lastContactDate)
+            .sort((a, b) => (b.lastContactDate || '').localeCompare(a.lastContactDate || ''));
+          if (sorted.length > 0) bestContact = sorted[0].name || '—';
+        }
+        cards.push({ icon: '🤝', title: '人际关系', items: [
+          { label: '新增联系人', value: `${yearContacts.length} 人` },
+          { label: '最活跃联系', value: bestContact }
+        ]});
+      } catch (e) { cards.push({ icon: '🤝', title: '人际关系', items: [{ label: '数据', value: '暂无' }]}); }
+
+      // 渲染卡片列表
+      bodyEl.innerHTML = cards.map(c => `
+        <div class="dash-annual-card">
+          <div class="dash-annual-card-header">
+            <span class="dash-annual-card-icon">${c.icon}</span>
+            <span class="dash-annual-card-title">${c.title}</span>
+          </div>
+          <div class="dash-annual-card-items">
+            ${c.items.map(item => `
+              <div class="dash-annual-item">
+                <span class="dash-annual-item-label">${item.label}</span>
+                <span class="dash-annual-item-value">${item.value}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+    } catch (err) {
+      console.error('[Dashboard] 年度回顾加载失败:', err);
+      bodyEl.innerHTML = '<div class="dash-annual-loading">加载失败，请重试</div>';
+    }
+  }
+
+  return { init, showAnnualReview };
 })();

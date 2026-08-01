@@ -24,150 +24,134 @@ const Storage = (() => {
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
+        const oldVersion = event.oldVersion;
+        const tx = event.target.transaction;
 
-        // 打卡记录表
-        if (!db.objectStoreNames.contains('checkins')) {
-          const store = db.createObjectStore('checkins', { keyPath: 'date' });
-          store.createIndex('month', 'month', { unique: false });
-        }
+        console.log(`[Storage] 数据库迁移: v${oldVersion} → v${DB_VERSION}`);
 
-        // 习惯表
-        if (!db.objectStoreNames.contains('habits')) {
-          const store = db.createObjectStore('habits', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('category', 'category', { unique: false });
-        }
+        /**
+         * 版本迁移函数映射
+         * 每个版本对应一个迁移函数，按 oldVersion+1 到 newVersion 顺序执行
+         * 新增表/字段时，只需：1) DB_VERSION++  2) 新增对应迁移函数
+         */
+        const migrations = {
+          // v1: 基础表（打卡、习惯、任务、学习、健康、财务、设置、元数据）
+          1: (db) => {
+            const checkins = db.createObjectStore('checkins', { keyPath: 'date' });
+            checkins.createIndex('month', 'month', { unique: false });
 
-        // 任务表
-        if (!db.objectStoreNames.contains('tasks')) {
-          const store = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('status', 'status', { unique: false });
-          store.createIndex('date', 'date', { unique: false });
-        }
+            const habits = db.createObjectStore('habits', { keyPath: 'id', autoIncrement: true });
+            habits.createIndex('category', 'category', { unique: false });
 
-        // 学习记录表
-        if (!db.objectStoreNames.contains('study')) {
-          const store = db.createObjectStore('study', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('date', 'date', { unique: false });
-        }
+            const tasks = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+            tasks.createIndex('status', 'status', { unique: false });
+            tasks.createIndex('date', 'date', { unique: false });
 
-        // 健康记录表
-        if (!db.objectStoreNames.contains('health')) {
-          const store = db.createObjectStore('health', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('date', 'date', { unique: false });
-        }
+            const study = db.createObjectStore('study', { keyPath: 'id', autoIncrement: true });
+            study.createIndex('date', 'date', { unique: false });
 
-        // 财务记录表
-        if (!db.objectStoreNames.contains('finance')) {
-          const store = db.createObjectStore('finance', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('month', 'month', { unique: false });
-          store.createIndex('type', 'type', { unique: false });
-        }
+            const health = db.createObjectStore('health', { keyPath: 'id', autoIncrement: true });
+            health.createIndex('date', 'date', { unique: false });
 
-        // 设置表
-        if (!db.objectStoreNames.contains('settings')) {
-          db.createObjectStore('settings', { keyPath: 'key' });
-        }
+            const finance = db.createObjectStore('finance', { keyPath: 'id', autoIncrement: true });
+            finance.createIndex('month', 'month', { unique: false });
+            finance.createIndex('type', 'type', { unique: false });
 
-        // 初始化标记
-        if (!db.objectStoreNames.contains('meta')) {
-          db.createObjectStore('meta', { keyPath: 'key' });
-        }
+            db.createObjectStore('settings', { keyPath: 'key' });
+            db.createObjectStore('meta', { keyPath: 'key' });
+          },
 
-        // 项目表（v2 新增）
-        if (!db.objectStoreNames.contains('projects')) {
-          const store = db.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('createdAt', 'createdAt', { unique: false });
-        }
+          // v2: 项目 + 番茄钟
+          2: (db) => {
+            const projects = db.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
+            projects.createIndex('createdAt', 'createdAt', { unique: false });
 
-        // 番茄钟记录表（v2 新增）
-        if (!db.objectStoreNames.contains('pomodoros')) {
-          const store = db.createObjectStore('pomodoros', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('date', 'date', { unique: false });
-          store.createIndex('taskId', 'taskId', { unique: false });
-        }
+            const pomodoros = db.createObjectStore('pomodoros', { keyPath: 'id', autoIncrement: true });
+            pomodoros.createIndex('date', 'date', { unique: false });
+            pomodoros.createIndex('taskId', 'taskId', { unique: false });
+          },
 
-        // 学期表（v3 新增）
-        if (!db.objectStoreNames.contains('semesters')) {
-          db.createObjectStore('semesters', { keyPath: 'id', autoIncrement: true });
-        }
+          // v3: 学期 + 课程 + 书籍 + 技能
+          3: (db) => {
+            db.createObjectStore('semesters', { keyPath: 'id', autoIncrement: true });
 
-        // 课程表（v3 新增）
-        if (!db.objectStoreNames.contains('courses')) {
-          const store = db.createObjectStore('courses', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('semesterId', 'semesterId', { unique: false });
-        }
+            const courses = db.createObjectStore('courses', { keyPath: 'id', autoIncrement: true });
+            courses.createIndex('semesterId', 'semesterId', { unique: false });
 
-        // 书籍表（v3 新增）
-        if (!db.objectStoreNames.contains('books')) {
-          const store = db.createObjectStore('books', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('status', 'status', { unique: false });
-        }
+            const books = db.createObjectStore('books', { keyPath: 'id', autoIncrement: true });
+            books.createIndex('status', 'status', { unique: false });
 
-        // 技能表（v3 新增）
-        if (!db.objectStoreNames.contains('skills')) {
-          db.createObjectStore('skills', { keyPath: 'id', autoIncrement: true });
-        }
+            db.createObjectStore('skills', { keyPath: 'id', autoIncrement: true });
+          },
 
-        // 记录与反思表（v4 新增）
-        if (!db.objectStoreNames.contains('journal')) {
-          const store = db.createObjectStore('journal', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('date', 'date', { unique: false });
-          store.createIndex('type', 'type', { unique: false });
-        }
+          // v4: 记录反思 + 目标 + 关系 + 知识库 + 灵感 + 生命树
+          4: (db) => {
+            const journal = db.createObjectStore('journal', { keyPath: 'id', autoIncrement: true });
+            journal.createIndex('date', 'date', { unique: false });
+            journal.createIndex('type', 'type', { unique: false });
 
-        // 目标表（v4 新增）
-        if (!db.objectStoreNames.contains('goals')) {
-          const store = db.createObjectStore('goals', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('level', 'level', { unique: false });
-        }
+            const goals = db.createObjectStore('goals', { keyPath: 'id', autoIncrement: true });
+            goals.createIndex('level', 'level', { unique: false });
 
-        // 关系表（v4 新增）
-        if (!db.objectStoreNames.contains('contacts')) {
-          const store = db.createObjectStore('contacts', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('type', 'type', { unique: false });
-        }
+            const contacts = db.createObjectStore('contacts', { keyPath: 'id', autoIncrement: true });
+            contacts.createIndex('type', 'type', { unique: false });
 
-        // 知识库表（v4 新增）
-        if (!db.objectStoreNames.contains('knowledge')) {
-          const store = db.createObjectStore('knowledge', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('type', 'type', { unique: false });
-        }
+            const knowledge = db.createObjectStore('knowledge', { keyPath: 'id', autoIncrement: true });
+            knowledge.createIndex('type', 'type', { unique: false });
 
-        // 灵感表（v4 新增）
-        if (!db.objectStoreNames.contains('ideas')) {
-          const store = db.createObjectStore('ideas', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('date', 'date', { unique: false });
-        }
+            const ideas = db.createObjectStore('ideas', { keyPath: 'id', autoIncrement: true });
+            ideas.createIndex('date', 'date', { unique: false });
 
-        // 生命树表（v4 新增）
-        if (!db.objectStoreNames.contains('lifetree')) {
-          db.createObjectStore('lifetree', { keyPath: 'key' });
-        }
+            db.createObjectStore('lifetree', { keyPath: 'key' });
+          },
 
-        // 通知表（v6 新增）
-        if (!db.objectStoreNames.contains('notifications')) {
-          const store = db.createObjectStore('notifications', { keyPath: 'id', autoIncrement: true });
-          store.createIndex('read', 'read', { unique: false });
-          store.createIndex('type', 'type', { unique: false });
-          store.createIndex('createdAt', 'createdAt', { unique: false });
-        }
-
-        // v4→v5: 清除所有示例数据，从零开始
-        if (event.oldVersion < 5) {
-          try {
-            const storesToClear = ['checkins', 'tasks', 'finance', 'study', 'books', 'skills', 'courses', 'semesters', 'projects', 'pomodoros'];
-            const tx = event.target.transaction;
-            for (const storeName of storesToClear) {
-              if (db.objectStoreNames.contains(storeName)) {
-                tx.objectStore(storeName).clear();
+          // v5: 清除示例数据，从零开始
+          5: (db, tx) => {
+            try {
+              const storesToClear = ['checkins', 'tasks', 'finance', 'study', 'books', 'skills', 'courses', 'semesters', 'projects', 'pomodoros'];
+              for (const storeName of storesToClear) {
+                if (db.objectStoreNames.contains(storeName)) {
+                  tx.objectStore(storeName).clear();
+                }
               }
+              if (db.objectStoreNames.contains('meta')) {
+                tx.objectStore('meta').delete('initialized');
+              }
+              console.log('[Storage] v5 迁移：已清除所有示例数据');
+            } catch (e) {
+              console.error('[Storage] v5 迁移出错:', e);
             }
-            // 清除初始化标记，让 initSampleData 重新运行（只创建空的今日打卡）
-            if (db.objectStoreNames.contains('meta')) {
-              tx.objectStore('meta').delete('initialized');
+          },
+
+          // v6: 通知表
+          6: (db) => {
+            const notifications = db.createObjectStore('notifications', { keyPath: 'id', autoIncrement: true });
+            notifications.createIndex('read', 'read', { unique: false });
+            notifications.createIndex('type', 'type', { unique: false });
+            notifications.createIndex('createdAt', 'createdAt', { unique: false });
+          },
+
+          // ──────────────────────────────────────────
+          // 新增版本示例（取消注释并递增 DB_VERSION 即可）:
+          // 7: (db, tx) => {
+          //   const newStore = db.createObjectStore('newTable', { keyPath: 'id', autoIncrement: true });
+          //   newStore.createIndex('field', 'field', { unique: false });
+          // },
+          // ──────────────────────────────────────────
+        };
+
+        // 按版本顺序依次执行迁移
+        for (let v = oldVersion + 1; v <= DB_VERSION; v++) {
+          if (migrations[v]) {
+            console.log(`[Storage] 执行迁移 v${v}...`);
+            try {
+              migrations[v](db, tx);
+            } catch (err) {
+              console.error(`[Storage] 迁移 v${v} 失败:`, err);
             }
-            console.log('[Storage] v4→v5 升级：已清除所有示例数据，从零开始');
-          } catch(e) { console.error('[Storage] 升级清理出错:', e); }
+          } else {
+            console.warn(`[Storage] 警告: 未找到 v${v} 的迁移函数`);
+          }
         }
       };
 

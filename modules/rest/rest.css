@@ -1,0 +1,123 @@
+/* ====== 休息模式 - 全屏沉浸式雪夜 ====== */
+
+.rest-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #0b1424;
+  overflow: hidden;
+  cursor: pointer;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.rest-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.rest-overlay canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 中央时间 */
+.rest-time {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Georgia', 'Noto Serif SC', serif;
+  font-size: clamp(48px, 10vw, 120px);
+  font-weight: 300;
+  color: rgba(200, 215, 240, 0.12);
+  letter-spacing: 0.08em;
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 0 0 40px rgba(180, 200, 240, 0.06);
+}
+
+.rest-time.hidden {
+  display: none;
+}
+
+/* 底部短句 */
+.rest-quote {
+  position: absolute;
+  bottom: clamp(48px, 8vh, 100px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Noto Serif SC', 'Georgia', serif;
+  font-size: clamp(13px, 2vw, 17px);
+  color: rgba(200, 210, 230, 0.45);
+  text-align: center;
+  max-width: 80vw;
+  line-height: 1.7;
+  user-select: none;
+  pointer-events: none;
+  letter-spacing: 0.04em;
+}
+
+/* 退出提示 */
+.rest-hint {
+  position: absolute;
+  top: clamp(16px, 3vh, 32px);
+  right: clamp(16px, 3vw, 40px);
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  color: rgba(180, 195, 220, 0.25);
+  user-select: none;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 2s ease 3s;
+}
+
+.rest-overlay.active .rest-hint {
+  opacity: 0;
+}
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .rest-overlay {
+    transition: none;
+  }
+}
+
+/* 入口按钮样式（在 life.html topbar 中） */
+.topbar-rest-btn {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  line-height: 1;
+}
+
+.topbar-rest-btn:hover {
+  background: rgba(100, 140, 200, 0.12);
+}
+
+.topbar-rest-btn::after {
+  content: '休息';
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--text-muted, #999);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.topbar-rest-btn:hover::after {
+  opacity: 1;
+}

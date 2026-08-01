@@ -70,16 +70,18 @@ html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  background-color: #F5EDE4;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-main);
+  background-color: #F5EDE4;
   color: var(--text-primary);
   line-height: 1.6;
   overflow: hidden;
   height: 100vh;
   width: 100vw;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a {
@@ -132,6 +134,7 @@ img {
   background: var(--bg-main);
   border-bottom: 1px solid var(--text-light);
   flex-shrink: 0;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .topbar-left {
@@ -205,6 +208,7 @@ img {
   padding: 6px 0;
   z-index: 100;
   display: none;
+  transition: background-color 0.3s ease;
 }
 
 .topbar-more-menu.show {
@@ -259,7 +263,7 @@ img {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   padding: 20px;
-  transition: box-shadow var(--transition-normal);
+  transition: box-shadow var(--transition-normal), background-color 0.3s ease;
 }
 
 .card:hover {
@@ -303,7 +307,7 @@ img {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(61, 48, 39, 0.3);
+    background: var(--overlay-bg, rgba(61, 48, 39, 0.3));
     z-index: 199;
   }
 
@@ -514,4 +518,200 @@ img {
     left: 8px;
     width: auto;
   }
+}
+
+
+/* ===== 暗色模式变量 ===== */
+[data-theme="dark"] {
+  /* 主色调 - 深蓝夜色系 */
+  --bg-main: #1A1A2E;
+  --bg-sidebar: #16213E;
+  --bg-card: #0F3460;
+  --bg-hover: #1E2A4A;
+
+  /* 文字色 */
+  --text-primary: #E0E0E0;
+  --text-secondary: #A0A0B8;
+  --text-muted: #6E6E82;
+  --text-light: #3E3E55;
+
+  /* 强调色（暗色适配） */
+  --accent-green: #5CAF6E;
+  --accent-green-light: #1A2E1F;
+  --accent-orange: #E8A87C;
+  --accent-orange-light: #2E2018;
+  --accent-blue: #6A9BBE;
+  --accent-blue-light: #1A2A3A;
+  --accent-red: #D07070;
+  --accent-red-light: #2E1818;
+  --accent-purple: #9880BE;
+  --accent-purple-light: #221A2E;
+
+  /* 阴影（暗色加深） */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.45);
+
+  /* 边框 */
+  --border-light: #2A2A4A;
+
+  /* 遮罩 */
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+
+  /* 过渡：主题切换时平滑过渡 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}
+
+/* ===== 暗色模式元素覆盖 ===== */
+[data-theme="dark"] .sidebar-checkin-btn {
+  background: var(--text-primary);
+  color: var(--bg-main);
+}
+
+[data-theme="dark"] .sidebar-checkin-btn:hover {
+  background: #C8C8C8;
+}
+
+[data-theme="dark"] .sidebar-checkin-btn.checked {
+  background: var(--accent-green);
+  color: #fff;
+}
+
+[data-theme="dark"] .topbar-notif-badge {
+  color: #fff;
+}
+
+[data-theme="dark"] .global-search-backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .notif-panel {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== 智能建议通知样式 ===== */
+.notif-item-suggestion {
+  background: linear-gradient(135deg, #FFFDF5 0%, #FFF9E6 100%);
+  border-left: 3px solid #E8C86A;
+}
+
+.notif-item-suggestion .notif-item-icon {
+  background: #FFF3D0;
+}
+
+.notif-item-suggestion:hover {
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFF3D0 100%);
+}
+
+/* 暗色模式：智能建议通知 */
+[data-theme="dark"] .notif-item-suggestion {
+  background: linear-gradient(135deg, #1E2A3A 0%, #1A2230 100%);
+  border-left-color: #E8C86A;
+}
+
+[data-theme="dark"] .notif-item-suggestion .notif-item-icon {
+  background: #2A2A4A;
+}
+
+[data-theme="dark"] .notif-item-suggestion:hover {
+  background: linear-gradient(135deg, #22304A 0%, #1E2840 100%);
+}
+
+/* ===== 主题选择器 ===== */
+.theme-picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: themePickerFadeIn 0.2s ease;
+}
+
+@keyframes themePickerFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.theme-picker-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.theme-picker-container {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+  min-width: 280px;
+  animation: themePickerSlideIn 0.25s ease;
+}
+
+@keyframes themePickerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.theme-picker-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.theme-picker-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.theme-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  border: 2px solid transparent;
+}
+
+.theme-picker-option:hover {
+  background: var(--bg-hover);
+}
+
+.theme-picker-option.active {
+  border-color: var(--accent-orange);
+  background: var(--accent-orange-light);
+}
+
+.theme-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.theme-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.theme-check {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-orange);
 }

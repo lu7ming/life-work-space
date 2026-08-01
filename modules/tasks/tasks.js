@@ -21,6 +21,7 @@ const TasksModule = (() => {
   let allTasks = [];
   let allProjects = [];
   let editingTaskId = null;         // 当前编辑的任务 ID
+  let weeklyViewOffset = 0;       // 周计划视图偏移量（0=当前周期）
 
   // 番茄钟状态
   let pomodoroState = {
@@ -93,6 +94,8 @@ const TasksModule = (() => {
     renderTaskList('today');
     renderTaskList('all');
     renderTaskList('done');
+    renderMatrixView();
+    renderWeeklyView();
     renderProjects();
     renderPomodoroTaskSelect();
     renderPomodoroHistory();
@@ -457,6 +460,28 @@ const TasksModule = (() => {
     if (!content) return;
 
     content.addEventListener('click', (e) => {
+      // 矩阵视图 - 复选框
+      const matrixCheck = e.target.closest('.matrix-task-check');
+      if (matrixCheck) {
+        e.stopPropagation();
+        const taskId = parseInt(matrixCheck.dataset.taskId);
+        toggleTask(taskId);
+        return;
+      }
+      // 矩阵视图 - 任务点击（打开详情）
+      const matrixTask = e.target.closest('.matrix-task');
+      if (matrixTask) {
+        const taskId = parseInt(matrixTask.dataset.taskId);
+        showTaskDetail(taskId);
+        return;
+      }
+      // 周计划视图 - 任务点击（打开详情）
+      const weeklyTask = e.target.closest('.weekly-task');
+      if (weeklyTask) {
+        const taskId = parseInt(weeklyTask.dataset.taskId);
+        showTaskDetail(taskId);
+        return;
+      }
       // 完成复选框
       const checkbox = e.target.closest('.task-checkbox');
       if (checkbox) {
@@ -785,6 +810,175 @@ const TasksModule = (() => {
     }
   }
 
+
+  // ===== 矩阵视图渲染 =====
+  function renderMatrixView() {
+    const gridEl = document.getElementById('matrix-grid');
+    if (!gridEl) return;
+
+    const todoTasks = allTasks.filter(t => t.status === 'todo');
+
+    const quadrants = [
+      { key: 'A', icon: '🔥', title: '紧急重要', subtitle: '立即做' },
+      { key: 'B', icon: '📌', title: '重要不紧急', subtitle: '计划做' },
+      { key: 'C', icon: '⚡', title: '紧急不重要', subtitle: '授权做' },
+      { key: 'D', icon: '💤', title: '不紧急不重要', subtitle: '选择做' },
+    ];
+
+    gridEl.innerHTML = quadrants.map(q => {
+      const tasks = todoTasks.filter(t => t.priority === q.key);
+      return `
+        <div class="matrix-quadrant" data-priority="${q.key}">
+          <div class="matrix-quadrant-header">
+            <span class="matrix-quadrant-icon">${q.icon}</span>
+            <div class="matrix-quadrant-title">
+              <span class="matrix-quadrant-name">${q.title}</span>
+              <span class="matrix-quadrant-subtitle">${q.subtitle}</span>
+            </div>
+            <span class="matrix-count">${tasks.length}</span>
+          </div>
+          <div class="matrix-quadrant-tasks">
+            ${tasks.length === 0 ? '<div class="matrix-empty">暂无任务</div>' :
+              tasks.map(t => `
+                <div class="matrix-task" data-task-id="${t.id}">
+                  <div class="matrix-task-check task-checkbox" data-task-id="${t.id}"></div>
+                  <span class="matrix-task-title">${escapeHtml(t.title)}</span>
+                </div>
+              `).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ===== 周计划视图渲染 =====
+  function getVisibleDays() {
+    return window.innerWidth > 768 ? 7 : 3;
+  }
+
+  function getWeeklyStart() {
+    const today = new Date();
+    const visibleDays = getVisibleDays();
+
+    if (visibleDays >= 7) {
+      // 整周显示，从周一开始
+      const dayOfWeek = today.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + mondayOffset + (weeklyViewOffset * 7));
+      monday.setHours(0, 0, 0, 0);
+      return monday;
+    } else {
+      // 3天显示，以今天为中心
+      const start = new Date(today);
+      start.setDate(today.getDate() - 1 + (weeklyViewOffset * 3));
+      start.setHours(0, 0, 0, 0);
+      return start;
+    }
+  }
+
+  function renderWeeklyView() {
+    const columnsEl = document.getElementById('weekly-columns');
+    const labelEl = document.getElementById('weekly-label');
+    if (!columnsEl) return;
+
+    const visibleDays = getVisibleDays();
+    const startDate = getWeeklyStart();
+    const todayStr = formatDate(new Date());
+    const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+
+    // 更新导航标签
+    if (labelEl) {
+      if (weeklyViewOffset === 0) {
+        labelEl.textContent = visibleDays >= 7 ? '本周' : '今天';
+      } else {
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + visibleDays - 1);
+        labelEl.textContent = `${formatDisplayDate(formatDate(startDate))} – ${formatDisplayDate(formatDate(endDate))}`;
+      }
+    }
+
+    // 生成日期列
+    let html = '';
+    for (let i = 0; i < visibleDays; i++) {
+      const day = new Date(startDate);
+      day.setDate(startDate.getDate() + i);
+      const dateStr = formatDate(day);
+      const isToday = dateStr === todayStr;
+      const dayName = dayNames[day.getDay()];
+      const displayDate = `${day.getMonth() + 1}/${day.getDate()}`;
+
+      // 按 dueDate 筛选任务；无 dueDate 则用 date（创建日期）
+      const dayTasks = allTasks.filter(t => {
+        if (t.status !== 'todo') return false;
+        const taskDate = t.dueDate || t.date;
+        return taskDate === dateStr;
+      });
+
+      // 排序：按优先级
+      const sorted = [...dayTasks].sort((a, b) => {
+        const order = { A: 0, B: 1, C: 2, D: 3 };
+        return (order[a.priority] || 3) - (order[b.priority] || 3);
+      });
+
+      html += `
+        <div class="weekly-column${isToday ? ' weekly-today' : ''}">
+          <div class="weekly-column-header">
+            <span class="weekly-day-name">周${dayName}</span>
+            <span class="weekly-day-date${isToday ? ' weekly-today-date' : ''}">${displayDate}</span>
+          </div>
+          <div class="weekly-column-tasks">
+            ${sorted.length === 0 ? '<div class="weekly-empty">—</div>' :
+              sorted.map(t => `
+                <div class="weekly-task" data-task-id="${t.id}">
+                  <span class="task-priority-dot priority-${t.priority || 'D'}"></span>
+                  <span class="weekly-task-title">${escapeHtml(t.title)}</span>
+                </div>
+              `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    columnsEl.innerHTML = html;
+  }
+
+  // ===== 周计划事件绑定 =====
+  function bindWeeklyEvents() {
+    // 前进/后退按钮
+    document.getElementById('weekly-prev')?.addEventListener('click', () => {
+      weeklyViewOffset--;
+      renderWeeklyView();
+    });
+    document.getElementById('weekly-next')?.addEventListener('click', () => {
+      weeklyViewOffset++;
+      renderWeeklyView();
+    });
+
+    // 触摸滑动导航
+    const columnsEl = document.getElementById('weekly-columns');
+    if (!columnsEl) return;
+
+    let startX = 0;
+    let isDragging = false;
+
+    columnsEl.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    }, { passive: true });
+
+    columnsEl.addEventListener('touchend', (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      const endX = e.changedTouches[0].clientX;
+      const delta = endX - startX;
+      if (Math.abs(delta) > 50) {
+        weeklyViewOffset += (delta < 0 ? 1 : -1);
+        renderWeeklyView();
+      }
+    }, { passive: true });
+  }
+
   // ===== 初始化事件委托 =====
   function init() {
     console.log('[Tasks] 任务模块初始化...');
@@ -795,6 +989,7 @@ const TasksModule = (() => {
     bindPomodoroEvents();
     bindDetailEvents();
     bindListClickEvents();
+    bindWeeklyEvents();
     loadData().then(() => {
       renderAll();
     });

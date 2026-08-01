@@ -16,6 +16,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;
+  transition: background-color 0.3s ease;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -86,18 +87,18 @@
   width: 100%;
   padding: 14px 0;
   background: var(--text-primary);
-  color: #FFFFFF;
+  color: var(--bg-card);
   border-radius: var(--radius-md);
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 2px;
-  transition: background var(--transition-fast), transform var(--transition-fast);
+  transition: background var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
   position: relative;
   overflow: hidden;
 }
 
 .sidebar-checkin-btn:hover {
-  background: #2D2218;
+  filter: brightness(0.85);
   transform: translateY(-1px);
 }
 

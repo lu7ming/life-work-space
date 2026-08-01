@@ -2,6 +2,7 @@
  * xiaolu.css - 小鹿AI聊天面板样式
  * 人生工作台 · 暖米色极简风格
  * 面板从左侧滑入，区别于妮可从右侧
+ * v2.0 - 新增长按语音输入样式
  */
 
 /* ===== 面板遮罩 ===== */
@@ -275,6 +276,13 @@
   background: var(--bg-card, #FFFFFF);
   border-top: 1px solid var(--border-color, #F0E8DE);
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
+}
+
+/* 录音状态 - 输入区域边框高亮 */
+.xiaolu-input-area.voice-active {
+  border-top-color: #D4956B;
+  box-shadow: 0 -2px 12px rgba(212, 149, 107, 0.1);
 }
 
 .xiaolu-input-row {
@@ -296,7 +304,7 @@
   outline: none;
   max-height: 100px;
   line-height: 1.5;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .xiaolu-input:focus {
@@ -307,33 +315,193 @@
   color: var(--text-muted, #A99E93);
 }
 
-.xiaolu-send-btn {
+/* 录音时输入框脉冲动画 */
+.xiaolu-input-area.voice-active .xiaolu-input {
+  border-color: #D4956B;
+  animation: xiaoluVoicePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes xiaoluVoicePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(212, 149, 107, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(212, 149, 107, 0);
+  }
+}
+
+/* ===== 语音按钮 ===== */
+.xiaolu-voice-btn {
   width: 40px;
   height: 40px;
   border: none;
-  background: linear-gradient(135deg, #E8A87C, #D4956B);
+  background: var(--bg-main, #F5EDE4);
   border-radius: 50%;
-  color: #fff;
-  font-size: 16px;
+  color: var(--text-secondary, #7A6E63);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: none;
 }
 
-.xiaolu-send-btn:hover {
-  filter: brightness(1.08);
-  transform: scale(1.05);
+.xiaolu-voice-btn:hover {
+  background: var(--bg-hover, #F0E6DA);
+  color: #D4956B;
 }
 
-.xiaolu-send-btn:disabled {
+.xiaolu-voice-btn:active {
+  transform: scale(0.92);
+}
+
+.xiaolu-voice-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
 
+/* 语音按钮 - 录音中状态 */
+.xiaolu-voice-btn.recording {
+  background: linear-gradient(135deg, #E8A87C, #D4956B);
+  color: #fff;
+  animation: xiaoluMicPulse 1.2s ease-in-out infinite;
+  transform: scale(1.05);
+}
+
+.xiaolu-voice-btn.recording:hover {
+  background: linear-gradient(135deg, #E8A87C, #D4956B);
+  color: #fff;
+}
+
+@keyframes xiaoluMicPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(212, 149, 107, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(212, 149, 107, 0);
+  }
+}
+
+/* 麦克风 SVG 图标 */
+.xiaolu-voice-icon {
+  pointer-events: none;
+}
+
+/* ===== 语音状态栏 ===== */
+.xiaolu-voice-status {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 0 4px;
+  animation: xiaoluVoiceStatusIn 0.25s ease;
+}
+
+.xiaolu-voice-status.show {
+  display: flex;
+}
+
+@keyframes xiaoluVoiceStatusIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== 波形动画 ===== */
+.xiaolu-voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+}
+
+.xiaolu-voice-wave span {
+  display: block;
+  width: 3px;
+  height: 8px;
+  border-radius: 2px;
+  background: #D4956B;
+  animation: xiaoluWave 0.8s ease-in-out infinite;
+}
+
+.xiaolu-voice-wave span:nth-child(1) {
+  animation-delay: 0s;
+  height: 6px;
+}
+
+.xiaolu-voice-wave span:nth-child(2) {
+  animation-delay: 0.1s;
+  height: 12px;
+}
+
+.xiaolu-voice-wave span:nth-child(3) {
+  animation-delay: 0.2s;
+  height: 16px;
+}
+
+.xiaolu-voice-wave span:nth-child(4) {
+  animation-delay: 0.3s;
+  height: 10px;
+}
+
+.xiaolu-voice-wave span:nth-child(5) {
+  animation-delay: 0.4s;
+  height: 7px;
+}
+
+@keyframes xiaoluWave {
+  0%, 100% {
+    transform: scaleY(0.5);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1.4);
+    opacity: 1;
+  }
+}
+
+/* 语音状态文字 */
+.xiaolu-voice-label {
+  font-size: 12px;
+  color: #D4956B;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 停止按钮 */
+.xiaolu-voice-stop-btn {
+  padding: 4px 12px;
+  border: 1.5px solid #D4956B;
+  background: transparent;
+  border-radius: var(--radius-full, 9999px);
+  color: #D4956B;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.xiaolu-voice-stop-btn:hover {
+  background: #D4956B;
+  color: #fff;
+}
+
+.xiaolu-voice-stop-btn:active {
+  transform: scale(0.95);
+}
+
+/* ===== 输入提示 ===== */
 .xiaolu-input-hint {
   font-size: 11px;
   color: var(--text-muted, #A99E93);
@@ -448,5 +616,19 @@
 
   .xiaolu-msg {
     max-width: 92%;
+  }
+
+  .xiaolu-voice-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .xiaolu-send-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .xiaolu-voice-wave span {
+    width: 2.5px;
   }
 }

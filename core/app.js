@@ -53,6 +53,11 @@ const App = (() => {
     // 8. 监听页面可见性变化，自动刷新数据
     initAutoRefresh();
 
+    // 9. 初始化通知引擎
+    if (typeof NotificationEngine !== 'undefined') {
+      NotificationEngine.init();
+    }
+
     console.log('[App] 人生工作台已就绪 🎉');
   }
 
@@ -555,9 +560,16 @@ const App = (() => {
         if (action === 'refresh') {
           location.reload();
         } else if (action === 'search') {
-          showToast('搜索功能开发中 🔍');
+          if (typeof SearchModule !== 'undefined') SearchModule.open();
+          else showToast('搜索模块加载中...');
         } else if (action === 'save') {
           showToast('数据已自动保存 ✅');
+        } else if (action === 'export') {
+          if (typeof ExportModule !== 'undefined') ExportModule.showExportDialog();
+          else showToast('导出模块加载中...');
+        } else if (action === 'import') {
+          if (typeof ExportModule !== 'undefined') ExportModule.showImportDialog();
+          else showToast('导入模块加载中...');
         } else if (action === 'theme') {
           showToast('主题切换功能开发中 🎨');
         }
@@ -565,8 +577,8 @@ const App = (() => {
       });
     });
 
-    // 生命树 & 设置按钮
-    document.querySelectorAll('.topbar-icon-btn:not(#topbar-more-btn)').forEach((btn) => {
+    // 生命树 & 设置按钮（排除通知铃铛和更多按钮）
+    document.querySelectorAll('.topbar-icon-btn:not(#topbar-more-btn):not(#notif-bell)').forEach((btn) => {
       btn.addEventListener('click', () => {
         const tip = btn.dataset.tip || '功能开发中';
         if (tip.includes('生命树')) {

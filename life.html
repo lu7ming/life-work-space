@@ -124,6 +124,11 @@
           </div>
         </div>
         <div class="topbar-right">
+          <!-- 通知铃铛 -->
+          <button class="topbar-icon-btn topbar-notif-bell" id="notif-bell" title="通知中心">
+            🔔
+            <span class="topbar-notif-badge" id="notif-badge" style="display:none;">0</span>
+          </button>
           <button class="topbar-icon-btn" data-tip="🌳 生命树">🌳</button>
           <button class="topbar-icon-btn" data-tip="⚙️ 设置功能开发中">⚙️</button>
           <div style="position:relative;">
@@ -131,6 +136,8 @@
             <div class="topbar-more-menu" id="topbar-more-menu">
               <button data-action="search">🔍 搜索</button>
               <button data-action="save">💾 保存</button>
+              <button data-action="export">📤 导出数据</button>
+              <button data-action="import">📥 导入数据</button>
               <button data-action="refresh">🔄 刷新</button>
               <button data-action="theme">🎨 主题</button>
             </div>
@@ -145,6 +152,21 @@
           加载中...
         </div>
       </main>
+
+      <!-- 通知面板 -->
+      <div class="notif-panel" id="notif-panel">
+        <div class="notif-panel-header">
+          <span class="notif-panel-title">通知中心</span>
+          <button class="notif-panel-mark-all" id="notif-mark-all">全部已读</button>
+        </div>
+        <div class="notif-panel-body">
+          <div class="notif-list" id="notif-list" style="display:none;"></div>
+          <div class="notif-empty" id="notif-empty">
+            <span class="notif-empty-icon">🔔</span>
+            <p>暂无新通知</p>
+          </div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -163,6 +185,8 @@
   <script src="modules/goals/goals.js"></script>
   <script src="modules/relations/relations.js"></script>
   <script src="modules/lifetree/lifetree.js"></script>
+  <script src="core/notifications.js"></script>
+  <script src="core/export.js"></script>
   <script src="core/app.js"></script>
 
 </body>

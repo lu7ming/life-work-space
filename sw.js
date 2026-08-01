@@ -17,6 +17,7 @@ const CACHE_ASSETS = [
   './core/notifications.js',
   './core/export.js',
   './core/search.js',
+  './core/sync.js',
   './modules/dashboard/dashboard.html',
   './modules/dashboard/dashboard.css',
   './modules/dashboard/dashboard.js',

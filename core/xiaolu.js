@@ -1256,21 +1256,213 @@ const XiaoluModule = (() => {
     console.log('[Xiaolu] 小鹿AI就绪 🦌');
   }
 
-  /**
-   * 打开面板并立即开始语音输入（长按触发）
-   */
-  function openAndStartVoice() {
-    open();
-    // 等待面板动画完成后再启动录音
+  // ===== 快捷语音输入（长按🦌触发，不打开面板） =====
+  let _quickRecognition = null;
+  let _quickIsRecording = false;
+  let _quickBubble = null;
+  let _quickText = '';
+
+  function _checkVoiceSupport() {
+    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+
+  function _showQuickBubble(text, isListening) {
+    _removeQuickBubble();
+    _quickBubble = document.createElement('div');
+    _quickBubble.className = 'xiaolu-quick-bubble';
+    _quickBubble.innerHTML = `
+      <div class="xiaolu-quick-bubble-icon">${isListening ? '🎤' : '🦌'}</div>
+      <div class="xiaolu-quick-bubble-text">${isListening ? '正在聆听...' : (text || '...')}</div>
+    `;
+    document.body.appendChild(_quickBubble);
+    // 触发动画
+    requestAnimationFrame(() => _quickBubble.classList.add('show'));
+  }
+
+  function _removeQuickBubble() {
+    if (_quickBubble) {
+      _quickBubble.classList.remove('show');
+      setTimeout(() => {
+        if (_quickBubble && _quickBubble.parentNode) {
+          _quickBubble.parentNode.removeChild(_quickBubble);
+        }
+        _quickBubble = null;
+      }, 300);
+    }
+  }
+
+  function _updateQuickBubbleText(text) {
+    if (_quickBubble) {
+      const textEl = _quickBubble.querySelector('.xiaolu-quick-bubble-text');
+      if (textEl) textEl.textContent = text || '...';
+    }
+  }
+
+  async function quickVoiceInput() {
+    if (_quickIsRecording) return;
+    if (!_checkVoiceSupport()) {
+      if (typeof App !== 'undefined') App.showToast('🎤 当前浏览器不支持语音识别');
+      return;
+    }
+
+    // 确保面板已构建（需要 token 和 AI 处理能力）
+    if (!panelEl) buildPanel();
+
+    _quickIsRecording = true;
+    _quickText = '';
+
+    _showQuickBubble('', true);
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    _quickRecognition = new SpeechRecognition();
+    _quickRecognition.lang = 'zh-CN';
+    _quickRecognition.continuous = true;
+    _quickRecognition.interimResults = true;
+    _quickRecognition.maxAlternatives = 1;
+
+    _quickRecognition.onresult = (event) => {
+      let final = '';
+      let interim = '';
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          final += event.results[i][0].transcript;
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      _quickText = final;
+      _updateQuickBubbleText(final || interim || '正在聆听...');
+    };
+
+    _quickRecognition.onerror = (event) => {
+      console.warn('[Xiaolu] 快捷语音识别错误:', event.error);
+      if (event.error === 'not-allowed') {
+        _quickIsRecording = false;
+        _showQuickBubble('');
+        _updateQuickBubbleText('麦克风权限被拒绝');
+        setTimeout(_removeQuickBubble, 2000);
+        if (typeof App !== 'undefined') App.showToast('🎤 麦克风权限被拒绝');
+      }
+    };
+
+    _quickRecognition.onend = () => {
+      if (_quickIsRecording) {
+        // 还在录音中，尝试重启（continuous 模式下可能中途停止）
+        try {
+          _quickRecognition.start();
+        } catch (e) {
+          _finishQuickVoice();
+        }
+      }
+    };
+
+    try {
+      _quickRecognition.start();
+    } catch (e) {
+      console.warn('[Xiaolu] 快捷语音启动失败:', e);
+      _quickIsRecording = false;
+      _removeQuickBubble();
+      if (typeof App !== 'undefined') App.showToast('🎤 语音启动失败');
+      return;
+    }
+
+    // 监听触摸释放 / 鼠标释放来停止录音
+    const stopHandler = () => {
+      document.removeEventListener('touchend', stopHandler);
+      document.removeEventListener('touchcancel', stopHandler);
+      document.removeEventListener('mouseup', stopHandler);
+      _finishQuickVoice();
+    };
+
+    // 延迟添加释放监听，避免当前的 touchend/mouseup 立刻触发
     setTimeout(() => {
-      startRecording();
-    }, 400);
+      document.addEventListener('touchend', stopHandler);
+      document.addEventListener('touchcancel', stopHandler);
+      document.addEventListener('mouseup', stopHandler);
+    }, 100);
+  }
+
+  function _finishQuickVoice() {
+    if (!_quickIsRecording) return;
+    _quickIsRecording = false;
+
+    if (_quickRecognition) {
+      try { _quickRecognition.stop(); } catch (e) {}
+      _quickRecognition = null;
+    }
+
+    const text = _quickText.trim();
+    if (!text) {
+      _updateQuickBubbleText('没有听清，请重试');
+      setTimeout(_removeQuickBubble, 1500);
+      return;
+    }
+
+    // 显示识别文字 + 处理中状态
+    _updateQuickBubbleText('💭 ' + text);
+
+    // 异步调用 AI 处理
+    _processQuickVoiceText(text);
+  }
+
+  async function _processQuickVoiceText(text) {
+    let token = null;
+    try {
+      const setting = await Storage.get('settings', 'deepseek_token');
+      token = setting ? setting.value : null;
+    } catch (e) {}
+
+    if (!token) {
+      _updateQuickBubbleText('⚠️ 未配置 API Key');
+      setTimeout(_removeQuickBubble, 2000);
+      return;
+    }
+
+    try {
+      const reply = await decomposedIntentChain(token, text);
+
+      // 解析 ACTION 标签
+      const actionMatch = reply.match(/\[ACTION:({.*?})\]/);
+      let displayReply = reply;
+      let actionObj = null;
+
+      if (actionMatch) {
+        try {
+          actionObj = JSON.parse(actionMatch[1]);
+          displayReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
+        } catch (e) {
+          displayReply = reply.replace(/\[ACTION:\{.*?\}\]\s*/, '').trim();
+        }
+      }
+
+      // 如果有操作，直接执行
+      if (actionObj) {
+        const result = await executeLocalAction(actionObj);
+        displayReply = result.success
+          ? displayReply + '\n' + result.message
+          : displayReply + '\n❌ ' + result.message;
+      }
+
+      // 保存聊天记录
+      _chatHistory.push({ role: 'user', content: text });
+      _chatHistory.push({ role: 'assistant', content: displayReply });
+      trimContext();
+
+      // 显示气泡结果
+      _updateQuickBubbleText(displayReply.replace(/\n/g, ' '));
+      setTimeout(_removeQuickBubble, 4000);
+
+    } catch (err) {
+      console.error('[Xiaolu] 快捷语音 AI 处理失败:', err);
+      _updateQuickBubbleText('❌ ' + (err.message || '处理失败'));
+      setTimeout(_removeQuickBubble, 3000);
+    }
   }
 
   return {
     init,
     open,
     close,
-    openAndStartVoice
+    quickVoiceInput
   };
 })();

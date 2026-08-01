@@ -594,7 +594,7 @@ const App = (() => {
           if (navigator.vibrate) navigator.vibrate(30);
           btn.classList.add('long-press-active');
           if (typeof XiaoluModule !== 'undefined') {
-            XiaoluModule.openAndStartVoice();
+            XiaoluModule.quickVoiceInput();
           }
         }, 500);
       };

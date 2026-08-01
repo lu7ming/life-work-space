@@ -7,6 +7,7 @@
       <!-- Tab 切换 -->
       <div class="journal-tabs">
         <button class="journal-tab active" data-tab="diary">日记</button>
+        <button class="journal-tab" data-tab="mood">情绪日历</button>
         <button class="journal-tab" data-tab="review">复盘</button>
         <button class="journal-tab" data-tab="ideas">灵感</button>
       </div>
@@ -50,17 +51,65 @@
             <span class="editor-date" id="diary-editor-date"></span>
             <button class="editor-save-btn" id="diary-editor-save">保存</button>
           </div>
+          <!-- 情绪选择区域 -->
           <div class="mood-picker" id="diary-mood-picker">
             <span class="mood-label">今天心情：</span>
-            <button class="mood-btn" data-mood="😊">😊</button>
-            <button class="mood-btn" data-mood="😐">😐</button>
-            <button class="mood-btn" data-mood="😔">😔</button>
-            <button class="mood-btn" data-mood="😤">😤</button>
-            <button class="mood-btn" data-mood="😴">😴</button>
+            <div class="mood-btn-group">
+              <button class="mood-btn" data-mood="😄" data-mood-score="5" title="开心">😄</button>
+              <button class="mood-btn" data-mood="😊" data-mood-score="4" title="不错">😊</button>
+              <button class="mood-btn" data-mood="😐" data-mood-score="3" title="一般">😐</button>
+              <button class="mood-btn" data-mood="😔" data-mood-score="2" title="低落">😔</button>
+              <button class="mood-btn" data-mood="😢" data-mood-score="1" title="难过">😢</button>
+            </div>
+          </div>
+          <!-- 情绪备注（选中后显示） -->
+          <div class="mood-note-wrap hidden" id="mood-note-wrap">
+            <input type="text" class="mood-note-input" id="mood-note-input" placeholder="一句话描述心情（可选）" maxlength="50">
           </div>
           <textarea class="diary-textarea" id="diary-textarea" placeholder="写下今天的想法、感受、经历..."></textarea>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- 情绪日历 Tab -->
+  <div class="journal-panel" id="panel-mood">
+    <div class="mood-calendar-layout">
+      <!-- 情绪趋势区 -->
+      <div class="mood-trends" id="mood-trends"></div>
+      <!-- 情绪日历 -->
+      <div class="mood-calendar-wrap">
+        <div class="mood-calendar-header">
+          <button class="cal-nav-btn" id="mood-cal-prev">‹</button>
+          <span class="cal-title" id="mood-cal-title"></span>
+          <button class="cal-nav-btn" id="mood-cal-next">›</button>
+        </div>
+        <div class="mood-calendar-grid" id="mood-calendar-grid">
+          <div class="cal-weekdays">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+          </div>
+          <div class="mood-cal-days" id="mood-cal-days"></div>
+        </div>
+        <!-- 本月情绪统计 -->
+        <div class="mood-month-stats" id="mood-month-stats"></div>
+      </div>
+      <!-- 点击某天查看日记 -->
+      <div class="mood-day-detail hidden" id="mood-day-detail">
+        <div class="mood-day-detail-header">
+          <span class="mood-day-detail-date" id="mood-day-detail-date"></span>
+          <button class="mood-day-detail-close" id="mood-day-detail-close">✕</button>
+        </div>
+        <div class="mood-day-detail-list" id="mood-day-detail-list"></div>
+      </div>
+    </div>
+    <!-- 情绪图例 -->
+    <div class="mood-legend">
+      <span class="mood-legend-item"><span class="mood-legend-dot" style="background:#4CAF50"></span>😄 开心</span>
+      <span class="mood-legend-item"><span class="mood-legend-dot" style="background:#8BC34A"></span>😊 不错</span>
+      <span class="mood-legend-item"><span class="mood-legend-dot" style="background:#FFC107"></span>😐 一般</span>
+      <span class="mood-legend-item"><span class="mood-legend-dot" style="background:#FF9800"></span>😔 低落</span>
+      <span class="mood-legend-item"><span class="mood-legend-dot" style="background:#F44336"></span>😢 难过</span>
+      <span class="mood-legend-item"><span class="mood-legend-dot" style="background:#D5D0CB"></span>无记录</span>
     </div>
   </div>
 

@@ -1,9 +1,19 @@
 /**
  * 记录与反思模块 - journal.js
- * 三个子Tab：日记、复盘、灵感速记
+ * 三个子Tab：日记、情绪日历、复盘、灵感速记
  */
 const JournalModule = (() => {
   const { escapeHtml, formatDate } = AppUtils;
+
+  // ========== 情绪配置 ==========
+  const MOOD_CONFIG = {
+    '😄': { label: '开心', score: 5, color: '#4CAF50' },
+    '😊': { label: '不错', score: 4, color: '#8BC34A' },
+    '😐': { label: '一般', score: 3, color: '#FFC107' },
+    '😔': { label: '低落', score: 2, color: '#FF9800' },
+    '😢': { label: '难过', score: 1, color: '#F44336' },
+  };
+  const NO_MOOD_COLOR = '#D5D0CB';
 
   // ========== 状态 ==========
   let currentTab = 'diary';
@@ -19,6 +29,9 @@ const JournalModule = (() => {
   let allDiaries = [];
   let allReviews = [];
   let allIdeas = [];
+
+  // 情绪日历的年月
+  let moodCalYear, moodCalMonth;
 
   // ========== 工具函数 ==========
 
@@ -57,6 +70,20 @@ const JournalModule = (() => {
     }
   }
 
+  // 获取日记的情绪信息（兼容旧数据）
+  function getDiaryMoodInfo(diary) {
+    if (!diary.mood || !MOOD_CONFIG[diary.mood]) {
+      return { mood: null, score: null, color: NO_MOOD_COLOR, label: '' };
+    }
+    const cfg = MOOD_CONFIG[diary.mood];
+    return {
+      mood: diary.mood,
+      score: diary.mood_score ?? cfg.score, // 兼容旧数据
+      color: cfg.color,
+      label: cfg.label,
+    };
+  }
+
   // ========== 数据加载 ==========
   async function loadData() {
     try {
@@ -77,6 +104,8 @@ const JournalModule = (() => {
     const now = new Date();
     calYear = now.getFullYear();
     calMonth = now.getMonth();
+    moodCalYear = now.getFullYear();
+    moodCalMonth = now.getMonth();
     selectedDate = todayStr();
 
     await loadData();
@@ -110,6 +139,18 @@ const JournalModule = (() => {
       renderCalendar();
     });
 
+    // 情绪日历导航
+    document.getElementById('mood-cal-prev').addEventListener('click', () => {
+      moodCalMonth--;
+      if (moodCalMonth < 0) { moodCalMonth = 11; moodCalYear--; }
+      renderMoodCalendar();
+    });
+    document.getElementById('mood-cal-next').addEventListener('click', () => {
+      moodCalMonth++;
+      if (moodCalMonth > 11) { moodCalMonth = 0; moodCalYear++; }
+      renderMoodCalendar();
+    });
+
     // 视图切换
     document.querySelectorAll('.view-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -126,12 +167,26 @@ const JournalModule = (() => {
     });
     document.getElementById('diary-editor-save').addEventListener('click', saveDiary);
 
-    // 心情选择
-    document.querySelectorAll('.mood-btn').forEach(btn => {
+    // 心情选择（新的5个emoji按钮）
+    document.querySelectorAll('#diary-mood-picker .mood-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
+        const wasSelected = btn.classList.contains('selected');
+        document.querySelectorAll('#diary-mood-picker .mood-btn').forEach(b => b.classList.remove('selected'));
+        if (!wasSelected) {
+          btn.classList.add('selected');
+          // 显示情绪备注输入框
+          document.getElementById('mood-note-wrap').classList.remove('hidden');
+        } else {
+          // 取消选中，隐藏备注
+          document.getElementById('mood-note-wrap').classList.add('hidden');
+          document.getElementById('mood-note-input').value = '';
+        }
       });
+    });
+
+    // 情绪日历 - 查看某天日记详情关闭
+    document.getElementById('mood-day-detail-close').addEventListener('click', () => {
+      document.getElementById('mood-day-detail').classList.add('hidden');
     });
 
     // 复盘类型切换
@@ -199,6 +254,7 @@ const JournalModule = (() => {
 
     switch (tab) {
       case 'diary': renderDiary(); break;
+      case 'mood': renderMoodCalendar(); break;
       case 'review': renderReviews(); break;
       case 'ideas': renderIdeas(); break;
     }
@@ -208,6 +264,7 @@ const JournalModule = (() => {
   function handleFab() {
     switch (currentTab) {
       case 'diary': openDiaryEditor(selectedDate || todayStr()); break;
+      case 'mood': openDiaryEditor(todayStr()); break;
       case 'review': openReviewModal(); break;
       case 'ideas': openIdeaModal(); break;
     }
@@ -302,19 +359,22 @@ const JournalModule = (() => {
       return;
     }
 
-    container.innerHTML = diaries.map(d => `
+    container.innerHTML = diaries.map(d => {
+      const moodInfo = getDiaryMoodInfo(d);
+      return `
       <div class="diary-card" data-id="${d.id}">
         <div class="diary-card-header">
           <span class="diary-card-date">${formatDate(d.date)}</span>
-          ${d.mood ? `<span class="diary-card-mood">${escapeHtml(d.mood)}</span>` : ''}
+          ${moodInfo.mood ? `<span class="diary-card-mood" title="${moodInfo.label}">${moodInfo.mood}</span>` : ''}
         </div>
+        ${d.mood_note ? `<div class="diary-card-mood-note">${escapeHtml(d.mood_note)}</div>` : ''}
         <div class="diary-card-content">${escapeHtml(d.content)}</div>
         <div class="diary-card-actions">
           <button class="btn-edit" data-action="edit" data-id="${d.id}">编辑</button>
           <button class="btn-delete" data-action="delete" data-id="${d.id}">删除</button>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
 
     // 绑定卡片事件
     container.querySelectorAll('[data-action="edit"]').forEach(btn => {
@@ -352,7 +412,9 @@ const JournalModule = (() => {
     editorView.classList.remove('hidden');
 
     // 清除之前的选中状态
-    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('#diary-mood-picker .mood-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('mood-note-wrap').classList.add('hidden');
+    document.getElementById('mood-note-input').value = '';
 
     if (editId) {
       // 编辑模式
@@ -361,9 +423,13 @@ const JournalModule = (() => {
       editingDiaryId = editId;
       document.getElementById('diary-editor-date').textContent = formatDate(diary.date);
       document.getElementById('diary-textarea').value = diary.content || '';
-      if (diary.mood) {
-        const moodBtn = document.querySelector(`.mood-btn[data-mood="${diary.mood}"]`);
+      // 恢复情绪选中状态
+      if (diary.mood && MOOD_CONFIG[diary.mood]) {
+        const moodBtn = document.querySelector(`#diary-mood-picker .mood-btn[data-mood="${diary.mood}"]`);
         if (moodBtn) moodBtn.classList.add('selected');
+        // 显示情绪备注
+        document.getElementById('mood-note-wrap').classList.remove('hidden');
+        document.getElementById('mood-note-input').value = diary.mood_note || '';
       }
     } else {
       // 新建模式
@@ -391,8 +457,10 @@ const JournalModule = (() => {
       return;
     }
 
-    const moodBtn = document.querySelector('.mood-btn.selected');
+    const moodBtn = document.querySelector('#diary-mood-picker .mood-btn.selected');
     const mood = moodBtn ? moodBtn.dataset.mood : '';
+    const moodScore = moodBtn ? parseInt(moodBtn.dataset.moodScore) : null;
+    const moodNote = moodBtn ? document.getElementById('mood-note-input').value.trim() : '';
     const date = editingDiaryId ? (allDiaries.find(d => d.id === editingDiaryId)?.date || selectedDate) : selectedDate;
 
     const record = {
@@ -400,6 +468,8 @@ const JournalModule = (() => {
       subtype: '',
       content,
       mood,
+      mood_score: moodScore,
+      mood_note: moodNote,
       date,
       createdAt: editingDiaryId ? (allDiaries.find(d => d.id === editingDiaryId)?.createdAt || Date.now()) : Date.now(),
       updatedAt: Date.now()
@@ -419,6 +489,273 @@ const JournalModule = (() => {
       console.error('[Journal] 保存日记失败', e);
       showToast('保存失败，请重试', 'error');
     }
+  }
+
+  // ========== 情绪日历模块 ==========
+  function renderMoodCalendar() {
+    renderMoodTrends();
+    renderMoodCalendarGrid();
+    renderMoodMonthStats();
+  }
+
+  function renderMoodCalendarGrid() {
+    const title = document.getElementById('mood-cal-title');
+    title.textContent = `${moodCalYear}年${moodCalMonth + 1}月`;
+
+    const daysEl = document.getElementById('mood-cal-days');
+    daysEl.innerHTML = '';
+
+    const firstDay = new Date(moodCalYear, moodCalMonth, 1);
+    let startDay = firstDay.getDay() - 1; // 周一起始
+    if (startDay < 0) startDay = 6;
+
+    const daysInMonth = new Date(moodCalYear, moodCalMonth + 1, 0).getDate();
+    const today = todayStr();
+
+    // 建一个日期->最新日记（含情绪）映射
+    const diaryByDate = {};
+    allDiaries.forEach(d => {
+      if (!diaryByDate[d.date] || d.updatedAt > diaryByDate[d.date].updatedAt) {
+        diaryByDate[d.date] = d;
+      }
+    });
+
+    // 空白填充
+    for (let i = 0; i < startDay; i++) {
+      const el = document.createElement('div');
+      el.className = 'mood-cal-day empty';
+      daysEl.appendChild(el);
+    }
+
+    // 日期
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${moodCalYear}-${String(moodCalMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const diary = diaryByDate[dateStr];
+      const moodInfo = diary ? getDiaryMoodInfo(diary) : null;
+
+      const el = document.createElement('div');
+      el.className = 'mood-cal-day';
+      el.dataset.date = dateStr;
+
+      // 日期数字
+      const numSpan = document.createElement('span');
+      numSpan.className = 'mood-cal-day-num';
+      numSpan.textContent = day;
+      el.appendChild(numSpan);
+
+      // 情绪emoji（如果有）
+      if (moodInfo && moodInfo.mood) {
+        const emojiSpan = document.createElement('span');
+        emojiSpan.className = 'mood-cal-day-emoji';
+        emojiSpan.textContent = moodInfo.mood;
+        el.appendChild(emojiSpan);
+        el.style.backgroundColor = moodInfo.color + '33'; // 20% opacity
+        el.style.borderBottom = `3px solid ${moodInfo.color}`;
+        el.classList.add('has-mood');
+      } else {
+        el.style.backgroundColor = NO_MOOD_COLOR + '22';
+      }
+
+      if (dateStr === today) el.classList.add('today');
+
+      el.addEventListener('click', () => {
+        showMoodDayDetail(dateStr);
+      });
+
+      daysEl.appendChild(el);
+    }
+  }
+
+  function showMoodDayDetail(dateStr) {
+    const detail = document.getElementById('mood-day-detail');
+    const dateLabel = document.getElementById('mood-day-detail-date');
+    const list = document.getElementById('mood-day-detail-list');
+
+    dateLabel.textContent = formatDate(dateStr);
+
+    const dayDiaries = allDiaries.filter(d => d.date === dateStr).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    if (dayDiaries.length === 0) {
+      list.innerHTML = `
+        <div class="mood-day-empty">
+          <span>这天没有日记记录</span>
+          <button class="mood-day-add-btn" data-date="${dateStr}">写一篇</button>
+        </div>`;
+    } else {
+      list.innerHTML = dayDiaries.map(d => {
+        const moodInfo = getDiaryMoodInfo(d);
+        return `
+        <div class="mood-day-diary-item" data-id="${d.id}">
+          <div class="mood-day-diary-mood">
+            ${moodInfo.mood ? `<span class="mood-day-emoji" title="${moodInfo.label}">${moodInfo.mood}</span>` : ''}
+            ${d.mood_note ? `<span class="mood-day-note">${escapeHtml(d.mood_note)}</span>` : ''}
+          </div>
+          <div class="mood-day-diary-content">${escapeHtml(d.content).slice(0, 150)}${d.content.length > 150 ? '...' : ''}</div>
+        </div>`;
+      }).join('');
+    }
+
+    detail.classList.remove('hidden');
+
+    // 绑定：写日记按钮
+    const addBtn = list.querySelector('.mood-day-add-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', () => {
+        // 切换到日记tab并打开编辑器
+        switchTab('diary');
+        selectedDate = dateStr;
+        openDiaryEditor(dateStr);
+      });
+    }
+
+    // 绑定：点击日记条目跳转编辑
+    list.querySelectorAll('.mood-day-diary-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = parseInt(item.dataset.id);
+        switchTab('diary');
+        selectedDate = dateStr;
+        openDiaryEditor(null, id);
+      });
+    });
+  }
+
+  function renderMoodTrends() {
+    const container = document.getElementById('mood-trends');
+    const today = new Date();
+    const todayStrVal = todayStr();
+
+    // 计算最近7天的平均情绪分数
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      last7Days.push(daysAgoStr(i));
+    }
+
+    let totalScore = 0;
+    let scoreCount = 0;
+    const dailyScores = {};
+
+    last7Days.forEach(dateStr => {
+      const dayDiaries = allDiaries.filter(d => d.date === dateStr);
+      // 取当天最新日记的情绪
+      if (dayDiaries.length > 0) {
+        const latest = dayDiaries.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+        const info = getDiaryMoodInfo(latest);
+        if (info.score !== null) {
+          totalScore += info.score;
+          scoreCount++;
+          dailyScores[dateStr] = info.score;
+        }
+      }
+    });
+
+    const avgScore = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : '--';
+
+    // 连续X天情绪>=3
+    let streak = 0;
+    for (let i = 0; i < 90; i++) { // 最多往前看90天
+      const dateStr = daysAgoStr(i);
+      const dayDiaries = allDiaries.filter(d => d.date === dateStr);
+      if (dayDiaries.length === 0) break;
+      const latest = dayDiaries.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+      const info = getDiaryMoodInfo(latest);
+      if (info.score !== null && info.score >= 3) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    // 温暖提示
+    let warmTip = '';
+    if (scoreCount > 0 && (totalScore / scoreCount) < 2.5) {
+      warmTip = `<div class="mood-warm-tip">💛 最近辛苦了，要不要听听音乐放松一下？</div>`;
+    }
+
+    // 7天情绪条形图
+    let barChart = '<div class="mood-bar-chart">';
+    last7Days.forEach((dateStr, idx) => {
+      const score = dailyScores[dateStr] || 0;
+      const d = new Date(dateStr + 'T00:00:00');
+      const weekday = ['日','一','二','三','四','五','六'][d.getDay()];
+      const color = score > 0 ? getMoodColorByScore(score) : '#D5D0CB';
+      const height = score > 0 ? (score / 5 * 100) : 10;
+      barChart += `
+        <div class="mood-bar-col">
+          <div class="mood-bar-track">
+            <div class="mood-bar-fill" style="height:${height}%;background:${color}"></div>
+          </div>
+          <span class="mood-bar-label">${weekday}</span>
+        </div>`;
+    });
+    barChart += '</div>';
+
+    container.innerHTML = `
+      <div class="mood-trends-stats">
+        <div class="mood-stat-card">
+          <div class="mood-stat-value">${avgScore}</div>
+          <div class="mood-stat-label">本周均分</div>
+        </div>
+        <div class="mood-stat-card">
+          <div class="mood-stat-value">${streak}</div>
+          <div class="mood-stat-label">连续不错天数</div>
+        </div>
+      </div>
+      ${barChart}
+      ${warmTip}
+    `;
+  }
+
+  function getMoodColorByScore(score) {
+    if (score >= 5) return '#4CAF50';
+    if (score >= 4) return '#8BC34A';
+    if (score >= 3) return '#FFC107';
+    if (score >= 2) return '#FF9800';
+    return '#F44336';
+  }
+
+  function renderMoodMonthStats() {
+    const container = document.getElementById('mood-month-stats');
+    const monthPrefix = `${moodCalYear}-${String(moodCalMonth+1).padStart(2,'0')}`;
+
+    // 统计本月各情绪天数
+    const moodCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    let totalDaysWithMood = 0;
+    const seenDates = new Set();
+
+    allDiaries.forEach(d => {
+      if (d.date && d.date.startsWith(monthPrefix) && !seenDates.has(d.date)) {
+        const info = getDiaryMoodInfo(d);
+        if (info.score !== null) {
+          moodCounts[info.score] = (moodCounts[info.score] || 0) + 1;
+          totalDaysWithMood++;
+          seenDates.add(d.date);
+        }
+      }
+    });
+
+    if (totalDaysWithMood === 0) {
+      container.innerHTML = '<div class="mood-month-empty">本月暂无情绪记录</div>';
+      return;
+    }
+
+    const moodLabels = { 5: '😄开心', 4: '😊不错', 3: '😐一般', 2: '😔低落', 1: '😢难过' };
+    const moodColors = { 5: '#4CAF50', 4: '#8BC34A', 3: '#FFC107', 2: '#FF9800', 1: '#F44336' };
+
+    let html = '<div class="mood-month-bars">';
+    for (let score = 5; score >= 1; score--) {
+      const pct = ((moodCounts[score] / totalDaysWithMood) * 100).toFixed(0);
+      html += `
+        <div class="mood-month-bar-row">
+          <span class="mood-month-bar-label">${moodLabels[score]}</span>
+          <div class="mood-month-bar-track">
+            <div class="mood-month-bar-fill" style="width:${pct}%;background:${moodColors[score]}"></div>
+          </div>
+          <span class="mood-month-bar-pct">${pct}%</span>
+        </div>`;
+    }
+    html += '</div>';
+
+    container.innerHTML = html;
   }
 
   // ========== 复盘模块 ==========

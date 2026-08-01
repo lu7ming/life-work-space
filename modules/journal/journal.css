@@ -238,6 +238,13 @@
 .diary-card-mood {
   font-size: 20px;
 }
+.diary-card-mood-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-style: italic;
+  padding-left: 2px;
+}
 .diary-card-content {
   font-size: 14px;
   color: var(--text-primary);
@@ -358,32 +365,70 @@
 .mood-picker {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .mood-label {
   font-size: 13px;
   color: var(--text-muted);
+  white-space: nowrap;
+}
+.mood-btn-group {
+  display: flex;
+  gap: 8px;
 }
 .mood-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: 2px solid transparent;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   background: var(--bg-sidebar);
-  font-size: 18px;
+  font-size: 22px;
   cursor: pointer;
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
 }
 .mood-btn:hover {
-  transform: scale(1.15);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.mood-btn:active {
+  transform: scale(0.92);
 }
 .mood-btn.selected {
   border-color: var(--accent);
   background: var(--bg-card);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 8px rgba(61, 48, 39, 0.12);
+  transform: scale(1.1);
+}
+
+/* 情绪备注输入 */
+.mood-note-wrap {
+  transition: all var(--transition-fast);
+}
+.mood-note-wrap.hidden {
+  display: none;
+}
+.mood-note-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 8px 14px;
+  border: 1px solid var(--text-light);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  transition: border-color var(--transition-fast);
+}
+.mood-note-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.mood-note-input::placeholder {
+  color: var(--text-light);
 }
 
 .diary-textarea {
@@ -406,6 +451,333 @@
 }
 .diary-textarea::placeholder {
   color: var(--text-light);
+}
+
+/* ============================================
+   情绪日历 Tab
+   ============================================ */
+.mood-calendar-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* 情绪趋势区 */
+.mood-trends {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.mood-trends-stats {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.mood-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.mood-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.mood-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 7天情绪条形图 */
+.mood-bar-chart {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  height: 80px;
+  padding: 0 4px;
+}
+.mood-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+.mood-bar-track {
+  flex: 1;
+  width: 100%;
+  max-width: 32px;
+  background: var(--bg-sidebar);
+  border-radius: 6px 6px 2px 2px;
+  position: relative;
+  overflow: hidden;
+}
+.mood-bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 6px 6px 2px 2px;
+  transition: height 0.3s ease;
+}
+.mood-bar-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* 温暖提示 */
+.mood-warm-tip {
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: #FFF8E1;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #5D4037;
+  line-height: 1.5;
+  border-left: 3px solid #FFB74D;
+}
+
+/* 情绪日历网格 */
+.mood-calendar-wrap {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.mood-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.mood-calendar-grid {
+  margin-bottom: 16px;
+}
+.mood-cal-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.mood-cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  gap: 1px;
+  min-height: 48px;
+  -webkit-tap-highlight-color: transparent;
+}
+.mood-cal-day:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.mood-cal-day.empty {
+  cursor: default;
+  background: transparent;
+}
+.mood-cal-day.empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+.mood-cal-day.today {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -2px;
+  font-weight: 600;
+}
+.mood-cal-day.has-mood {
+  cursor: pointer;
+}
+.mood-cal-day-num {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+.mood-cal-day-emoji {
+  font-size: 16px;
+  line-height: 1;
+}
+.mood-cal-day.has-mood .mood-cal-day-num {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* 本月情绪统计 */
+.mood-month-stats {
+  padding-top: 12px;
+  border-top: 1px solid var(--text-light);
+}
+.mood-month-empty {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 8px 0;
+}
+.mood-month-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mood-month-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mood-month-bar-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  width: 56px;
+  flex-shrink: 0;
+}
+.mood-month-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--bg-sidebar);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.mood-month-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+.mood-month-bar-pct {
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* 情绪日历 - 查看某天详情 */
+.mood-day-detail {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeIn 0.2s ease;
+}
+.mood-day-detail.hidden {
+  display: none;
+}
+.mood-day-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.mood-day-detail-date {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.mood-day-detail-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.mood-day-detail-close:hover {
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
+}
+.mood-day-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.mood-day-add-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.mood-day-add-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+.mood-day-diary-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--text-light);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+.mood-day-diary-item:last-child {
+  border-bottom: none;
+}
+.mood-day-diary-item:hover {
+  opacity: 0.7;
+}
+.mood-day-diary-mood {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.mood-day-emoji {
+  font-size: 18px;
+}
+.mood-day-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.mood-day-diary-content {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 情绪图例 */
+.mood-legend {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+.mood-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.mood-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
 /* ============================================
@@ -967,5 +1339,47 @@
   .journal-tab {
     padding: 5px 12px;
     font-size: 13px;
+  }
+
+  /* 情绪日历移动端适配 */
+  .mood-calendar-layout {
+    max-width: 100%;
+  }
+  .mood-cal-days {
+    gap: 4px;
+  }
+  .mood-cal-day {
+    min-height: 40px;
+  }
+  .mood-cal-day-emoji {
+    font-size: 14px;
+  }
+  .mood-cal-day-num {
+    font-size: 10px;
+  }
+  .mood-trends-stats {
+    gap: 16px;
+  }
+  .mood-stat-value {
+    font-size: 24px;
+  }
+  .mood-bar-chart {
+    height: 60px;
+  }
+  .mood-legend {
+    gap: 8px;
+  }
+  .mood-legend-item {
+    font-size: 10px;
+  }
+
+  /* 情绪按钮移动端更大 */
+  .mood-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+  .mood-btn-group {
+    gap: 10px;
   }
 }

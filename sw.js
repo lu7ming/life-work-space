@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v33 - 意图缓存扩展 + 多轮对话上下文理解
+ * v34 - 情绪追踪系统
  */
 
-const CACHE_NAME = 'life-work-space-v33';
+const CACHE_NAME = 'life-work-space-v34';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [

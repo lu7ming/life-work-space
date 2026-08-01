@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 7;
+const DB_VERSION = 8;
 
 /**
  * 存储管理器
@@ -141,6 +141,15 @@ const Storage = (() => {
             const auditLog = db.createObjectStore('audit_log', { keyPath: 'id', autoIncrement: true });
             auditLog.createIndex('timestamp', 'timestamp', { unique: false });
             auditLog.createIndex('action', 'action', { unique: false });
+          },
+
+          // v8: 情绪追踪系统 - 为日记记录增加 mood_score 和 mood_note 字段
+          // 旧日记记录兼容迁移：mood_score 默认 null，mood_note 默认空字符串
+          8: (db, tx) => {
+            console.log('[Storage] v8 迁移：情绪追踪字段兼容（旧记录 mood_score/mood_note 默认 null）');
+            // IndexedDB 是 schemaless，无需 ALTER TABLE
+            // 旧记录读取时自动兼容：mood_score 为 undefined → 视为 null
+            // 此迁移仅作为版本标记，确保 onupgradeneeded 触发
           },
         };
 

@@ -23,7 +23,7 @@ const App = (() => {
     Router.register('dashboard', loadDashboard);
     Router.register('habits', loadHabits);
     Router.register('tasks', loadTasks);
-    Router.register('study', () => loadPlaceholder('学习'));
+    Router.register('study', loadStudy);
     Router.register('health', () => loadPlaceholder('健康'));
     Router.register('finance', () => loadPlaceholder('财务'));
     Router.register('relations', () => loadPlaceholder('关系'));
@@ -93,7 +93,7 @@ const App = (() => {
       'dashboard': loadDashboard,
       'habits': loadHabits,
       'tasks': loadTasks,
-      'study': () => loadPlaceholder('学习'),
+      'study': loadStudy,
       'health': () => loadPlaceholder('健康'),
       'finance': () => loadPlaceholder('财务'),
       'relations': () => loadPlaceholder('关系'),
@@ -172,6 +172,24 @@ const App = (() => {
       }
     } catch (err) {
       console.error('[App] 加载任务模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载学习模块
+   */
+  async function loadStudy() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('study/study.html');
+      container.innerHTML = html;
+      loadModuleCSS('study/study.css');
+      if (typeof StudyModule !== 'undefined' && StudyModule.init) {
+        StudyModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载学习模块失败:', err);
       container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
     }
   }

@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 /**
  * 存储管理器
@@ -84,6 +84,28 @@ const Storage = (() => {
           const store = db.createObjectStore('pomodoros', { keyPath: 'id', autoIncrement: true });
           store.createIndex('date', 'date', { unique: false });
           store.createIndex('taskId', 'taskId', { unique: false });
+        }
+
+        // 学期表（v3 新增）
+        if (!db.objectStoreNames.contains('semesters')) {
+          db.createObjectStore('semesters', { keyPath: 'id', autoIncrement: true });
+        }
+
+        // 课程表（v3 新增）
+        if (!db.objectStoreNames.contains('courses')) {
+          const store = db.createObjectStore('courses', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('semesterId', 'semesterId', { unique: false });
+        }
+
+        // 书籍表（v3 新增）
+        if (!db.objectStoreNames.contains('books')) {
+          const store = db.createObjectStore('books', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('status', 'status', { unique: false });
+        }
+
+        // 技能表（v3 新增）
+        if (!db.objectStoreNames.contains('skills')) {
+          db.createObjectStore('skills', { keyPath: 'id', autoIncrement: true });
         }
       };
 
@@ -270,6 +292,28 @@ const Storage = (() => {
     await add('finance', { month: monthStr, type: 'expense', amount: 128, note: '书籍', date: todayStr });
     await add('finance', { month: monthStr, type: 'expense', amount: 2560, note: '房租', date: todayStr });
     await add('finance', { month: monthStr, type: 'income', amount: 15000, note: '工资', date: todayStr });
+
+    // 学习模块示例数据
+    const semester1Id = await add('semesters', { name: '2026年春季' });
+
+    // 示例课程
+    await add('courses', { name: '高等数学', room: 'A301', teacher: '李教授', day: 1, period: 1, semesterId: semester1Id });
+    await add('courses', { name: '大学英语', room: 'B205', teacher: '王老师', day: 1, period: 3, semesterId: semester1Id });
+    await add('courses', { name: '数据结构', room: 'C102', teacher: '张教授', day: 2, period: 2, semesterId: semester1Id });
+    await add('courses', { name: '线性代数', room: 'A301', teacher: '李教授', day: 3, period: 1, semesterId: semester1Id });
+    await add('courses', { name: '操作系统', room: 'D401', teacher: '赵教授', day: 4, period: 2, semesterId: semester1Id });
+    await add('courses', { name: '体育', room: '体育馆', teacher: '陈老师', day: 5, period: 4, semesterId: semester1Id });
+
+    // 示例书籍
+    await add('books', { title: '原子习惯', author: 'James Clear', status: 'done', progress: 100, note: '很受启发' });
+    await add('books', { title: '深度工作', author: 'Cal Newport', status: 'reading', progress: 65, note: '' });
+    await add('books', { title: '思考，快与慢', author: 'Daniel Kahneman', status: 'reading', progress: 30, note: '' });
+    await add('books', { title: '原则', author: 'Ray Dalio', status: 'want', progress: 0, note: '' });
+
+    // 示例技能
+    await add('skills', { name: 'Python编程', level: 4, progress: 70, note: '正在学习Flask' });
+    await add('skills', { name: '英语口语', level: 3, progress: 45, note: '' });
+    await add('skills', { name: 'UI设计', level: 2, progress: 25, note: '' });
 
     // 设置
     await put('settings', { key: 'username', value: '鹿7铭' });

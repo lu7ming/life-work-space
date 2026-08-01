@@ -1,0 +1,243 @@
+<!-- study.html - 学习与成长模块模板 -->
+<div class="study page-enter">
+
+  <!-- ===== 顶部：Tab 切换 ===== -->
+  <div class="study-header">
+    <h1 class="study-title">📚 学习</h1>
+    <div class="study-tabs" id="study-tabs">
+      <button class="study-tab active" data-tab="courses">课程表</button>
+      <button class="study-tab" data-tab="books">阅读记录</button>
+      <button class="study-tab" data-tab="skills">技能追踪</button>
+    </div>
+  </div>
+
+  <!-- ===== 内容区域 ===== -->
+  <div class="study-content" id="study-content">
+
+    <!-- ===== 课程表面板 ===== -->
+    <div class="study-panel active" data-panel="courses">
+      <!-- 学期选择器 -->
+      <div class="study-semester-bar">
+        <select class="study-semester-select" id="study-semester-select"></select>
+        <button class="study-semester-manage-btn" id="study-semester-manage-btn" title="学期管理">⚙️</button>
+      </div>
+      <!-- 周视图 -->
+      <div class="study-timetable card" id="study-timetable">
+        <div class="study-timetable-header">
+          <div class="study-timetable-corner"></div>
+          <div class="study-timetable-day">周一</div>
+          <div class="study-timetable-day">周二</div>
+          <div class="study-timetable-day">周三</div>
+          <div class="study-timetable-day">周四</div>
+          <div class="study-timetable-day">周五</div>
+          <div class="study-timetable-day">周六</div>
+          <div class="study-timetable-day">周日</div>
+        </div>
+        <div class="study-timetable-body" id="study-timetable-body">
+          <!-- JS 动态生成 5行×7列 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 阅读记录面板 ===== -->
+    <div class="study-panel" data-panel="books">
+      <!-- 顶部统计 -->
+      <div class="study-books-stats">
+        <div class="study-books-stat card">
+          <span class="study-books-stat-num" id="study-books-reading">0</span>
+          <span class="study-books-stat-label">在读</span>
+        </div>
+        <div class="study-books-stat card">
+          <span class="study-books-stat-num" id="study-books-done">0</span>
+          <span class="study-books-stat-label">已读</span>
+        </div>
+        <div class="study-books-stat card">
+          <span class="study-books-stat-num" id="study-books-want">0</span>
+          <span class="study-books-stat-label">想读</span>
+        </div>
+      </div>
+      <!-- 书架网格 -->
+      <div class="study-books-grid" id="study-books-grid">
+        <!-- JS 动态生成 -->
+      </div>
+      <div class="study-empty" id="study-books-empty" style="display:none;">
+        <div class="study-empty-icon">📖</div>
+        <p>还没有阅读记录，点击 + 添加一本书吧</p>
+      </div>
+    </div>
+
+    <!-- ===== 技能追踪面板 ===== -->
+    <div class="study-panel" data-panel="skills">
+      <div class="study-skills-grid" id="study-skills-grid">
+        <!-- JS 动态生成 -->
+      </div>
+      <div class="study-empty" id="study-skills-empty" style="display:none;">
+        <div class="study-empty-icon">🎯</div>
+        <p>还没有技能追踪，点击 + 添加一个吧</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== FAB 浮动按钮 ===== -->
+  <button class="study-fab" id="study-fab" title="添加课程">+</button>
+
+  <!-- ===== 课程添加/编辑浮层 ===== -->
+  <div class="study-modal-overlay" id="study-course-modal-overlay">
+    <div class="study-modal card" id="study-course-modal">
+      <div class="study-modal-header">
+        <h3 id="study-course-modal-title">添加课程</h3>
+        <button class="study-modal-close" id="study-course-modal-close">✕</button>
+      </div>
+      <div class="study-modal-body">
+        <div class="study-form-group">
+          <label>课程名称</label>
+          <input type="text" class="study-input" id="course-name-input" placeholder="输入课程名称..." maxlength="50" />
+        </div>
+        <div class="study-form-group">
+          <label>教室</label>
+          <input type="text" class="study-input" id="course-room-input" placeholder="如：A301" maxlength="30" />
+        </div>
+        <div class="study-form-group">
+          <label>教师</label>
+          <input type="text" class="study-input" id="course-teacher-input" placeholder="如：张老师" maxlength="20" />
+        </div>
+        <div class="study-form-group">
+          <label>上课时间</label>
+          <div class="study-form-row">
+            <select class="study-input study-select" id="course-day-select">
+              <option value="1">周一</option>
+              <option value="2">周二</option>
+              <option value="3">周三</option>
+              <option value="4">周四</option>
+              <option value="5">周五</option>
+              <option value="6">周六</option>
+              <option value="0">周日</option>
+            </select>
+            <select class="study-input study-select" id="course-period-select">
+              <option value="1">第1节</option>
+              <option value="2">第2节</option>
+              <option value="3">第3节</option>
+              <option value="4">第4节</option>
+              <option value="5">第5节</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="study-modal-footer">
+        <button class="study-btn study-btn--danger" id="study-course-delete" style="display:none;">删除</button>
+        <div class="study-modal-footer-right">
+          <button class="study-btn study-btn--cancel" id="study-course-cancel">取消</button>
+          <button class="study-btn study-btn--confirm" id="study-course-confirm">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 学期管理浮层 ===== -->
+  <div class="study-modal-overlay" id="study-semester-modal-overlay">
+    <div class="study-modal card" id="study-semester-modal">
+      <div class="study-modal-header">
+        <h3>学期管理</h3>
+        <button class="study-modal-close" id="study-semester-modal-close">✕</button>
+      </div>
+      <div class="study-modal-body">
+        <div class="study-semester-list" id="study-semester-list">
+          <!-- JS 动态生成 -->
+        </div>
+        <div class="study-form-group" style="margin-top:16px;">
+          <label>新建学期</label>
+          <div class="study-form-row">
+            <input type="text" class="study-input" id="semester-name-input" placeholder="如：2026年春季" maxlength="30" />
+            <button class="study-btn study-btn--confirm study-btn--sm" id="semester-add-btn">添加</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 书籍添加/编辑浮层 ===== -->
+  <div class="study-modal-overlay" id="study-book-modal-overlay">
+    <div class="study-modal card" id="study-book-modal">
+      <div class="study-modal-header">
+        <h3 id="study-book-modal-title">添加书籍</h3>
+        <button class="study-modal-close" id="study-book-modal-close">✕</button>
+      </div>
+      <div class="study-modal-body">
+        <div class="study-form-group">
+          <label>书名</label>
+          <input type="text" class="study-input" id="book-title-input" placeholder="输入书名..." maxlength="100" />
+        </div>
+        <div class="study-form-group">
+          <label>作者</label>
+          <input type="text" class="study-input" id="book-author-input" placeholder="输入作者..." maxlength="50" />
+        </div>
+        <div class="study-form-group">
+          <label>状态</label>
+          <div class="study-status-picker" id="book-status-picker">
+            <button class="study-status-btn active" data-status="reading">在读</button>
+            <button class="study-status-btn" data-status="done">已读</button>
+            <button class="study-status-btn" data-status="want">想读</button>
+          </div>
+        </div>
+        <div class="study-form-group">
+          <label>进度 <span id="book-progress-label">0</span>%</label>
+          <input type="range" class="study-range" id="book-progress-input" min="0" max="100" value="0" />
+        </div>
+        <div class="study-form-group">
+          <label>笔记</label>
+          <textarea class="study-textarea" id="book-note-input" placeholder="写点笔记..." rows="3" maxlength="500"></textarea>
+        </div>
+      </div>
+      <div class="study-modal-footer">
+        <button class="study-btn study-btn--danger" id="study-book-delete" style="display:none;">删除</button>
+        <div class="study-modal-footer-right">
+          <button class="study-btn study-btn--cancel" id="study-book-cancel">取消</button>
+          <button class="study-btn study-btn--confirm" id="study-book-confirm">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 技能添加/编辑浮层 ===== -->
+  <div class="study-modal-overlay" id="study-skill-modal-overlay">
+    <div class="study-modal card" id="study-skill-modal">
+      <div class="study-modal-header">
+        <h3 id="study-skill-modal-title">添加技能</h3>
+        <button class="study-modal-close" id="study-skill-modal-close">✕</button>
+      </div>
+      <div class="study-modal-body">
+        <div class="study-form-group">
+          <label>技能名称</label>
+          <input type="text" class="study-input" id="skill-name-input" placeholder="输入技能名称..." maxlength="50" />
+        </div>
+        <div class="study-form-group">
+          <label>目标等级</label>
+          <div class="study-star-picker" id="skill-level-picker">
+            <button class="study-star-btn" data-level="1">★</button>
+            <button class="study-star-btn" data-level="2">★★</button>
+            <button class="study-star-btn" data-level="3">★★★</button>
+            <button class="study-star-btn active" data-level="4">★★★★</button>
+            <button class="study-star-btn" data-level="5">★★★★★</button>
+          </div>
+        </div>
+        <div class="study-form-group">
+          <label>进度 <span id="skill-progress-label">0</span>%</label>
+          <input type="range" class="study-range" id="skill-progress-input" min="0" max="100" value="0" />
+        </div>
+        <div class="study-form-group">
+          <label>笔记</label>
+          <textarea class="study-textarea" id="skill-note-input" placeholder="写点笔记..." rows="3" maxlength="500"></textarea>
+        </div>
+      </div>
+      <div class="study-modal-footer">
+        <button class="study-btn study-btn--danger" id="study-skill-delete" style="display:none;">删除</button>
+        <div class="study-modal-footer-right">
+          <button class="study-btn study-btn--cancel" id="study-skill-cancel">取消</button>
+          <button class="study-btn study-btn--confirm" id="study-skill-confirm">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -21,7 +21,7 @@ const App = (() => {
 
     // 2. 注册路由
     Router.register('dashboard', loadDashboard);
-    Router.register('habits', () => loadPlaceholder('习惯打卡'));
+    Router.register('habits', loadHabits);
     Router.register('tasks', () => loadPlaceholder('任务'));
     Router.register('study', () => loadPlaceholder('学习'));
     Router.register('health', () => loadPlaceholder('健康'));
@@ -69,6 +69,29 @@ const App = (() => {
       }
     } catch (err) {
       console.error('[App] 加载总面板失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载习惯打卡模块
+   */
+  async function loadHabits() {
+    const container = document.getElementById('content-area');
+    try {
+      // 加载模板
+      const html = await fetchModule('habits/habits.html');
+      container.innerHTML = html;
+
+      // 加载模块样式
+      loadModuleCSS('habits/habits.css');
+
+      // 初始化模块逻辑
+      if (typeof HabitsModule !== 'undefined' && HabitsModule.init) {
+        HabitsModule.init();
+      }
+    } catch (err) {
+      console.error('[App] 加载习惯打卡失败:', err);
       container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
     }
   }

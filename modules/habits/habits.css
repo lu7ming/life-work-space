@@ -1,0 +1,482 @@
+/**
+ * habits.css - 习惯打卡模块样式
+ * 人生工作台 · 暖米色极简风格
+ */
+
+/* ===== 习惯打卡容器 ===== */
+.habits {
+  max-width: 1080px;
+}
+
+/* ===== 顶部标题 + 日期切换 ===== */
+.habits-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.habits-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.habits-date-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius-full);
+  padding: 4px 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.habits-date-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.habits-date-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.habits-date-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 8px;
+  min-width: 100px;
+}
+
+.habits-date-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.habits-date-weekday {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.habits-today-btn {
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-green);
+  background: var(--accent-green-light);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.habits-today-btn:hover {
+  background: var(--accent-green);
+  color: #fff;
+}
+
+.habits-today-btn.active {
+  background: var(--accent-green);
+  color: #fff;
+}
+
+/* ===== 主区域两列布局 ===== */
+.habits-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ===== 习惯卡片网格 ===== */
+.habits-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.habits-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background var(--transition-fast);
+  position: relative;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.habits-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.habits-card:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 已打卡状态 */
+.habits-card.checked {
+  background: var(--accent-green-light);
+  border: 1.5px solid var(--accent-green);
+}
+
+.habits-card.checked .habits-card-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* emoji 图标 */
+.habits-card-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+/* 习惯名称 */
+.habits-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.habits-card.checked .habits-card-name {
+  color: var(--text-primary);
+}
+
+/* 打卡按钮（圆形） */
+.habits-card-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  transition: all var(--transition-fast);
+}
+
+.habits-card.checked .habits-card-btn {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+/* 打卡完成勾 */
+.habits-card-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  color: #fff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+/* ===== 完成进度 ===== */
+.habits-progress {
+  padding: 18px 20px;
+}
+
+.habits-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.habits-progress-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.habits-progress-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-green);
+}
+
+.habits-progress-bar {
+  height: 10px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.habits-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-green), #6DB87F);
+  border-radius: var(--radius-full);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.habits-progress-motivation {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ===== 打卡日历 ===== */
+.habits-calendar {
+  padding: 18px;
+}
+
+.habits-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.habits-calendar-nav {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: background var(--transition-fast);
+}
+
+.habits-calendar-nav:hover {
+  background: var(--bg-hover);
+}
+
+.habits-calendar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.habits-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.habits-calendar-weekdays span {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 3px 0;
+  font-weight: 500;
+}
+
+.habits-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.habits-calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  position: relative;
+}
+
+.habits-calendar-day.empty {
+  cursor: default;
+}
+
+.habits-calendar-day:not(.empty):hover {
+  background: var(--bg-hover);
+}
+
+/* 今天 */
+.habits-calendar-day.today {
+  background: var(--text-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* 有打卡（绿色小点） */
+.habits-calendar-day.has-checkin::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  position: absolute;
+  bottom: 3px;
+}
+
+/* 全部完成（橙色小点） */
+.habits-calendar-day.all-done::after {
+  background: var(--accent-orange);
+  width: 5px;
+  height: 5px;
+}
+
+/* 今天的小点用白色 */
+.habits-calendar-day.today.has-checkin::after,
+.habits-calendar-day.today.all-done::after {
+  background: #fff;
+}
+
+/* 选中日期高亮 */
+.habits-calendar-day.selected {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+.habits-calendar-day.today.selected {
+  outline-color: var(--accent-blue);
+}
+
+/* 日历上的完成数 badge */
+.habits-calendar-day-count {
+  font-size: 8px;
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  color: var(--accent-green);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.habits-calendar-day.today .habits-calendar-day-count {
+  color: #fff;
+}
+
+/* 图例 */
+.habits-calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.habits-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.habits-legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.habits-legend-dot--today {
+  border: 2px solid var(--text-primary);
+  background: transparent;
+  width: 7px;
+  height: 7px;
+}
+
+/* ===== 响应式 ===== */
+
+/* iPad 竖屏 / 小桌面 */
+@media (max-width: 1024px) {
+  .habits-body {
+    grid-template-columns: 1fr 240px;
+    gap: 18px;
+  }
+
+  .habits-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 平板竖屏 / 大手机 */
+@media (max-width: 768px) {
+  .habits-body {
+    grid-template-columns: 1fr;
+  }
+
+  .habits-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .habits-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .habits-calendar {
+    order: 2;
+  }
+
+  .habits-title {
+    font-size: 20px;
+  }
+}
+
+/* 手机 */
+@media (max-width: 480px) {
+  .habits-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .habits-card {
+    padding: 14px 8px;
+  }
+
+  .habits-card-emoji {
+    font-size: 24px;
+  }
+
+  .habits-card-name {
+    font-size: 12px;
+  }
+
+  .habits-title {
+    font-size: 18px;
+  }
+
+  .habits-date-switcher {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,62 @@
+<!-- habits.html - 习惯打卡模板 -->
+<div class="habits page-enter">
+
+  <!-- 顶部：日期切换 -->
+  <div class="habits-header">
+    <h1 class="habits-title">✅ 习惯打卡</h1>
+    <div class="habits-date-switcher">
+      <button class="habits-date-btn" id="habits-prev-day" title="前一天">‹</button>
+      <div class="habits-date-display">
+        <span class="habits-date-text" id="habits-date-text"></span>
+        <span class="habits-date-weekday" id="habits-date-weekday"></span>
+      </div>
+      <button class="habits-date-btn" id="habits-next-day" title="后一天">›</button>
+      <button class="habits-today-btn" id="habits-today-btn">今天</button>
+    </div>
+  </div>
+
+  <!-- 主区域：两列布局 -->
+  <div class="habits-body">
+
+    <!-- 左列：习惯卡片网格 -->
+    <div class="habits-main">
+      <div class="habits-grid" id="habits-grid">
+        <!-- JS 动态生成 12 个习惯卡片 -->
+      </div>
+
+      <!-- 底部：完成进度 -->
+      <div class="habits-progress card">
+        <div class="habits-progress-header">
+          <span class="habits-progress-label">今日完成</span>
+          <span class="habits-progress-count" id="habits-progress-count">0/12</span>
+        </div>
+        <div class="habits-progress-bar">
+          <div class="habits-progress-fill" id="habits-progress-fill"></div>
+        </div>
+        <p class="habits-progress-motivation" id="habits-progress-motivation"></p>
+      </div>
+    </div>
+
+    <!-- 右列：打卡日历 -->
+    <div class="habits-calendar card">
+      <div class="habits-calendar-header">
+        <button class="habits-calendar-nav" id="habits-prev-month">‹</button>
+        <span class="habits-calendar-title" id="habits-calendar-title"></span>
+        <button class="habits-calendar-nav" id="habits-next-month">›</button>
+      </div>
+      <div class="habits-calendar-weekdays">
+        <span>日</span><span>一</span><span>二</span><span>三</span>
+        <span>四</span><span>五</span><span>六</span>
+      </div>
+      <div class="habits-calendar-days" id="habits-calendar-days">
+        <!-- JS 动态生成 -->
+      </div>
+      <div class="habits-calendar-legend">
+        <span class="habits-legend-item"><i class="habits-legend-dot" style="background:var(--accent-green)"></i>有打卡</span>
+        <span class="habits-legend-item"><i class="habits-legend-dot" style="background:var(--accent-orange)"></i>全部完成</span>
+        <span class="habits-legend-item"><i class="habits-legend-dot habits-legend-dot--today"></i>今天</span>
+      </div>
+    </div>
+
+  </div>
+</div>

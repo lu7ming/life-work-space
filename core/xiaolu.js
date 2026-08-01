@@ -1458,10 +1458,138 @@ const XiaoluModule = (() => {
     }
 
     // 显示识别文字 + 处理中状态
-    _updateQuickBubbleText('💭 ' + text);
+    _updateQuickBubbleText('💭 ' + text + '\n⏳ 解析中...');
 
-    // 异步调用 AI 处理
-    _processQuickVoiceText(text);
+    // 异步解析并显示确认
+    _parseAndConfirmVoice(text);
+  }
+
+  /**
+   * 语音解析后显示确认界面（类似 QuickInput 面板的确认/取消）
+   */
+  async function _parseAndConfirmVoice(text) {
+    try {
+      // 先用 QuickInput 解析
+      let parsed = null;
+      if (typeof QuickInput !== 'undefined' && QuickInput.parseQuickInput) {
+        parsed = await QuickInput.parseQuickInput(text);
+        console.log('[Xiaolu] 语音 QuickInput 解析结果:', parsed);
+      }
+
+      if (parsed && parsed.intent && parsed.intent !== 'unknown' && parsed.intent !== 'journal_entry') {
+        // 有可执行的操作，显示确认界面
+        _showVoiceConfirm(text, parsed);
+        return;
+      }
+
+      // 无可执行操作，走聊天流程
+      _processQuickVoiceText(text, parsed);
+    } catch (err) {
+      console.error('[Xiaolu] 语音解析失败:', err);
+      _updateQuickBubbleText('❌ 解析失败，请重试');
+      if (typeof App !== 'undefined') App.showToast('❌ 解析失败');
+      setTimeout(_removeQuickBubble, 2000);
+    }
+  }
+
+  /**
+   * 显示语音确认界面（确认/取消按钮）
+   */
+  function _showVoiceConfirm(text, parsed) {
+    const intentLabels = {
+      'task_create': '📋 创建任务',
+      'finance_record': '💰 记录收支',
+      'habit_checkin': '✅ 习惯打卡',
+      'pomodoro_start': '🍅 番茄钟'
+    };
+
+    const label = intentLabels[parsed.intent] || '操作';
+    let detail = '';
+
+    switch (parsed.intent) {
+      case 'finance_record': {
+        const symbol = parsed.params.type === 'income' ? '+' : '-';
+        const typeLabel = parsed.params.type === 'income' ? '收入' : '支出';
+        detail = `${typeLabel} ${symbol}¥${parseFloat(parsed.params.amount || 0).toFixed(2)}`;
+        if (parsed.params.category) detail += ` · ${parsed.params.category}`;
+        if (parsed.params.note) detail += ` · ${parsed.params.note}`;
+        break;
+      }
+      case 'task_create':
+        detail = parsed.params.title || '未命名';
+        if (parsed.params.due_date) detail += ` · 📅${parsed.params.due_date}`;
+        break;
+      case 'habit_checkin':
+        detail = parsed.params.habit_name || '打卡';
+        break;
+      case 'pomodoro_start':
+        detail = `${parsed.params.duration || 25} 分钟专注`;
+        break;
+      default:
+        detail = text;
+    }
+
+    // 更新气泡内容为确认界面
+    if (_quickBubble) {
+      const textEl = _quickBubble.querySelector('.xiaolu-quick-bubble-text');
+      if (textEl) {
+        textEl.innerHTML = `
+          <div style="margin-bottom:6px;font-size:13px;color:var(--text-muted,#8a7a6d);">${label}</div>
+          <div style="font-size:15px;font-weight:500;margin-bottom:10px;">${detail}</div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button id="voice-confirm-cancel" style="padding:6px 16px;border-radius:8px;border:1px solid var(--border-light,#C8AD94);background:transparent;color:var(--text-main,#3D3027);font-size:13px;cursor:pointer;">取消</button>
+            <button id="voice-confirm-ok" style="padding:6px 16px;border-radius:8px;border:none;background:var(--accent-primary,#8B6F47);color:#fff;font-size:13px;cursor:pointer;">确认</button>
+          </div>
+        `;
+      }
+
+      // 绑定按钮事件
+      const okBtn = document.getElementById('voice-confirm-ok');
+      const cancelBtn = document.getElementById('voice-confirm-cancel');
+
+      if (okBtn) {
+        okBtn.addEventListener('click', () => {
+          _updateQuickBubbleText('⏳ 执行中...');
+          _executeVoiceAction(text, parsed);
+        });
+      }
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+          _updateQuickBubbleText('已取消');
+          setTimeout(_removeQuickBubble, 800);
+        });
+      }
+    }
+  }
+
+  /**
+   * 执行语音确认后的操作
+   */
+  async function _executeVoiceAction(text, parsed) {
+    try {
+      const result = await QuickInput.executeQuickInput(parsed);
+      console.log('[Xiaolu] 语音执行结果:', result);
+
+      const iconMap = { 'finance_record': '💰', 'task_create': '📋', 'habit_checkin': '✅', 'pomodoro_start': '🍅' };
+      const icon = iconMap[parsed.intent] || '✅';
+      const msg = icon + ' ' + (result.message || '已完成');
+
+      _updateQuickBubbleText(msg);
+      if (typeof App !== 'undefined') App.showToast(msg, 3000);
+
+      _chatHistory.push({ role: 'user', content: text });
+      _chatHistory.push({ role: 'assistant', content: result.message });
+      trimContext();
+
+      _refreshAfterAction(parsed.intent);
+      setTimeout(_removeQuickBubble, 3000);
+    } catch (err) {
+      console.error('[Xiaolu] 语音执行失败:', err);
+      const errMsg = '❌ ' + (err.message || '执行失败');
+      _updateQuickBubbleText(errMsg);
+      if (typeof App !== 'undefined') App.showToast(errMsg, 3000);
+      setTimeout(_removeQuickBubble, 3000);
+    }
   }
 
   /**
@@ -1537,7 +1665,7 @@ const XiaoluModule = (() => {
     if (fn) { try { fn(); } catch (e) { console.warn('[Xiaolu] 刷新模块失败:', e); } }
   }
 
-  async function _processQuickVoiceText(text) {
+  async function _processQuickVoiceText(text, preParsed) {
     const token = await getDeepseekToken();
 
     if (!token) {
@@ -1550,36 +1678,10 @@ const XiaoluModule = (() => {
     }
 
     // 显示识别到的文字 + 处理中
-    _updateQuickBubbleText('💭 ' + text + '\n⏳ 处理中...');
+    _updateQuickBubbleText('💭 ' + text + '\n⏳ 思考中...');
 
     try {
-      // ===== 策略1：优先走 QuickInput 引擎（单次API + 关键词降级，更可靠） =====
-      if (typeof QuickInput !== 'undefined' && QuickInput.parseQuickInput) {
-        const parsed = await QuickInput.parseQuickInput(text);
-        console.log('[Xiaolu] QuickInput 解析结果:', parsed);
-
-        if (parsed && parsed.intent && parsed.intent !== 'unknown' && parsed.intent !== 'journal_entry') {
-          const result = await QuickInput.executeQuickInput(parsed);
-          console.log('[Xiaolu] QuickInput 执行结果:', result);
-
-          const iconMap = { 'finance_record': '💰', 'task_create': '📋', 'habit_checkin': '✅', 'pomodoro_start': '🍅' };
-          const icon = iconMap[parsed.intent] || '✅';
-          const msg = icon + ' ' + (result.message || '已完成');
-
-          _updateQuickBubbleText(msg);
-          if (typeof App !== 'undefined') App.showToast(msg, 3000);
-
-          _chatHistory.push({ role: 'user', content: text });
-          _chatHistory.push({ role: 'assistant', content: result.message });
-          trimContext();
-
-          _refreshAfterAction(parsed.intent);
-          setTimeout(_removeQuickBubble, 5000);
-          return;
-        }
-      }
-
-      // ===== 策略2：走小鹿链式意图识别（聊天意图） =====
+      // ===== 走小鹿聊天流程（已解析到非操作意图，或纯聊天） =====
       const reply = await decomposedIntentChain(token, text);
 
       const actionObj = _extractActionFromReply(reply);

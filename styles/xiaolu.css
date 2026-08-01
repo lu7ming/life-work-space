@@ -763,7 +763,7 @@
   z-index: 10000;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  max-width: 80vw;
+  max-width: 90vw;
   min-width: 180px;
 }
 

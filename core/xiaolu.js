@@ -1331,7 +1331,7 @@ const XiaoluModule = (() => {
         }
       }
       _quickText = final;
-      _updateQuickBubbleText(final || interim || '正在聆听...');
+      _updateQuickBubbleText(final || interim || '🎤 正在录音... 松手发送 / 滑出取消');
     };
 
     _quickRecognition.onerror = (event) => {
@@ -1351,7 +1351,7 @@ const XiaoluModule = (() => {
         try {
           _quickRecognition.start();
         } catch (e) {
-          _finishQuickVoice();
+          _cancelQuickVoice();
         }
       }
     };
@@ -1366,20 +1366,59 @@ const XiaoluModule = (() => {
       return;
     }
 
-    // 监听触摸释放 / 鼠标释放来停止录音
-    const stopHandler = () => {
-      document.removeEventListener('touchend', stopHandler);
-      document.removeEventListener('touchcancel', stopHandler);
-      document.removeEventListener('mouseup', stopHandler);
+    // 松手（在按钮上）→ 停止录音并发送
+    const finishHandler = () => {
+      cleanup();
       _finishQuickVoice();
+    };
+
+    // 手指滑出按钮区域 → 取消（不发送）
+    const cancelMoveHandler = (e) => {
+      const fab = document.getElementById('ai-fab-xiaolu');
+      if (!fab) { cancelHandler(); return; }
+      const touch = e.touches ? e.touches[0] : e;
+      const rect = fab.getBoundingClientRect();
+      const x = touch.clientX, y = touch.clientY;
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+        cancelHandler();
+      }
+    };
+
+    // 取消并清理
+    const cancelHandler = () => {
+      cleanup();
+      _cancelQuickVoice();
+    };
+
+    const cleanup = () => {
+      document.removeEventListener('touchend', finishHandler);
+      document.removeEventListener('touchcancel', cancelHandler);
+      document.removeEventListener('mouseup', finishHandler);
+      document.removeEventListener('mouseleave', cancelHandler);
+      document.removeEventListener('touchmove', cancelMoveHandler);
     };
 
     // 延迟添加释放监听，避免当前的 touchend/mouseup 立刻触发
     setTimeout(() => {
-      document.addEventListener('touchend', stopHandler);
-      document.addEventListener('touchcancel', stopHandler);
-      document.addEventListener('mouseup', stopHandler);
+      document.addEventListener('touchend', finishHandler);    // 松手 → 发送
+      document.addEventListener('touchcancel', cancelHandler);  // 系统取消 → 取消
+      document.addEventListener('mouseup', finishHandler);      // 鼠标松手 → 发送
+      document.addEventListener('mouseleave', cancelHandler);   // 鼠标移出 → 取消
+      document.addEventListener('touchmove', cancelMoveHandler); // 手指滑出 → 取消
     }, 100);
+  }
+
+  function _cancelQuickVoice() {
+    if (!_quickIsRecording) return;
+    _quickIsRecording = false;
+
+    if (_quickRecognition) {
+      try { _quickRecognition.stop(); } catch (e) {}
+      _quickRecognition = null;
+    }
+
+    _updateQuickBubbleText('已取消');
+    setTimeout(_removeQuickBubble, 800);
   }
 
   function _finishQuickVoice() {
@@ -1406,15 +1445,14 @@ const XiaoluModule = (() => {
   }
 
   async function _processQuickVoiceText(text) {
-    let token = null;
-    try {
-      const setting = await Storage.get('settings', 'deepseek_token');
-      token = setting ? setting.value : null;
-    } catch (e) {}
+    const token = await getDeepseekToken();
 
     if (!token) {
-      _updateQuickBubbleText('⚠️ 未配置 API Key');
-      setTimeout(_removeQuickBubble, 2000);
+      _updateQuickBubbleText('⚠️ 未配置 API Key，打开面板配置');
+      setTimeout(() => {
+        _removeQuickBubble();
+        open();
+      }, 1500);
       return;
     }
 

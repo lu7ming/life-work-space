@@ -192,20 +192,25 @@ const QuickInput = (() => {
 
   /**
    * 解析用户输入（主入口）
-   * 优先使用 AI，失败则 fallback 到关键词规则
+   * 优先使用关键词规则（零成本），无法匹配时再调用 AI
    */
   async function parseQuickInput(text) {
     if (!text || !text.trim()) return null;
     text = text.trim();
 
-    // 尝试 AI 解析
-    let parsed = await parseWithAI(text);
-    if (parsed && parsed.intent && parsed.intent !== 'unknown') {
+    // 优先尝试关键词规则（零 API 成本，即时返回）
+    let parsed = parseWithKeywords(text);
+    if (parsed && parsed.intent && parsed.intent !== 'unknown' && parsed.intent !== 'journal_entry') {
       return parsed;
     }
 
-    // Fallback 到关键词规则
-    parsed = parseWithKeywords(text);
+    // 关键词无法明确匹配时，尝试 AI 解析
+    const aiParsed = await parseWithAI(text);
+    if (aiParsed && aiParsed.intent && aiParsed.intent !== 'unknown') {
+      return aiParsed;
+    }
+
+    // 最终兜底：返回关键词规则结果（可能是 journal_entry）
     return parsed;
   }
 
@@ -592,6 +597,26 @@ const QuickInput = (() => {
     }
   }
 
+  /**
+   * 仅使用关键词规则解析（不调用 AI API，零成本快速解析）
+   * 供 XiaoluModule 等需要快速判断的场景使用
+   * @param {string} text - 用户输入文本
+   * @returns {Object|null} 解析结果，无法匹配返回 null
+   */
+  function parseKeywordsOnly(text) {
+    if (!text || !text.trim()) return null;
+    text = text.trim();
+    for (const rule of KEYWORD_RULES) {
+      if (rule.keywords.some(kw => text.includes(kw))) {
+        return {
+          intent: rule.intent,
+          params: rule.parse(text)
+        };
+      }
+    }
+    return null;
+  }
+
   // ===== 键盘快捷键 =====
   function handleKeydown(e) {
     // 按 / 键打开（焦点不在输入框时）
@@ -621,6 +646,7 @@ const QuickInput = (() => {
     open,
     close,
     parseQuickInput,
+    parseKeywordsOnly,
     executeQuickInput,
     process: async function(text) {
       const parsed = await parseQuickInput(text);

@@ -28,6 +28,7 @@ const DashboardModule = (() => {
       bindAnnualEvents();
     } catch (err) {
       console.error('[Dashboard] 初始化失败:', err);
+      if (typeof App !== 'undefined') App.showToast('总览加载失败，请刷新重试');
     }
   }
 

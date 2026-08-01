@@ -3,7 +3,7 @@
  * 支持离线缓存，采用缓存优先策略
  */
 
-const CACHE_NAME = 'life-workspace-v24';
+const CACHE_NAME = 'life-workspace-v25';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -15,6 +15,7 @@ const CACHE_ASSETS = [
   './core/app.js',
   './core/router.js',
   './core/storage.js',
+  './core/utils.js',
   './core/notifications.js',
   './core/export.js',
   './core/search.js',

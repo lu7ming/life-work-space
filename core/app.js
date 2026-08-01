@@ -4,6 +4,24 @@
  */
 
 const App = (() => {
+  // 当前活跃的模块引用（用于路由切换时清理）
+  let _activeModule = null;
+
+  /**
+   * 清理当前模块（路由切换前调用）
+   * 防止事件监听器泄漏
+   */
+  function cleanupCurrentModule() {
+    if (_activeModule && typeof _activeModule.destroy === 'function') {
+      try {
+        _activeModule.destroy();
+      } catch (e) {
+        console.warn('[App] 模块清理失败:', e);
+      }
+    }
+    _activeModule = null;
+  }
+
   /**
    * 初始化应用
    */
@@ -150,6 +168,7 @@ const App = (() => {
     
     const handler = routeHandlers[currentRoute];
     if (handler && typeof handler === 'function') {
+      cleanupCurrentModule();
       handler();
     }
   }
@@ -167,12 +186,17 @@ const App = (() => {
       // 加载模块样式（如果未加载过）
       loadModuleCSS('dashboard/dashboard.css');
 
+      // 清理旧模块，防止事件监听器泄漏
+      cleanupCurrentModule();
+
       // 初始化模块逻辑
       if (typeof DashboardModule !== 'undefined' && DashboardModule.init) {
         DashboardModule.init();
+        _activeModule = DashboardModule;
       }
     } catch (err) {
       console.error('[App] 加载总面板失败:', err);
+      if (typeof App !== 'undefined') App.showToast('加载总面板失败，请刷新重试');
       container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
     }
   }
@@ -190,12 +214,17 @@ const App = (() => {
       // 加载模块样式
       loadModuleCSS('habits/habits.css');
 
+      // 清理旧模块，防止事件监听器泄漏
+      cleanupCurrentModule();
+
       // 初始化模块逻辑
       if (typeof HabitsModule !== 'undefined' && HabitsModule.init) {
         HabitsModule.init();
+        _activeModule = HabitsModule;
       }
     } catch (err) {
       console.error('[App] 加载习惯打卡失败:', err);
+      if (typeof App !== 'undefined') App.showToast('加载习惯打卡失败，请刷新重试');
       container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
     }
   }
@@ -213,9 +242,13 @@ const App = (() => {
       // 加载模块样式
       loadModuleCSS('tasks/tasks.css');
 
+      // 清理旧模块，防止事件监听器泄漏
+      cleanupCurrentModule();
+
       // 初始化模块逻辑
       if (typeof TasksModule !== 'undefined' && TasksModule.init) {
         TasksModule.init();
+        _activeModule = TasksModule;
       }
     } catch (err) {
       console.error('[App] 加载任务模块失败:', err);
@@ -232,8 +265,12 @@ const App = (() => {
       const html = await fetchModule('study/study.html');
       container.innerHTML = html;
       loadModuleCSS('study/study.css');
+      // 清理旧模块
+      cleanupCurrentModule();
+
       if (typeof StudyModule !== 'undefined' && StudyModule.init) {
         StudyModule.init();
+        _activeModule = StudyModule;
       }
     } catch (err) {
       console.error('[App] 加载学习模块失败:', err);
@@ -250,8 +287,12 @@ const App = (() => {
       const html = await fetchModule('health/health.html');
       container.innerHTML = html;
       loadModuleCSS('health/health.css');
+      // 清理旧模块
+      cleanupCurrentModule();
+
       if (typeof HealthModule !== 'undefined' && HealthModule.init) {
         HealthModule.init();
+        _activeModule = HealthModule;
       }
     } catch (err) {
       console.error('[App] 加载健康模块失败:', err);
@@ -268,8 +309,12 @@ const App = (() => {
       const html = await fetchModule('finance/finance.html');
       container.innerHTML = html;
       loadModuleCSS('finance/finance.css');
+      // 清理旧模块
+      cleanupCurrentModule();
+
       if (typeof FinanceModule !== 'undefined' && FinanceModule.init) {
         FinanceModule.init();
+        _activeModule = FinanceModule;
       }
     } catch (err) {
       console.error('[App] 加载财务模块失败:', err);
@@ -286,8 +331,12 @@ const App = (() => {
       const html = await fetchModule('journal/journal.html');
       container.innerHTML = html;
       loadModuleCSS('journal/journal.css');
+      // 清理旧模块
+      cleanupCurrentModule();
+
       if (typeof JournalModule !== 'undefined' && JournalModule.init) {
         JournalModule.init();
+        _activeModule = JournalModule;
       }
     } catch (err) {
       console.error('[App] 加载记录与反思模块失败:', err);
@@ -304,8 +353,12 @@ const App = (() => {
       const html = await fetchModule('knowledge/knowledge.html');
       container.innerHTML = html;
       loadModuleCSS('knowledge/knowledge.css');
+      // 清理旧模块
+      cleanupCurrentModule();
+
       if (typeof KnowledgeModule !== 'undefined' && KnowledgeModule.init) {
         KnowledgeModule.init();
+        _activeModule = KnowledgeModule;
       }
     } catch (err) {
       console.error('[App] 加载知识库模块失败:', err);
@@ -322,8 +375,12 @@ const App = (() => {
       const html = await fetchModule('goals/goals.html');
       container.innerHTML = html;
       loadModuleCSS('goals/goals.css');
+      // 清理旧模块
+      cleanupCurrentModule();
+
       if (typeof GoalsModule !== 'undefined' && GoalsModule.init) {
         GoalsModule.init();
+        _activeModule = GoalsModule;
       }
     } catch (err) {
       console.error('[App] 加载目标模块失败:', err);
@@ -340,8 +397,12 @@ const App = (() => {
       const html = await fetchModule('relations/relations.html');
       container.innerHTML = html;
       loadModuleCSS('relations/relations.css');
+      // 清理旧模块
+      cleanupCurrentModule();
+
       if (typeof RelationsModule !== 'undefined' && RelationsModule.init) {
         RelationsModule.init();
+        _activeModule = RelationsModule;
       }
     } catch (err) {
       console.error('[App] 加载关系模块失败:', err);
@@ -358,8 +419,12 @@ const App = (() => {
       const html = await fetchModule('lifetree/lifetree.html');
       container.innerHTML = html;
       loadModuleCSS('lifetree/lifetree.css');
+      // 清理旧模块
+      cleanupCurrentModule();
+
       if (typeof LifeTreeModule !== 'undefined' && LifeTreeModule.init) {
         LifeTreeModule.init();
+        _activeModule = LifeTreeModule;
       }
     } catch (err) {
       console.error('[App] 加载生命树模块失败:', err);
@@ -375,8 +440,12 @@ const App = (() => {
     try {
       const html = await fetchModule('templates/templates.html');
       container.innerHTML = html;
+      // 清理旧模块
+      cleanupCurrentModule();
+
       if (typeof TemplatesModule !== 'undefined' && TemplatesModule.init) {
         TemplatesModule.init();
+        _activeModule = TemplatesModule;
       }
     } catch (err) {
       console.error('[App] 加载模板模块失败:', err);
@@ -532,6 +601,7 @@ const App = (() => {
       updateStreak();
     } catch (err) {
       console.error('[App] 打卡失败:', err);
+      showToast('打卡失败，请重试');
     }
   }
 
@@ -957,7 +1027,8 @@ const App = (() => {
   return {
     init,
     showToast,
-    updateStreak
+    updateStreak,
+    destroy: cleanupCurrentModule
   };
 })();
 

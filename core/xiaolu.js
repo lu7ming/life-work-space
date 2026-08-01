@@ -1134,7 +1134,48 @@ const XiaoluModule = (() => {
 
     addUserMessage(text);
 
-    // 获取 token
+    // ===== 快速路径：QuickInput 关键词匹配（零 API 成本，互斥优先） =====
+    // 如果 QuickInput 关键词规则能明确识别意图，直接执行，不调用 AI
+    if (typeof QuickInput !== 'undefined' && QuickInput.parseKeywordsOnly) {
+      try {
+        const qiParsed = QuickInput.parseKeywordsOnly(text);
+        if (qiParsed && qiParsed.intent && qiParsed.intent !== 'unknown' && qiParsed.intent !== 'journal_entry') {
+          // QuickInput 成功识别，直接构建 actionObj 并执行
+          const toolMap = {
+            'finance_record': { tool: 'record_finance', params: qiParsed.params },
+            'task_create': { tool: 'create_task', params: qiParsed.params },
+            'habit_checkin': { tool: 'habit_log', params: { habit: qiParsed.params.habit_name, status: 'completed' } }
+          };
+          const actionObj = toolMap[qiParsed.intent] || null;
+          if (actionObj) {
+            console.log('[Xiaolu] handleSend: QuickInput 快速路径命中:', qiParsed.intent);
+            const intentLabels = {
+              'finance_record': '💰 记录收支',
+              'task_create': '📋 创建任务',
+              'habit_checkin': '✅ 习惯打卡'
+            };
+            const label = intentLabels[qiParsed.intent] || '操作';
+
+            if (!isAutoConfirm()) {
+              showActionConfirmation(actionObj, label, text);
+            } else {
+              const result = await executeLocalAction(actionObj);
+              const displayReply = result.success ? result.message : '❌ ' + result.message;
+              _chatHistory.push({ role: 'user', content: text });
+              _chatHistory.push({ role: 'assistant', content: displayReply });
+              trimContext();
+              addAIMessage(displayReply);
+            }
+            return; // ← 关键：QuickInput 已处理，不再走 AI 流程
+          }
+        }
+      } catch (e) {
+        console.warn('[Xiaolu] QuickInput 快速路径异常，回退到 AI:', e);
+        // 继续走 AI 路径
+      }
+    }
+
+    // ===== AI 路径：需要获取 token 并调用 DeepSeek API =====
     let token = await getDeepseekToken();
     if (!token) {
       token = await showTokenDialog();
@@ -1153,40 +1194,12 @@ const XiaoluModule = (() => {
     showLoading();
 
     try {
-      // 使用链式意图识别
+      // 使用链式意图识别（3 次 API 调用）
       const reply = await decomposedIntentChain(token, text);
 
-      // 健壮地解析AI回复中的ACTION标签（支持嵌套JSON）
-      let finalReply = reply;
-      let actionObj = null;
-
-      // 先尝试 QuickInput 解析（更可靠：单次API + 关键词降级）
-      if (typeof QuickInput !== 'undefined' && QuickInput.parseQuickInput) {
-        try {
-          const qiParsed = await QuickInput.parseQuickInput(text);
-          if (qiParsed && qiParsed.intent && qiParsed.intent !== 'unknown' && qiParsed.intent !== 'journal_entry') {
-            // QuickInput 识别到可执行意图，直接构建 actionObj
-            const toolMap = {
-              'finance_record': { tool: 'record_finance', params: qiParsed.params },
-              'task_create': { tool: 'create_task', params: qiParsed.params },
-              'habit_checkin': { tool: 'habit_log', params: { habit: qiParsed.params.habit_name, status: 'completed' } }
-            };
-            actionObj = toolMap[qiParsed.intent] || null;
-            if (actionObj) {
-              console.log('[Xiaolu] handleSend: QuickInput 识别到操作:', actionObj);
-              finalReply = ''; // 将由确认卡片展示
-            }
-          }
-        } catch (e) {
-          console.warn('[Xiaolu] handleSend: QuickInput 解析失败:', e);
-        }
-      }
-
-      // 如果 QuickInput 没识别到，尝试从 AI 回复中提取 ACTION 标签
-      if (!actionObj) {
-        actionObj = _extractActionFromReply(reply);
-        finalReply = actionObj ? _removeActionTag(reply) : reply;
-      }
+      // 从 AI 回复中提取 ACTION 标签
+      let actionObj = _extractActionFromReply(reply);
+      let finalReply = actionObj ? _removeActionTag(reply) : reply;
 
       removeLoading();
 

@@ -9,18 +9,20 @@
   <meta name="apple-mobile-web-app-title" content="人生工作台">
   <title>人生工作台</title>
 
+  <!-- 应用版本号（集中管理，升级时只需修改此处和 sw.js） -->
+  <script>window.__APP_VERSION__ = 'v25';</script>
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
 
   <!-- 样式 -->
-  <link rel="stylesheet" href="styles/main.css?v=24">
-  <link rel="stylesheet" href="styles/sidebar.css?v=24">
-  <link rel="stylesheet" href="styles/dashboard.css?v=24">
-  <link rel="stylesheet" href="styles/search.css?v=24">
-  <link rel="stylesheet" href="styles/nicole.css?v=24">
-  <link rel="stylesheet" href="styles/xiaolu.css?v=24">
-  <link rel="stylesheet" href="styles/quickinput.css?v=24">
-  <link rel="stylesheet" href="modules/whitenoise/whitenoise.css?v=24">
+  <link rel="stylesheet" href="styles/main.css?v=25">
+  <link rel="stylesheet" href="styles/sidebar.css?v=25">
+  <link rel="stylesheet" href="styles/dashboard.css?v=25">
+  <link rel="stylesheet" href="styles/search.css?v=25">
+  <link rel="stylesheet" href="styles/nicole.css?v=25">
+  <link rel="stylesheet" href="styles/xiaolu.css?v=25">
+  <link rel="stylesheet" href="styles/quickinput.css?v=25">
+  <link rel="stylesheet" href="modules/whitenoise/whitenoise.css?v=25">
 
   <!-- 防闪白：在页面渲染前立即应用主题 -->
   <script>
@@ -44,8 +46,18 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="modules/rest/rest.css?v=24">
-  <link rel="stylesheet" href="styles/templates.css?v=24">
+  <link rel="stylesheet" href="modules/rest/rest.css?v=25">
+  <link rel="stylesheet" href="styles/templates.css?v=25">
+
+  <!-- 版本号同步：将所有 stylesheet 的版本号参数同步为 __APP_VERSION__ -->
+  <script>
+    (function() {
+      var v = window.__APP_VERSION__ || 'v25';
+      document.querySelectorAll('link[rel="stylesheet"]').forEach(function(l) {
+        l.href = l.href.replace(/\?v=\w+/, '') + '?v=' + v;
+      });
+    })();
+  </script>
 </head>
 <body>
 
@@ -224,32 +236,33 @@
   </div>
 
   <!-- 核心脚本（按依赖顺序加载） -->
-  <script src="core/storage.js?v=24"></script>
-  <script src="core/router.js?v=24"></script>
-  <script src="modules/dashboard/dashboard.js?v=24"></script>
-  <script src="modules/habits/habits.js?v=24"></script>
-  <script src="modules/tasks/tasks.js?v=24"></script>
-  <script src="modules/study/study.js?v=24"></script>
-  <script src="modules/health/health.js?v=24"></script>
-  <script src="modules/finance/finance.js?v=24"></script>
-  <script src="modules/journal/journal.js?v=24"></script>
-  <script src="modules/knowledge/knowledge.js?v=24"></script>
-  <script src="modules/goals/goals.js?v=24"></script>
-  <script src="modules/relations/relations.js?v=24"></script>
-  <script src="modules/lifetree/lifetree.js?v=24"></script>
-  <script src="core/notifications.js?v=24"></script>
-  <script src="core/nicole.js?v=24"></script>
-  <script src="core/xiaolu.js?v=24"></script>
-  <script src="modules/whitenoise/whitenoise.js?v=24"></script>
-  <script src="core/templates.js?v=24"></script>
-  <script src="modules/templates/templates_module.js?v=24"></script>
-  <script src="core/export.js?v=24"></script>
-  <script src="core/search.js?v=24"></script>
-  <script src="core/theme.js?v=24"></script>
-  <script src="core/sync.js?v=24"></script>
-  <script src="core/quickinput.js?v=24"></script>
-  <script src="core/app.js?v=24"></script>
-  <script src="modules/rest/rest.js?v=24"></script>
+  <script src="core/storage.js?v=25"></script>
+  <script src="core/utils.js?v=25"></script>
+  <script src="core/router.js?v=25"></script>
+  <script src="modules/dashboard/dashboard.js?v=25"></script>
+  <script src="modules/habits/habits.js?v=25"></script>
+  <script src="modules/tasks/tasks.js?v=25"></script>
+  <script src="modules/study/study.js?v=25"></script>
+  <script src="modules/health/health.js?v=25"></script>
+  <script src="modules/finance/finance.js?v=25"></script>
+  <script src="modules/journal/journal.js?v=25"></script>
+  <script src="modules/knowledge/knowledge.js?v=25"></script>
+  <script src="modules/goals/goals.js?v=25"></script>
+  <script src="modules/relations/relations.js?v=25"></script>
+  <script src="modules/lifetree/lifetree.js?v=25"></script>
+  <script src="core/notifications.js?v=25"></script>
+  <script src="core/nicole.js?v=25"></script>
+  <script src="core/xiaolu.js?v=25"></script>
+  <script src="modules/whitenoise/whitenoise.js?v=25"></script>
+  <script src="core/templates.js?v=25"></script>
+  <script src="modules/templates/templates_module.js?v=25"></script>
+  <script src="core/export.js?v=25"></script>
+  <script src="core/search.js?v=25"></script>
+  <script src="core/theme.js?v=25"></script>
+  <script src="core/sync.js?v=25"></script>
+  <script src="core/quickinput.js?v=25"></script>
+  <script src="core/app.js?v=25"></script>
+  <script src="modules/rest/rest.js?v=25"></script>
 
 </body>
 </html>

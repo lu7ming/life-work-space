@@ -226,6 +226,7 @@ const HabitsModule = (() => {
 
     } catch (err) {
       console.error('[Habits] 打卡操作失败:', err);
+      if (typeof App !== 'undefined') App.showToast('打卡操作失败，请重试');
     } finally {
       isToggling = false;
     }

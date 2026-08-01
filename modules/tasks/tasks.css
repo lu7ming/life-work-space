@@ -618,8 +618,8 @@
 /* ===== 浮动 "+" 按钮 ===== */
 .tasks-fab {
   position: fixed;
-  bottom: 24px;
-  right: 16px;
+  bottom: 12px;
+  right: 12px;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -916,8 +916,8 @@
     width: 44px;
     height: 44px;
     font-size: 22px;
-    right: 10px;
-    bottom: 16px;
+    right: 8px;
+    bottom: 8px;
   }
 
   .pomodoro-timer-ring {

@@ -4,6 +4,8 @@
  */
 
 const DashboardModule = (() => {
+  const { escapeHtml, getTodayStr } = AppUtils;
+
   // ===== F1: 今日聚焦状态 =====
   let focusTasks = [];          // 当前显示的3个任务
   let focusOffset = 0;          // 换一批的偏移量
@@ -138,11 +140,7 @@ const DashboardModule = (() => {
     }
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
 
   /**
    * 渲染月末复盘提醒卡片
@@ -203,10 +201,10 @@ const DashboardModule = (() => {
 
     // 获取本月打卡日期
     const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
-    let checkinDates = [];
+    let checkinDateSet = new Set();
     try {
       const checkins = await Storage.getByIndex('checkins', 'month', monthStr);
-      checkinDates = checkins.map((c) => parseInt(c.date.split('-')[2]));
+      checkinDateSet = new Set(checkins.map((c) => parseInt(c.date.split('-')[2])));
     } catch (e) { /* 空打卡数据 */ }
 
     // 生成日历格子
@@ -233,7 +231,7 @@ const DashboardModule = (() => {
       dayEl.textContent = day;
 
       if (day === today) dayEl.classList.add('today');
-      if (checkinDates.includes(day)) dayEl.classList.add('checked');
+      if (checkinDateSet.has(day)) dayEl.classList.add('checked');
 
       daysContainer.appendChild(dayEl);
     }
@@ -436,11 +434,16 @@ const DashboardModule = (() => {
       }
     } catch (e) { /* 忽略缓存错误 */ }
 
-    // 2. 获取 DeepSeek API Key
+    // 2. 获取 DeepSeek API Key（优先加密存储）
     let token = null;
     try {
-      const setting = await Storage.get('settings', 'deepseek_token');
-      token = setting ? setting.value : null;
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
+        token = await SecureStorage.loadSecure('deepseek_token');
+      }
+      if (!token) {
+        const setting = await Storage.get('settings', 'deepseek_token');
+        token = setting ? setting.value : null;
+      }
     } catch (e) { /* 无 token */ }
     if (!token) {
       console.log('[Dashboard] 无 DeepSeek token，跳过 AI 推荐');
@@ -649,7 +652,8 @@ ${context}
           const localTasks = await getLocalRecommendations();
           focusTasks = localTasks.slice(focusOffset, focusOffset + 3);
           if (focusTasks.length < 3 && localTasks.length > focusTasks.length) {
-            const remaining = localTasks.filter(t => !focusTasks.includes(t));
+            const focusTaskIds = new Set(focusTasks.map(t => t.id));
+            const remaining = localTasks.filter(t => !focusTaskIds.has(t.id));
             focusTasks = focusTasks.concat(remaining.slice(0, 3 - focusTasks.length));
           }
         }
@@ -679,8 +683,7 @@ ${context}
       const aiBadge = task._aiReason ? `<span class="dash-focus-ai-badge">🤖 ${escapeHtml(task._aiReason)}</span>` : '';
       const checkHtml = task._isNew
         ? `<button class="dash-focus-create-btn" data-task-idx="${idx}" title="创建此任务">➕</button>`
-        : `<input type="checkbox" class="dash-focus-checkbox" data-task-id="${task.id}" id="focus-check-${task.id}">
-           <label for="focus-check-${task.id}"></label>`;
+        : `<input type="checkbox" class="dash-focus-checkbox" data-task-id="${task.id}">`;
       return `
         <div class="dash-focus-item${task._isNew ? ' dash-focus-new' : ''}" data-task-id="${task.id}">
           <div class="dash-focus-check">${checkHtml}</div>
@@ -798,9 +801,10 @@ ${context}
       if (todoTasks.length === 0) {
         listEl.innerHTML = '<div class="dash-modal-empty">暂无待办任务</div>';
       } else {
+        const customFocusIdSet = customFocusIds ? new Set(customFocusIds) : null;
         listEl.innerHTML = todoTasks.map(task => `
           <label class="dash-modal-task-item">
-            <input type="checkbox" data-task-id="${task.id}" ${customFocusIds && customFocusIds.includes(task.id) ? 'checked' : ''}>
+            <input type="checkbox" data-task-id="${task.id}" ${customFocusIdSet && customFocusIdSet.has(task.id) ? 'checked' : ''}>
             <span class="dash-modal-task-name">${escapeHtml(task.title || '未命名任务')}</span>
             ${task.dueDate ? `<span class="dash-modal-task-due">${task.dueDate.slice(5)}</span>` : ''}
           </label>
@@ -988,6 +992,23 @@ ${context}
       console.error('[Dashboard] 年度回顾加载失败:', err);
       bodyEl.innerHTML = '<div class="dash-annual-loading">加载失败，请重试</div>';
     }
+  }
+
+
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[DashboardModule] 模块已销毁');
   }
 
   return { init, showAnnualReview };

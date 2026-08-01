@@ -25,64 +25,36 @@ const NicoleModule = (() => {
   let _conversationId = null; // 维持会话上下文
   let _pipelineRunning = false; // 防止流水线重复执行
 
-  // ===== 工具函数 =====
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
+  // ===== AppUtils 快捷引用 =====
+  const { escapeHtml, markdownToHtml, getTodayStr, getWeekRange } = AppUtils;
+
+  // ===== 模块生命周期管理 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
   }
 
-  /**
-   * 简单 Markdown 转 HTML（处理代码块、加粗、换行等）
-   */
-  function markdownToHtml(text) {
-    if (!text) return '';
-    let html = escapeHtml(text);
-
-    // 代码块 ```...```
-    html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-      return `<pre><code>${code.trim()}</code></pre>`;
-    });
-
-    // 行内代码 `...`
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-    // 加粗 **...**
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-    // 换行
-    html = html.replace(/\n/g, '<br>');
-
-    return html;
-  }
-
-  /**
-   * 获取今天日期字符串 YYYY-MM-DD
-   */
-  function getTodayStr() {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  }
-
-  /**
-   * 获取本周起止日期（周一到周日）
-   */
-  function getWeekRange() {
-    const now = new Date();
-    const day = now.getDay() || 7;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - day + 1);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    return {
-      start: monday.toISOString().slice(0, 10),
-      end: sunday.toISOString().slice(0, 10)
-    };
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    _conversationId = null;
+    close();
+    console.log('[Nicole] 模块已销毁');
   }
 
   // ===== Token 管理 =====
   async function getCozeToken() {
     try {
+      // 优先使用加密存储
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
+        const token = await SecureStorage.loadSecure('coze_token');
+        return token;
+      }
+      // 回退到明文读取
       const setting = await Storage.get('settings', 'coze_token');
       return setting ? setting.value : null;
     } catch (err) {
@@ -93,6 +65,12 @@ const NicoleModule = (() => {
 
   async function saveCozeToken(token) {
     try {
+      // 优先使用加密存储
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.saveSecure) {
+        await SecureStorage.saveSecure('coze_token', token);
+        return;
+      }
+      // 回退到明文存储
       await Storage.put('settings', { key: 'coze_token', value: token });
     } catch (err) {
       console.error('[Nicole] 保存 token 失败:', err);
@@ -643,8 +621,10 @@ ${dataSummary}`;
     };
 
     // 关联规则1：健康下降 + 任务完成率下降 → "状态低迷"
-    const healthBad = ['异常', '趋势下滑'].includes(getLabel('health'));
-    const taskBad = ['异常', '需要关注', '趋势下滑'].includes(getLabel('tasks'));
+    const healthBadSet = new Set(['异常', '趋势下滑']);
+    const taskBadSet = new Set(['异常', '需要关注', '趋势下滑']);
+    const healthBad = healthBadSet.has(getLabel('health'));
+    const taskBad = taskBadSet.has(getLabel('tasks'));
     if (healthBad && taskBad) {
       clusters.push({
         id: 'state-low',
@@ -658,7 +638,8 @@ ${dataSummary}`;
     }
 
     // 关联规则2：支出增加 + 收入不变 → "财务压力"
-    const financeBad = ['异常', '需要关注'].includes(getLabel('finance'));
+    const financeBadSet = new Set(['异常', '需要关注']);
+    const financeBad = financeBadSet.has(getLabel('finance'));
     if (financeBad) {
       clusters.push({
         id: 'finance-pressure',
@@ -672,8 +653,10 @@ ${dataSummary}`;
     }
 
     // 关联规则3：习惯断签 + 目标停滞 → "动力不足"
-    const habitBad = ['异常', '需要关注'].includes(getLabel('habits'));
-    const goalBad = ['异常', '趋势下滑'].includes(getLabel('goals'));
+    const habitBadSet = new Set(['异常', '需要关注']);
+    const goalBadSet = new Set(['异常', '趋势下滑']);
+    const habitBad = habitBadSet.has(getLabel('habits'));
+    const goalBad = goalBadSet.has(getLabel('goals'));
     if (habitBad && goalBad) {
       clusters.push({
         id: 'motivation-low',
@@ -687,7 +670,8 @@ ${dataSummary}`;
     }
 
     // 关联规则4：番茄钟不足 + 任务逾期 → "专注力不足"
-    const pomoBad = ['需要关注'].includes(getLabel('pomodoros'));
+    const pomoBadSet = new Set(['需要关注']);
+    const pomoBad = pomoBadSet.has(getLabel('pomodoros'));
     if (pomoBad && taskBad) {
       clusters.push({
         id: 'focus-low',
@@ -701,7 +685,8 @@ ${dataSummary}`;
     }
 
     // 关联规则5：没有写日记 + 习惯断签 → "反思缺失"
-    const journalBad = ['需要关注'].includes(getLabel('journal'));
+    const journalBadSet = new Set(['需要关注']);
+    const journalBad = journalBadSet.has(getLabel('journal'));
     if (journalBad && habitBad) {
       clusters.push({
         id: 'reflection-missing',
@@ -1416,6 +1401,7 @@ ${clusterText}`;
     open,
     close,
     runDailyPipeline,
-    loadCachedInsight
+    loadCachedInsight,
+    destroy
   };
 })();

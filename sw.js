@@ -16,6 +16,7 @@ const CACHE_ASSETS = [
   './core/router.js',
   './core/storage.js',
   './core/utils.js',
+  './core/secure-storage.js',
   './core/notifications.js',
   './core/export.js',
   './core/search.js',

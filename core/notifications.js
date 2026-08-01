@@ -16,12 +16,7 @@ const NotificationEngine = (() => {
   let _paused = false;
 
   // ===== 工具函数 =====
-  function formatDate(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
+
 
   function formatTimeHM(date) {
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -38,11 +33,7 @@ const NotificationEngine = (() => {
     return jsDay === 0 ? 0 : jsDay; // 0=周日, 1=周一...6=周六
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
 
   // ===== 通知持久化 =====
   async function addNotification(notif) {
@@ -343,14 +334,14 @@ const NotificationEngine = (() => {
       // 1. 习惯模块：连续打卡天数
       const allCheckins = await Storage.getAll('checkins');
       if (allCheckins.length > 0) {
-        const dates = allCheckins.map(c => c.date).sort().reverse();
+        const dateSet = new Set(allCheckins.map(c => c.date).sort().reverse());
         let streak = 0;
         const now = new Date();
         for (let i = 0; i < 365; i++) {
           const d = new Date(now);
           d.setDate(d.getDate() - i);
           const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-          if (dates.includes(ds)) { streak++; }
+          if (dateSet.has(ds)) { streak++; }
           else { if (i === 0) continue; break; }
         }
         if (streak >= 3) {

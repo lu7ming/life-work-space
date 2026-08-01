@@ -95,7 +95,24 @@ const QuickInput = (() => {
       parse: (text) => {
         let name = text.replace(/打卡|坚持|完成|做了|今天/g, '').trim();
         if (!name) name = text.trim();
-        return { habit_name: name };
+      
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[Unknown] 模块已销毁');
+  }
+
+  return { habit_name: name };
       }
     },
     {
@@ -114,56 +131,21 @@ const QuickInput = (() => {
    * 支持：零一二三四五六七八九十百千万亿，以及两(=2)
    * 示例："三百" → 300, "一千五" → 1500, "两万" → 20000, "十五块" → 15
    */
-  function parseChineseNumber(text) {
-    if (!text) return null;
-    const digitMap = { '零': 0, '〇': 0, '一': 1, '二': 2, '两': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10, '百': 100, '千': 1000, '万': 10000, '亿': 100000000 };
-    // 提取中文字符序列
-    const chineseNum = text.match(/[零〇一两二三四五六七八九十百千万亿]+/);
-    if (!chineseNum) return null;
-    const str = chineseNum[0];
-    // 特殊处理：单独的"十"表示10，"十几"表示10+几
-    let result = 0;
-    let temp = 0;
-    let hasDigit = false;
-    for (let i = 0; i < str.length; i++) {
-      const val = digitMap[str[i]];
-      if (val === undefined) continue;
-      if (val >= 10000) {
-        // 万/亿：把前面的累积乘上去
-        temp = temp === 0 ? 1 : temp;
-        result += temp * val;
-        temp = 0;
-      } else if (val >= 10) {
-        // 十/百/千
-        if (temp === 0) temp = 1; // 如 "三百" 中 "三" 后面是 "百"
-        temp = temp * val;
-      } else {
-        // 数字 0-9
-        temp += val;
-        hasDigit = true;
-      }
-    }
-    if (!hasDigit && temp === 0 && str === '十') return 10;
-    result += temp;
-    return result || null;
-  }
+  const parseChineseNumber = AppUtils.parseChineseNumber;
 
-  function formatDate(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
+
 
   // ===== DeepSeek Token =====
   async function getDeepseekToken() {
     try {
+      // 优先使用加密存储
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
+        const token = await SecureStorage.loadSecure('deepseek_token');
+        return token;
+      }
+      // 回退到明文读取
       const setting = await Storage.get('settings', 'deepseek_token');
       return setting ? setting.value : null;
     } catch (err) {

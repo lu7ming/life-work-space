@@ -293,10 +293,6 @@
   cursor: pointer;
 }
 
-.dash-focus-check label {
-  display: none;
-}
-
 .dash-focus-info {
   flex: 1;
   min-width: 0;

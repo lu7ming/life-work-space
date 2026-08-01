@@ -2,7 +2,7 @@
  * xiaolu.js - 小鹿AI伙伴
  * 人生工作台 · 基于 DeepSeek API 的 AI 对话功能
  * 小鹿定位：幽默轻松的 AI 伙伴，负责日常聊天、灵感整理、按需分析
- * v3.0 - 新增链式意图识别(Decomposed LLM) + 本地操作确认机制
+ * v4.0 - AI智能化升级：ContextTracker多轮对话 + FuzzyIntent + EmotionAnalyzer + 扩展关键词 + AIOrchestrator协作 + AuditLog审计
  */
 
 const XiaoluModule = (() => {
@@ -123,67 +123,26 @@ const XiaoluModule = (() => {
   let _voiceFinalTranscript = '';
   let _voiceInterimTranscript = '';
 
-  // ===== 工具函数 =====
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
+  // ===== AppUtils 快捷引用 =====
+  const { escapeHtml, safeParseJSON, getTodayStr, markdownToHtml } = AppUtils;
+
+  // ===== 模块生命周期管理 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
   }
 
-  /**
-   * 简单 Markdown 转 HTML（处理代码块、加粗、列表、换行等）
-   */
-  function markdownToHtml(text) {
-    if (!text) return '';
-    let html = escapeHtml(text);
-
-    // 代码块 ```...```
-    html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-      return `<pre><code>${code.trim()}</code></pre>`;
-    });
-
-    // 行内代码 `...`
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-    // 加粗 **...**
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-    // 无序列表 - item
-    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>\n?)+/g, (match) => {
-      return `<ul>${match}</ul>`;
-    });
-
-    // 有序列表 1. item
-    html = html.replace(/^\d+\.\s(.+)$/gm, '<li>$1</li>');
-
-    // 换行
-    html = html.replace(/\n/g, '<br>');
-
-    return html;
-  }
-
-  /**
-   * 安全解析 JSON，失败返回 null
-   */
-  function safeParseJSON(str) {
-    try {
-      // 尝试提取 JSON 部分（LLM 有时输出多余文字）
-      const match = str.match(/\{[\s\S]*\}/);
-      if (match) {
-        return JSON.parse(match[0]);
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /**
-   * 获取今天的日期字符串
-   */
-  function getTodayStr() {
-    return new Date().toISOString().slice(0, 10);
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    ContextTracker.clear();
+    _chatHistory = [];
+    close();
+    console.log('[Xiaolu] 模块已销毁');
   }
 
   /**
@@ -200,6 +159,12 @@ const XiaoluModule = (() => {
   // ===== Token 管理 =====
   async function getDeepseekToken() {
     try {
+      // 优先使用加密存储
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
+        const token = await SecureStorage.loadSecure('deepseek_token');
+        return token;
+      }
+      // 回退到明文读取
       const setting = await Storage.get('settings', 'deepseek_token');
       return setting ? setting.value : null;
     } catch (err) {
@@ -210,6 +175,12 @@ const XiaoluModule = (() => {
 
   async function saveDeepseekToken(token) {
     try {
+      // 优先使用加密存储
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.saveSecure) {
+        await SecureStorage.saveSecure('deepseek_token', token);
+        return;
+      }
+      // 回退到明文存储
       await Storage.put('settings', { key: 'deepseek_token', value: token });
     } catch (err) {
       console.error('[Xiaolu] 保存 token 失败:', err);
@@ -407,10 +378,20 @@ const XiaoluModule = (() => {
   async function decomposedIntentChain(token, userMessage) {
     const today = getTodayStr();
 
+    // 多轮对话上下文增强
+    const augmentedMessage = ContextTracker.getAugmentedMessage(userMessage);
+
+    // 情感分析
+    const emotionScore = EmotionAnalyzer.analyze(userMessage);
+    const emotionStrategy = EmotionAnalyzer.getResponseStrategy(emotionScore);
+
+    // 共享知识上下文
+    const sharedContext = typeof SharedKnowledge !== 'undefined' ? SharedKnowledge.getContextForPrompt('xiaolu') : '';
+
     // --- 第一跳：意图分类 ---
     let intent = 'chat'; // 默认
     try {
-      const classifyPrompt = INTENT_CLASSIFY_PROMPT.replace('{message}', userMessage);
+      const classifyPrompt = INTENT_CLASSIFY_PROMPT.replace('{message}', augmentedMessage);
       const step1Messages = [
         { role: 'system', content: '你是意图分类器，只输出JSON，不输出其他内容。' },
         { role: 'user', content: classifyPrompt }
@@ -418,8 +399,8 @@ const XiaoluModule = (() => {
       const step1Result = await callDeepSeekStep(token, step1Messages, { temperature: 0, max_tokens: 50 });
       const parsed = safeParseJSON(step1Result);
       if (parsed && parsed.intent) {
-        const validIntents = ['finance_record', 'task_create', 'chat', 'habit_log', 'unknown'];
-        if (validIntents.includes(parsed.intent)) {
+        const validIntents = new Set(['finance_record', 'task_create', 'chat', 'habit_log', 'unknown']);
+        if (validIntents.has(parsed.intent)) {
           intent = parsed.intent;
         }
       }
@@ -462,8 +443,11 @@ const XiaoluModule = (() => {
       const replyPrompt = REPLY_GENERATE_PROMPT
         .replace('{intent}', intent)
         .replace('{params}', JSON.stringify(extractedParams || {}))
-        .replace('{message}', userMessage)
-        .replace('{action_instruction}', actionInstruction);
+        .replace('{message}', augmentedMessage)
+        .replace('{action_instruction}', actionInstruction)
+        + (sharedContext ? '\n\n共享上下文：' + sharedContext : '')
+        + (emotionStrategy === 'comfort' ? '\n用户情绪低落，语气要温暖关心。' : '')
+        + (emotionStrategy === 'celebrate' ? '\n用户情绪很好，一起开心！' : '');
 
       const step3Messages = [
         { role: 'system', content: '你是小鹿，幽默轻松的AI伙伴。' },
@@ -1118,6 +1102,147 @@ const XiaoluModule = (() => {
     return { success: false, message: `未知工具：${tool}` };
   }
 
+  // ===== 扩展本地意图规则（零 API 成本） =====
+
+  /**
+   * 本地意图匹配器：覆盖高频场景，避免 API 调用
+   * 返回 { type, reply, actionObj?, route? } 或 null
+   */
+  function matchLocalIntent(text) {
+    if (!text) return null;
+
+    // --- 周报/月报生成 ---
+    if (/周报|周总结|本周总结|这周怎么样|一周回顾/.test(text)) {
+      return {
+        type: 'report_weekly',
+        reply: '📊 好的，我帮你生成本周周报！正在跳转到模板页面... 🦌',
+        route: 'templates'
+      };
+    }
+    if (/月报|月总结|本月总结|这个月怎么样|月度回顾/.test(text)) {
+      return {
+        type: 'report_monthly',
+        reply: '📊 好的，我帮你生成本月月报！正在跳转到模板页面... 🦌',
+        route: 'templates'
+      };
+    }
+
+    // --- 数据查询 ---
+    if (/花了多少|支出多少|本月消费|这个月花了|消费多少|花了.*钱/.test(text)) {
+      return {
+        type: 'query_finance',
+        reply: '💰 帮你打开财务页面查看支出详情！ 🦌',
+        route: 'finance'
+      };
+    }
+    if (/做了多少|完成几个|任务进度|还有多少任务|待办多少/.test(text)) {
+      return {
+        type: 'query_tasks',
+        reply: '📋 帮你打开任务页面查看进度！ 🦌',
+        route: 'tasks'
+      };
+    }
+    if (/连续几天|打卡几天|坚持多久|打卡情况|习惯怎么样/.test(text)) {
+      return {
+        type: 'query_habits',
+        reply: '✅ 帮你打开习惯页面查看打卡情况！ 🦌',
+        route: 'habits'
+      };
+    }
+    if (/本月收入|收入多少|赚了|工资/.test(text)) {
+      return {
+        type: 'query_income',
+        reply: '💰 帮你打开财务页面查看收入详情！ 🦌',
+        route: 'finance'
+      };
+    }
+    if (/目标.*进度|目标怎么样|完成了多少目标/.test(text)) {
+      return {
+        type: 'query_goals',
+        reply: '🎯 帮你打开目标页面查看进度！ 🦌',
+        route: 'goals'
+      };
+    }
+
+    // --- 设置操作 ---
+    if (/设置预算|改预算|预算多少|调整预算/.test(text)) {
+      return {
+        type: 'setting_budget',
+        reply: '⚙️ 帮你打开财务页面，可以在那里设置预算！ 🦌',
+        route: 'finance'
+      };
+    }
+    if (/改名字|换个名字|名字改成|修改用户名/.test(text)) {
+      return {
+        type: 'setting_username',
+        reply: '好的！目前你可以在设置中修改用户名，我帮你跳转～ 🦌'
+      };
+    }
+
+    // --- 提醒操作 ---
+    if (/提醒我|别忘了|到时间了|该.*了/.test(text) && !/打卡|记录|记|花|买/.test(text)) {
+      // 避免和 QuickInput 的任务/财务规则冲突
+      return {
+        type: 'reminder_create',
+        reply: '⏰ 收到提醒！建议你创建一个待办任务来跟踪，这样就不会忘了 🦌',
+        route: 'tasks'
+      };
+    }
+
+    // --- 快捷导航 ---
+    if (/打开.*日记|去日记|写日记/.test(text)) {
+      return {
+        type: 'nav_journal',
+        reply: '📝 帮你打开日记页面！ 🦌',
+        route: 'journal'
+      };
+    }
+    if (/打开.*健康|去健康|记录健康|健康数据/.test(text)) {
+      return {
+        type: 'nav_health',
+        reply: '💪 帮你打开健康页面！ 🦌',
+        route: 'health'
+      };
+    }
+    if (/打开.*学习|去学习|学习记录/.test(text)) {
+      return {
+        type: 'nav_study',
+        reply: '📚 帮你打开学习页面！ 🦌',
+        route: 'study'
+      };
+    }
+    if (/打开.*关系|去关系|联系人/.test(text)) {
+      return {
+        type: 'nav_relations',
+        reply: '🤝 帮你打开关系页面！ 🦌',
+        route: 'relations'
+      };
+    }
+    if (/打开.*知识|去知识|知识库/.test(text)) {
+      return {
+        type: 'nav_knowledge',
+        reply: '📖 帮你打开知识库！ 🦌',
+        route: 'knowledge'
+      };
+    }
+    if (/打开.*人生树|人生树|生命之花/.test(text)) {
+      return {
+        type: 'nav_lifetree',
+        reply: '🌳 帮你打开人生树！ 🦌',
+        route: 'lifetree'
+      };
+    }
+    if (/回家|首页|总览|打开总览/.test(text)) {
+      return {
+        type: 'nav_dashboard',
+        reply: '🏠 帮你回到首页！ 🦌',
+        route: 'dashboard'
+      };
+    }
+
+    return null; // 未匹配到本地规则，走 AI 路径
+  }
+
   // ===== 交互逻辑 =====
 
   async function handleSend() {
@@ -1171,6 +1296,38 @@ const XiaoluModule = (() => {
       }
     }
 
+    // ===== 扩展本地意图规则（零 API 成本，覆盖高频场景） =====
+    const localIntent = matchLocalIntent(text);
+    if (localIntent) {
+      console.log('[Xiaolu] handleSend: 本地意图规则命中:', localIntent.type);
+      _chatHistory.push({ role: 'user', content: text });
+      _chatHistory.push({ role: 'assistant', content: localIntent.reply });
+      trimContext();
+      addAIMessage(localIntent.reply);
+
+      // 如果是可执行操作，也执行它
+      if (localIntent.actionObj) {
+        const result = await executeLocalAction(localIntent.actionObj);
+        if (result.success) {
+          addAIMessage(result.message);
+          _chatHistory.push({ role: 'assistant', content: result.message });
+          if (result.undoInfo) {
+            _appendUndoButton(result.undoInfo, localIntent.actionObj.tool);
+          }
+        }
+      }
+
+      // 如果需要导航，执行路由跳转
+      if (localIntent.route) {
+        setTimeout(() => {
+          if (typeof Router !== 'undefined' && Router.navigate) {
+            Router.navigate(localIntent.route);
+          }
+        }, 500);
+      }
+      return; // ← 本地意图已处理，不再走 AI 流程
+    }
+
     // ===== AI 路径：需要获取 token 并调用 DeepSeek API =====
     let token = await getDeepseekToken();
     if (!token) {
@@ -1204,8 +1361,26 @@ const XiaoluModule = (() => {
         const result = await executeLocalAction(actionObj);
         if (result.success) {
           finalReply += '\n\n' + result.message;
+          // 更新上下文追踪器
+          ContextTracker.update(actionObj.tool, actionObj.params);
+          // 通知 AIOrchestrator（更新妮可洞察缓存）
+          if (typeof AIOrchestrator !== 'undefined') AIOrchestrator.notifyAction(actionObj.tool, result);
+          // 写入审计日志
+          if (typeof AuditLog !== 'undefined') AuditLog.log({
+            type: 'ai_' + actionObj.tool,
+            source: 'xiaolu',
+            params: actionObj.params,
+            result: 'success',
+            confirmed: true
+          });
         } else {
           finalReply += '\n\n❌ 操作失败：' + result.message;
+          if (typeof AuditLog !== 'undefined') AuditLog.log({
+            type: 'ai_' + actionObj.tool,
+            source: 'xiaolu',
+            params: actionObj.params,
+            result: 'failed'
+          });
         }
         _chatHistory.push({ role: 'user', content: text });
         _chatHistory.push({ role: 'assistant', content: finalReply });
@@ -1697,6 +1872,7 @@ const XiaoluModule = (() => {
     init,
     open,
     close,
-    quickVoiceInput
+    quickVoiceInput,
+    destroy
   };
 })();

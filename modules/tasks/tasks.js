@@ -3,6 +3,8 @@
  * 人生工作台 · 任务管理 + 项目追踪 + 番茄钟
  */
 const TasksModule = (() => {
+  const { escapeHtml, formatDate, formatTime } = AppUtils;
+
   // ===== 常量 =====
   const PRIORITY_CONFIG = {
     A: { label: '紧急重要', color: '#E74C3C' },
@@ -34,12 +36,7 @@ const TasksModule = (() => {
   };
 
   // ===== 工具函数 =====
-  function formatDate(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
+
 
   function formatDisplayDate(dateStr) {
     if (!dateStr) return '';
@@ -992,6 +989,8 @@ const TasksModule = (() => {
     bindWeeklyEvents();
     loadData().then(() => {
       renderAll();
+      // 确保 pomodoro 显示与当前状态同步（路由切换后恢复）
+      updatePomodoroDisplay();
     });
   }
 

@@ -77,6 +77,13 @@ const App = (() => {
       NotificationEngine.init();
     }
 
+    // 9.1 页面卸载时清理通知引擎定时器，防止内存泄漏
+    window.addEventListener('beforeunload', () => {
+      if (typeof NotificationEngine !== 'undefined' && NotificationEngine.destroy) {
+        NotificationEngine.destroy();
+      }
+    });
+
     // 9.5 初始化白噪音模块
     if (typeof WhiteNoiseModule !== 'undefined') {
       WhiteNoiseModule.init();

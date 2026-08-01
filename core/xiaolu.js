@@ -1482,20 +1482,20 @@ const XiaoluModule = (() => {
    */
   async function _parseAndConfirmVoice(text) {
     try {
-      // 先用 QuickInput 解析
+      // 第一步：先用关键词解析（零API成本，即时响应）
       let parsed = null;
-      if (typeof QuickInput !== 'undefined' && QuickInput.parseQuickInput) {
-        parsed = await QuickInput.parseQuickInput(text);
-        console.log('[Xiaolu] 语音 QuickInput 解析结果:', parsed);
+      if (typeof QuickInput !== 'undefined' && QuickInput.parseKeywordsOnly) {
+        parsed = QuickInput.parseKeywordsOnly(text);
+        console.log('[Xiaolu] 语音关键词解析结果:', parsed);
       }
 
+      // 第二步：关键词命中了可执行意图，直接执行
       if (parsed && parsed.intent && parsed.intent !== 'unknown' && parsed.intent !== 'journal_entry') {
-        // 有可执行的操作，直接执行 + 15分钟可撤销
         _executeVoiceWithUndo(text, parsed);
         return;
       }
 
-      // 无可执行操作，走聊天流程
+      // 第三步：关键词没命中，走 AI 聊天流程（链式意图识别）
       _processQuickVoiceText(text, parsed);
     } catch (err) {
       console.error('[Xiaolu] 语音解析失败:', err);

@@ -1363,7 +1363,7 @@ const XiaoluModule = (() => {
           interim += event.results[i][0].transcript;
         }
       }
-      _quickText = final;
+      _quickText = final || interim; // 同时捕获 interim，避免松手时 final 尚未就绪导致文字丢失
       _updateQuickBubbleText(final || interim || '🎤 正在录音... 松手发送 / 滑出取消');
     };
 
@@ -1463,143 +1463,37 @@ const XiaoluModule = (() => {
       _quickRecognition = null;
     }
 
-    const text = _quickText.trim();
-    if (!text) {
-      _updateQuickBubbleText('没有听清，请重试');
-      setTimeout(_removeQuickBubble, 1500);
-      return;
-    }
-
-    // 关闭语音气泡
-    _removeQuickBubble();
-
-    // 打开面板（如果还没打开）
-    if (!_isOpen) {
-      open();
-    }
-
-    // 将文字填入输入框
-    if (inputEl) {
-      inputEl.value = text;
-      inputEl.style.height = 'auto';
-      inputEl.style.height = inputEl.scrollHeight + 'px';
-    }
-
-    // 自动发送
+    // 短暂延迟，让 onresult 有机会更新 final 结果
     setTimeout(() => {
-      handleSend();
-    }, 300);
-  }
+      const text = _quickText.trim();
+      _quickText = '';
 
-  /**
-   * 语音解析后显示确认界面（类似 QuickInput 面板的确认/取消）
-   */
-  async function _parseAndConfirmVoice(text) {
-    console.log('[Xiaolu] _parseAndConfirmVoice 开始处理:', text);
-    try {
-      // 第一步：先用关键词解析（零API成本，即时响应）
-      let parsed = null;
-      if (typeof QuickInput !== 'undefined' && QuickInput.parseKeywordsOnly) {
-        parsed = QuickInput.parseKeywordsOnly(text);
-        console.log('[Xiaolu] 语音关键词解析结果:', JSON.stringify(parsed));
-      } else {
-        console.warn('[Xiaolu] QuickInput 或 parseKeywordsOnly 不可用');
-      }
-
-      // 第二步：关键词命中了可执行意图，直接执行
-      if (parsed && parsed.intent && parsed.intent !== 'unknown' && parsed.intent !== 'journal_entry') {
-        console.log('[Xiaolu] 关键词命中，执行操作:', parsed.intent);
-        await _executeVoiceWithUndo(text, parsed);
+      if (!text) {
+        _updateQuickBubbleText('没有听清，请重试');
+        setTimeout(_removeQuickBubble, 1500);
         return;
       }
 
-      console.log('[Xiaolu] 关键词未命中，走 AI 聊天流程');
-      // 第三步：关键词没命中，走 AI 聊天流程（链式意图识别）
-      _processQuickVoiceText(text, parsed);
-    } catch (err) {
-      console.error('[Xiaolu] 语音解析失败:', err);
-      _updateQuickBubbleText('❌ 解析失败，请重试');
-      if (typeof App !== 'undefined') App.showToast('❌ 解析失败');
-      setTimeout(_removeQuickBubble, 2000);
-    }
-  }
+      // 关闭语音气泡
+      _removeQuickBubble();
 
-  /**
-   * 执行语音操作并支持 15 分钟内撤销
-   */
-  async function _executeVoiceWithUndo(text, parsed) {
-    console.log('[Xiaolu] _executeVoiceWithUndo 开始执行:', parsed.intent, JSON.stringify(parsed.params));
-    try {
-      const result = await QuickInput.executeQuickInput(parsed);
-      console.log('[Xiaolu] 语音执行结果:', JSON.stringify(result));
-
-      const iconMap = { 'finance_record': '💰', 'task_create': '📋', 'habit_checkin': '✅', 'pomodoro_start': '🍅' };
-      const icon = iconMap[parsed.intent] || '✅';
-      const msg = icon + ' ' + (result.message || '已完成');
-
-      // 构建撤销信息
-      _undoCounter++;
-      const undoId = _undoCounter;
-      const now = Date.now();
-      const UNDO_WINDOW = 15 * 60 * 1000; // 15 分钟
-
-      let undoInfo = {
-        undoId,
-        intent: parsed.intent,
-        timestamp: now,
-        expiresAt: now + UNDO_WINDOW
-      };
-
-      // 根据意图类型存储撤销所需信息
-      switch (parsed.intent) {
-        case 'finance_record':
-          undoInfo.storeName = 'finance';
-          undoInfo.recordKey = result.data.id;
-          break;
-        case 'task_create':
-          undoInfo.storeName = 'tasks';
-          undoInfo.recordKey = result.data.id;
-          break;
-        case 'pomodoro_start':
-          undoInfo.storeName = 'pomodoros';
-          undoInfo.recordKey = result.data.id;
-          break;
-        case 'habit_checkin':
-          undoInfo.storeName = 'checkins';
-          undoInfo.recordKey = result.data.date; // checkins 表以日期为 key
-          undoInfo.previousHabits = result.data.previousHabits || [];
-          undoInfo.month = result.data.date ? result.data.date.substring(0, 7) : '';
-          break;
+      // 打开面板（如果还没打开）
+      if (!_isOpen) {
+        open();
       }
 
-      // 15 分钟后自动过期，移除撤销按钮
-      const timerId = setTimeout(() => {
-        _removeUndoOption(undoId);
-      }, UNDO_WINDOW);
-      undoInfo.timerId = timerId;
+      // 将文字填入输入框
+      if (inputEl) {
+        inputEl.value = text;
+        inputEl.style.height = 'auto';
+        inputEl.style.height = inputEl.scrollHeight + 'px';
+      }
 
-      _undoStack.push(undoInfo);
-
-      // 显示结果 + 撤销按钮
-      _showUndoBubble(msg, undoId, parsed.intent);
-
-      if (typeof App !== 'undefined') App.showToast(msg, 3000);
-
-      _chatHistory.push({ role: 'user', content: text });
-      _chatHistory.push({ role: 'assistant', content: result.message });
-      trimContext();
-
-      _refreshAfterAction(parsed.intent);
-
-      // 3秒后气泡自动消失（撤销按钮在15分钟内仍可通过通知恢复）
-      setTimeout(_removeQuickBubble, 4000);
-    } catch (err) {
-      console.error('[Xiaolu] 语音执行失败:', err);
-      const errMsg = '❌ ' + (err.message || '执行失败');
-      _updateQuickBubbleText(errMsg);
-      if (typeof App !== 'undefined') App.showToast(errMsg, 3000);
-      setTimeout(_removeQuickBubble, 3000);
-    }
+      // 自动发送（走 handleSend 完整流程：关键词解析 → AI 聊天）
+      setTimeout(() => {
+        handleSend();
+      }, 300);
+    }, 300);
   }
 
   /**
@@ -1650,30 +1544,6 @@ const XiaoluModule = (() => {
         _performUndo(undoId);
       });
       lastMsg.appendChild(undoDiv);
-    }
-  }
-
-  /**
-   * 显示带撤销按钮的气泡
-   */
-  function _showUndoBubble(msg, undoId, intent) {
-    if (_quickBubble) {
-      const textEl = _quickBubble.querySelector('.xiaolu-quick-bubble-text');
-      if (textEl) {
-        textEl.innerHTML = `
-          <div style="font-size:15px;font-weight:500;margin-bottom:8px;">${msg}</div>
-          <div style="text-align:right;">
-            <button id="voice-undo-${undoId}" style="padding:5px 14px;border-radius:8px;border:1px solid var(--border-light,#C8AD94);background:transparent;color:var(--text-muted,#8a7a6d);font-size:12px;cursor:pointer;">↩️ 撤销</button>
-            <span id="voice-undo-hint-${undoId}" style="font-size:11px;color:var(--text-muted,#8a7a6d);margin-left:6px;">15分钟内可撤销</span>
-          </div>
-        `;
-        const undoBtn = document.getElementById(`voice-undo-${undoId}`);
-        if (undoBtn) {
-          undoBtn.addEventListener('click', () => {
-            _performUndo(undoId);
-          });
-        }
-      }
     }
   }
 
@@ -1821,53 +1691,6 @@ const XiaoluModule = (() => {
     };
     const fn = map[intentOrTool];
     if (fn) { try { fn(); } catch (e) { console.warn('[Xiaolu] 刷新模块失败:', e); } }
-  }
-
-  async function _processQuickVoiceText(text, preParsed) {
-    const token = await getDeepseekToken();
-
-    if (!token) {
-      _updateQuickBubbleText('⚠️ 未配置 API Key，打开面板配置');
-      setTimeout(() => {
-        _removeQuickBubble();
-        open();
-      }, 1500);
-      return;
-    }
-
-    // 显示识别到的文字 + 处理中
-    _updateQuickBubbleText('💭 ' + text + '\n⏳ 思考中...');
-
-    try {
-      // ===== 走小鹿聊天流程（已解析到非操作意图，或纯聊天） =====
-      const reply = await decomposedIntentChain(token, text);
-
-      const actionObj = _extractActionFromReply(reply);
-      let displayReply = actionObj ? _removeActionTag(reply) : reply;
-
-      if (actionObj) {
-        const result = await executeLocalAction(actionObj);
-        displayReply = result.success
-          ? displayReply + '\n' + result.message
-          : displayReply + '\n❌ ' + result.message;
-        if (typeof App !== 'undefined') App.showToast(result.message, 3000);
-        _refreshAfterAction(actionObj.tool || '');
-      }
-
-      _chatHistory.push({ role: 'user', content: text });
-      _chatHistory.push({ role: 'assistant', content: displayReply });
-      trimContext();
-
-      _updateQuickBubbleText(displayReply.replace(/\n/g, ' '));
-      setTimeout(_removeQuickBubble, 5000);
-
-    } catch (err) {
-      console.error('[Xiaolu] 快捷语音 AI 处理失败:', err);
-      const errMsg = '❌ ' + (err.message || '处理失败');
-      _updateQuickBubbleText(errMsg);
-      if (typeof App !== 'undefined') App.showToast(errMsg, 3000);
-      setTimeout(_removeQuickBubble, 5000);
-    }
   }
 
   return {

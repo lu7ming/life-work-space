@@ -510,7 +510,18 @@ const App = (() => {
    */
   function registerSW() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
+      // 先清除所有旧版缓存
+      if ('caches' in window) {
+        caches.keys().then((keys) => {
+          keys.forEach((key) => {
+            if (key !== 'life-workspace-v2') {
+              caches.delete(key);
+              console.log('[App] 已清除旧缓存:', key);
+            }
+          });
+        });
+      }
+      navigator.serviceWorker.register('./sw.js?v=' + Date.now())
         .then((reg) => {
           console.log('[App] Service Worker 注册成功，scope:', reg.scope);
         })

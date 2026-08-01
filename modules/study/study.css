@@ -430,11 +430,11 @@
   font-size: 14px;
 }
 
-/* ===== FAB 浮动按钮（iPad 横屏最右下角） ===== */
+/* ===== FAB 浮动按钮 ===== */
 .study-fab {
   position: fixed;
-  right: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  right: 20px;
+  bottom: 24px;
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -875,8 +875,8 @@
   }
 
   .study-fab {
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    right: 12px;
+    bottom: 16px;
+    right: 16px;
     width: 46px;
     height: 46px;
     font-size: 24px;

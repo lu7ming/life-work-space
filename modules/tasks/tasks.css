@@ -615,11 +615,11 @@
   color: var(--text-light);
 }
 
-/* ===== 浮动 "+" 按钮（iPad 横屏最右下角） ===== */
+/* ===== 浮动 "+" 按钮 ===== */
 .tasks-fab {
   position: fixed;
-  right: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  right: 20px;
+  bottom: 24px;
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -636,9 +636,6 @@
   border: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
-  /* 确保始终在视口内 */
-  margin: 0;
-  padding: 0;
 }
 
 .tasks-fab:hover {
@@ -877,8 +874,8 @@
   }
 
   .tasks-fab {
-    right: 12px;
-    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    bottom: 28px;
   }
 
   .pomodoro-timer {
@@ -923,8 +920,8 @@
     width: 44px;
     height: 44px;
     font-size: 22px;
-    right: 8px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    right: 12px;
+    bottom: 16px;
   }
 
   .pomodoro-timer-ring {

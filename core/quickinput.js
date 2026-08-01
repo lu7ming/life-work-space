@@ -257,7 +257,8 @@ const QuickInput = (() => {
           date: params.date || today,
           month: (params.date || today).substring(0, 7)
         };
-        await Storage.add('finance', record);
+        const financeId = await Storage.add('finance', record);
+        record.id = financeId;
         const symbol = record.type === 'income' ? '+' : '-';
         result = { type: 'finance', data: record, message: `${record.type === 'income' ? '收入' : '支出'} ¥${amount.toFixed(2)} 已记录 💰` };
         break;
@@ -312,7 +313,7 @@ const QuickInput = (() => {
           time: existing ? existing.time : timeStr,
           habits: habits
         });
-        result = { type: 'habit', data: { date: dateStr, habit: matchedId || habitName, habits }, message: `打卡成功 ✅ ${habitName || ''}` };
+        result = { type: 'habit', data: { date: dateStr, habit: matchedId || habitName, habits, previousHabits: existing ? (existing.habits || []) : [] }, message: `打卡成功 ✅ ${habitName || ''}` };
         break;
       }
 
@@ -326,7 +327,8 @@ const QuickInput = (() => {
           createdAt: Date.now(),
           updatedAt: Date.now()
         };
-        await Storage.add('journal', record);
+        const journalId = await Storage.add('journal', record);
+        record.id = journalId;
         result = { type: 'journal', data: record, message: '记录已保存 📝' };
         break;
       }
@@ -341,7 +343,8 @@ const QuickInput = (() => {
           taskId: null,
           completed: false
         };
-        await Storage.add('pomodoros', record);
+        const pomodoroId = await Storage.add('pomodoros', record);
+        record.id = pomodoroId;
         result = { type: 'pomodoro', data: record, message: `番茄钟 ${params.duration || 25} 分钟开始 🍅` };
         break;
       }

@@ -1294,6 +1294,8 @@ const XiaoluModule = (() => {
   let _quickIsRecording = false;
   let _quickBubble = null;
   let _quickText = '';
+  let _undoStack = []; // 语音操作撤销栈 [{undoId, storeName, recordKey, intent, detail, timestamp, timerId, previousHabits}]
+  let _undoCounter = 0; // 撤销 ID 计数器
 
   function _checkVoiceSupport() {
     return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -1490,8 +1492,8 @@ const XiaoluModule = (() => {
       }
 
       if (parsed && parsed.intent && parsed.intent !== 'unknown' && parsed.intent !== 'journal_entry') {
-        // 有可执行的操作，显示确认界面
-        _showVoiceConfirm(text, parsed);
+        // 有可执行的操作，直接执行 + 15分钟可撤销
+        _executeVoiceWithUndo(text, parsed);
         return;
       }
 
@@ -1506,79 +1508,9 @@ const XiaoluModule = (() => {
   }
 
   /**
-   * 显示语音确认界面（确认/取消按钮）
+   * 执行语音操作并支持 15 分钟内撤销
    */
-  function _showVoiceConfirm(text, parsed) {
-    const intentLabels = {
-      'task_create': '📋 创建任务',
-      'finance_record': '💰 记录收支',
-      'habit_checkin': '✅ 习惯打卡',
-      'pomodoro_start': '🍅 番茄钟'
-    };
-
-    const label = intentLabels[parsed.intent] || '操作';
-    let detail = '';
-
-    switch (parsed.intent) {
-      case 'finance_record': {
-        const symbol = parsed.params.type === 'income' ? '+' : '-';
-        const typeLabel = parsed.params.type === 'income' ? '收入' : '支出';
-        detail = `${typeLabel} ${symbol}¥${parseFloat(parsed.params.amount || 0).toFixed(2)}`;
-        if (parsed.params.category) detail += ` · ${parsed.params.category}`;
-        if (parsed.params.note) detail += ` · ${parsed.params.note}`;
-        break;
-      }
-      case 'task_create':
-        detail = parsed.params.title || '未命名';
-        if (parsed.params.due_date) detail += ` · 📅${parsed.params.due_date}`;
-        break;
-      case 'habit_checkin':
-        detail = parsed.params.habit_name || '打卡';
-        break;
-      case 'pomodoro_start':
-        detail = `${parsed.params.duration || 25} 分钟专注`;
-        break;
-      default:
-        detail = text;
-    }
-
-    // 更新气泡内容为确认界面
-    if (_quickBubble) {
-      const textEl = _quickBubble.querySelector('.xiaolu-quick-bubble-text');
-      if (textEl) {
-        textEl.innerHTML = `
-          <div style="margin-bottom:6px;font-size:13px;color:var(--text-muted,#8a7a6d);">${label}</div>
-          <div style="font-size:15px;font-weight:500;margin-bottom:10px;">${detail}</div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button id="voice-confirm-cancel" style="padding:6px 16px;border-radius:8px;border:1px solid var(--border-light,#C8AD94);background:transparent;color:var(--text-main,#3D3027);font-size:13px;cursor:pointer;">取消</button>
-            <button id="voice-confirm-ok" style="padding:6px 16px;border-radius:8px;border:none;background:var(--accent-primary,#8B6F47);color:#fff;font-size:13px;cursor:pointer;">确认</button>
-          </div>
-        `;
-      }
-
-      // 绑定按钮事件
-      const okBtn = document.getElementById('voice-confirm-ok');
-      const cancelBtn = document.getElementById('voice-confirm-cancel');
-
-      if (okBtn) {
-        okBtn.addEventListener('click', () => {
-          _updateQuickBubbleText('⏳ 执行中...');
-          _executeVoiceAction(text, parsed);
-        });
-      }
-      if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-          _updateQuickBubbleText('已取消');
-          setTimeout(_removeQuickBubble, 800);
-        });
-      }
-    }
-  }
-
-  /**
-   * 执行语音确认后的操作
-   */
-  async function _executeVoiceAction(text, parsed) {
+  async function _executeVoiceWithUndo(text, parsed) {
     try {
       const result = await QuickInput.executeQuickInput(parsed);
       console.log('[Xiaolu] 语音执行结果:', result);
@@ -1587,7 +1519,52 @@ const XiaoluModule = (() => {
       const icon = iconMap[parsed.intent] || '✅';
       const msg = icon + ' ' + (result.message || '已完成');
 
-      _updateQuickBubbleText(msg);
+      // 构建撤销信息
+      _undoCounter++;
+      const undoId = _undoCounter;
+      const now = Date.now();
+      const UNDO_WINDOW = 15 * 60 * 1000; // 15 分钟
+
+      let undoInfo = {
+        undoId,
+        intent: parsed.intent,
+        timestamp: now,
+        expiresAt: now + UNDO_WINDOW
+      };
+
+      // 根据意图类型存储撤销所需信息
+      switch (parsed.intent) {
+        case 'finance_record':
+          undoInfo.storeName = 'finance';
+          undoInfo.recordKey = result.data.id;
+          break;
+        case 'task_create':
+          undoInfo.storeName = 'tasks';
+          undoInfo.recordKey = result.data.id;
+          break;
+        case 'pomodoro_start':
+          undoInfo.storeName = 'pomodoros';
+          undoInfo.recordKey = result.data.id;
+          break;
+        case 'habit_checkin':
+          undoInfo.storeName = 'checkins';
+          undoInfo.recordKey = result.data.date; // checkins 表以日期为 key
+          undoInfo.previousHabits = result.data.previousHabits || [];
+          undoInfo.month = result.data.date ? result.data.date.substring(0, 7) : '';
+          break;
+      }
+
+      // 15 分钟后自动过期，移除撤销按钮
+      const timerId = setTimeout(() => {
+        _removeUndoOption(undoId);
+      }, UNDO_WINDOW);
+      undoInfo.timerId = timerId;
+
+      _undoStack.push(undoInfo);
+
+      // 显示结果 + 撤销按钮
+      _showUndoBubble(msg, undoId, parsed.intent);
+
       if (typeof App !== 'undefined') App.showToast(msg, 3000);
 
       _chatHistory.push({ role: 'user', content: text });
@@ -1595,13 +1572,108 @@ const XiaoluModule = (() => {
       trimContext();
 
       _refreshAfterAction(parsed.intent);
-      setTimeout(_removeQuickBubble, 3000);
+
+      // 3秒后气泡自动消失（撤销按钮在15分钟内仍可通过通知恢复）
+      setTimeout(_removeQuickBubble, 4000);
     } catch (err) {
       console.error('[Xiaolu] 语音执行失败:', err);
       const errMsg = '❌ ' + (err.message || '执行失败');
       _updateQuickBubbleText(errMsg);
       if (typeof App !== 'undefined') App.showToast(errMsg, 3000);
       setTimeout(_removeQuickBubble, 3000);
+    }
+  }
+
+  /**
+   * 显示带撤销按钮的气泡
+   */
+  function _showUndoBubble(msg, undoId, intent) {
+    if (_quickBubble) {
+      const textEl = _quickBubble.querySelector('.xiaolu-quick-bubble-text');
+      if (textEl) {
+        textEl.innerHTML = `
+          <div style="font-size:15px;font-weight:500;margin-bottom:8px;">${msg}</div>
+          <div style="text-align:right;">
+            <button id="voice-undo-${undoId}" style="padding:5px 14px;border-radius:8px;border:1px solid var(--border-light,#C8AD94);background:transparent;color:var(--text-muted,#8a7a6d);font-size:12px;cursor:pointer;">↩️ 撤销</button>
+            <span id="voice-undo-hint-${undoId}" style="font-size:11px;color:var(--text-muted,#8a7a6d);margin-left:6px;">15分钟内可撤销</span>
+          </div>
+        `;
+        const undoBtn = document.getElementById(`voice-undo-${undoId}`);
+        if (undoBtn) {
+          undoBtn.addEventListener('click', () => {
+            _performUndo(undoId);
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * 移除撤销选项（15分钟到期后调用）
+   */
+  function _removeUndoOption(undoId) {
+    _undoStack = _undoStack.filter(u => u.undoId !== undoId);
+    // 如果气泡还在，移除撤销按钮
+    const undoBtn = document.getElementById(`voice-undo-${undoId}`);
+    const undoHint = document.getElementById(`voice-undo-hint-${undoId}`);
+    if (undoBtn) undoBtn.style.display = 'none';
+    if (undoHint) undoHint.textContent = '撤销已过期';
+  }
+
+  /**
+   * 执行撤销操作
+   */
+  async function _performUndo(undoId) {
+    const undoInfo = _undoStack.find(u => u.undoId === undoId);
+    if (!undoInfo) {
+      if (typeof App !== 'undefined') App.showToast('⚠️ 撤销已过期');
+      return;
+    }
+
+    try {
+      // 清除过期定时器
+      if (undoInfo.timerId) clearTimeout(undoInfo.timerId);
+
+      switch (undoInfo.intent) {
+        case 'finance_record':
+        case 'task_create':
+        case 'pomodoro_start':
+          await Storage.remove(undoInfo.storeName, undoInfo.recordKey);
+          break;
+        case 'habit_checkin': {
+          // 恢复之前的 habits 数组
+          const prevHabits = undoInfo.previousHabits || [];
+          if (prevHabits.length === 0) {
+            // 之前没有记录，删除整条
+            await Storage.remove(undoInfo.storeName, undoInfo.recordKey);
+          } else {
+            // 恢复到之前的状态
+            const existing = await Storage.get('checkins', undoInfo.recordKey);
+            await Storage.put('checkins', {
+              date: undoInfo.recordKey,
+              month: undoInfo.month || undoInfo.recordKey.substring(0, 7),
+              time: existing ? existing.time : '',
+              habits: prevHabits
+            });
+          }
+          break;
+        }
+      }
+
+      // 从撤销栈移除
+      _undoStack = _undoStack.filter(u => u.undoId !== undoId);
+
+      // 更新气泡显示
+      _updateQuickBubbleText('↩️ 已撤销');
+      if (typeof App !== 'undefined') App.showToast('↩️ 已撤销', 2000);
+
+      // 刷新相关模块
+      _refreshAfterAction(undoInfo.intent);
+
+      setTimeout(_removeQuickBubble, 2000);
+    } catch (err) {
+      console.error('[Xiaolu] 撤销失败:', err);
+      if (typeof App !== 'undefined') App.showToast('❌ 撤销失败');
     }
   }
 

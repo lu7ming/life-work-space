@@ -47,9 +47,14 @@ const QuickInput = (() => {
         const params = { type: 'expense', amount: 0, category: '其他', note: '' };
         // 判断收支类型
         if (/收入|收到|入账|工资|赚|得/.test(text)) params.type = 'income';
-        // 提取金额
+        // 提取金额（先试阿拉伯数字，再试中文数字）
         const amountMatch = text.match(/(\d+\.?\d*)/);
-        if (amountMatch) params.amount = parseFloat(amountMatch[1]);
+        if (amountMatch) {
+          params.amount = parseFloat(amountMatch[1]);
+        } else {
+          const chineseAmount = parseChineseNumber(text);
+          if (chineseAmount !== null && chineseAmount > 0) params.amount = chineseAmount;
+        }
         // 提取分类
         const catMap = { '吃|饭|餐|午|晚|早|外卖': '餐饮', '车|地铁|公交|打车|加油': '交通', '买|购|淘': '购物', '玩|电影|游戏|KTV': '娱乐', '书|课|培训|学费': '学习', '药|医院|看病': '医疗', '房租|水电|物业': '居住' };
         for (const [pattern, cat] of Object.entries(catMap)) {
@@ -57,6 +62,10 @@ const QuickInput = (() => {
         }
         // 去掉关键词后剩余作为备注
         params.note = text.replace(/收入|支出|花了|收到|买了|消费|付款|入账|\d+\.?\d*|元|块|钱/g, '').trim();
+        // 清理备注中的中文数字残留（如 "三百" 被识别为金额后，备注不应再有 "三百"）
+        if (params.amount && params.note) {
+          params.note = params.note.replace(/[零〇一两二三四五六七八九十百千万亿]+/g, '').trim();
+        }
         return params;
       }
     },
@@ -100,6 +109,45 @@ const QuickInput = (() => {
   ];
 
   // ===== 工具函数 =====
+  /**
+   * 中文数字转阿拉伯数字
+   * 支持：零一二三四五六七八九十百千万亿，以及两(=2)
+   * 示例："三百" → 300, "一千五" → 1500, "两万" → 20000, "十五块" → 15
+   */
+  function parseChineseNumber(text) {
+    if (!text) return null;
+    const digitMap = { '零': 0, '〇': 0, '一': 1, '二': 2, '两': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10, '百': 100, '千': 1000, '万': 10000, '亿': 100000000 };
+    // 提取中文字符序列
+    const chineseNum = text.match(/[零〇一两二三四五六七八九十百千万亿]+/);
+    if (!chineseNum) return null;
+    const str = chineseNum[0];
+    // 特殊处理：单独的"十"表示10，"十几"表示10+几
+    let result = 0;
+    let temp = 0;
+    let hasDigit = false;
+    for (let i = 0; i < str.length; i++) {
+      const val = digitMap[str[i]];
+      if (val === undefined) continue;
+      if (val >= 10000) {
+        // 万/亿：把前面的累积乘上去
+        temp = temp === 0 ? 1 : temp;
+        result += temp * val;
+        temp = 0;
+      } else if (val >= 10) {
+        // 十/百/千
+        if (temp === 0) temp = 1; // 如 "三百" 中 "三" 后面是 "百"
+        temp = temp * val;
+      } else {
+        // 数字 0-9
+        temp += val;
+        hasDigit = true;
+      }
+    }
+    if (!hasDigit && temp === 0 && str === '十') return 10;
+    result += temp;
+    return result || null;
+  }
+
   function formatDate(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');

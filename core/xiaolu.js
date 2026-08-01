@@ -1065,10 +1065,10 @@ const XiaoluModule = (() => {
       }
 
       try {
-        await Storage.add('finance', record);
+        const id = await Storage.add('finance', record);
         const typeLabel = record.type === 'income' ? '收入' : '支出';
         const detailField = record.type === 'income' ? `来源：${record.source || '其他'}` : `分类：${record.category || '其他'}`;
-        return { success: true, message: `✅ 已记录${typeLabel} ¥${record.amount}（${detailField}）` };
+        return { success: true, message: `✅ 已记录${typeLabel} ¥${record.amount}（${detailField}）`, undoInfo: { storeName: 'finance', recordKey: id } };
       } catch (e) {
         console.error('[Xiaolu] 记录收支失败:', e);
         return { success: false, message: '记录收支时写入数据库失败：' + (e.message || e) };
@@ -1085,11 +1085,11 @@ const XiaoluModule = (() => {
       };
 
       try {
-        await Storage.add('tasks', task);
+        const id = await Storage.add('tasks', task);
         const priorityMap = { high: '🔴高', medium: '🟡中', low: '🟢低' };
         const pLabel = priorityMap[task.priority] || '🟡中';
         const dueInfo = task.due_date ? `，截止 ${task.due_date}` : '';
-        return { success: true, message: `✅ 已创建任务「${task.title}」${pLabel}优先级${dueInfo}` };
+        return { success: true, message: `✅ 已创建任务「${task.title}」${pLabel}优先级${dueInfo}`, undoInfo: { storeName: 'tasks', recordKey: id } };
       } catch (e) {
         console.error('[Xiaolu] 创建任务失败:', e);
         return { success: false, message: '创建任务时写入数据库失败' };
@@ -1106,9 +1106,9 @@ const XiaoluModule = (() => {
       };
 
       try {
-        await Storage.add('habits', record);
+        const id = await Storage.add('habits', record);
         const statusLabel = record.status === 'completed' ? '完成' : '未完成';
-        return { success: true, message: `✅ 已记录习惯打卡：${record.habit}（${statusLabel}）` };
+        return { success: true, message: `✅ 已记录习惯打卡：${record.habit}（${statusLabel}）`, undoInfo: { storeName: 'habits', recordKey: id } };
       } catch (e) {
         console.error('[Xiaolu] 习惯打卡失败:', e);
         return { success: false, message: '记录习惯打卡时写入数据库失败' };
@@ -1149,22 +1149,18 @@ const XiaoluModule = (() => {
           const actionObj = toolMap[qiParsed.intent] || null;
           if (actionObj) {
             console.log('[Xiaolu] handleSend: QuickInput 快速路径命中:', qiParsed.intent);
-            const intentLabels = {
-              'finance_record': '💰 记录收支',
-              'task_create': '📋 创建任务',
-              'habit_checkin': '✅ 习惯打卡'
-            };
-            const label = intentLabels[qiParsed.intent] || '操作';
 
-            if (!isAutoConfirm()) {
-              showActionConfirmation(actionObj, label, text);
-            } else {
-              const result = await executeLocalAction(actionObj);
-              const displayReply = result.success ? result.message : '❌ ' + result.message;
-              _chatHistory.push({ role: 'user', content: text });
-              _chatHistory.push({ role: 'assistant', content: displayReply });
-              trimContext();
-              addAIMessage(displayReply);
+            // 自动执行 + 撤销支持
+            const result = await executeLocalAction(actionObj);
+            const displayReply = result.success ? result.message : '❌ ' + result.message;
+            _chatHistory.push({ role: 'user', content: text });
+            _chatHistory.push({ role: 'assistant', content: displayReply });
+            trimContext();
+            addAIMessage(displayReply);
+
+            // 如果执行成功，在消息下方追加撤销按钮
+            if (result.success && result.undoInfo) {
+              _appendUndoButton(result.undoInfo, qiParsed.intent);
             }
             return; // ← 关键：QuickInput 已处理，不再走 AI 流程
           }
@@ -1203,11 +1199,8 @@ const XiaoluModule = (() => {
 
       removeLoading();
 
-      // 如果有操作且未开启自动确认 → 显示确认卡片
-      if (actionObj && !isAutoConfirm()) {
-        showActionConfirmation(actionObj, finalReply, text);
-      } else if (actionObj && isAutoConfirm()) {
-        // 自动确认模式：直接执行
+      // 有操作 → 直接执行 + 撤销支持（不再弹确认框）
+      if (actionObj) {
         const result = await executeLocalAction(actionObj);
         if (result.success) {
           finalReply += '\n\n' + result.message;
@@ -1218,6 +1211,11 @@ const XiaoluModule = (() => {
         _chatHistory.push({ role: 'assistant', content: finalReply });
         trimContext();
         addAIMessage(finalReply);
+
+        // 如果执行成功，追加撤销按钮
+        if (result.success && result.undoInfo) {
+          _appendUndoButton(result.undoInfo, actionObj.tool);
+        }
       } else {
         // 没有操作，纯文字回复
         _chatHistory.push({ role: 'user', content: text });
@@ -1585,6 +1583,57 @@ const XiaoluModule = (() => {
   }
 
   /**
+   * 工具名映射到意图名（用于撤销）
+   */
+  const TOOL_TO_INTENT = {
+    'record_finance': 'finance_record',
+    'create_task': 'task_create',
+    'habit_log': 'habit_checkin'
+  };
+
+  /**
+   * 在聊天消息下方追加撤销按钮（15分钟内可撤销）
+   */
+  function _appendUndoButton(undoInfo, toolName) {
+    const intent = TOOL_TO_INTENT[toolName] || toolName;
+    _undoCounter++;
+    const undoId = _undoCounter;
+    const now = Date.now();
+    const UNDO_WINDOW = 15 * 60 * 1000;
+
+    undoInfo.undoId = undoId;
+    undoInfo.timestamp = now;
+    undoInfo.expiresAt = now + UNDO_WINDOW;
+
+    // 15 分钟后自动过期
+    undoInfo.timerId = setTimeout(() => {
+      _removeUndoOption(undoId);
+      // 同时移除聊天中的撤销按钮
+      const btn = document.getElementById('chat-undo-' + undoId);
+      if (btn) {
+        btn.outerHTML = '<span style="font-size:11px;color:var(--text-muted,#8a7a6d);">撤销已过期</span>';
+      }
+    }, UNDO_WINDOW);
+
+    _undoStack.push(undoInfo);
+
+    // 在最后一条 AI 消息后插入撤销按钮
+    const msgs = panelEl.querySelectorAll('.xiaolu-msg');
+    const lastMsg = msgs[msgs.length - 1];
+    if (lastMsg && lastMsg.classList.contains('xiaolu-msg-ai')) {
+      const undoDiv = document.createElement('div');
+      undoDiv.style.cssText = 'margin-top:6px;text-align:right;';
+      undoDiv.innerHTML = `
+        <button id="chat-undo-${undoId}" style="padding:4px 12px;border-radius:8px;border:1px solid var(--border-light,#C8AD94);background:transparent;color:var(--text-muted,#8a7a6d);font-size:12px;cursor:pointer;">↩️ 撤销（15分钟内）</button>
+      `;
+      undoDiv.querySelector('button').addEventListener('click', () => {
+        _performUndo(undoId);
+      });
+      lastMsg.appendChild(undoDiv);
+    }
+  }
+
+  /**
    * 显示带撤销按钮的气泡
    */
   function _showUndoBubble(msg, undoId, intent) {
@@ -1621,12 +1670,12 @@ const XiaoluModule = (() => {
   }
 
   /**
-   * 执行撤销操作
+   * 执行撤销操作（同时支持聊天路径和语音气泡路径）
    */
   async function _performUndo(undoId) {
     const undoInfo = _undoStack.find(u => u.undoId === undoId);
     if (!undoInfo) {
-      if (typeof App !== 'undefined') App.showToast('⚠️ 撤销已过期');
+      if (typeof App !== 'undefined') App.showToast('⚠️ 撤销已过期或不存在');
       return;
     }
 
@@ -1644,10 +1693,8 @@ const XiaoluModule = (() => {
           // 恢复之前的 habits 数组
           const prevHabits = undoInfo.previousHabits || [];
           if (prevHabits.length === 0) {
-            // 之前没有记录，删除整条
             await Storage.remove(undoInfo.storeName, undoInfo.recordKey);
           } else {
-            // 恢复到之前的状态
             const existing = await Storage.get('checkins', undoInfo.recordKey);
             await Storage.put('checkins', {
               date: undoInfo.recordKey,
@@ -1663,8 +1710,14 @@ const XiaoluModule = (() => {
       // 从撤销栈移除
       _undoStack = _undoStack.filter(u => u.undoId !== undoId);
 
-      // 更新气泡显示
+      // 更新语音气泡（如果存在）
       _updateQuickBubbleText('↩️ 已撤销');
+      // 更新聊天中的撤销按钮（如果存在）
+      const chatBtn = document.getElementById('chat-undo-' + undoId);
+      if (chatBtn) {
+        chatBtn.outerHTML = '<span style="font-size:12px;color:var(--text-muted,#8a7a6d);">↩️ 已撤销</span>';
+      }
+
       if (typeof App !== 'undefined') App.showToast('↩️ 已撤销', 2000);
 
       // 刷新相关模块

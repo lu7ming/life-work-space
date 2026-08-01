@@ -1470,11 +1470,25 @@ const XiaoluModule = (() => {
       return;
     }
 
-    // 显示识别文字 + 处理中状态
-    _updateQuickBubbleText('💭 ' + text + '\n⏳ 解析中...');
+    // 关闭语音气泡
+    _removeQuickBubble();
 
-    // 异步解析并显示确认
-    _parseAndConfirmVoice(text);
+    // 打开面板（如果还没打开）
+    if (!_isOpen) {
+      open();
+    }
+
+    // 将文字填入输入框
+    if (inputEl) {
+      inputEl.value = text;
+      inputEl.style.height = 'auto';
+      inputEl.style.height = inputEl.scrollHeight + 'px';
+    }
+
+    // 自动发送
+    setTimeout(() => {
+      handleSend();
+    }, 300);
   }
 
   /**

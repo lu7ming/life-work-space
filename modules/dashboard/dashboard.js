@@ -14,6 +14,7 @@ const DashboardModule = (() => {
         renderGreeting(),
         renderCalendar(),
         renderHighlights(),
+        renderBirthdayReminder(),
         renderFeed()
       ]);
     } catch (err) {
@@ -79,6 +80,58 @@ const DashboardModule = (() => {
     if (streakDays > 0) parts.push(`坚持第 ${streakDays} 天`);
 
     subEl.textContent = parts.join(' · ');
+  }
+
+  /**
+   * 渲染生日提醒
+   */
+  async function renderBirthdayReminder() {
+    const container = document.getElementById('dash-birthday-reminder');
+    if (!container) return;
+
+    try {
+      const contacts = await Storage.getAll('contacts');
+      const today = new Date();
+      const todayMM = String(today.getMonth() + 1).padStart(2, '0');
+      const todayDD = String(today.getDate()).padStart(2, '0');
+      const todayMD = `${todayMM}-${todayDD}`;
+
+      const birthdayPeople = contacts.filter(c => {
+        if (!c.birthday) return false;
+        // birthday 格式 YYYY-MM-DD，取月日部分
+        const parts = c.birthday.split('-');
+        if (parts.length < 3) return false;
+        const bMM = parts[1].padStart(2, '0');
+        const bDD = parts[2].padStart(2, '0');
+        return `${bMM}-${bDD}` === todayMD;
+      });
+
+      if (birthdayPeople.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+
+      const names = birthdayPeople.map(c => c.name || '未命名').join('、');
+      container.style.display = '';
+      container.innerHTML = `
+        <div class="dash-birthday-card">
+          <span class="dash-birthday-icon">🎂</span>
+          <div class="dash-birthday-text">
+            <div class="dash-birthday-title">今天是 ${escapeHtml(names)} 的生日！</div>
+            <div class="dash-birthday-sub">别忘了送上你的祝福 ❤️</div>
+          </div>
+        </div>
+      `;
+    } catch (e) {
+      console.warn('[Dashboard] 生日提醒加载失败:', e);
+      container.style.display = 'none';
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
   }
 
   /**
@@ -186,29 +239,117 @@ const DashboardModule = (() => {
   }
 
   /**
-   * 渲染今日推送（占位数据）
+   * 渲染今日推送（真实数据）
    */
-  function renderFeed() {
+  async function renderFeed() {
     const container = document.getElementById('dash-feed-list');
     if (!container) return;
 
-    const feeds = [
-      { icon: '💡', title: '微习惯的力量：每天进步1%，一年后你将强大37倍', meta: '习惯养成 · 3分钟阅读' },
-      { icon: '🎯', title: '如何用「两分钟法则」战胜拖延症', meta: '效率提升 · 5分钟阅读' },
-      { icon: '🧘', title: '正念冥想入门：从每天5分钟开始改变大脑', meta: '身心健康 · 4分钟阅读' },
-      { icon: '📊', title: '记账第三个月：我终于看清了自己的消费模式', meta: '财务自由 · 6分钟阅读' },
-      { icon: '🌱', title: '「不要打破链条」——宋飞工作法的秘密', meta: '坚持的力量 · 2分钟阅读' },
-    ];
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
 
-    container.innerHTML = feeds.map((item) => `
-      <div class="dash-feed-item">
+    const feedItems = [];
+
+    // 1. 今日待办任务
+    try {
+      const tasks = await Storage.getByIndex('tasks', 'date', todayStr);
+      const todoTasks = tasks.filter(t => t.status === 'todo');
+      for (const task of todoTasks.slice(0, 5)) {
+        feedItems.push({
+          icon: '📋',
+          title: task.title || '未命名任务',
+          meta: `今日待办${task.priority === 'high' ? ' · 高优先级' : ''}`,
+          route: 'tasks',
+          type: 'task'
+        });
+      }
+    } catch (e) { /* */ }
+
+    // 2. 近期日记（最近3篇）
+    try {
+      const allJournal = await Storage.getAll('journal');
+      const diaries = allJournal
+        .filter(j => j.type === 'diary')
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+        .slice(0, 3);
+      for (const diary of diaries) {
+        feedItems.push({
+          icon: '📝',
+          title: diary.title || diary.content?.substring(0, 50) || '无标题日记',
+          meta: `日记 · ${diary.date || '未知日期'}`,
+          route: 'journal',
+          type: 'journal'
+        });
+      }
+    } catch (e) { /* */ }
+
+    // 3. 近期灵感（最近3条）
+    try {
+      const allIdeas = await Storage.getAll('ideas');
+      const ideas = allIdeas
+        .sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''))
+        .slice(0, 3);
+      for (const idea of ideas) {
+        feedItems.push({
+          icon: '💡',
+          title: idea.title || idea.content?.substring(0, 50) || '无标题灵感',
+          meta: `灵感 · ${idea.date || '近期'}`,
+          route: 'journal',
+          type: 'idea'
+        });
+      }
+    } catch (e) { /* */ }
+
+    // 4. 待完成目标（进度<100，前3个）
+    try {
+      const allGoals = await Storage.getAll('goals');
+      const activeGoals = allGoals
+        .filter(g => (g.progress || 0) < 100)
+        .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+        .slice(0, 3);
+      for (const goal of activeGoals) {
+        feedItems.push({
+          icon: '🎯',
+          title: goal.title || '未命名目标',
+          meta: `目标 · 进度 ${goal.progress || 0}%`,
+          route: 'goals',
+          type: 'goal'
+        });
+      }
+    } catch (e) { /* */ }
+
+    // 渲染
+    if (feedItems.length === 0) {
+      container.innerHTML = `
+        <div class="dash-feed-empty">
+          <span class="dash-feed-empty-icon">📭</span>
+          <p>暂无待办或近期记录</p>
+          <p class="dash-feed-empty-sub">添加任务、写篇日记，或记录一条灵感吧</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = feedItems.map((item) => `
+      <div class="dash-feed-item" data-route="${item.route}">
         <span class="dash-feed-item-icon">${item.icon}</span>
         <div class="dash-feed-item-content">
-          <div class="dash-feed-item-title">${item.title}</div>
-          <div class="dash-feed-item-meta">${item.meta}</div>
+          <div class="dash-feed-item-title">${escapeHtml(item.title)}</div>
+          <div class="dash-feed-item-meta">${escapeHtml(item.meta)}</div>
         </div>
       </div>
     `).join('');
+
+    // 绑定点击跳转
+    container.querySelectorAll('.dash-feed-item[data-route]').forEach(el => {
+      el.addEventListener('click', () => {
+        const route = el.dataset.route;
+        if (route) Router.navigate(route);
+      });
+    });
   }
 
   return { init };

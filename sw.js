@@ -3,7 +3,7 @@
  * 支持离线缓存，采用缓存优先策略
  */
 
-const CACHE_NAME = 'life-workspace-v15';
+const CACHE_NAME = 'life-workspace-v16';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -92,18 +92,42 @@ self.addEventListener('activate', (event) => {
 });
 
 /**
- * 请求拦截：缓存优先，回退网络
+ * 请求拦截：导航请求网络优先，静态资源缓存优先+后台更新
  */
 self.addEventListener('fetch', (event) => {
   // 只处理同源 GET 请求
   if (event.request.method !== 'GET') return;
 
+  // 导航请求使用网络优先，确保打开即最新
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkRes) => {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkRes.clone());
+          });
+          return networkRes;
+        })
+        .catch(() => caches.match(event.request).then(r => r || caches.match('./life.html')))
+    );
+    return;
+  }
+
+  // 静态资源：缓存优先 + 后台更新
   event.respondWith(
     caches.match(event.request)
       .then((cached) => {
-        if (cached) return cached;
+        if (cached) {
+          fetch(event.request).then((networkRes) => {
+            if (networkRes && networkRes.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, networkRes);
+              });
+            }
+          }).catch(() => {});
+          return cached;
+        }
         return fetch(event.request).then((response) => {
-          // 缓存新获取的资源
           if (response && response.status === 200) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -114,10 +138,18 @@ self.addEventListener('fetch', (event) => {
         });
       })
       .catch(() => {
-        // 离线时返回离线页面（可选）
         if (event.request.mode === 'navigate') {
           return caches.match('./life.html');
         }
       })
   );
+});
+
+/**
+ * 新版本就绪时通知页面刷新
+ */
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

@@ -697,20 +697,27 @@ const App = (() => {
    */
   function registerSW() {
     if ('serviceWorker' in navigator) {
-      // 先清除所有旧版缓存
-      if ('caches' in window) {
-        caches.keys().then((keys) => {
-          keys.forEach((key) => {
-            if (key !== 'life-workspace-v12') {
-              caches.delete(key);
-              console.log('[App] 已清除旧缓存:', key);
-            }
-          });
-        });
-      }
-      navigator.serviceWorker.register('./sw.js?v=' + Date.now())
+      navigator.serviceWorker.register('./sw.js')
         .then((reg) => {
           console.log('[App] Service Worker 注册成功，scope:', reg.scope);
+
+          // 检测 SW 更新，自动刷新页面
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // 新 SW 已就绪，通知它立即激活
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  // 等新 SW 接管后自动刷新页面
+                  navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    console.log('[App] 检测到新版本，自动刷新');
+                    location.reload();
+                  });
+                }
+              });
+            }
+          });
         })
         .catch((err) => {
           console.warn('[App] Service Worker 注册失败:', err);

@@ -532,10 +532,23 @@ const App = (() => {
     // 更新日期显示
     updateTopbarDate();
 
-    // AI 按钮点击提示
-    document.querySelectorAll('.topbar-ai-btn').forEach((btn) => {
+    // AI 按钮点击事件
+    const aiBtns = document.querySelectorAll('.topbar-ai-btn');
+    aiBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
-        showToast('AI对话功能开发中 🤖');
+        const title = btn.getAttribute('title') || '';
+        if (title.includes('妮可')) {
+          // 打开妮可系统管家
+          if (typeof NicoleModule !== 'undefined') {
+            NicoleModule.open();
+          } else {
+            showToast('妮可模块加载中...');
+          }
+        } else if (title.includes('小鹿')) {
+          showToast('小鹿AI开发中 🦌');
+        } else {
+          showToast('AI对话功能开发中 🤖');
+        }
       });
     });
 
@@ -671,7 +684,7 @@ const App = (() => {
       if ('caches' in window) {
         caches.keys().then((keys) => {
           keys.forEach((key) => {
-            if (key !== 'life-workspace-v10') {
+            if (key !== 'life-workspace-v11') {
               caches.delete(key);
               console.log('[App] 已清除旧缓存:', key);
             }

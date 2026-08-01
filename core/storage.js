@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 
 /**
  * 存储管理器
@@ -142,6 +142,14 @@ const Storage = (() => {
         // 生命树表（v4 新增）
         if (!db.objectStoreNames.contains('lifetree')) {
           db.createObjectStore('lifetree', { keyPath: 'key' });
+        }
+
+        // 通知表（v6 新增）
+        if (!db.objectStoreNames.contains('notifications')) {
+          const store = db.createObjectStore('notifications', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('read', 'read', { unique: false });
+          store.createIndex('type', 'type', { unique: false });
+          store.createIndex('createdAt', 'createdAt', { unique: false });
         }
 
         // v4→v5: 清除所有示例数据，从零开始

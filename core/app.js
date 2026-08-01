@@ -671,7 +671,7 @@ const App = (() => {
       if ('caches' in window) {
         caches.keys().then((keys) => {
           keys.forEach((key) => {
-            if (key !== 'life-workspace-v8') {
+            if (key !== 'life-workspace-v9') {
               caches.delete(key);
               console.log('[App] 已清除旧缓存:', key);
             }

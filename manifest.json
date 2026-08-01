@@ -1,12 +1,13 @@
 {
   "name": "人生工作台",
   "short_name": "工作台",
-  "description": "极简温暖的人生管理工作台",
+  "description": "极简温暖的人生管理工作台 - 习惯/任务/财务/日记/AI助手",
   "start_url": "./life.html",
   "display": "standalone",
   "background_color": "#D4BA9F",
   "theme_color": "#D4BA9F",
   "orientation": "any",
+  "categories": ["productivity", "lifestyle"],
   "icons": [
     {
       "src": "assets/icons/icon-192.png",
@@ -17,6 +18,20 @@
       "src": "assets/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "快速录入",
+      "short_name": "录入",
+      "url": "./life.html#/dashboard",
+      "description": "快速创建任务/记录/打卡"
+    },
+    {
+      "name": "今日总览",
+      "short_name": "总览",
+      "url": "./life.html#/dashboard",
+      "description": "查看今日概览和妮可洞察"
     }
   ]
 }

@@ -725,3 +725,61 @@ img {
   font-weight: 700;
   color: var(--accent-orange);
 }
+
+/* ===== v32 新增全局组件样式 ===== */
+
+/* 自定义确认对话框 */
+.custom-confirm-overlay { position: fixed; inset: 0; background: rgba(60,50,40,0.4); z-index: 10000; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; }
+.custom-confirm-overlay.show { opacity: 1; }
+.custom-confirm-dialog { background: var(--bg-card); border-radius: 12px; padding: 24px; width: 360px; max-width: 92vw; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+.custom-confirm-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+.custom-confirm-message { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
+.custom-confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.custom-confirm-btn { padding: 8px 18px; border-radius: 8px; font-size: 14px; cursor: pointer; border: none; transition: all 0.2s; }
+.custom-confirm-btn.cancel { background: var(--bg-main); color: var(--text-secondary); }
+.custom-confirm-btn.confirm { background: var(--accent-red); color: #fff; }
+.custom-confirm-btn.confirm:hover { filter: brightness(1.08); }
+
+/* 空状态组件 */
+.empty-state { text-align: center; padding: 40px 20px; }
+.empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+.empty-state-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+.empty-state-cta { padding: 8px 20px; border-radius: 8px; background: var(--accent-green); color: #fff; border: none; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+.empty-state-cta:hover { filter: brightness(1.08); }
+
+/* 离线横幅 */
+.offline-banner { position: fixed; top: 0; left: 0; right: 0; background: #f39c12; color: #fff; padding: 10px 20px; z-index: 9999; text-align: center; font-size: 13px; transform: translateY(-100%); transition: transform 0.3s ease; }
+.offline-banner.show { transform: translateY(0); }
+
+/* 键盘快捷键帮助 */
+.keyboard-help-overlay { position: fixed; inset: 0; background: rgba(60,50,40,0.4); z-index: 10000; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+.keyboard-help-overlay.show { opacity: 1; }
+.keyboard-help-dialog { background: var(--bg-card); border-radius: 12px; padding: 24px; width: 400px; max-width: 92vw; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+.keyboard-help-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
+.keyboard-help-list { display: flex; flex-direction: column; gap: 8px; }
+.kb-help-item { display: flex; align-items: center; gap: 12px; }
+.kb-help-item kbd { display: inline-block; padding: 3px 8px; background: var(--bg-main); border: 1px solid var(--border-light); border-radius: 4px; font-size: 12px; font-family: monospace; min-width: 60px; text-align: center; color: var(--text-primary); }
+.kb-help-item span { font-size: 13px; color: var(--text-secondary); }
+.keyboard-help-hint { margin-top: 16px; font-size: 12px; color: var(--text-muted); text-align: center; }
+
+/* 按钮状态动画 */
+.btn-loading { opacity: 0.8; pointer-events: none; }
+.btn-success { color: #27ae60 !important; }
+.btn-error { color: #e74c3c !important; }
+
+/* 页面进入动画 */
+.page-enter { animation: pageEnter 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* 视觉一致性 - 圆角规范 */
+/* 卡片: 12px, 按钮: 8px, 胶囊: 9999px */
+/* 已在各模块 CSS 中逐步统一 */
+
+/* 深色模式补充 */
+[data-theme="dark"] .custom-confirm-overlay { background: rgba(0,0,0,0.6); }
+[data-theme="dark"] .custom-confirm-dialog { background: var(--bg-card); }
+[data-theme="dark"] .keyboard-help-dialog { background: var(--bg-card); }
+[data-theme="dark"] .offline-banner { background: #8B6914; }
+
+/* 自动保存指示器 */
+#auto-save-indicator { position: fixed; bottom: 12px; right: 12px; font-size: 11px; color: var(--text-muted); opacity: 0; transition: opacity 0.3s; z-index: 100; }

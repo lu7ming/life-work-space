@@ -3,6 +3,8 @@
  * 人生工作台 · 月度/季度/年度目标追踪
  */
 const GoalsModule = (() => {
+  const { escapeHtml, formatDate } = AppUtils;
+
   // ===== 常量 =====
   const LEVEL_CONFIG = {
     yearly:    { label: '年度', icon: '📅' },
@@ -26,18 +28,9 @@ const GoalsModule = (() => {
   let expandedGoalId = null;
 
   // ===== 工具函数 =====
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
 
-  function formatDate(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
+
+
 
   function formatDisplayDate(dateStr) {
     if (!dateStr) return '';
@@ -540,6 +533,23 @@ const GoalsModule = (() => {
     await loadData();
     renderAll();
     bindEvents();
+  }
+
+
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[GoalsModule] 模块已销毁');
   }
 
   return { init };

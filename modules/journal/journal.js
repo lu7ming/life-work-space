@@ -3,6 +3,8 @@
  * 三个子Tab：日记、复盘、灵感速记
  */
 const JournalModule = (() => {
+  const { escapeHtml, formatDate } = AppUtils;
+
   // ========== 状态 ==========
   let currentTab = 'diary';
   let currentReviewSubtype = 'weekly';
@@ -19,11 +21,7 @@ const JournalModule = (() => {
   let allIdeas = [];
 
   // ========== 工具函数 ==========
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
 
   function formatDate(dateStr) {
     if (!dateStr) return '';
@@ -821,5 +819,22 @@ const JournalModule = (() => {
   }
 
   // ========== 模块导出 ==========
+
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[JournalModule] 模块已销毁');
+  }
+
   return { init };
 })();

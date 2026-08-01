@@ -4,6 +4,8 @@
  */
 
 const SearchModule = (() => {
+  const { escapeHtml } = AppUtils;
+
   let panelEl = null;
   let inputEl = null;
   let resultsEl = null;
@@ -336,10 +338,23 @@ const SearchModule = (() => {
     return escaped.replace(regex, '<mark>$1</mark>');
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
+
+
+
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[SearchModule] 模块已销毁');
   }
 
   return { open, close };

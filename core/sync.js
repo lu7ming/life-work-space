@@ -395,6 +395,69 @@ const SyncModule = (() => {
   }
 
   return {
-    sync
+    sync,
+    autoBackupToLocal,
+    scheduleAutoSync
   };
 })();
+
+// ===== 自动备份与同步调度 =====
+
+/**
+ * 自动备份到 localStorage（每日快照，保留最近3天）
+ */
+async function autoBackupToLocal() {
+  try {
+    if (typeof ExportModule === 'undefined') return;
+    const allData = await ExportModule.readAllData();
+    const snapshot = JSON.stringify({
+      version: 5,
+      exportDate: new Date().toISOString().slice(0, 19),
+      data: allData
+    });
+
+    const today = AppUtils.getTodayStr();
+    const key = `lws_backup_${today}`;
+    localStorage.setItem(key, snapshot);
+
+    // 清理3天前的备份
+    for (let i = 4; i <= 30; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const oldKey = `lws_backup_${AppUtils.formatDate(d)}`;
+      localStorage.removeItem(oldKey);
+    }
+    console.log('[AutoBackup] 本地备份完成:', key);
+  } catch (e) {
+    console.warn('[AutoBackup] 本地备份失败:', e);
+  }
+}
+
+/**
+ * 调度自动同步（每周静默推送到 GitHub）
+ */
+function scheduleAutoSync() {
+  // 每小时检查一次是否需要同步
+  setInterval(async () => {
+    try {
+      const lastSync = await Storage.get('settings', 'last_auto_sync_time');
+      const lastTime = lastSync ? new Date(lastSync.value).getTime() : 0;
+      const now = Date.now();
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+
+      if (now - lastTime >= oneWeek && navigator.onLine) {
+        console.log('[AutoSync] 触发每周自动同步...');
+        if (typeof SyncModule !== 'undefined') {
+          await SyncModule.sync();
+          await Storage.put('settings', { key: 'last_auto_sync_time', value: new Date().toISOString() });
+        }
+      }
+    } catch (e) {
+      console.warn('[AutoSync] 自动同步检查失败:', e);
+    }
+  }, 60 * 60 * 1000); // 每小时检查
+
+  // 每日本地备份
+  autoBackupToLocal();
+  setInterval(autoBackupToLocal, 24 * 60 * 60 * 1000);
+}

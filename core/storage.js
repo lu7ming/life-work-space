@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 6;
+const DB_VERSION = 7;
 
 /**
  * 存储管理器
@@ -131,13 +131,17 @@ const Storage = (() => {
             notifications.createIndex('createdAt', 'createdAt', { unique: false });
           },
 
-          // ──────────────────────────────────────────
-          // 新增版本示例（取消注释并递增 DB_VERSION 即可）:
-          // 7: (db, tx) => {
-          //   const newStore = db.createObjectStore('newTable', { keyPath: 'id', autoIncrement: true });
-          //   newStore.createIndex('field', 'field', { unique: false });
-          // },
-          // ──────────────────────────────────────────
+          // v7: 时间追踪 + 审计日志 + 情绪记录
+          7: (db) => {
+            const timeEntries = db.createObjectStore('time_entries', { keyPath: 'id', autoIncrement: true });
+            timeEntries.createIndex('date', 'date', { unique: false });
+            timeEntries.createIndex('category', 'category', { unique: false });
+            timeEntries.createIndex('taskId', 'taskId', { unique: false });
+
+            const auditLog = db.createObjectStore('audit_log', { keyPath: 'id', autoIncrement: true });
+            auditLog.createIndex('timestamp', 'timestamp', { unique: false });
+            auditLog.createIndex('action', 'action', { unique: false });
+          },
         };
 
         // 按版本顺序依次执行迁移
@@ -400,6 +404,59 @@ const Storage = (() => {
     });
   }
 
+  /**
+   * 分页查询（基于索引的游标分页）
+   * @param {string} storeName - 表名
+   * @param {string} indexName - 索引名
+   * @param {*} indexValue - 索引值
+   * @param {number} offset - 偏移量
+   * @param {number} limit - 每页数量
+   * @param {'next'|'prev'} direction - 游标方向
+   */
+  async function getPage(storeName, indexName, indexValue, offset = 0, limit = 20, direction = 'prev') {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const index = store.index(indexName);
+      const range = indexValue !== null && indexValue !== undefined ? IDBKeyRange.only(indexValue) : null;
+      const results = [];
+      let skipped = 0;
+
+      const request = range
+        ? index.openCursor(range, direction)
+        : index.openCursor(null, direction);
+
+      request.onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (!cursor) { resolve(results); return; }
+        if (skipped < offset) { skipped++; cursor.continue(); return; }
+        results.push(cursor.value);
+        if (results.length < limit) cursor.continue();
+        else resolve(results);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 按索引范围查询
+   * @param {string} storeName - 表名
+   * @param {string} indexName - 索引名
+   * @param {IDBKeyRange} range - 键范围
+   */
+  async function getByRange(storeName, indexName, range) {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const index = store.index(indexName);
+      const request = index.getAll(range);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   return {
     getDB,
     add,
@@ -412,7 +469,36 @@ const Storage = (() => {
     count,
     bulkWrite,
     bulkGetAll,
+    getPage,
+    getByRange,
     initSampleData,
     migrateCourseData
   };
+})();
+
+/**
+ * MigrationRegistry - 数据迁移注册表
+ */
+const MigrationRegistry = (() => {
+  const _migrations = new Map();
+
+  function register(fromVer, toVer, migrateFn) {
+    _migrations.set(`${fromVer}-${toVer}`, migrateFn);
+  }
+
+  async function run(db, oldVer, newVer, tx) {
+    for (let v = oldVer + 1; v <= newVer; v++) {
+      const fn = _migrations.get(`${v - 1}-${v}`);
+      if (fn) {
+        console.log(`[MigrationRegistry] Running ${v - 1} → ${v}`);
+        try { await fn(db, tx); } catch (e) { console.error(`[MigrationRegistry] 迁移 ${v} 失败:`, e); }
+      }
+    }
+  }
+
+  function list() {
+    return Array.from(_migrations.entries()).map(([k, v]) => ({ version: k, fn: v.name || 'anonymous' }));
+  }
+
+  return { register, run, list };
 })();

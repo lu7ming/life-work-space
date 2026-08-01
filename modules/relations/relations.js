@@ -5,6 +5,8 @@
  */
 
 const RelationsModule = (() => {
+  const { escapeHtml } = AppUtils;
+
   const STORE = 'contacts';
 
   // ABCD 分类配置
@@ -27,11 +29,7 @@ const RelationsModule = (() => {
   let formCategory = 'A';
 
   // ===== 工具函数 =====
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
 
   function getToday() {
     const d = new Date();
@@ -103,7 +101,24 @@ const RelationsModule = (() => {
 
     if (!lastContactDate) {
       if (category === 'D') return { level: 'none', days: -1, text: '暂无联系记录', percent: 50 };
-      return { level: 'none', days: -1, text: '暂无联系记录', percent: 0 };
+    
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[RelationsModule] 模块已销毁');
+  }
+
+  return { level: 'none', days: -1, text: '暂无联系记录', percent: 0 };
     }
 
     const last = new Date(lastContactDate);

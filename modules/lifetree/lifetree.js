@@ -3,6 +3,8 @@
  * SVG 渲染可视化生命树，用户的日常行为滋养这棵树
  */
 const LifeTreeModule = (() => {
+  const { escapeHtml } = AppUtils;
+
   'use strict';
 
   // ===== 状态 =====
@@ -74,11 +76,7 @@ const LifeTreeModule = (() => {
   };
 
   // ===== 工具函数 =====
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
 
   function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
@@ -183,7 +181,24 @@ const LifeTreeModule = (() => {
   function calculateWeather() {
     const hour = getHour();
     if (hour >= 0 && hour < 5) {
-      return { type: 'starry', label: '星空', emoji: '🌙' };
+    
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[LifeTreeModule] 模块已销毁');
+  }
+
+  return { type: 'starry', label: '星空', emoji: '🌙' };
     }
     if (!recentActive) {
       return { type: 'dormant', label: '休眠', emoji: '💤' };
@@ -720,8 +735,9 @@ const LifeTreeModule = (() => {
     const mt = 1 - t;
     return {
       x: mt * mt * x0 + 2 * mt * t * cx + t * t * x1,
-      y: mt * mt * y0 + 2 * mt * t * cy + t * t * y1
-    };
+      y: mt * mt * y0 + 2 * mt * t * cy + t * t * y1,
+    destroy
+  };
   }
 
   // ----- 叶簇 -----

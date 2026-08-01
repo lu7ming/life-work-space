@@ -4,6 +4,8 @@
  */
 
 const FinanceModule = (() => {
+  const { escapeHtml } = AppUtils;
+
   // ===== 状态 =====
   let allRecords = [];          // 所有交易记录
   let budgetData = null;        // 预算设置 { monthly, yearly }
@@ -27,11 +29,7 @@ const FinanceModule = (() => {
   const EXTRA_COLORS = ['#c97c5d', '#b8a07c', '#7c9eb8', '#9b8e83', '#a0937d', '#d4735c', '#5a9e6f', '#E8A87C'];
 
   // ===== 工具函数 =====
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
 
   function todayStr() {
     const d = new Date();
@@ -122,7 +120,24 @@ const FinanceModule = (() => {
       if (r.type === 'income') income += r.amount;
       else expense += r.amount;
     }
-    return { income, expense, balance: income - expense };
+  
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[FinanceModule] 模块已销毁');
+  }
+
+  return { income, expense, balance: income - expense };
   }
 
   function calcYearStats(records, year) {

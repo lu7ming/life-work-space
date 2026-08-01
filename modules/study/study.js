@@ -3,6 +3,8 @@
  * 人生工作台 · 课程表 + 阅读记录 + 技能追踪
  */
 const StudyModule = (() => {
+  const { escapeHtml } = AppUtils;
+
   // ===== 常量 =====
   const COURSE_COLORS = 8; // 8种颜色自动分配
   const DAYS = [1, 2, 3, 4, 5, 6, 0]; // 周一~周日(0=周日)
@@ -35,11 +37,7 @@ const StudyModule = (() => {
   let nextColorIndex = 0;
 
   // ===== 工具函数 =====
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
 
   // ===== 时间工具函数 =====
   /** "HH:MM" → 分钟数（如 "08:30" → 510） */
@@ -928,6 +926,23 @@ const StudyModule = (() => {
     bindModalEvents();
     await loadData();
     renderAll();
+  }
+
+
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[StudyModule] 模块已销毁');
   }
 
   return { init };

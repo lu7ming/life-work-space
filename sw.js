@@ -1,6 +1,6 @@
 /**
  * Service Worker - 人生工作台
- * 支持离线缓存，采用缓存优先策略
+ * v32 - 增强离线能力 + 后台同步 + 新增缓存资源
  */
 
 const CACHE_NAME = 'life-work-space-v32';
@@ -66,11 +66,14 @@ const CACHE_ASSETS = [
   './modules/rest/rest.js',
   './modules/whitenoise/whitenoise.css',
   './modules/whitenoise/whitenoise.js',
-  // [模板系统] 新增缓存文件（版本号由其他子Agent统一管理）
   './core/templates.js',
   './modules/templates/templates.html',
   './modules/templates/templates_module.js',
   './styles/templates.css',
+  // v32 新增：时间追踪模块
+  './modules/timetracker/timetracker.html',
+  './modules/timetracker/timetracker.css',
+  './modules/timetracker/timetracker.js',
   './manifest.json'
 ];
 
@@ -104,10 +107,8 @@ self.addEventListener('activate', (event) => {
  * 请求拦截：导航请求网络优先，静态资源缓存优先+后台更新
  */
 self.addEventListener('fetch', (event) => {
-  // 只处理同源 GET 请求
   if (event.request.method !== 'GET') return;
 
-  // 导航请求使用网络优先，确保打开即最新
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -155,7 +156,22 @@ self.addEventListener('fetch', (event) => {
 });
 
 /**
- * 新版本就绪时通知页面刷新
+ * 后台同步（Background Sync）
+ */
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-data') {
+    event.waitUntil(
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'BACKGROUND_SYNC', tag: 'sync-data' });
+        });
+      })
+    );
+  }
+});
+
+/**
+ * 消息处理
  */
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {

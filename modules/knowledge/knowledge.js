@@ -1,4 +1,6 @@
 const KnowledgeModule = (() => {
+  const { escapeHtml, formatDate } = AppUtils;
+
   // ========== State ==========
   const STORE_NAME = 'knowledge';
   let allEntries = [];
@@ -10,11 +12,7 @@ const KnowledgeModule = (() => {
   let formTags = [];
 
   // ========== Utilities ==========
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
 
   function formatDate(ts) {
     if (!ts) return '';
@@ -611,6 +609,23 @@ const KnowledgeModule = (() => {
     renderAll();
     bindEvents();
     console.log('[Knowledge] 初始化完成，共', allEntries.length, '条记录');
+  }
+
+
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[KnowledgeModule] 模块已销毁');
   }
 
   return { init };

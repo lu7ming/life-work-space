@@ -265,11 +265,29 @@ const ExportModule = (() => {
    */
   function buildExportJSON(data) {
     const now = new Date();
-    return {
+  
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[ExportModule] 模块已销毁');
+  }
+
+  return {
       version: 5,
       exportDate: now.toISOString().slice(0, 19),
-      data: data
-    };
+      data: data,
+    destroy
+  };
   }
 
   /**
@@ -612,6 +630,7 @@ const ExportModule = (() => {
     // 以下供外部测试调用
     readAllData,
     downloadJSON,
-    buildExportJSON
+    buildExportJSON,
+    destroy
   };
 })();

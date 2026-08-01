@@ -4,7 +4,7 @@
  */
 
 const QuickInput = (() => {
-  // ===== 常量 =====
+  const { escapeHtml, formatDate, parseChineseNumber } = AppUtils;
   const API_URL = 'https://api.deepseek.com/v1/chat/completions';
   const MODEL_NAME = 'deepseek-chat';
 

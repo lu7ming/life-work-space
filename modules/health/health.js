@@ -4,6 +4,8 @@
  */
 
 const HealthModule = (() => {
+  const { escapeHtml, formatDate } = AppUtils;
+
   // 当前查看的日期
   let currentDate = new Date();
 
@@ -11,12 +13,7 @@ const HealthModule = (() => {
   let healthData = null;
 
   // ===== 工具函数 =====
-  function formatDate(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
+
 
   function getWeekdayName(date) {
     const names = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -28,11 +25,7 @@ const HealthModule = (() => {
     return formatDate(date) === formatDate(today);
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
+
 
   // ===== 初始化 =====
   async function init() {
@@ -490,6 +483,23 @@ const HealthModule = (() => {
     bindExerciseEvents();
     bindWaterEvents();
     bindDietEvents();
+  }
+
+
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[HealthModule] 模块已销毁');
   }
 
   return { init };

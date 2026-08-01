@@ -51,6 +51,7 @@ const App = (() => {
     Router.register('goals', loadGoals);
     Router.register('lifetree', loadLifeTree);
     Router.register('templates', loadTemplates);
+    Router.register('timetracker', loadTimeTracker);
 
     // 3. 监听路由变化，更新侧边栏高亮
     Router.onRouteChange((route) => {
@@ -108,6 +109,42 @@ const App = (() => {
     if (typeof Templates !== 'undefined') {
       await Templates.init();
     }
+
+    // 13. 初始化键盘快捷键
+    if (typeof KeyboardShortcuts !== 'undefined') {
+      KeyboardShortcuts.init();
+    }
+
+    // 14. 初始化离线检测
+    if (typeof OfflineDetector !== 'undefined') {
+      OfflineDetector.init();
+    }
+
+    // 15. 初始化智能提醒
+    if (typeof SmartReminder !== 'undefined') {
+      SmartReminder.init();
+    }
+
+    // 16. 初始化共享知识层
+    if (typeof SharedKnowledge !== 'undefined') {
+      SharedKnowledge.load();
+    }
+
+    // 17. 构建用户画像
+    if (typeof UserProfile !== 'undefined') {
+      UserProfile.buildProfile();
+    }
+
+    // 18. 自动保存定时器（30秒）
+    setInterval(() => {
+      // 静默自动保存 - 数据已通过 IndexedDB 自动持久化，此处仅提供视觉反馈
+      const saveIndicator = document.getElementById('auto-save-indicator');
+      if (saveIndicator) {
+        saveIndicator.textContent = '已保存';
+        saveIndicator.style.opacity = '1';
+        setTimeout(() => { saveIndicator.style.opacity = '0'; }, 2000);
+      }
+    }, 30000);
 
     console.log('[App] 人生工作台已就绪 🎉');
   }
@@ -170,7 +207,8 @@ const App = (() => {
       'knowledge': loadKnowledge,
       'goals': loadGoals,
       'lifetree': loadLifeTree,
-      'templates': loadTemplates
+      'templates': loadTemplates,
+      'timetracker': loadTimeTracker
     };
     
     const handler = routeHandlers[currentRoute];
@@ -456,6 +494,27 @@ const App = (() => {
       }
     } catch (err) {
       console.error('[App] 加载模板模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载时间追踪模块
+   */
+  async function loadTimeTracker() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('timetracker/timetracker.html');
+      container.innerHTML = html;
+      loadModuleCSS('timetracker/timetracker.css');
+      cleanupCurrentModule();
+
+      if (typeof TimeTrackerModule !== 'undefined' && TimeTrackerModule.init) {
+        TimeTrackerModule.init();
+        _activeModule = TimeTrackerModule;
+      }
+    } catch (err) {
+      console.error('[App] 加载时间追踪模块失败:', err);
       container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
     }
   }

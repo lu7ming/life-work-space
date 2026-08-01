@@ -4,6 +4,7 @@
  */
 
 const NotificationEngine = (() => {
+  const { escapeHtml } = AppUtils;
   // ===== 常量 =====
   const CHECK_INTERVAL = 5 * 60 * 1000; // 5分钟检查一次
   const NOTIFICATION_EXPIRE_DAYS = 7;   // 通知保留7天

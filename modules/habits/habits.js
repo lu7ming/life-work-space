@@ -4,6 +4,8 @@
  */
 
 const HabitsModule = (() => {
+  const { formatDate, formatTime } = AppUtils;
+
   // ===== 12 个统一习惯（固定列表） =====
   const HABITS = [
     { id: 'warm-water',    emoji: '🥤', name: '早起一杯温水' },
@@ -29,12 +31,7 @@ const HabitsModule = (() => {
   let calendarYear = new Date().getFullYear();
 
   // ===== 工具函数 =====
-  function formatDate(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
+
 
   function formatMonth(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -380,6 +377,23 @@ const HabitsModule = (() => {
       calendarYear--;
     }
     renderCalendar();
+  }
+
+
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[HabitsModule] 模块已销毁');
   }
 
   return { init };

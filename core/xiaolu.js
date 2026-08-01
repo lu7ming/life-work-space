@@ -2,7 +2,7 @@
  * xiaolu.js - 小鹿AI伙伴
  * 人生工作台 · 基于 DeepSeek API 的 AI 对话功能
  * 小鹿定位：幽默轻松的 AI 伙伴，负责日常聊天、灵感整理、按需分析
- * v4.0 - AI智能化升级：ContextTracker多轮对话 + FuzzyIntent + EmotionAnalyzer + 扩展关键词 + AIOrchestrator协作 + AuditLog审计
+ * v4.1 - 第二批优化：意图缓存扩展（查询类从Storage读取数据）+ ContextTracker多轮对话上下文增强（5分钟超时/修改/追加/清除）
  */
 
 const XiaoluModule = (() => {
@@ -805,6 +805,7 @@ const XiaoluModule = (() => {
 
     panelEl.querySelector('#xiaolu-new-chat').addEventListener('click', () => {
       _chatHistory = [];
+      ContextTracker.clear(); // 清除多轮对话上下文
       messagesEl.innerHTML = '';
       showWelcome();
       if (typeof App !== 'undefined') App.showToast('已开始新对话 🦌');
@@ -1102,24 +1103,166 @@ const XiaoluModule = (() => {
     return { success: false, message: `未知工具：${tool}` };
   }
 
+  // ===== 本地数据查询（零 API 成本，从 Storage 读取并格式化） =====
+
+  /**
+   * 查询本地数据并格式化为可读文本
+   * @param {string} queryType - 查询类型：query_finance / query_tasks / query_habits / query_income
+   * @returns {Promise<string>} 格式化的查询结果文本
+   */
+  async function executeLocalQuery(queryType) {
+    const today = new Date();
+    const currentMonth = today.toISOString().slice(0, 7); // YYYY-MM
+
+    try {
+      if (queryType === 'query_finance') {
+        // 查询本月支出
+        const allFinance = await Storage.getByIndex('finance', 'month', currentMonth);
+        const expenses = allFinance.filter(r => r.type === 'expense');
+        const totalExpense = expenses.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+        // 按分类汇总
+        const byCategory = {};
+        expenses.forEach(r => {
+          const cat = r.category || '其他';
+          byCategory[cat] = (byCategory[cat] || 0) + (Number(r.amount) || 0);
+        });
+        const catLines = Object.entries(byCategory)
+          .sort((a, b) => b[1] - a[1])
+          .map(([cat, amt]) => `  · ${cat}: ¥${amt.toFixed(0)}`)
+          .join('\n');
+
+        if (expenses.length === 0) {
+          return `💰 本月还没有支出记录，继续保持！ 🦌`;
+        }
+        return `💰 本月支出汇总（${currentMonth}）\n总计：¥${totalExpense.toFixed(0)}（${expenses.length}笔）\n${catLines}\n\n详细数据在财务页面可以查看~ 🦌`;
+      }
+
+      if (queryType === 'query_income') {
+        // 查询本月收入
+        const allFinance = await Storage.getByIndex('finance', 'month', currentMonth);
+        const incomes = allFinance.filter(r => r.type === 'income');
+        const totalIncome = incomes.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+        // 按来源汇总
+        const bySource = {};
+        incomes.forEach(r => {
+          const src = r.source || '其他';
+          bySource[src] = (bySource[src] || 0) + (Number(r.amount) || 0);
+        });
+        const srcLines = Object.entries(bySource)
+          .sort((a, b) => b[1] - a[1])
+          .map(([src, amt]) => `  · ${src}: ¥${amt.toFixed(0)}`)
+          .join('\n');
+
+        if (incomes.length === 0) {
+          return `💰 本月还没有收入记录~ 🦌`;
+        }
+        return `💰 本月收入汇总（${currentMonth}）\n总计：¥${totalIncome.toFixed(0)}（${incomes.length}笔）\n${srcLines}\n\n详细数据在财务页面可以查看~ 🦌`;
+      }
+
+      if (queryType === 'query_tasks') {
+        // 查询任务进度
+        const allTasks = await Storage.getAll('tasks');
+        const pending = allTasks.filter(t => t.status === 'pending' || !t.status);
+        const completed = allTasks.filter(t => t.status === 'completed' || t.status === 'done');
+        const total = allTasks.length;
+        const completionRate = total > 0 ? Math.round((completed.length / total) * 100) : 0;
+
+        // 高优先级待办
+        const urgentPending = pending.filter(t => t.priority === 'high');
+
+        if (total === 0) {
+          return `📋 还没有任务，轻松！需要创建一个吗？ 🦌`;
+        }
+
+        let result = `📋 任务进度概览\n总计：${total}个 | 已完成：${completed.length}个 | 待办：${pending.length}个 | 完成率：${completionRate}%`;
+        if (urgentPending.length > 0) {
+          result += `\n🔴 紧急待办：${urgentPending.slice(0, 3).map(t => t.title).join('、')}`;
+        }
+        result += '\n\n详细列表在任务页面可以查看~ 🦌';
+        return result;
+      }
+
+      if (queryType === 'query_habits') {
+        // 查询习惯打卡情况
+        const todayStr = getTodayStr();
+        const allCheckins = await Storage.getAll('checkins');
+        const allHabits = await Storage.getAll('habits');
+
+        // 计算打卡连续天数
+        let streak = 0;
+        const checkDate = new Date();
+        // 如果今天还没打卡，从昨天开始算
+        const todayCheckin = allCheckins.find(c => c.date === todayStr);
+        if (!todayCheckin || !todayCheckin.habits || todayCheckin.habits.length === 0) {
+          checkDate.setDate(checkDate.getDate() - 1);
+        }
+
+        while (true) {
+          const dateStr = checkDate.toISOString().slice(0, 10);
+          const dayCheckin = allCheckins.find(c => c.date === dateStr);
+          if (dayCheckin && dayCheckin.habits && dayCheckin.habits.length > 0) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            break;
+          }
+          if (streak > 365) break; // 安全上限
+        }
+
+        // 今日打卡状态
+        const todayHabits = todayCheckin?.habits || [];
+        const todayDone = todayHabits.filter(h => h.status === 'completed' || h.checked).length;
+        const todayTotal = todayHabits.length;
+
+        // 本月打卡天数
+        const monthStr = todayStr.slice(0, 7);
+        const monthCheckins = allCheckins.filter(c => c.date && c.date.startsWith(monthStr) && c.habits && c.habits.length > 0);
+        const monthDays = monthCheckins.length;
+
+        if (allHabits.length === 0 && monthDays === 0) {
+          return `✅ 还没有习惯打卡记录，要开始养成好习惯吗？ 🦌`;
+        }
+
+        let result = `✅ 习惯打卡概览`;
+        if (streak > 0) {
+          result += `\n🔥 连续打卡：${streak}天`;
+        }
+        result += `\n📅 本月打卡：${monthDays}天`;
+        if (todayTotal > 0) {
+          result += `\n今日：${todayDone}/${todayTotal}已完成`;
+        } else if (todayTotal === 0) {
+          result += `\n今日：还未打卡`;
+        }
+        result += '\n\n详细打卡记录在习惯页面可以查看~ 🦌';
+        return result;
+      }
+
+    } catch (err) {
+      console.warn('[Xiaolu] 本地数据查询失败:', err);
+    }
+
+    return '查询数据时出了点问题，请稍后再试 🦌';
+  }
+
   // ===== 扩展本地意图规则（零 API 成本） =====
 
   /**
    * 本地意图匹配器：覆盖高频场景，避免 API 调用
-   * 返回 { type, reply, actionObj?, route? } 或 null
+   * 返回 { type, reply, queryType?, actionObj?, route? } 或 null
+   * queryType 表示需要异步查询 Storage 数据的意图类型
    */
   function matchLocalIntent(text) {
     if (!text) return null;
 
     // --- 周报/月报生成 ---
-    if (/周报|周总结|本周总结|这周怎么样|一周回顾/.test(text)) {
+    if (/周报|周总结|本周总结|这周怎么样|一周回顾|这周汇报/.test(text)) {
       return {
         type: 'report_weekly',
         reply: '📊 好的，我帮你生成本周周报！正在跳转到模板页面... 🦌',
         route: 'templates'
       };
     }
-    if (/月报|月总结|本月总结|这个月怎么样|月度回顾/.test(text)) {
+    if (/月报|月总结|本月总结|这个月怎么样|月度回顾|月度汇报/.test(text)) {
       return {
         type: 'report_monthly',
         reply: '📊 好的，我帮你生成本月月报！正在跳转到模板页面... 🦌',
@@ -1127,32 +1270,36 @@ const XiaoluModule = (() => {
       };
     }
 
-    // --- 数据查询 ---
-    if (/花了多少|支出多少|本月消费|这个月花了|消费多少|花了.*钱/.test(text)) {
+    // --- 数据查询（从 Storage 读取数据，零 API 成本） ---
+    if (/花了多少|支出多少|本月消费|这个月花了|消费多少|花了.*钱|总共花了|消费汇总|支出汇总|花了多少了/.test(text)) {
       return {
         type: 'query_finance',
-        reply: '💰 帮你打开财务页面查看支出详情！ 🦌',
+        queryType: 'query_finance',  // 标记需要异步查询
+        reply: '💰 正在查询本月支出...',  // 占位，将被异步查询结果替换
         route: 'finance'
       };
     }
-    if (/做了多少|完成几个|任务进度|还有多少任务|待办多少/.test(text)) {
+    if (/做了多少|完成几个|任务进度|还有多少任务|待办多少|任务完成|任务概览|待办列表|还有什么任务/.test(text)) {
       return {
         type: 'query_tasks',
-        reply: '📋 帮你打开任务页面查看进度！ 🦌',
+        queryType: 'query_tasks',
+        reply: '📋 正在查询任务进度...',
         route: 'tasks'
       };
     }
-    if (/连续几天|打卡几天|坚持多久|打卡情况|习惯怎么样/.test(text)) {
+    if (/连续几天|打卡几天|坚持多久|打卡情况|习惯怎么样|打卡记录|习惯打卡|打卡了几天|坚持了几天/.test(text)) {
       return {
         type: 'query_habits',
-        reply: '✅ 帮你打开习惯页面查看打卡情况！ 🦌',
+        queryType: 'query_habits',
+        reply: '✅ 正在查询打卡情况...',
         route: 'habits'
       };
     }
-    if (/本月收入|收入多少|赚了|工资/.test(text)) {
+    if (/本月收入|收入多少|赚了|工资|收入汇总|总共收入|赚了多少/.test(text)) {
       return {
         type: 'query_income',
-        reply: '💰 帮你打开财务页面查看收入详情！ 🦌',
+        queryType: 'query_income',
+        reply: '💰 正在查询本月收入...',
         route: 'finance'
       };
     }
@@ -1165,7 +1312,7 @@ const XiaoluModule = (() => {
     }
 
     // --- 设置操作 ---
-    if (/设置预算|改预算|预算多少|调整预算/.test(text)) {
+    if (/设置预算|改预算|预算多少|调整预算|预算设置/.test(text)) {
       return {
         type: 'setting_budget',
         reply: '⚙️ 帮你打开财务页面，可以在那里设置预算！ 🦌',
@@ -1180,7 +1327,7 @@ const XiaoluModule = (() => {
     }
 
     // --- 提醒操作 ---
-    if (/提醒我|别忘了|到时间了|该.*了/.test(text) && !/打卡|记录|记|花|买/.test(text)) {
+    if (/提醒我|别忘了|到时间提醒|该.*了|要记得|别忘了|记得提醒|别忘了提醒/.test(text) && !/打卡|记录|记|花|买/.test(text)) {
       // 避免和 QuickInput 的任务/财务规则冲突
       return {
         type: 'reminder_create',
@@ -1259,6 +1406,41 @@ const XiaoluModule = (() => {
 
     addUserMessage(text);
 
+    // ===== 多轮上下文：修改/追加意图处理（零 API 成本） =====
+    // 检查用户是否在修改/追加上一轮操作（如"改成50"→修改金额）
+    const modContext = ContextTracker.getModificationContext(text);
+    if (modContext && modContext.lastTool) {
+      console.log('[Xiaolu] handleSend: 多轮上下文命中:', modContext.type);
+
+      if (modContext.type === 'modification') {
+        // 修改类：用合并后的参数重新执行操作
+        const actionObj = { tool: modContext.lastTool, params: modContext.modifiedParams };
+        const result = await executeLocalAction(actionObj);
+        const typeLabel = actionObj.tool === 'record_finance' ? (modContext.modifiedParams.type === 'income' ? '收入' : '支出') : '任务';
+        let displayReply;
+        if (result.success) {
+          displayReply = `👌 已修改${typeLabel}！${result.message.replace('✅ ', '')}`;
+          // 更新上下文追踪器
+          ContextTracker.update(modContext.lastIntent, modContext.modifiedParams, modContext.lastTool);
+          if (result.undoInfo) {
+            _appendUndoButton(result.undoInfo, modContext.lastTool);
+          }
+        } else {
+          displayReply = `❌ 修改失败：${result.message}`;
+        }
+        _chatHistory.push({ role: 'user', content: text });
+        _chatHistory.push({ role: 'assistant', content: displayReply });
+        trimContext();
+        addAIMessage(displayReply);
+        return; // 修改已处理
+
+      } else if (modContext.type === 'append') {
+        // 追加类：保留上下文分类等，继续走后续流程让用户补充新操作
+        // 不直接返回，让 QuickInput/local intent 继续处理，但注入上下文信息
+        console.log('[Xiaolu] handleSend: 追加操作，携带上下文继续处理');
+      }
+    }
+
     // ===== 快速路径：QuickInput 关键词匹配（零 API 成本，互斥优先） =====
     // 如果 QuickInput 关键词规则能明确识别意图，直接执行，不调用 AI
     if (typeof QuickInput !== 'undefined' && QuickInput.parseKeywordsOnly) {
@@ -1283,6 +1465,11 @@ const XiaoluModule = (() => {
             trimContext();
             addAIMessage(displayReply);
 
+            // 更新多轮上下文追踪器
+            if (result.success) {
+              ContextTracker.update(qiParsed.intent, actionObj.params, actionObj.tool);
+            }
+
             // 如果执行成功，在消息下方追加撤销按钮
             if (result.success && result.undoInfo) {
               _appendUndoButton(result.undoInfo, qiParsed.intent);
@@ -1300,10 +1487,23 @@ const XiaoluModule = (() => {
     const localIntent = matchLocalIntent(text);
     if (localIntent) {
       console.log('[Xiaolu] handleSend: 本地意图规则命中:', localIntent.type);
+
+      // 查询类意图：从 Storage 异步读取数据并格式化返回
+      let finalReply = localIntent.reply;
+      if (localIntent.queryType) {
+        try {
+          const queryResult = await executeLocalQuery(localIntent.queryType);
+          finalReply = queryResult;
+        } catch (e) {
+          console.warn('[Xiaolu] 本地查询失败，使用默认回复:', e);
+          finalReply = localIntent.reply;
+        }
+      }
+
       _chatHistory.push({ role: 'user', content: text });
-      _chatHistory.push({ role: 'assistant', content: localIntent.reply });
+      _chatHistory.push({ role: 'assistant', content: finalReply });
       trimContext();
-      addAIMessage(localIntent.reply);
+      addAIMessage(finalReply);
 
       // 如果是可执行操作，也执行它
       if (localIntent.actionObj) {
@@ -1311,6 +1511,8 @@ const XiaoluModule = (() => {
         if (result.success) {
           addAIMessage(result.message);
           _chatHistory.push({ role: 'assistant', content: result.message });
+          // 更新多轮上下文追踪器
+          ContextTracker.update(localIntent.type, localIntent.actionObj.params, localIntent.actionObj.tool);
           if (result.undoInfo) {
             _appendUndoButton(result.undoInfo, localIntent.actionObj.tool);
           }
@@ -1362,7 +1564,7 @@ const XiaoluModule = (() => {
         if (result.success) {
           finalReply += '\n\n' + result.message;
           // 更新上下文追踪器
-          ContextTracker.update(actionObj.tool, actionObj.params);
+          ContextTracker.update(actionObj.tool, actionObj.params, actionObj.tool);
           // 通知 AIOrchestrator（更新妮可洞察缓存）
           if (typeof AIOrchestrator !== 'undefined') AIOrchestrator.notifyAction(actionObj.tool, result);
           // 写入审计日志

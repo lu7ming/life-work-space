@@ -721,39 +721,173 @@ const EmotionAnalyzer = (() => {
 
 /**
  * ContextTracker - 多轮对话上下文追踪
+ * 支持：修改/追加意图识别、5分钟超时清除、模块切换清除
  */
 const ContextTracker = (() => {
   let _slots = {};
   let _lastIntent = null;
+  let _lastParams = {};   // 上一轮操作的完整参数
+  let _lastTool = null;   // 上一轮操作的工具名
   let _turnCount = 0;
+  let _lastTimestamp = 0; // 上次交互时间戳
+  const CONTEXT_TIMEOUT = 5 * 60 * 1000; // 5分钟超时
 
-  function update(intent, params) {
+  // 修改类关键词
+  const MODIFY_PATTERNS = /改成|改为|修改|换成|不对|错了/;
+  // 追加类关键词
+  const APPEND_PATTERNS = /再加上|还有|另外|也/;
+  // 清除上下文关键词
+  const CLEAR_PATTERNS = /新话题|换个事|换个话题|说别的|不聊这个/;
+
+  function update(intent, params, tool) {
     _slots = { ..._slots, ...params };
     _lastIntent = intent;
+    _lastParams = params ? { ...params } : {};
+    _lastTool = tool || null;
     _turnCount++;
+    _lastTimestamp = Date.now();
   }
 
+  /**
+   * 检查上下文是否已超时，超时则自动清除
+   */
+  function checkTimeout() {
+    if (_lastTimestamp && Date.now() - _lastTimestamp > CONTEXT_TIMEOUT) {
+      clear();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 获取增强后的用户消息（供 AI 路径使用）
+   */
   function getAugmentedMessage(userMessage) {
-    if (/改成|改为|修改|换成/.test(userMessage) && _lastIntent) {
-      return `用户在修改上一轮的操作。上一轮意图：${_lastIntent}，参数：${JSON.stringify(_slots)}。用户最新消息："${userMessage}"`;
+    // 超时检查
+    if (checkTimeout()) return userMessage;
+
+    // 用户明确要求清除上下文
+    if (CLEAR_PATTERNS.test(userMessage)) {
+      clear();
+      return userMessage;
     }
-    if (/再加上|还有|另外|也/.test(userMessage) && _lastIntent) {
-      return `用户想追加操作。上一轮意图：${_lastIntent}。用户最新消息："${userMessage}"`;
+
+    // 修改类意图
+    if (MODIFY_PATTERNS.test(userMessage) && _lastIntent) {
+      return `用户在修改上一轮的操作。上一轮意图：${_lastIntent}，原始参数：${JSON.stringify(_lastParams)}。用户最新消息："${userMessage}"`;
     }
+
+    // 追加类意图
+    if (APPEND_PATTERNS.test(userMessage) && _lastIntent) {
+      return `用户想追加操作。上一轮意图：${_lastIntent}，上一轮参数：${JSON.stringify(_lastParams)}。用户最新消息："${userMessage}"`;
+    }
+
     return userMessage;
+  }
+
+  /**
+   * 获取本地修改上下文（供本地路径使用，不调用 AI）
+   * 返回 null 表示无需修改/追加处理
+   */
+  function getModificationContext(userMessage) {
+    // 超时检查
+    if (checkTimeout()) return null;
+
+    // 用户明确要求清除上下文
+    if (CLEAR_PATTERNS.test(userMessage)) {
+      clear();
+      return null;
+    }
+
+    // 修改类意图 - 尝试从消息中提取新值并合并参数
+    if (MODIFY_PATTERNS.test(userMessage) && _lastIntent) {
+      const modifiedParams = _mergeModifiedParams(userMessage, _lastParams);
+      return {
+        type: 'modification',
+        lastIntent: _lastIntent,
+        lastTool: _lastTool,
+        lastParams: { ..._lastParams },
+        modifiedParams: modifiedParams
+      };
+    }
+
+    // 追加类意图 - 保留上一轮的分类等上下文
+    if (APPEND_PATTERNS.test(userMessage) && _lastIntent) {
+      return {
+        type: 'append',
+        lastIntent: _lastIntent,
+        lastTool: _lastTool,
+        lastParams: { ..._lastParams }
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * 从修改消息中提取新值，合并到原始参数
+   */
+  function _mergeModifiedParams(message, originalParams) {
+    const merged = { ...originalParams };
+
+    // 提取数字（金额/数量修改）
+    const numberMatch = message.match(/(\d+\.?\d*)/);
+    if (numberMatch) {
+      merged.amount = Number(numberMatch[1]);
+    }
+
+    // 提取支出分类
+    const categoryMatch = message.match(/(餐饮|交通|购物|娱乐|其他)/);
+    if (categoryMatch) {
+      merged.category = categoryMatch[1];
+    }
+
+    // 提取收入来源
+    const sourceMatch = message.match(/(工资|奖金|兼职|其他)/);
+    if (sourceMatch) {
+      merged.source = sourceMatch[1];
+    }
+
+    // 提取优先级
+    const priorityMatch = message.match(/(高|紧急|重要)/);
+    if (priorityMatch) {
+      merged.priority = 'high';
+    } else if (/低|不急/.test(message)) {
+      merged.priority = 'low';
+    }
+
+    // 提取任务标题（引号或书名号内容）
+    const titleMatch = message.match(/[「"『]([^」"』]+)[」"』]/);
+    if (titleMatch) {
+      merged.title = titleMatch[1];
+    }
+
+    // 提取备注
+    const noteMatch = message.match(/备注[是为：:]?\s*([^\s，。,]+)/);
+    if (noteMatch) {
+      merged.note = noteMatch[1];
+    }
+
+    return merged;
   }
 
   function getSlots() { return { ..._slots }; }
   function getLastIntent() { return _lastIntent; }
+  function getLastParams() { return _lastParams ? { ..._lastParams } : {}; }
+  function getLastTool() { return _lastTool; }
   function getTurnCount() { return _turnCount; }
+  function getLastTimestamp() { return _lastTimestamp; }
 
   function clear() {
     _slots = {};
     _lastIntent = null;
+    _lastParams = {};
+    _lastTool = null;
     _turnCount = 0;
+    _lastTimestamp = 0;
   }
 
-  return { update, getAugmentedMessage, getSlots, getLastIntent, getTurnCount, clear };
+  return { update, getAugmentedMessage, getModificationContext, getSlots, getLastIntent, getLastParams, getLastTool, getTurnCount, getLastTimestamp, clear, checkTimeout };
 })();
 
 /**

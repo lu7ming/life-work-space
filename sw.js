@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v32 - 增强离线能力 + 后台同步 + 新增缓存资源
+ * v33 - 意图缓存扩展 + 多轮对话上下文理解
  */
 
-const CACHE_NAME = 'life-work-space-v32';
+const CACHE_NAME = 'life-work-space-v33';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -70,7 +70,7 @@ const CACHE_ASSETS = [
   './modules/templates/templates.html',
   './modules/templates/templates_module.js',
   './styles/templates.css',
-  // v32 新增：时间追踪模块
+  // v33 新增：时间追踪模块
   './modules/timetracker/timetracker.html',
   './modules/timetracker/timetracker.css',
   './modules/timetracker/timetracker.js',

@@ -363,6 +363,43 @@ const Storage = (() => {
     }
   }
 
+  /**
+   * 批量写入（单事务，性能优化）
+   * @param {string} storeName - 表名
+   * @param {Array<Object>} dataList - 数据列表
+   * @param {'add'|'put'} mode - 写入模式
+   */
+  async function bulkWrite(storeName, dataList, mode = 'put') {
+    if (!dataList || dataList.length === 0) return;
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      let count = 0;
+      for (const data of dataList) {
+        const request = mode === 'add' ? store.add(data) : store.put(data);
+        request.onsuccess = () => count++;
+      }
+      tx.oncomplete = () => resolve(count);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  /**
+   * 批量读取（单事务，性能优化）
+   * @param {string} storeName - 表名
+   */
+  async function bulkGetAll(storeName) {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   return {
     getDB,
     add,
@@ -373,6 +410,8 @@ const Storage = (() => {
     remove,
     clear,
     count,
+    bulkWrite,
+    bulkGetAll,
     initSampleData,
     migrateCourseData
   };

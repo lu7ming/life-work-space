@@ -1,10 +1,10 @@
 /**
  * utils.js - 公共工具函数库
  * 人生工作台 · 全局共享工具
- * v25 - 提取重复工具函数，消除 15+ 文件中的重复定义
+ * v26 - 提取重复工具函数，消除 15+ 文件中的重复定义
  */
 
-window.__APP_VERSION__ = 'v25';
+window.__APP_VERSION__ = 'v26';
 
 const AppUtils = (() => {
   /**
@@ -74,6 +74,35 @@ const AppUtils = (() => {
     };
   }
 
+  /**
+   * 节流函数
+   */
+  function throttle(fn, interval = 300) {
+    let lastTime = 0;
+    return function(...args) {
+      const now = Date.now();
+      if (now - lastTime >= interval) {
+        lastTime = now;
+        fn.apply(this, args);
+      }
+    };
+  }
+
+  /**
+   * 生成唯一 ID
+   */
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  /**
+   * 截断文本
+   */
+  function truncate(str, maxLen = 50) {
+    if (!str) return '';
+    return str.length > maxLen ? str.slice(0, maxLen) + '...' : str;
+  }
+
   return {
     escapeHtml,
     formatDate,
@@ -81,6 +110,9 @@ const AppUtils = (() => {
     formatTime,
     formatCurrency,
     safeParseJSON,
-    debounce
+    debounce,
+    throttle,
+    generateId,
+    truncate
   };
 })();

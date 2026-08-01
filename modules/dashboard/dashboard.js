@@ -71,12 +71,12 @@ const DashboardModule = (() => {
 
       // 连续打卡天数
       const allCheckins = await Storage.getAll('checkins');
-      const dates = allCheckins.map((c) => c.date).sort().reverse();
+      const dateSet = new Set(allCheckins.map((c) => c.date));
       for (let i = 0; i < 365; i++) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
         const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        if (dates.includes(dateStr)) {
+        if (dateSet.has(dateStr)) {
           streakDays++;
         } else {
           if (i === 0) continue;
@@ -684,8 +684,6 @@ ${context}
       return `
         <div class="dash-focus-item${task._isNew ? ' dash-focus-new' : ''}" data-task-id="${task.id}">
           <div class="dash-focus-check">${checkHtml}</div>
-            <label for="focus-check-${task.id}"></label>
-          </div>
           <div class="dash-focus-info">
             <span class="dash-focus-task-title">${escapeHtml(task.title || '未命名任务')}</span>
             <span class="dash-focus-task-meta">

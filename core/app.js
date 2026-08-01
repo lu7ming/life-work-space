@@ -614,7 +614,7 @@ const App = (() => {
 
     try {
       const allCheckins = await Storage.getAll('checkins');
-      const dates = allCheckins.map((c) => c.date).sort().reverse();
+      const dateSet = new Set(allCheckins.map((c) => c.date));
 
       let streak = 0;
       const today = new Date();
@@ -623,7 +623,7 @@ const App = (() => {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
         const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        if (dates.includes(dateStr)) {
+        if (dateSet.has(dateStr)) {
           streak++;
         } else {
           // 允许今天还没打卡的情况（从昨天算起）

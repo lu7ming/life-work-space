@@ -263,7 +263,15 @@ const NotificationEngine = (() => {
 
     try {
       const contacts = await Storage.getAll('contacts');
-      const birthdayContacts = contacts.filter(c => c.birthday === todayMMDD);
+      // birthday 字段可能为 "YYYY-MM-DD" 或 "MM-DD" 格式
+      const birthdayContacts = contacts.filter(c => {
+        if (!c.birthday) return false;
+        const parts = c.birthday.split('-');
+        if (parts.length < 3) return c.birthday === todayMMDD;
+        const bMM = parts[1].padStart(2, '0');
+        const bDD = parts[2].padStart(2, '0');
+        return `${bMM}-${bDD}` === todayMMDD;
+      });
 
       if (birthdayContacts.length > 0) {
         const names = birthdayContacts.map(c => c.name).join('、');
@@ -677,8 +685,20 @@ const NotificationEngine = (() => {
     console.log('[Notif] 通知引擎已启动 🔔');
   }
 
+  /**
+   * 销毁通知引擎，清理定时器
+   */
+  function destroy() {
+    if (_intervalId) {
+      clearInterval(_intervalId);
+      _intervalId = null;
+    }
+    console.log('[Notif] 通知引擎已销毁');
+  }
+
   return {
     init,
+    destroy,
     updateBadge,
     runAllChecks,
     generateSmartSuggestions,

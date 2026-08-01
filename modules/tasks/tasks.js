@@ -995,5 +995,17 @@ const TasksModule = (() => {
     });
   }
 
-  return { init };
+  /**
+   * 模块销毁：清理番茄钟定时器，防止内存泄漏
+   */
+  function destroy() {
+    if (pomodoroState.intervalId) {
+      clearInterval(pomodoroState.intervalId);
+      pomodoroState.intervalId = null;
+    }
+    pomodoroState.running = false;
+    console.log('[Tasks] 模块已销毁，番茄钟定时器已清理');
+  }
+
+  return { init, destroy };
 })();

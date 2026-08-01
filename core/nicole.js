@@ -396,13 +396,14 @@ const NicoleModule = (() => {
       habits.forEach(h => {
         const hCheckins = checkins.filter(c => c.habitId === h.id || c.habitName === h.name)
           .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        const hDateSet = new Set(hCheckins.map(c => c.date));
         let streak = 0;
         let broken = false;
         const checkDate = new Date(today);
 
         for (let i = 0; i < 365; i++) {
           const dateStr = checkDate.toISOString().slice(0, 10);
-          const has = hCheckins.some(c => c.date === dateStr);
+          const has = hDateSet.has(dateStr);
           if (has) {
             streak++;
           } else if (i === 0) {
@@ -836,16 +837,15 @@ ${clusterText}`;
 
     // 1. 写入通知（如果有重要提醒）
     const highClusters = clusters.filter(c => c.severity === 'high');
-    if (highClusters.length > 0 && typeof NotificationModule !== 'undefined') {
+    if (highClusters.length > 0 && typeof NotificationEngine !== 'undefined') {
       highClusters.forEach(c => {
         try {
-          NotificationModule.add({
+          NotificationEngine.addNotification({
             type: 'nicole-insight',
             title: `妮可洞察 · ${c.theme}`,
-            body: c.summary,
+            message: c.summary,
             icon: c.emoji,
-            time: new Date().toISOString(),
-            read: false
+            link: ''
           });
         } catch (e) {
           console.warn('[Pipeline][Stage5] 写入通知失败:', e);

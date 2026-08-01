@@ -604,12 +604,25 @@ const App = (() => {
         btn.classList.remove('long-press-active');
       };
 
-      // 触屏长按（阻止默认防止 Safari 弹出菜单）
+      // 触屏长按
+      let topbarTouchStart = 0;
       btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
+        topbarTouchStart = Date.now();
         onLongPressStart(e);
-      }, { passive: false });
-      btn.addEventListener('touchend', onLongPressEnd);
+      }, { passive: true });
+      btn.addEventListener('touchend', (e) => {
+        onLongPressEnd();
+        // 短按手动触发 click
+        if (!longPressed && (Date.now() - topbarTouchStart) < 500) {
+          e.preventDefault();
+          const title = btn.getAttribute('title') || '';
+          if (title.includes('小鹿')) {
+            typeof XiaoluModule !== 'undefined' ? XiaoluModule.open() : showToast('小鹿模块加载中... 🦌');
+          } else if (title.includes('妮可')) {
+            typeof NicoleModule !== 'undefined' ? NicoleModule.open() : showToast('妮可模块加载中... 💎');
+          }
+        }
+      });
       btn.addEventListener('touchcancel', onLongPressEnd);
       // 鼠标长按（兼容）
       btn.addEventListener('mousedown', onLongPressStart);
@@ -701,9 +714,11 @@ const App = (() => {
     if (fabXiaolu) {
       let fabLongPressTimer = null;
       let fabLongPressed = false;
+      let fabTouchStartTime = 0;
 
       const onFabLongPressStart = (e) => {
         fabLongPressed = false;
+        fabTouchStartTime = Date.now();
         fabLongPressTimer = setTimeout(() => {
           fabLongPressed = true;
           if (navigator.vibrate) navigator.vibrate(30);
@@ -720,17 +735,26 @@ const App = (() => {
       };
 
       fabXiaolu.addEventListener('touchstart', (e) => {
-        e.preventDefault();
+        // 不在 touchstart preventDefault，否则 iOS 会阻止 click 事件
         onFabLongPressStart(e);
-      }, { passive: false });
-      fabXiaolu.addEventListener('touchend', onFabLongPressEnd);
+      }, { passive: true });
+      fabXiaolu.addEventListener('touchend', (e) => {
+        onFabLongPressEnd();
+        // 短按（非长按）手动触发打开面板
+        if (!fabLongPressed && (Date.now() - fabTouchStartTime) < 500) {
+          e.preventDefault(); // 阻止后续 click 重复触发
+          if (typeof XiaoluModule !== 'undefined') {
+            XiaoluModule.open();
+          }
+        }
+      });
       fabXiaolu.addEventListener('touchcancel', onFabLongPressEnd);
       fabXiaolu.addEventListener('mousedown', onFabLongPressStart);
       fabXiaolu.addEventListener('mouseup', onFabLongPressEnd);
       fabXiaolu.addEventListener('mouseleave', onFabLongPressEnd);
       fabXiaolu.addEventListener('contextmenu', (e) => e.preventDefault());
-      fabXiaolu.addEventListener('selectstart', (e) => e.preventDefault());
 
+      // 保留 click 作为桌面端 fallback
       fabXiaolu.addEventListener('click', () => {
         if (fabLongPressed) return;
         if (typeof XiaoluModule !== 'undefined') {

@@ -1508,12 +1508,30 @@ const XiaoluModule = (() => {
    */
   function _refreshAfterAction(intentOrTool) {
     const map = {
-      'finance_record': () => typeof FinanceModule !== 'undefined' && FinanceModule.init && FinanceModule.init(),
-      'task_create': () => typeof TasksModule !== 'undefined' && TasksModule.init && TasksModule.init(),
-      'habit_checkin': () => typeof HabitsModule !== 'undefined' && HabitsModule.init && HabitsModule.init(),
-      'record_finance': () => typeof FinanceModule !== 'undefined' && FinanceModule.init && FinanceModule.init(),
-      'create_task': () => typeof TasksModule !== 'undefined' && TasksModule.init && TasksModule.init(),
-      'habit_log': () => typeof HabitsModule !== 'undefined' && HabitsModule.init && HabitsModule.init(),
+      'finance_record': () => {
+        typeof FinanceModule !== 'undefined' && FinanceModule.init && FinanceModule.init();
+        typeof DashboardModule !== 'undefined' && DashboardModule.init && DashboardModule.init();
+      },
+      'task_create': () => {
+        typeof TasksModule !== 'undefined' && TasksModule.init && TasksModule.init();
+        typeof DashboardModule !== 'undefined' && DashboardModule.init && DashboardModule.init();
+      },
+      'habit_checkin': () => {
+        typeof HabitsModule !== 'undefined' && HabitsModule.init && HabitsModule.init();
+        typeof DashboardModule !== 'undefined' && DashboardModule.init && DashboardModule.init();
+      },
+      'record_finance': () => {
+        typeof FinanceModule !== 'undefined' && FinanceModule.init && FinanceModule.init();
+        typeof DashboardModule !== 'undefined' && DashboardModule.init && DashboardModule.init();
+      },
+      'create_task': () => {
+        typeof TasksModule !== 'undefined' && TasksModule.init && TasksModule.init();
+        typeof DashboardModule !== 'undefined' && DashboardModule.init && DashboardModule.init();
+      },
+      'habit_log': () => {
+        typeof HabitsModule !== 'undefined' && HabitsModule.init && HabitsModule.init();
+        typeof DashboardModule !== 'undefined' && DashboardModule.init && DashboardModule.init();
+      },
     };
     const fn = map[intentOrTool];
     if (fn) { try { fn(); } catch (e) { console.warn('[Xiaolu] 刷新模块失败:', e); } }

@@ -3,7 +3,7 @@
  * 支持离线缓存，采用缓存优先策略
  */
 
-const CACHE_NAME = 'life-workspace-v1';
+const CACHE_NAME = 'life-workspace-v2';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -16,8 +16,17 @@ const CACHE_ASSETS = [
   './core/storage.js',
   './modules/dashboard/dashboard.html',
   './modules/dashboard/dashboard.css',
-  './modules/dashboard/dashboard.js'
-};
+  './modules/dashboard/dashboard.js',
+  './modules/habits/habits.html',
+  './modules/habits/habits.css',
+  './modules/habits/habits.js',
+  './modules/tasks/tasks.html',
+  './modules/tasks/tasks.css',
+  './modules/tasks/tasks.js',
+  './modules/study/study.html',
+  './modules/study/study.css',
+  './modules/study/study.js'
+];
 
 /**
  * 安装事件：预缓存核心资源

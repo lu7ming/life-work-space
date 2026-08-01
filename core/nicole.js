@@ -669,6 +669,11 @@ const NicoleModule = (() => {
   function open() {
     if (_isOpen) return;
 
+    // 关闭小鹿面板（两个AI面板不能同时打开）
+    if (typeof XiaoluModule !== 'undefined' && XiaoluModule.close) {
+      XiaoluModule.close();
+    }
+
     // 首次打开时构建 DOM
     if (!panelEl) {
       buildPanel();

@@ -3,7 +3,7 @@
  * 支持离线缓存，采用缓存优先策略
  */
 
-const CACHE_NAME = 'life-workspace-v11';
+const CACHE_NAME = 'life-workspace-v12';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -19,6 +19,8 @@ const CACHE_ASSETS = [
   './core/search.js',
   './core/nicole.js',
   './styles/nicole.css',
+  './core/xiaolu.js',
+  './styles/xiaolu.css',
   './core/sync.js',
   './modules/dashboard/dashboard.html',
   './modules/dashboard/dashboard.css',

@@ -545,7 +545,11 @@ const App = (() => {
             showToast('妮可模块加载中...');
           }
         } else if (title.includes('小鹿')) {
-          showToast('小鹿AI开发中 🦌');
+          if (typeof XiaoluModule !== 'undefined') {
+            XiaoluModule.open();
+          } else {
+            showToast('小鹿模块加载中... 🦌');
+          }
         } else {
           showToast('AI对话功能开发中 🤖');
         }
@@ -684,7 +688,7 @@ const App = (() => {
       if ('caches' in window) {
         caches.keys().then((keys) => {
           keys.forEach((key) => {
-            if (key !== 'life-workspace-v11') {
+            if (key !== 'life-workspace-v12') {
               caches.delete(key);
               console.log('[App] 已清除旧缓存:', key);
             }

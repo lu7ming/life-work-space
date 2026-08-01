@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 
 /**
  * 存储管理器
@@ -142,6 +142,24 @@ const Storage = (() => {
         // 生命树表（v4 新增）
         if (!db.objectStoreNames.contains('lifetree')) {
           db.createObjectStore('lifetree', { keyPath: 'key' });
+        }
+
+        // v4→v5: 清除所有示例数据，从零开始
+        if (event.oldVersion < 5) {
+          try {
+            const storesToClear = ['checkins', 'tasks', 'finance', 'study', 'books', 'skills', 'courses', 'semesters', 'projects', 'pomodoros'];
+            const tx = event.target.transaction;
+            for (const storeName of storesToClear) {
+              if (db.objectStoreNames.contains(storeName)) {
+                tx.objectStore(storeName).clear();
+              }
+            }
+            // 清除初始化标记，让 initSampleData 重新运行（只创建空的今日打卡）
+            if (db.objectStoreNames.contains('meta')) {
+              tx.objectStore('meta').delete('initialized');
+            }
+            console.log('[Storage] v4→v5 升级：已清除所有示例数据，从零开始');
+          } catch(e) { console.error('[Storage] 升级清理出错:', e); }
         }
       };
 
@@ -292,78 +310,20 @@ const Storage = (() => {
     const todayStr = `${yyyy}-${mm}-${String(today.getDate()).padStart(2, '0')}`;
     const monthStr = `${yyyy}-${mm}`;
 
-    // 填充本月打卡记录（随机几天）
-    const checkinDays = [1, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 21, 23, 25];
-    const maxDay = today.getDate();
-    const validDays = checkinDays.filter(d => d <= maxDay);
-    const allHabitIds = ['warm-water','breakfast','exercise','drink-water','dinner-light','foot-bath','early-sleep','reading','study','stretch','journal','finance'];
-    for (const day of validDays) {
-      const dd = String(day).padStart(2, '0');
-      // 每天随机完成 2~5 个习惯
-      const count = 2 + (day % 4);
-      const dayHabits = [];
-      for (let i = 0; i < count && i < allHabitIds.length; i++) {
-        const idx = (day + i * 3) % allHabitIds.length;
-        dayHabits.push(allHabitIds[idx]);
-      }
-      await put('checkins', {
-        date: `${yyyy}-${mm}-${dd}`,
-        month: monthStr,
-        time: `0${8 + (day % 3)}:${String(day % 60).padStart(2, '0')}`,
-        habits: dayHabits
-      });
-    }
+    // 打卡记录不预设，从零开始真实积累
+    // 仅初始化今天的一条空记录（日历会显示今天日期）
+    await put('checkins', {
+      date: todayStr,
+      month: monthStr,
+      time: `08:00`,
+      habits: []
+    });
 
-    // 填充示例项目
-    const project1Id = await add('projects', { name: '个人成长计划', createdAt: todayStr });
-    const project2Id = await add('projects', { name: '副业探索', createdAt: todayStr });
-
-    // 填充几条任务（含优先级、截止日期、关联项目）
-    const tasks = [
-      { title: '完成周报', status: 'done', date: todayStr, category: 'work', priority: 'A', dueDate: todayStr, projectId: null, completedAt: todayStr },
-      { title: '读完《原子习惯》第5章', status: 'todo', date: todayStr, category: 'study', priority: 'B', dueDate: todayStr, projectId: project1Id, completedAt: null },
-      { title: '跑步3公里', status: 'todo', date: todayStr, category: 'health', priority: 'C', dueDate: todayStr, projectId: null, completedAt: null },
-      { title: '整理本月账单', status: 'todo', date: todayStr, category: 'finance', priority: 'D', dueDate: todayStr, projectId: null, completedAt: null },
-      { title: '调研副业方向', status: 'todo', date: todayStr, category: 'work', priority: 'A', dueDate: todayStr, projectId: project2Id, completedAt: null },
-    ];
-    for (const task of tasks) {
-      await add('tasks', task);
-    }
-
-    // 填充学习记录
-    await add('study', { date: todayStr, minutes: 45, subject: '阅读' });
-
-    // 填充财务记录
-    await add('finance', { month: monthStr, type: 'expense', amount: 35.5, note: '午餐', date: todayStr });
-    await add('finance', { month: monthStr, type: 'expense', amount: 128, note: '书籍', date: todayStr });
-    await add('finance', { month: monthStr, type: 'expense', amount: 2560, note: '房租', date: todayStr });
-    await add('finance', { month: monthStr, type: 'income', amount: 15000, note: '工资', date: todayStr });
-
-    // 学习模块示例数据
-    const semester1Id = await add('semesters', { name: '2026年春季' });
-
-    // 示例课程（24小时制时间格式）
-    await add('courses', { name: '高等数学', room: 'A301', teacher: '李教授', day: 1, startTime: '08:00', endTime: '09:30', semesterId: semester1Id });
-    await add('courses', { name: '大学英语', room: 'B205', teacher: '王老师', day: 1, startTime: '10:00', endTime: '11:30', semesterId: semester1Id });
-    await add('courses', { name: '数据结构', room: 'C102', teacher: '张教授', day: 2, startTime: '09:40', endTime: '11:10', semesterId: semester1Id });
-    await add('courses', { name: '线性代数', room: 'A301', teacher: '李教授', day: 3, startTime: '08:00', endTime: '09:30', semesterId: semester1Id });
-    await add('courses', { name: '操作系统', room: 'D401', teacher: '赵教授', day: 4, startTime: '10:00', endTime: '11:30', semesterId: semester1Id });
-    await add('courses', { name: '体育', room: '体育馆', teacher: '陈老师', day: 5, startTime: '14:20', endTime: '15:50', semesterId: semester1Id });
-
-    // 示例书籍
-    await add('books', { title: '原子习惯', author: 'James Clear', status: 'done', progress: 100, note: '很受启发' });
-    await add('books', { title: '深度工作', author: 'Cal Newport', status: 'reading', progress: 65, note: '' });
-    await add('books', { title: '思考，快与慢', author: 'Daniel Kahneman', status: 'reading', progress: 30, note: '' });
-    await add('books', { title: '原则', author: 'Ray Dalio', status: 'want', progress: 0, note: '' });
-
-    // 示例技能
-    await add('skills', { name: 'Python编程', level: 4, progress: 70, note: '正在学习Flask' });
-    await add('skills', { name: '英语口语', level: 3, progress: 45, note: '' });
-    await add('skills', { name: 'UI设计', level: 2, progress: 25, note: '' });
+    // 不预设任何示例数据，从零开始真实积累
 
     // 设置
     await put('settings', { key: 'username', value: '鹿7铭' });
-    await put('settings', { key: 'streak', value: 14 });
+    await put('settings', { key: 'streak', value: 0 });
 
     // 标记已初始化
     await put('meta', { key: 'initialized', value: true, date: todayStr });

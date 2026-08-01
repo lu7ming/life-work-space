@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 /**
  * 存储管理器
@@ -71,6 +71,19 @@ const Storage = (() => {
         // 初始化标记
         if (!db.objectStoreNames.contains('meta')) {
           db.createObjectStore('meta', { keyPath: 'key' });
+        }
+
+        // 项目表（v2 新增）
+        if (!db.objectStoreNames.contains('projects')) {
+          const store = db.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('createdAt', 'createdAt', { unique: false });
+        }
+
+        // 番茄钟记录表（v2 新增）
+        if (!db.objectStoreNames.contains('pomodoros')) {
+          const store = db.createObjectStore('pomodoros', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('date', 'date', { unique: false });
+          store.createIndex('taskId', 'taskId', { unique: false });
         }
       };
 
@@ -233,12 +246,17 @@ const Storage = (() => {
       });
     }
 
-    // 填充几条任务
+    // 填充示例项目
+    const project1Id = await add('projects', { name: '个人成长计划', createdAt: todayStr });
+    const project2Id = await add('projects', { name: '副业探索', createdAt: todayStr });
+
+    // 填充几条任务（含优先级、截止日期、关联项目）
     const tasks = [
-      { title: '完成周报', status: 'done', date: todayStr, category: 'work' },
-      { title: '读完《原子习惯》第5章', status: 'todo', date: todayStr, category: 'study' },
-      { title: '跑步3公里', status: 'todo', date: todayStr, category: 'health' },
-      { title: '整理本月账单', status: 'todo', date: todayStr, category: 'finance' },
+      { title: '完成周报', status: 'done', date: todayStr, category: 'work', priority: 'A', dueDate: todayStr, projectId: null, completedAt: todayStr },
+      { title: '读完《原子习惯》第5章', status: 'todo', date: todayStr, category: 'study', priority: 'B', dueDate: todayStr, projectId: project1Id, completedAt: null },
+      { title: '跑步3公里', status: 'todo', date: todayStr, category: 'health', priority: 'C', dueDate: todayStr, projectId: null, completedAt: null },
+      { title: '整理本月账单', status: 'todo', date: todayStr, category: 'finance', priority: 'D', dueDate: todayStr, projectId: null, completedAt: null },
+      { title: '调研副业方向', status: 'todo', date: todayStr, category: 'work', priority: 'A', dueDate: todayStr, projectId: project2Id, completedAt: null },
     ];
     for (const task of tasks) {
       await add('tasks', task);

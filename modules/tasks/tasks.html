@@ -1,0 +1,236 @@
+<!-- tasks.html - 任务模块模板 -->
+<div class="tasks page-enter">
+
+  <!-- ===== 顶部：Tab 切换 ===== -->
+  <div class="tasks-header">
+    <h1 class="tasks-title">📋 任务</h1>
+    <div class="tasks-tabs" id="tasks-tabs">
+      <button class="tasks-tab active" data-tab="today">今日任务</button>
+      <button class="tasks-tab" data-tab="all">全部任务</button>
+      <button class="tasks-tab" data-tab="done">已完成</button>
+      <button class="tasks-tab" data-tab="projects">项目</button>
+      <button class="tasks-tab tasks-tab--pomodoro" data-tab="pomodoro">🍅</button>
+    </div>
+  </div>
+
+  <!-- ===== 任务列表区域 ===== -->
+  <div class="tasks-content" id="tasks-content">
+
+    <!-- 今日任务面板 -->
+    <div class="tasks-panel active" data-panel="today">
+      <div class="tasks-list" id="tasks-list-today"></div>
+      <div class="tasks-empty" id="tasks-empty-today" style="display:none;">
+        <div class="tasks-empty-icon">🎉</div>
+        <p>今天没有待办任务，享受当下吧</p>
+      </div>
+    </div>
+
+    <!-- 全部任务面板 -->
+    <div class="tasks-panel" data-panel="all">
+      <div class="tasks-filter" id="tasks-filter">
+        <button class="tasks-filter-btn active" data-priority="all">全部</button>
+        <button class="tasks-filter-btn" data-priority="A"><span class="priority-dot priority-A"></span>A</button>
+        <button class="tasks-filter-btn" data-priority="B"><span class="priority-dot priority-B"></span>B</button>
+        <button class="tasks-filter-btn" data-priority="C"><span class="priority-dot priority-C"></span>C</button>
+        <button class="tasks-filter-btn" data-priority="D"><span class="priority-dot priority-D"></span>D</button>
+      </div>
+      <div class="tasks-list" id="tasks-list-all"></div>
+      <div class="tasks-empty" id="tasks-empty-all" style="display:none;">
+        <div class="tasks-empty-icon">📝</div>
+        <p>暂无任务，点击右下角 + 添加</p>
+      </div>
+    </div>
+
+    <!-- 已完成面板 -->
+    <div class="tasks-panel" data-panel="done">
+      <div class="tasks-list" id="tasks-list-done"></div>
+      <div class="tasks-empty" id="tasks-empty-done" style="display:none;">
+        <div class="tasks-empty-icon">📊</div>
+        <p>暂无已完成的任务</p>
+      </div>
+    </div>
+
+    <!-- ===== 项目面板 ===== -->
+    <div class="tasks-panel" data-panel="projects">
+      <div class="projects-list" id="projects-list"></div>
+      <div class="tasks-empty" id="projects-empty" style="display:none;">
+        <div class="tasks-empty-icon">📁</div>
+        <p>暂无项目，点击 + 创建一个吧</p>
+      </div>
+    </div>
+
+    <!-- ===== 番茄钟面板 ===== -->
+    <div class="tasks-panel" data-panel="pomodoro">
+      <div class="pomodoro-container" id="pomodoro-container">
+        <!-- 计时器 -->
+        <div class="pomodoro-timer card">
+          <div class="pomodoro-timer-ring">
+            <svg class="pomodoro-svg" viewBox="0 0 200 200">
+              <circle class="pomodoro-ring-bg" cx="100" cy="100" r="90" />
+              <circle class="pomodoro-ring-progress" id="pomodoro-ring-progress" cx="100" cy="100" r="90" />
+            </svg>
+            <div class="pomodoro-timer-display">
+              <span class="pomodoro-time" id="pomodoro-time">25:00</span>
+              <span class="pomodoro-label" id="pomodoro-label">专注时间</span>
+            </div>
+          </div>
+          <!-- 控制按钮 -->
+          <div class="pomodoro-controls">
+            <button class="pomodoro-btn pomodoro-btn--reset" id="pomodoro-reset" title="重置">↺</button>
+            <button class="pomodoro-btn pomodoro-btn--start" id="pomodoro-start">▶ 开始</button>
+            <button class="pomodoro-btn pomodoro-btn--skip" id="pomodoro-skip" title="跳过">⏭</button>
+          </div>
+          <!-- 当前番茄数 -->
+          <div class="pomodoro-count" id="pomodoro-count">
+            <span class="pomodoro-count-label">今日番茄</span>
+            <span class="pomodoro-count-number" id="pomodoro-count-number">0</span>
+          </div>
+        </div>
+        <!-- 关联任务选择 -->
+        <div class="pomodoro-task card">
+          <div class="pomodoro-task-header">
+            <span>关联任务</span>
+          </div>
+          <select class="pomodoro-task-select" id="pomodoro-task-select">
+            <option value="">-- 不关联任务 --</option>
+          </select>
+        </div>
+        <!-- 今日番茄记录 -->
+        <div class="pomodoro-history card">
+          <div class="pomodoro-history-header">
+            <span>今日记录</span>
+          </div>
+          <div class="pomodoro-history-list" id="pomodoro-history-list"></div>
+          <div class="pomodoro-history-empty" id="pomodoro-history-empty">
+            还没有番茄记录，开始专注吧 🍅
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 底部统计 ===== -->
+  <div class="tasks-footer" id="tasks-footer">
+    <span>今日完成 <strong id="tasks-today-done">0</strong> 个</span>
+    <span class="tasks-footer-divider">/</span>
+    <span>共 <strong id="tasks-total">0</strong> 个</span>
+  </div>
+
+  <!-- ===== 浮动 "+" 按钮 ===== -->
+  <button class="tasks-fab" id="tasks-fab" title="新建任务">+</button>
+
+  <!-- ===== 新建任务浮层 ===== -->
+  <div class="tasks-modal-overlay" id="tasks-modal-overlay">
+    <div class="tasks-modal card" id="tasks-modal">
+      <div class="tasks-modal-header">
+        <h3 id="tasks-modal-title">新建任务</h3>
+        <button class="tasks-modal-close" id="tasks-modal-close">✕</button>
+      </div>
+      <div class="tasks-modal-body">
+        <div class="tasks-form-group">
+          <label>任务名称</label>
+          <input type="text" class="tasks-input" id="task-name-input" placeholder="输入任务名称..." maxlength="100" />
+        </div>
+        <div class="tasks-form-group">
+          <label>优先级</label>
+          <div class="tasks-priority-picker" id="task-priority-picker">
+            <button class="priority-pick-btn active" data-priority="A">
+              <span class="priority-dot priority-A"></span>A 紧急重要
+            </button>
+            <button class="priority-pick-btn" data-priority="B">
+              <span class="priority-dot priority-B"></span>B 重要不紧急
+            </button>
+            <button class="priority-pick-btn" data-priority="C">
+              <span class="priority-dot priority-C"></span>C 紧急不重要
+            </button>
+            <button class="priority-pick-btn" data-priority="D">
+              <span class="priority-dot priority-D"></span>D 不紧急不重要
+            </button>
+          </div>
+        </div>
+        <div class="tasks-form-group">
+          <label>截止日期</label>
+          <input type="date" class="tasks-input" id="task-date-input" />
+        </div>
+        <div class="tasks-form-group">
+          <label>关联项目</label>
+          <select class="tasks-input tasks-select" id="task-project-input">
+            <option value="">-- 不关联项目 --</option>
+          </select>
+        </div>
+      </div>
+      <div class="tasks-modal-footer">
+        <button class="tasks-btn tasks-btn--cancel" id="tasks-btn-cancel">取消</button>
+        <button class="tasks-btn tasks-btn--confirm" id="tasks-btn-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 新建项目浮层 ===== -->
+  <div class="tasks-modal-overlay" id="projects-modal-overlay">
+    <div class="tasks-modal card" id="projects-modal">
+      <div class="tasks-modal-header">
+        <h3>新建项目</h3>
+        <button class="tasks-modal-close" id="projects-modal-close">✕</button>
+      </div>
+      <div class="tasks-modal-body">
+        <div class="tasks-form-group">
+          <label>项目名称</label>
+          <input type="text" class="tasks-input" id="project-name-input" placeholder="输入项目名称..." maxlength="50" />
+        </div>
+      </div>
+      <div class="tasks-modal-footer">
+        <button class="tasks-btn tasks-btn--cancel" id="projects-btn-cancel">取消</button>
+        <button class="tasks-btn tasks-btn--confirm" id="projects-btn-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 任务详情/编辑浮层 ===== -->
+  <div class="tasks-modal-overlay" id="task-detail-overlay">
+    <div class="tasks-modal card" id="task-detail-modal">
+      <div class="tasks-modal-header">
+        <h3>编辑任务</h3>
+        <button class="tasks-modal-close" id="task-detail-close">✕</button>
+      </div>
+      <div class="tasks-modal-body">
+        <div class="tasks-form-group">
+          <label>任务名称</label>
+          <input type="text" class="tasks-input" id="edit-task-name" placeholder="输入任务名称..." maxlength="100" />
+        </div>
+        <div class="tasks-form-group">
+          <label>优先级</label>
+          <div class="tasks-priority-picker" id="edit-task-priority-picker">
+            <button class="priority-pick-btn" data-priority="A">
+              <span class="priority-dot priority-A"></span>A 紧急重要
+            </button>
+            <button class="priority-pick-btn" data-priority="B">
+              <span class="priority-dot priority-B"></span>B 重要不紧急
+            </button>
+            <button class="priority-pick-btn" data-priority="C">
+              <span class="priority-dot priority-C"></span>C 紧急不重要
+            </button>
+            <button class="priority-pick-btn" data-priority="D">
+              <span class="priority-dot priority-D"></span>D 不紧急不重要
+            </button>
+          </div>
+        </div>
+        <div class="tasks-form-group">
+          <label>截止日期</label>
+          <input type="date" class="tasks-input" id="edit-task-date" />
+        </div>
+        <div class="tasks-form-group">
+          <label>关联项目</label>
+          <select class="tasks-input tasks-select" id="edit-task-project">
+            <option value="">-- 不关联项目 --</option>
+          </select>
+        </div>
+      </div>
+      <div class="tasks-modal-footer">
+        <button class="tasks-btn tasks-btn--danger" id="edit-task-delete">删除</button>
+        <button class="tasks-btn tasks-btn--confirm" id="edit-task-save">保存</button>
+      </div>
+    </div>
+  </div>
+
+</div>

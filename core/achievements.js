@@ -470,7 +470,7 @@ export const Achievements = (() => {
           const all = await Storage.getAll('tasks');
           const now = new Date();
           const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-          const monthDone = all.filter(t => t.status === 'done' && t.completedAt && t.completedAt.startsWith(monthStr)).length;
+          const monthDone = all.filter(t => (t.status === 'done' || t.status === 'completed') && t.completedAt && t.completedAt.startsWith(monthStr)).length;
           return monthDone >= 50;
         }
         case 'usage_365': {

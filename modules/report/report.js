@@ -192,7 +192,7 @@ export const ReportModule = (() => {
 
       // 时间范围内完成的任务
       const completedTasks = allTasks.filter(t => {
-        if (t.status !== 'done') return false;
+        if (t.status !== 'done' && t.status !== 'completed') return false;
         const completedDate = t.completedAt || t.date;
         return completedDate && completedDate >= startStr && completedDate <= endStr;
       });

@@ -293,7 +293,7 @@ export const DashboardModule = (() => {
 
     // 1) 今日待办 Top3（A/B 优先级未完成任务）
     const priorityTasks = data.tasks
-      .filter(t => t.status !== 'done' && (t.priority === 'A' || t.priority === 'B'))
+      .filter(t => t.status !== 'done' && t.status !== 'completed' && (t.priority === 'A' || t.priority === 'B'))
       .sort((a, b) => {
         const order = { A: 1, B: 2 };
         return (order[a.priority] || 9) - (order[b.priority] || 9);
@@ -521,7 +521,7 @@ export const DashboardModule = (() => {
     </div>`;
 
     // 2) 未完成项提醒
-    const unfinishedTasks = todayTasks.filter(t => t.status !== 'done');
+    const unfinishedTasks = todayTasks.filter(t => t.status !== 'done' && t.status !== 'completed');
     const uncheckedHabits = habitList.filter(h => !checkedHabits.includes(h.id));
 
     const reminders = [];
@@ -2279,7 +2279,7 @@ ${context}
           // 从已有任务中获取
           for (let i = 0; i < (aiResult.taskIds || []).length && focusTasks.length < 3; i++) {
             const task = await Storage.get('tasks', aiResult.taskIds[i]);
-            if (task && task.status !== 'done') {
+            if (task && task.status !== 'done' && task.status !== 'completed') {
               task._aiReason = (aiResult.reasons || [])[i] || 'AI 推荐';
               focusTasks.push(task);
             }

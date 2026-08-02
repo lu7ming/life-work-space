@@ -168,7 +168,7 @@ export const TasksModule = (() => {
         tasks = tasks.filter((t) => t.priority === currentFilter);
       }
     } else if (panel === 'done') {
-      tasks = allTasks.filter((t) => t.status === 'done');
+      tasks = allTasks.filter((t) => t.status === 'done' || t.status === 'completed');
     }
     tasks = sortByPriority(tasks);
 
@@ -189,7 +189,7 @@ export const TasksModule = (() => {
 
   function renderTaskItem(task) {
     const priorityClass = task.priority || 'D';
-    const isDone = task.status === 'done';
+    const isDone = task.status === 'done' || task.status === 'completed';
     const project = task.projectId ? allProjects.find((p) => p.id === task.projectId) : null;
     const overdueClass = !isDone && task.dueDate && isOverdue(task.dueDate) ? 'overdue' : '';
     const dateLabel = task.dueDate ? formatDisplayDate(task.dueDate) : '';
@@ -267,7 +267,7 @@ export const TasksModule = (() => {
   async function toggleTask(taskId) {
     const task = allTasks.find((t) => t.id === taskId);
     if (!task) return;
-    const newStatus = task.status === 'done' ? 'todo' : 'done';
+    const newStatus = (task.status === 'done' || task.status === 'completed') ? 'todo' : 'done';
     try {
       task.status = newStatus;
       task.completedAt = newStatus === 'done' ? formatDate(new Date()) : null;
@@ -620,7 +620,7 @@ export const TasksModule = (() => {
     listEl.innerHTML = allProjects.map((project) => {
       const projectTasks = allTasks.filter((t) => t.projectId === project.id);
       const total = projectTasks.length;
-      const done = projectTasks.filter((t) => t.status === 'done').length;
+      const done = projectTasks.filter((t) => t.status === 'done' || t.status === 'completed').length;
       const percent = total > 0 ? Math.round((done / total) * 100) : 0;
       return `
         <div class="project-card" data-project-id="${project.id}">
@@ -643,7 +643,7 @@ export const TasksModule = (() => {
   // ===== 底部统计 =====
   function updateStats() {
     const todayStr = formatDate(new Date());
-    const todayDone = allTasks.filter((t) => t.completedAt === todayStr && t.status === 'done').length;
+    const todayDone = allTasks.filter((t) => t.completedAt === todayStr && (t.status === 'done' || t.status === 'completed')).length;
     const total = allTasks.filter((t) => t.status === 'todo').length;
 
     const doneEl = document.getElementById('tasks-today-done');

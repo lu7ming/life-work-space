@@ -65,7 +65,7 @@ export const GoalsModule = (() => {
     }
     const relatedTasks = allTasks.filter(t => goal.relatedTaskIds.includes(t.id));
     if (relatedTasks.length === 0) return goal.progress || 0;
-    const doneCount = relatedTasks.filter(t => t.status === 'done').length;
+    const doneCount = relatedTasks.filter(t => t.status === 'done' || t.status === 'completed').length;
     return Math.round((doneCount / relatedTasks.length) * 100);
   }
 
@@ -197,9 +197,9 @@ export const GoalsModule = (() => {
           const relatedTasks = allTasks.filter(t => goal.relatedTaskIds.includes(t.id));
           if (relatedTasks.length > 0) {
             html += `<div class="goals-card-tasks">
-              <div class="goals-card-tasks-title">关联任务 (${relatedTasks.filter(t=>t.status==='done').length}/${relatedTasks.length})</div>`;
+              <div class="goals-card-tasks-title">关联任务 (${relatedTasks.filter(t=>t.status==='done'||t.status==='completed').length}/${relatedTasks.length})</div>`;
             relatedTasks.forEach(task => {
-              const dotClass = task.status === 'done' ? 'done' : 'pending';
+              const dotClass = (task.status==='done'||task.status==='completed') ? 'done' : 'pending';
               html += `<div class="goals-card-task-item">
                 <span class="task-dot ${dotClass}"></span>
                 <span>${escapeHtml(task.title || '任务 #' + task.id)}</span>

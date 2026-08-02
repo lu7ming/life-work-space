@@ -319,11 +319,17 @@ const TasksModule = (() => {
     fillProjectSelect('task-project-input');
     overlay.classList.add('show');
     setTimeout(() => nameInput?.focus(), 200);
+    // 跨模块关联：监听任务名输入推荐相关内容
+    _bindCrossLinkForTaskCreate();
   }
 
   function hideTaskModal() {
     const overlay = document.getElementById('tasks-modal-overlay');
     if (overlay) overlay.classList.remove('show');
+    // 隐藏跨模块推荐
+    if (typeof CrossLinker !== 'undefined') {
+      CrossLinker.hideSuggestions('tasks-create-suggestions');
+    }
   }
 
   function bindModalEvents() {
@@ -527,12 +533,18 @@ const TasksModule = (() => {
 
     const overlay = document.getElementById('task-detail-overlay');
     if (overlay) overlay.classList.add('show');
+    // 跨模块关联：监听编辑任务名输入
+    _bindCrossLinkForTaskEdit();
   }
 
   function hideTaskDetail() {
     const overlay = document.getElementById('task-detail-overlay');
     if (overlay) overlay.classList.remove('show');
     editingTaskId = null;
+    // 隐藏跨模块推荐
+    if (typeof CrossLinker !== 'undefined') {
+      CrossLinker.hideSuggestions('tasks-edit-suggestions');
+    }
   }
 
   function bindDetailEvents() {
@@ -1005,6 +1017,46 @@ const TasksModule = (() => {
       // 确保 pomodoro 显示与当前状态同步（路由切换后恢复）
       updatePomodoroDisplay();
     });
+  }
+
+  // ===== 跨模块智能关联 =====
+  let _taskCreateCrossLinkBound = false;
+  let _taskEditCrossLinkBound = false;
+
+  function _bindCrossLinkForTaskCreate() {
+    const nameInput = document.getElementById('task-name-input');
+    if (!nameInput || _taskCreateCrossLinkBound) return;
+    _taskCreateCrossLinkBound = true;
+
+    _bindEvent(nameInput, 'input', () => {
+      const text = nameInput.value.trim();
+      if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+        CrossLinker.showSuggestions(text, 'tasks', 'tasks-create-suggestions');
+      } else if (typeof CrossLinker !== 'undefined') {
+        CrossLinker.hideSuggestions('tasks-create-suggestions');
+      }
+    });
+  }
+
+  function _bindCrossLinkForTaskEdit() {
+    const nameInput = document.getElementById('edit-task-name');
+    if (!nameInput || _taskEditCrossLinkBound) return;
+    _taskEditCrossLinkBound = true;
+
+    _bindEvent(nameInput, 'input', () => {
+      const text = nameInput.value.trim();
+      if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+        CrossLinker.showSuggestions(text, 'tasks', 'tasks-edit-suggestions', editingTaskId);
+      } else if (typeof CrossLinker !== 'undefined') {
+        CrossLinker.hideSuggestions('tasks-edit-suggestions');
+      }
+    });
+
+    // 初始化时也触发一次（编辑已有内容时）
+    const text = nameInput.value.trim();
+    if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+      CrossLinker.showSuggestions(text, 'tasks', 'tasks-edit-suggestions', editingTaskId);
+    }
   }
 
   /**

@@ -358,6 +358,8 @@ const ContentModule = (() => {
     openModal('topic-modal-overlay');
     // 聚焦
     if (titleInput) setTimeout(() => titleInput.focus(), 100);
+    // 跨模块关联：监听选题标题输入推荐相关内容
+    _bindCrossLinkForTopic();
   }
 
   async function saveTopic() {
@@ -401,6 +403,10 @@ const ContentModule = (() => {
 
     editingTopicId = null;
     closeModal('topic-modal-overlay');
+    // 隐藏跨模块推荐
+    if (typeof CrossLinker !== 'undefined') {
+      CrossLinker.hideSuggestions('content-topic-suggestions');
+    }
     await loadData();
     renderAll();
   }
@@ -747,6 +753,24 @@ const ContentModule = (() => {
 
     loadData().then(() => {
       renderAll();
+    });
+  }
+
+  // ===== 跨模块智能关联 =====
+  let _topicCrossLinkBound = false;
+
+  function _bindCrossLinkForTopic() {
+    const titleInput = document.getElementById('topic-title-input');
+    if (!titleInput || _topicCrossLinkBound) return;
+    _topicCrossLinkBound = true;
+
+    _bindEvent(titleInput, 'input', () => {
+      const text = titleInput.value.trim();
+      if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+        CrossLinker.showSuggestions(text, 'content_topics', 'content-topic-suggestions', editingTopicId);
+      } else if (typeof CrossLinker !== 'undefined') {
+        CrossLinker.hideSuggestions('content-topic-suggestions');
+      }
     });
   }
 

@@ -223,6 +223,8 @@ const KnowledgeModule = (() => {
     renderFormTags();
     renderTagSuggestions();
     showModal('knowledgeModal');
+    // 跨模块关联：监听标题和内容输入
+    _bindCrossLinkForKnowledge();
   }
 
   function openEditModal(entry) {
@@ -242,6 +244,9 @@ const KnowledgeModule = (() => {
     renderFormTags();
     renderTagSuggestions();
     showModal('knowledgeModal');
+    // 跨模块关联：监听标题和内容输入，并触发初始推荐
+    _bindCrossLinkForKnowledge();
+    _triggerKnowledgeCrossLink();
   }
 
   function renderFormTags() {
@@ -313,6 +318,10 @@ const KnowledgeModule = (() => {
       await loadData();
       renderAll();
       hideModal('knowledgeModal');
+      // 隐藏跨模块推荐
+      if (typeof CrossLinker !== 'undefined') {
+        CrossLinker.hideSuggestions('knowledge-suggestions');
+      }
 
       if (typeof App !== 'undefined' && App.showToast) {
         App.showToast(editingId ? '已更新' : '已添加');
@@ -332,6 +341,10 @@ const KnowledgeModule = (() => {
       await loadData();
       renderAll();
       hideModal('knowledgeModal');
+      // 隐藏跨模块推荐
+      if (typeof CrossLinker !== 'undefined') {
+        CrossLinker.hideSuggestions('knowledge-suggestions');
+      }
       if (typeof App !== 'undefined' && App.showToast) {
         App.showToast('已删除');
       }
@@ -611,6 +624,39 @@ const KnowledgeModule = (() => {
     console.log('[Knowledge] 初始化完成，共', allEntries.length, '条记录');
   }
 
+
+  // ========== 跨模块智能关联 ==========
+  let _knowledgeCrossLinkBound = false;
+
+  function _bindCrossLinkForKnowledge() {
+    if (_knowledgeCrossLinkBound) return;
+
+    const titleInput = document.getElementById('knowledgeFormTitle');
+    const contentInput = document.getElementById('knowledgeFormContent');
+
+    if (titleInput) {
+      _bindEvent(titleInput, 'input', _triggerKnowledgeCrossLink);
+    }
+    if (contentInput) {
+      _bindEvent(contentInput, 'input', _triggerKnowledgeCrossLink);
+    }
+    _knowledgeCrossLinkBound = true;
+  }
+
+  function _triggerKnowledgeCrossLink() {
+    const titleInput = document.getElementById('knowledgeFormTitle');
+    const contentInput = document.getElementById('knowledgeFormContent');
+    const text = [
+      titleInput ? titleInput.value.trim() : '',
+      contentInput ? contentInput.value.trim() : ''
+    ].join(' ').trim();
+
+    if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+      CrossLinker.showSuggestions(text, 'knowledge', 'knowledge-suggestions', editingId);
+    } else if (typeof CrossLinker !== 'undefined') {
+      CrossLinker.hideSuggestions('knowledge-suggestions');
+    }
+  }
 
   // ===== 模块生命周期 =====
   let _eventListeners = [];

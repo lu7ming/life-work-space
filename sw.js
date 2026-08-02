@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v58 - 对话自动沉淀知识功能
+ * v59 - 跨模块智能关联
  */
 
-const CACHE_NAME = 'life-work-space-v58';
+const CACHE_NAME = 'life-work-space-v59';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -16,6 +16,7 @@ const CACHE_ASSETS = [
   './core/router.js',
   './core/event-bus.js',
   './core/module-lifecycle.js',
+  './core/cross-linker.js',
   './core/storage.js',
   './core/utils.js',
   './core/user-profile.js',

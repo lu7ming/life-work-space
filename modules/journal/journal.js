@@ -441,12 +441,36 @@ const JournalModule = (() => {
     }
 
     document.getElementById('diary-textarea').focus();
+    // 跨模块关联：监听输入推荐相关内容
+    _bindCrossLinkForDiary();
+  }
+
+  // ========== 跨模块智能关联 ==========
+  let _diaryCrossLinkBound = false;
+
+  function _bindCrossLinkForDiary() {
+    const textarea = document.getElementById('diary-textarea');
+    if (!textarea || _diaryCrossLinkBound) return;
+    _diaryCrossLinkBound = true;
+
+    _bindEvent(textarea, 'input', () => {
+      const text = textarea.value.trim();
+      if (typeof CrossLinker !== 'undefined' && text.length >= 3) {
+        CrossLinker.showSuggestions(text, 'journal', 'journal-suggestions', editingDiaryId);
+      } else if (typeof CrossLinker !== 'undefined') {
+        CrossLinker.hideSuggestions('journal-suggestions');
+      }
+    });
   }
 
   function closeDiaryEditor() {
     document.getElementById('diary-editor-view').classList.add('hidden');
     document.getElementById('diary-list-view').style.display = '';
     editingDiaryId = null;
+    // 隐藏跨模块推荐
+    if (typeof CrossLinker !== 'undefined') {
+      CrossLinker.hideSuggestions('journal-suggestions');
+    }
     renderDiary();
   }
 

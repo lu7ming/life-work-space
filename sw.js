@@ -3,7 +3,7 @@
  * v64 - CORS 代理修复撤回
  */
 
-const CACHE_NAME = 'life-work-space-v68';
+const CACHE_NAME = 'life-work-space-v69';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -143,6 +143,13 @@ self.addEventListener('activate', (event) => {
  */
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  // API 请求直通网络，不缓存（避免缓存过期 token / 旧响应）
+  const url = new URL(event.request.url);
+  if (url.hostname === 'api.coze.cn' || url.hostname === 'api.deepseek.com') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   if (event.request.mode === 'navigate') {
     event.respondWith(

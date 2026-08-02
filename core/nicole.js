@@ -168,6 +168,11 @@ export const NicoleModule = (() => {
    * @returns {Promise<string>} AI 回复内容
    */
   async function callCozeAPI(token, userMessage) {
+    // 超时控制：防止请求无限挂起
+    const API_TIMEOUT = 120000; // 单次请求 120 秒超时
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
     // 步骤1：发起对话
     const chatBody = {
       bot_id: BOT_ID,
@@ -192,7 +197,8 @@ export const NicoleModule = (() => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(chatBody)
+        body: JSON.stringify(chatBody),
+        signal: controller.signal
       });
 
       if (resp.status === 401) {
@@ -204,6 +210,10 @@ export const NicoleModule = (() => {
 
       chatResp = await resp.json();
     } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        throw new Error('请求超时（120秒），请检查网络或稍后重试');
+      }
       if (err.message === 'AUTH_ERROR') {
         throw new Error('认证失败，Token 可能已过期或无效，请重新配置');
       }
@@ -212,6 +222,8 @@ export const NicoleModule = (() => {
       }
       throw new Error('网络连接失败，请检查网络后重试');
     }
+
+    clearTimeout(timeoutId);
 
     if (!chatResp.data) {
       throw new Error('API 响应异常，请稍后重试');
@@ -289,7 +301,7 @@ export const NicoleModule = (() => {
   async function fetchMessages(token, conversationId, chatId) {
     try {
       const resp = await fetch(
-        `${API_BASE}/conversation/message/list?conversation_id=${conversationId}&chat_id=${chatId}`,
+        `${API_BASE}/chat/message/list?conversation_id=${conversationId}&chat_id=${chatId}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }

@@ -636,7 +636,7 @@ const OfflineQueue = (() => {
 
   async function _executeOperation(op) {
     if (op.type === 'sync_github') {
-      if (typeof SyncModule !== 'undefined') await SyncModule.sync();
+      if (typeof SyncModule !== 'undefined') await SyncModule.smartSync();
     }
     // 其他操作类型可在此扩展
   }

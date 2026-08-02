@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 10;
+const DB_VERSION = 11;
 
 /**
  * 存储管理器
@@ -179,6 +179,14 @@ const Storage = (() => {
             contentPublished.createIndex('topicId', 'topicId', { unique: false });
             console.log('[Storage] v10 迁移：已创建创作日程表（content_topics/content_shootings/content_published）');
           },
+          // v11: 离线增量同步 - 操作日志队列
+          11: (db) => {
+            const syncQueue = db.createObjectStore('sync_queue', { keyPath: 'id', autoIncrement: true });
+            syncQueue.createIndex('synced', 'synced', { unique: false });
+            syncQueue.createIndex('storeName', 'storeName', { unique: false });
+            syncQueue.createIndex('timestamp', 'timestamp', { unique: false });
+            console.log('[Storage] v11 迁移：已创建 sync_queue 表（增量同步操作日志）');
+          },
         };
 
         // 按版本顺序依次执行迁移
@@ -219,6 +227,41 @@ const Storage = (() => {
     });
   }
 
+  // ========== 增量同步：操作日志 ==========
+
+  /** 同步无关的表，不记录到 sync_queue */
+  const SYNC_EXCLUDED_STORES = new Set([
+    'settings', 'meta', 'audit_logs', 'sync_queue'
+  ]);
+
+  /**
+   * 记录操作到 sync_queue（静默，不影响主操作）
+   * @param {'add'|'put'|'remove'} operation
+   * @param {string} storeName
+   * @param {*} key
+   * @param {Object} [data]
+   */
+  async function _logSyncOperation(operation, storeName, key, data) {
+    if (SYNC_EXCLUDED_STORES.has(storeName)) return;
+    try {
+      const db = await getDB();
+      if (!db.objectStoreNames.contains('sync_queue')) return;
+      const tx = db.transaction('sync_queue', 'readwrite');
+      const store = tx.objectStore('sync_queue');
+      store.add({
+        timestamp: Date.now(),
+        operation,
+        storeName,
+        key,
+        data: operation !== 'remove' ? data : undefined,
+        synced: false
+      });
+      // 不 await tx.oncomplete — 日志写入不阻塞主操作
+    } catch (e) {
+      console.warn('[Storage] sync_queue 记录失败:', e);
+    }
+  }
+
   /**
    * 添加一条记录
    * @param {string} storeName - 表名
@@ -228,7 +271,15 @@ const Storage = (() => {
     const store = await getStore(storeName, 'readwrite');
     return new Promise((resolve, reject) => {
       const request = store.add(data);
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = async () => {
+        // 提取 keyPath 对应的主键值用于日志
+        const db = await getDB();
+        const storeObj = db.transaction(storeName, 'readonly').objectStore(storeName);
+        const keyPath = storeObj.keyPath;
+        const keyVal = keyPath ? (typeof keyPath === 'string' ? data[keyPath] : keyPath.map(k => data[k])) : request.result;
+        _logSyncOperation('add', storeName, keyVal, data);
+        resolve(request.result);
+      };
       request.onerror = () => reject(request.error);
     });
   }
@@ -242,7 +293,14 @@ const Storage = (() => {
     const store = await getStore(storeName, 'readwrite');
     return new Promise((resolve, reject) => {
       const request = store.put(data);
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = async () => {
+        const db = await getDB();
+        const storeObj = db.transaction(storeName, 'readonly').objectStore(storeName);
+        const keyPath = storeObj.keyPath;
+        const keyVal = keyPath ? (typeof keyPath === 'string' ? data[keyPath] : keyPath.map(k => data[k])) : request.result;
+        _logSyncOperation('put', storeName, keyVal, data);
+        resolve(request.result);
+      };
       request.onerror = () => reject(request.error);
     });
   }
@@ -299,7 +357,10 @@ const Storage = (() => {
     const store = await getStore(storeName, 'readwrite');
     return new Promise((resolve, reject) => {
       const request = store.delete(key);
-      request.onsuccess = () => resolve();
+      request.onsuccess = () => {
+        _logSyncOperation('remove', storeName, key, undefined);
+        resolve();
+      };
       request.onerror = () => reject(request.error);
     });
   }
@@ -519,7 +580,9 @@ const Storage = (() => {
     getPage,
     getByRange,
     initSampleData,
-    migrateCourseData
+    migrateCourseData,
+    /** 同步无关的表名集合（供 SyncModule 引用） */
+    SYNC_EXCLUDED_STORES
   };
 })();
 

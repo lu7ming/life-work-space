@@ -851,6 +851,9 @@ const App = (() => {
         } else if (action === 'whitenoise') {
           if (typeof WhiteNoiseModule !== 'undefined') WhiteNoiseModule.togglePanel();
           else showToast('白噪音模块加载中...');
+        } else if (action === 'sync') {
+          if (typeof SyncModule !== 'undefined') SyncModule.smartSync();
+          else showToast('同步模块加载中...');
         }
         moreMenu?.classList.remove('show');
       });

@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v59 - 跨模块智能关联
+ * v60 - 离线增量同步
  */
 
-const CACHE_NAME = 'life-work-space-v59';
+const CACHE_NAME = 'life-work-space-v60';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [

@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v48 - 本地模型备选方案
+ * v51 - 移除长按语音输入功能
  */
 
-const CACHE_NAME = 'life-work-space-v49';
+const CACHE_NAME = 'life-work-space-v51';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -31,7 +31,6 @@ const CACHE_ASSETS = [
   './core/nicole.js',
   './styles/nicole.css',
   './core/xiaolu.js',
-  './core/voice-processor.js',
   './core/emotion-analyzer.js',
   './core/data-minimizer.js',
   './core/local-ai.js',

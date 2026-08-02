@@ -766,61 +766,7 @@ const App = (() => {
     // AI 按钮点击事件
     const aiBtns = document.querySelectorAll('.topbar-ai-btn');
     aiBtns.forEach((btn) => {
-      let longPressTimer = null;
-      let longPressed = false;
-
-      // 长按 500ms → 打开小鹿并直接语音输入
-      const onLongPressStart = (e) => {
-        const title = btn.getAttribute('title') || '';
-        if (!title.includes('小鹿')) return; // 只对🦌按钮生效
-
-        longPressed = false;
-        longPressTimer = setTimeout(() => {
-          longPressed = true;
-          // 触觉反馈 + 视觉反馈
-          if (navigator.vibrate) navigator.vibrate(30);
-          btn.classList.add('long-press-active');
-          if (typeof XiaoluModule !== 'undefined') {
-            XiaoluModule.quickVoiceInput();
-          }
-        }, 500);
-      };
-
-      const onLongPressEnd = () => {
-        clearTimeout(longPressTimer);
-        btn.classList.remove('long-press-active');
-      };
-
-      // 触屏长按
-      let topbarTouchStart = 0;
-      btn.addEventListener('touchstart', (e) => {
-        topbarTouchStart = Date.now();
-        onLongPressStart(e);
-      }, { passive: true });
-      btn.addEventListener('touchend', (e) => {
-        onLongPressEnd();
-        // 短按手动触发 click
-        if (!longPressed && (Date.now() - topbarTouchStart) < 500) {
-          e.preventDefault();
-          const title = btn.getAttribute('title') || '';
-          if (title.includes('小鹿')) {
-            typeof XiaoluModule !== 'undefined' ? XiaoluModule.open() : showToast('小鹿模块加载中... 🦌');
-          } else if (title.includes('妮可')) {
-            typeof NicoleModule !== 'undefined' ? NicoleModule.open() : showToast('妮可模块加载中... 💎');
-          }
-        }
-      });
-      btn.addEventListener('touchcancel', onLongPressEnd);
-      // 鼠标长按（兼容）
-      btn.addEventListener('mousedown', onLongPressStart);
-      btn.addEventListener('mouseup', onLongPressEnd);
-      btn.addEventListener('mouseleave', onLongPressEnd);
-      btn.addEventListener('contextmenu', (e) => e.preventDefault());
-      btn.addEventListener('selectstart', (e) => e.preventDefault());
-
-      // 普通点击（非长按时触发）
       btn.addEventListener('click', () => {
-        if (longPressed) return; // 刚长按过，忽略点击
         const title = btn.getAttribute('title') || '';
         if (title.includes('妮可')) {
           if (typeof NicoleModule !== 'undefined') {
@@ -904,53 +850,9 @@ const App = (() => {
     const fabXiaolu = document.getElementById('ai-fab-xiaolu');
     const fabNicole = document.getElementById('ai-fab-nicole');
 
-    // 🦌 小鹿AI：点击打开面板，长按快捷语音
+    // 🦌 小鹿AI：点击打开面板
     if (fabXiaolu) {
-      let fabLongPressTimer = null;
-      let fabLongPressed = false;
-      let fabTouchStartTime = 0;
-
-      const onFabLongPressStart = (e) => {
-        fabLongPressed = false;
-        fabTouchStartTime = Date.now();
-        fabLongPressTimer = setTimeout(() => {
-          fabLongPressed = true;
-          if (navigator.vibrate) navigator.vibrate(30);
-          fabXiaolu.classList.add('long-press-active');
-          if (typeof XiaoluModule !== 'undefined') {
-            XiaoluModule.quickVoiceInput();
-          }
-        }, 500);
-      };
-
-      const onFabLongPressEnd = () => {
-        clearTimeout(fabLongPressTimer);
-        fabXiaolu.classList.remove('long-press-active');
-      };
-
-      fabXiaolu.addEventListener('touchstart', (e) => {
-        // 不在 touchstart preventDefault，否则 iOS 会阻止 click 事件
-        onFabLongPressStart(e);
-      }, { passive: true });
-      fabXiaolu.addEventListener('touchend', (e) => {
-        onFabLongPressEnd();
-        // 短按（非长按）手动触发打开面板
-        if (!fabLongPressed && (Date.now() - fabTouchStartTime) < 500) {
-          e.preventDefault(); // 阻止后续 click 重复触发
-          if (typeof XiaoluModule !== 'undefined') {
-            XiaoluModule.open();
-          }
-        }
-      });
-      fabXiaolu.addEventListener('touchcancel', onFabLongPressEnd);
-      fabXiaolu.addEventListener('mousedown', onFabLongPressStart);
-      fabXiaolu.addEventListener('mouseup', onFabLongPressEnd);
-      fabXiaolu.addEventListener('mouseleave', onFabLongPressEnd);
-      fabXiaolu.addEventListener('contextmenu', (e) => e.preventDefault());
-
-      // 保留 click 作为桌面端 fallback
       fabXiaolu.addEventListener('click', () => {
-        if (fabLongPressed) return;
         if (typeof XiaoluModule !== 'undefined') {
           XiaoluModule.open();
         } else {

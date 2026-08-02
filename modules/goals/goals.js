@@ -552,5 +552,5 @@ const GoalsModule = (() => {
     console.log('[GoalsModule] 模块已销毁');
   }
 
-  return { init };
+  return { init, destroy };
 })();

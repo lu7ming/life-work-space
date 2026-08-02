@@ -470,7 +470,7 @@ const NicoleModule = (() => {
         const checkDate = new Date(today);
 
         for (let i = 0; i < 365; i++) {
-          const dateStr = checkDate.toISOString().slice(0, 10);
+          const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth()+1).padStart(2,'0')}-${String(checkDate.getDate()).padStart(2,'0')}`;
           const has = hDateSet.has(dateStr);
           if (has) {
             streak++;
@@ -898,7 +898,7 @@ ${clusterText}`;
    * Stage 5: Spawn（触发动作）
    * 根据洞察结果写入通知、更新 dashboard
    */
-  function spawnActions(refinedInsights) {
+  async function spawnActions(refinedInsights) {
     console.log('[Pipeline][Stage5] 开始触发动作...');
 
     const clusters = refinedInsights.clusters || [];

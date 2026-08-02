@@ -1,5 +1,5 @@
 const KnowledgeModule = (() => {
-  const { escapeHtml, formatDate } = AppUtils;
+  const { escapeHtml } = AppUtils;
 
   // ========== State ==========
   const STORE_NAME = 'knowledge';
@@ -628,5 +628,5 @@ const KnowledgeModule = (() => {
     console.log('[KnowledgeModule] 模块已销毁');
   }
 
-  return { init };
+  return { init, destroy };
 })();

@@ -2066,5 +2066,5 @@ ${context}
     console.log('[DashboardModule] 模块已销毁');
   }
 
-  return { init, showAnnualReview };
+  return { init, showAnnualReview, destroy };
 })();

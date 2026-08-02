@@ -120,7 +120,7 @@ const SmartSuggestion = (() => {
   let _updateTimer = null;         // 定时更新定时器
 
   // ===== AppUtils 快捷引用 =====
-  const { getTodayStr, getWeekRange } = typeof AppUtils !== 'undefined' ? AppUtils : { getTodayStr: () => new Date().toISOString().slice(0, 10), getWeekRange: () => { const n = new Date(); const d = new Date(n); d.setDate(d.getDate() - d.getDay()); return { start: d.toISOString().slice(0,10), end: n.toISOString().slice(0,10) }; } };
+  const { getTodayStr, getWeekRange } = typeof AppUtils !== 'undefined' ? AppUtils : { getTodayStr: () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }, getWeekRange: () => { const n = new Date(); const d = new Date(n); d.setDate(d.getDate() - d.getDay()); const fmtDate = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; return { start: fmtDate(d), end: fmtDate(n) }; } };
 
   /**
    * 收集数据（复用 NicoleModule 的 collectData 逻辑，独立实现以避免循环依赖）
@@ -171,7 +171,7 @@ const SmartSuggestion = (() => {
         const checkDate = new Date(today);
 
         for (let i = 0; i < 365; i++) {
-          const dateStr = checkDate.toISOString().slice(0, 10);
+          const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth()+1).padStart(2,'0')}-${String(checkDate.getDate()).padStart(2,'0')}`;
           if (hDateSet.has(dateStr)) {
             streak++;
           } else if (i === 0) {

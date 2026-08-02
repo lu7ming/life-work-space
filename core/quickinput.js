@@ -131,7 +131,7 @@ const QuickInput = (() => {
    * 支持：零一二三四五六七八九十百千万亿，以及两(=2)
    * 示例："三百" → 300, "一千五" → 1500, "两万" → 20000, "十五块" → 15
    */
-  const parseChineseNumber = AppUtils.parseChineseNumber;
+  // parseChineseNumber 已在顶部从 AppUtils 解构导入（第7行）
 
 
 

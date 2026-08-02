@@ -3,7 +3,8 @@
  * 人生工作台 · 任务管理 + 项目追踪 + 番茄钟
  */
 const TasksModule = (() => {
-  const { escapeHtml, formatDate, formatTime } = AppUtils;
+  // escapeHtml 已在顶部从 AppUtils 导入
+  // function escapeHtml(str) { ... }
 
   // ===== 常量 =====
   const PRIORITY_CONFIG = {
@@ -197,11 +198,7 @@ const TasksModule = (() => {
     `;
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
+  // escapeHtml 已在顶部从 AppUtils 导入，移除本地重复定义
 
   // ===== 滑动删除 =====
   function bindSwipeDelete(container) {

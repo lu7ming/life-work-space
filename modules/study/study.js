@@ -945,5 +945,5 @@ const StudyModule = (() => {
     console.log('[StudyModule] 模块已销毁');
   }
 
-  return { init };
+  return { init, destroy };
 })();

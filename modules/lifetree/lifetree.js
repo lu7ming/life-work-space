@@ -1028,7 +1028,7 @@ const LifeTreeModule = (() => {
     console.log('[LifeTree] 初始化完成，天气:', weatherData.label, '季节:', seasonData.label);
   }
 
-  return { init };
+  return { init, destroy };
 })();
 
 // 自动初始化

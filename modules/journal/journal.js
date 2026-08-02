@@ -3,7 +3,7 @@
  * 三个子Tab：日记、情绪日历、复盘、灵感速记
  */
 const JournalModule = (() => {
-  const { escapeHtml, formatDate } = AppUtils;
+  const { escapeHtml } = AppUtils;
 
   // ========== 情绪配置 ==========
   const MOOD_CONFIG = {
@@ -1173,5 +1173,5 @@ const JournalModule = (() => {
     console.log('[JournalModule] 模块已销毁');
   }
 
-  return { init };
+  return { init, destroy };
 })();

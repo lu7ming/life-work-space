@@ -402,8 +402,8 @@ const PredictiveEngine = (() => {
               type: params.type || 'expense',
               amount: 0, // 需要用户补充
               category: params.category || '其他',
-              date: new Date().toISOString().slice(0, 10),
-              month: new Date().toISOString().slice(0, 7),
+              date: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })(),
+              month: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; })(),
               note: params.note || '',
               createdAt: Date.now()
             };

@@ -863,5 +863,5 @@ const RelationsModule = (() => {
     bindEvents();
   }
 
-  return { init };
+  return { init, destroy };
 })();

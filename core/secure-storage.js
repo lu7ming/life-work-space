@@ -288,7 +288,7 @@ const SecureStorage = (() => {
     const alias = KEY_ALIASES[keyName];
     if (alias) {
       try {
-        await Storage.delete('settings', alias);
+        await Storage.deleteRecord('settings', alias);
         _invalidateCache(alias);
       } catch (e) {
         // 旧键名不存在时忽略
@@ -316,7 +316,7 @@ const SecureStorage = (() => {
         console.log('[SecureStorage] 迁移旧键名', alias, '→', keyName);
         await saveSecure(keyName, value);
         try {
-          await Storage.delete('settings', alias);
+          await Storage.deleteRecord('settings', alias);
           _invalidateCache(alias);
         } catch (e) {
           // 忽略

@@ -94,7 +94,7 @@ const AuditLog = (() => {
         result: action.result || 'success',
         userConfirmed: action.confirmed || false,
         duration: action.duration || 0,
-        date: now.toISOString().slice(0, 10) // 日期索引用
+        date: `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}` // 日期索引用
       };
 
       await Storage.add(STORE_NAME, entry);
@@ -387,8 +387,9 @@ const AuditLog = (() => {
 
       // 日期过滤
       const now = new Date();
-      const today = now.toISOString().slice(0, 10);
-      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+      const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const yesterday = `${yesterdayDate.getFullYear()}-${String(yesterdayDate.getMonth()+1).padStart(2,'0')}-${String(yesterdayDate.getDate()).padStart(2,'0')}`;
 
       if (dateFilter === 'today') {
         logs = logs.filter(l => l.date === today);

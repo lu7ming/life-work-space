@@ -502,5 +502,5 @@ const HealthModule = (() => {
     console.log('[HealthModule] 模块已销毁');
   }
 
-  return { init };
+  return { init, destroy };
 })();

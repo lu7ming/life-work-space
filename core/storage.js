@@ -292,6 +292,15 @@ const Storage = (() => {
   }
 
   /**
+   * 删除一条记录（delete 别名，兼容旧调用）
+   * @param {string} storeName - 表名
+   * @param {*} key - 主键值
+   */
+  async function deleteRecord(storeName, key) {
+    return remove(storeName, key);
+  }
+
+  /**
    * 清空表
    * @param {string} storeName - 表名
    */
@@ -489,6 +498,7 @@ const Storage = (() => {
     getAll,
     getByIndex,
     remove,
+    deleteRecord,
     clear,
     count,
     bulkWrite,

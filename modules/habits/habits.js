@@ -4,7 +4,7 @@
  */
 
 const HabitsModule = (() => {
-  const { formatDate, formatTime } = AppUtils;
+  const { formatDate } = AppUtils;
 
   // ===== 12 个统一习惯（固定列表） =====
   const HABITS = [
@@ -625,5 +625,5 @@ const HabitsModule = (() => {
     console.log('[HabitsModule] 模块已销毁');
   }
 
-  return { init };
+  return { init, destroy };
 })();

@@ -292,6 +292,11 @@ const App = (() => {
         DashboardModule.init();
         _activeModule = DashboardModule;
       }
+
+      // 初始化周/月报模块（入口按钮在 Dashboard 中）
+      if (typeof ReportModule !== 'undefined' && ReportModule.init) {
+        ReportModule.init();
+      }
     } catch (err) {
       console.error('[App] 加载总面板失败:', err);
       if (typeof App !== 'undefined') App.showToast('加载总面板失败，请刷新重试');

@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v56 - Dashboard 智能聚焦：根据时段自动切换首页内容
+ * v57 - 周/月报自动生成模块
  */
 
-const CACHE_NAME = 'life-work-space-v56';
+const CACHE_NAME = 'life-work-space-v57';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -80,6 +80,10 @@ const CACHE_ASSETS = [
   './modules/content/content.html',
   './modules/content/content.css',
   './modules/content/content.js',
+  // v57 新增：周/月报模块
+  './modules/report/report.html',
+  './modules/report/report.css',
+  './modules/report/report.js',
   './modules/rest/rest.html',
   './modules/rest/rest.css',
   './modules/rest/rest.js',

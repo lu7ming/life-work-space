@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v41 - API Key加密存储
+ * v42 - 语音交互系统升级
  */
 
-const CACHE_NAME = 'life-work-space-v41';
+const CACHE_NAME = 'life-work-space-v42';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -27,6 +27,7 @@ const CACHE_ASSETS = [
   './core/nicole.js',
   './styles/nicole.css',
   './core/xiaolu.js',
+  './core/voice-processor.js',
   './styles/xiaolu.css',
   './core/quickinput.js',
   './styles/quickinput.css',

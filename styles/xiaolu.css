@@ -789,3 +789,155 @@
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.15); opacity: 0.7; }
 }
+
+/* ===== 语音处理器增强样式（v42） ===== */
+
+/* 红色脉动动画 - 录音中（VoiceProcessor 管理时） */
+.xiaolu-voice-btn.voice-processor-active {
+  background: linear-gradient(135deg, #E85D5D, #D44040);
+  color: #fff;
+  animation: xiaoluVoiceRecordPulse 1.2s ease-in-out infinite;
+  transform: scale(1.08);
+}
+
+.xiaolu-voice-btn.voice-processor-active:hover {
+  background: linear-gradient(135deg, #E85D5D, #D44040);
+  color: #fff;
+}
+
+@keyframes xiaoluVoiceRecordPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(212, 64, 64, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(212, 64, 64, 0);
+  }
+}
+
+/* 绿色波形 - 检测到语音活动 */
+.xiaolu-voice-btn.voice-speech-detected {
+  background: linear-gradient(135deg, #7EBF8E, #5DAF70);
+  color: #fff;
+  animation: xiaoluVoiceSpeechPulse 0.6s ease-in-out infinite;
+  transform: scale(1.12);
+}
+
+.xiaolu-voice-btn.voice-speech-detected:hover {
+  background: linear-gradient(135deg, #7EBF8E, #5DAF70);
+  color: #fff;
+}
+
+@keyframes xiaoluVoiceSpeechPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(126, 191, 142, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(126, 191, 142, 0);
+  }
+}
+
+/* 语音状态栏 - 检测到语音活动时 */
+.xiaolu-voice-status.speech-detected .xiaolu-voice-wave span {
+  background: #7EBF8E;
+  animation-duration: 0.4s;
+}
+
+.xiaolu-voice-status.speech-detected .xiaolu-voice-label {
+  color: #5DAF70;
+}
+
+/* 音量条 */
+.xiaolu-volume-bar {
+  display: none;
+  width: 100%;
+  height: 4px;
+  background: var(--bg-main, #F5F0EB);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.xiaolu-input-area.voice-active .xiaolu-volume-bar {
+  display: block;
+}
+
+.xiaolu-volume-fill {
+  height: 100%;
+  width: 0%;
+  background: #D4956B;
+  border-radius: 2px;
+  transition: width 0.08s linear, background 0.2s ease;
+}
+
+.xiaolu-volume-bar.voice-active .xiaolu-volume-fill {
+  background: #7EBF8E;
+}
+
+/* 快捷语音气泡 - 录音中红色脉动 */
+.xiaolu-quick-bubble.voice-processor-active {
+  border-color: #D44040;
+}
+
+.xiaolu-quick-bubble.voice-processor-active .xiaolu-quick-bubble-icon {
+  animation: xiaoluQuickRecordPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes xiaoluQuickRecordPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+}
+
+/* 快捷语音气泡 - 检测到语音活动时绿色 */
+.xiaolu-quick-bubble.voice-speech-detected {
+  border-color: #7EBF8E;
+}
+
+.xiaolu-quick-bubble.voice-speech-detected .xiaolu-quick-bubble-icon {
+  animation: xiaoluQuickSpeechPulse 0.6s ease-in-out infinite;
+}
+
+@keyframes xiaoluQuickSpeechPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* 迷你音量条（快捷语音气泡内） */
+.xiaolu-quick-volume-bar {
+  width: 60px;
+  height: 3px;
+  background: rgba(212, 149, 107, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.xiaolu-quick-volume-fill {
+  height: 100%;
+  width: 0%;
+  background: #D4956B;
+  border-radius: 2px;
+  transition: width 0.08s linear, background 0.2s ease;
+}
+
+/* 输入区域录音增强动画 */
+.xiaolu-input-area.voice-active {
+  border-top-color: #D44040;
+  background: linear-gradient(to bottom, var(--bg-card, #FFFFFF), rgba(212, 64, 64, 0.02));
+  box-shadow: 0 -2px 16px rgba(212, 64, 64, 0.08);
+}
+
+.xiaolu-input-area.voice-active.speech-detected {
+  border-top-color: #7EBF8E;
+  background: linear-gradient(to bottom, var(--bg-card, #FFFFFF), rgba(126, 191, 142, 0.03));
+  box-shadow: 0 -2px 16px rgba(126, 191, 142, 0.1);
+}
+
+/* 输入提示中的快捷指令提示 */
+.xiaolu-input-hint {
+  transition: color 0.2s ease;
+}
+
+.xiaolu-input-area.voice-active .xiaolu-input-hint {
+  color: #D44040;
+}

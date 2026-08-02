@@ -3,7 +3,7 @@
  * v48 - 本地模型备选方案
  */
 
-const CACHE_NAME = 'life-work-space-v48';
+const CACHE_NAME = 'life-work-space-v49';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [

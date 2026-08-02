@@ -101,17 +101,7 @@ export const ModelRouter = (() => {
 
     try {
       const API_URL = 'https://api.deepseek.com/v1/chat/completions';
-      // CORS 代理：读取与 xiaolu.js 相同的配置项，支持用户自定义代理地址
-      const DEFAULT_CORS_PROXY = 'https://corsproxy.io/?';
-      function _getProxiedApiUrl() {
-        try {
-          const custom = localStorage.getItem('xiaolu_cors_proxy');
-          if (custom === 'none') return API_URL;
-          if (custom && custom.trim()) return custom.trim() + API_URL;
-        } catch (e) {}
-        return DEFAULT_CORS_PROXY + API_URL;
-      }
-      const resp = await fetch(_getProxiedApiUrl(), {
+      const resp = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v57 - 周/月报自动生成模块
+ * v58 - 对话自动沉淀知识功能
  */
 
-const CACHE_NAME = 'life-work-space-v57';
+const CACHE_NAME = 'life-work-space-v58';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -36,6 +36,7 @@ const CACHE_ASSETS = [
   './core/emotion-analyzer.js',
   './core/data-minimizer.js',
   './core/local-ai.js',
+  './core/knowledge-extractor.js',
   './styles/audit-log.css',
   './core/audit-log.js',
   './styles/xiaolu.css',

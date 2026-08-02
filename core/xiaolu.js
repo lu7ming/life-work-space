@@ -2114,6 +2114,18 @@ const XiaoluModule = (() => {
         trimContext();
         addAIMessage(finalReply);
       }
+
+      // ===== 知识自动沉淀：异步分析对话内容 =====
+      // 在 AI 回复显示后，后台静默分析是否有值得沉淀的知识
+      if (typeof KnowledgeExtractor !== 'undefined' && KnowledgeExtractor.analyzeConversation) {
+        // 使用原始用户消息（还原后的）和 AI 回复进行知识提取
+        const _keUserMsg = text; // 原始用户输入（未经脱敏）
+        const _keAiReply = finalReply; // 最终展示的 AI 回复
+        // 异步执行，不阻塞用户交互
+        KnowledgeExtractor.analyzeConversation(_keUserMsg, _keAiReply).catch(() => {
+          // 静默忽略所有错误
+        });
+      }
     } catch (err) {
       removeLoading();
       const errMsg = err.message || '未知错误';

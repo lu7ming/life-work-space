@@ -22,6 +22,7 @@
  * - user:mood          用户情绪变化
  * - data:exported      数据导出
  * - data:imported      数据导入
+ * - knowledge:extracted 知识自动沉淀
  * - app:ready          应用初始化完成
  * - app:online         网络恢复
  * - app:offline        网络断开

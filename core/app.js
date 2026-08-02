@@ -138,8 +138,9 @@ const App = (() => {
       AIOrchestrator.init();
     }
 
-    // 17. 构建用户画像
+    // 17. 初始化用户画像
     if (typeof UserProfile !== 'undefined') {
+      await UserProfile.init();
       UserProfile.buildProfile();
     }
 

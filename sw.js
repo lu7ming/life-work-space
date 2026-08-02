@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v39 - 主动提醒引擎与模糊意图识别
+ * v40 - 个性化用户画像系统
  */
 
-const CACHE_NAME = 'life-work-space-v39';
+const CACHE_NAME = 'life-work-space-v40';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -16,6 +16,7 @@ const CACHE_ASSETS = [
   './core/router.js',
   './core/storage.js',
   './core/utils.js',
+  './core/user-profile.js',
   './core/shared-knowledge.js',
   './core/orchestrator.js',
   './core/secure-storage.js',

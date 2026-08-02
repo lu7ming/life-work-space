@@ -201,6 +201,12 @@
   font-weight: 500;
 }
 
+.finance-budget-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .finance-budget-input {
   width: 160px;
   padding: 8px 12px;
@@ -217,6 +223,34 @@
   border-color: var(--accent);
 }
 
+.finance-budget-recommend-hint {
+  font-size: 12px;
+  color: #7c9eb8;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 4px 8px;
+  background: #eef3f8;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  animation: finance-recommend-fade-in 0.3s ease;
+}
+
+.finance-budget-recommend-hint:hover {
+  background: #dce6f0;
+  color: #5a7e9e;
+}
+
+@keyframes finance-recommend-fade-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.finance-budget-action-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
 .finance-budget-save-btn {
   padding: 8px 20px;
   border-radius: var(--radius-sm);
@@ -231,6 +265,24 @@
 
 .finance-budget-save-btn:hover {
   background: var(--accent-hover);
+}
+
+.finance-budget-smart-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: #eef3f8;
+  color: #5a7e9e;
+  border: 1px solid #c5d5e5;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.finance-budget-smart-btn:hover {
+  background: #dce6f0;
+  border-color: #9bb5cc;
 }
 
 /* ===== 分析卡片 ===== */
@@ -299,6 +351,81 @@
   flex-shrink: 0;
 }
 
+/* ===== 环比分析 ===== */
+.finance-mom-section {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--text-light);
+}
+
+.finance-mom-title {
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.finance-mom-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.finance-mom-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.finance-mom-cat-name {
+  font-size: 13px;
+  color: var(--text-primary);
+  width: 56px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.finance-mom-arrow {
+  font-size: 13px;
+  font-weight: 700;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.finance-mom-arrow.up {
+  color: #d4735c;
+}
+
+.finance-mom-arrow.down {
+  color: #5a9e6f;
+}
+
+.finance-mom-percent {
+  font-size: 12px;
+  font-weight: 600;
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.finance-mom-percent.up {
+  color: #d4735c;
+}
+
+.finance-mom-percent.down {
+  color: #5a9e6f;
+}
+
+.finance-mom-detail {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ===== 趋势列表 ===== */
 .finance-trend-list {
   display: flex;
@@ -340,6 +467,399 @@
   width: 80px;
   text-align: right;
   flex-shrink: 0;
+}
+
+/* ===== 增强功能区 Tab ===== */
+.finance-enhance-section {
+  margin-bottom: 20px;
+}
+
+.finance-enhance-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.finance-enhance-tab {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.finance-enhance-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.finance-enhance-tab.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.finance-enhance-panel {
+  display: none;
+  padding: 20px;
+  animation: finance-panel-fade-in 0.25s ease;
+}
+
+.finance-enhance-panel.active {
+  display: block;
+}
+
+@keyframes finance-panel-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== 年度趋势折线图 ===== */
+.finance-yearly-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  margin-bottom: 8px;
+}
+
+.finance-yearly-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+}
+
+.finance-chart-tooltip {
+  position: absolute;
+  padding: 8px 12px;
+  background: rgba(44, 37, 32, 0.9);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: none;
+  z-index: 10;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.finance-chart-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid rgba(44, 37, 32, 0.9);
+}
+
+.finance-chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 4px;
+}
+
+.finance-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.finance-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* ===== 储蓄目标 ===== */
+.finance-savings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.finance-savings-item {
+  background: var(--bg-hover);
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: all var(--transition-fast);
+}
+
+.finance-savings-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.finance-savings-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.finance-savings-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.finance-savings-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.finance-savings-action-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.finance-savings-action-btn:hover {
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
+}
+
+.finance-savings-action-btn.delete:hover {
+  background: #fef0ec;
+  color: #d4735c;
+}
+
+.finance-savings-progress-wrap {
+  margin-bottom: 6px;
+}
+
+.finance-savings-progress-bar-bg {
+  height: 10px;
+  background: var(--bg-sidebar);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.finance-savings-progress-bar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, #5a9e6f, #7cbeb8);
+  transition: width var(--transition-normal);
+}
+
+.finance-savings-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.finance-savings-amount {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.finance-savings-percent {
+  font-size: 14px;
+  font-weight: 700;
+  color: #5a9e6f;
+}
+
+.finance-savings-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.finance-savings-eta {
+  font-size: 11px;
+  color: #7c9eb8;
+  font-weight: 500;
+}
+
+.finance-savings-add-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.finance-savings-add-btn:hover {
+  background: rgba(139, 115, 85, 0.06);
+  border-style: solid;
+}
+
+/* ===== 我的账户 ===== */
+.finance-accounts-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--bg-hover);
+}
+
+.finance-accounts-summary-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.finance-accounts-summary-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.finance-accounts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.finance-account-card {
+  background: var(--bg-hover);
+  border-radius: 10px;
+  padding: 14px;
+  cursor: default;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.finance-account-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.finance-account-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.finance-account-icon-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.finance-account-icon {
+  font-size: 20px;
+}
+
+.finance-account-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.finance-account-type-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-sidebar);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.finance-account-balance {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.finance-account-actions {
+  display: flex;
+  gap: 4px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.finance-account-card:hover .finance-account-actions {
+  opacity: 1;
+}
+
+.finance-account-action-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.finance-account-action-btn:hover {
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
+}
+
+.finance-account-action-btn.delete:hover {
+  background: #fef0ec;
+  color: #d4735c;
+}
+
+.finance-accounts-add-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.finance-accounts-add-btn:hover {
+  background: rgba(139, 115, 85, 0.06);
+  border-style: solid;
+}
+
+/* ===== 账户类型标签 ===== */
+.finance-account-type-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 /* ===== 空提示 ===== */
@@ -825,12 +1345,48 @@
     width: 100%;
   }
 
+  .finance-budget-action-row {
+    justify-content: stretch;
+  }
+
+  .finance-budget-action-row .finance-budget-smart-btn,
+  .finance-budget-action-row .finance-budget-save-btn {
+    flex: 1;
+  }
+
   .finance-transactions-header {
     flex-direction: column;
     align-items: flex-start;
   }
 
   .finance-transaction-actions {
+    opacity: 1;
+  }
+
+  .finance-enhance-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .finance-enhance-tab {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .finance-yearly-chart-wrap {
+    height: 180px;
+  }
+
+  .finance-accounts-list {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .finance-account-actions {
+    opacity: 1;
+  }
+
+  .finance-savings-actions {
     opacity: 1;
   }
 }
@@ -857,5 +1413,22 @@
   .finance-category-amount {
     width: 60px;
     font-size: 11px;
+  }
+
+  .finance-mom-cat-name {
+    width: 48px;
+    font-size: 12px;
+  }
+
+  .finance-yearly-chart-wrap {
+    height: 160px;
+  }
+
+  .finance-accounts-list {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-accounts-summary-value {
+    font-size: 20px;
   }
 }

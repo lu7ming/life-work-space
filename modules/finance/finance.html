@@ -70,13 +70,22 @@
       <div class="finance-budget-form">
         <div class="finance-budget-row">
           <label>月度预算 (¥)</label>
-          <input type="number" class="finance-budget-input" id="finance-monthly-budget" placeholder="输入月度预算" min="0" step="100">
+          <div class="finance-budget-input-wrap">
+            <input type="number" class="finance-budget-input" id="finance-monthly-budget" placeholder="输入月度预算" min="0" step="100">
+            <span class="finance-budget-recommend-hint" id="finance-monthly-recommend-hint" style="display:none"></span>
+          </div>
         </div>
         <div class="finance-budget-row">
           <label>年度预算 (¥)</label>
-          <input type="number" class="finance-budget-input" id="finance-yearly-budget" placeholder="输入年度预算" min="0" step="1000">
+          <div class="finance-budget-input-wrap">
+            <input type="number" class="finance-budget-input" id="finance-yearly-budget" placeholder="输入年度预算" min="0" step="1000">
+            <span class="finance-budget-recommend-hint" id="finance-yearly-recommend-hint" style="display:none"></span>
+          </div>
         </div>
-        <button class="finance-budget-save-btn" id="finance-budget-save">保存预算</button>
+        <div class="finance-budget-action-row">
+          <button class="finance-budget-smart-btn" id="finance-budget-smart" title="根据近3个月平均支出智能推荐">🧠 智能推荐</button>
+          <button class="finance-budget-save-btn" id="finance-budget-save">保存预算</button>
+        </div>
       </div>
     </div>
 
@@ -86,6 +95,13 @@
       <div class="finance-category-list" id="finance-category-list">
         <div class="finance-empty-hint">暂无支出数据</div>
       </div>
+      <!-- 环比分析 -->
+      <div class="finance-mom-section">
+        <div class="finance-section-title finance-mom-title">🔄 分类环比分析</div>
+        <div class="finance-mom-list" id="finance-mom-list">
+          <div class="finance-empty-hint">暂无环比数据</div>
+        </div>
+      </div>
     </div>
 
     <!-- 近6个月趋势 -->
@@ -94,6 +110,50 @@
       <div class="finance-trend-list" id="finance-trend-list">
         <div class="finance-empty-hint">暂无趋势数据</div>
       </div>
+    </div>
+  </div>
+
+  <!-- 增强功能区：Tab切换 -->
+  <div class="finance-enhance-section">
+    <div class="finance-enhance-tabs" id="finance-enhance-tabs">
+      <button class="finance-enhance-tab active" data-tab="yearly-trend">📈 年度趋势</button>
+      <button class="finance-enhance-tab" data-tab="savings">🎯 储蓄目标</button>
+      <button class="finance-enhance-tab" data-tab="accounts">🏦 我的账户</button>
+    </div>
+
+    <!-- Tab: 年度收支趋势 -->
+    <div class="finance-enhance-panel card active" id="finance-tab-yearly-trend">
+      <div class="finance-section-title">📈 年度收支趋势</div>
+      <div class="finance-yearly-chart-wrap" id="finance-yearly-chart-wrap">
+        <canvas id="finance-yearly-chart" class="finance-yearly-canvas"></canvas>
+        <div class="finance-chart-tooltip" id="finance-chart-tooltip" style="display:none"></div>
+      </div>
+      <div class="finance-chart-legend">
+        <span class="finance-legend-item"><span class="finance-legend-dot" style="background:#5a9e6f"></span>收入</span>
+        <span class="finance-legend-item"><span class="finance-legend-dot" style="background:#d4735c"></span>支出</span>
+      </div>
+    </div>
+
+    <!-- Tab: 储蓄目标 -->
+    <div class="finance-enhance-panel card" id="finance-tab-savings">
+      <div class="finance-section-title">🎯 储蓄目标</div>
+      <div class="finance-savings-list" id="finance-savings-list">
+        <div class="finance-empty-hint">暂无储蓄目标，点击下方按钮添加</div>
+      </div>
+      <button class="finance-savings-add-btn" id="finance-savings-add">+ 添加储蓄目标</button>
+    </div>
+
+    <!-- Tab: 我的账户 -->
+    <div class="finance-enhance-panel card" id="finance-tab-accounts">
+      <div class="finance-section-title">🏦 我的账户</div>
+      <div class="finance-accounts-summary">
+        <span class="finance-accounts-summary-label">总资产</span>
+        <span class="finance-accounts-summary-value" id="finance-accounts-total">¥0.00</span>
+      </div>
+      <div class="finance-accounts-list" id="finance-accounts-list">
+        <div class="finance-empty-hint">暂无账户，点击下方按钮添加</div>
+      </div>
+      <button class="finance-accounts-add-btn" id="finance-accounts-add">+ 添加账户</button>
     </div>
   </div>
 
@@ -190,6 +250,73 @@
       <div class="finance-modal-footer">
         <button class="finance-modal-cancel" id="finance-duplicate-cancel">取消</button>
         <button class="finance-modal-confirm" id="finance-duplicate-confirm">仍然添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 储蓄目标弹窗 -->
+  <div class="finance-modal-overlay" id="finance-savings-modal-overlay" style="display:none">
+    <div class="finance-modal card">
+      <div class="finance-modal-header">
+        <h3 class="finance-modal-title" id="finance-savings-modal-title">添加储蓄目标</h3>
+        <button class="finance-modal-close" id="finance-savings-modal-close">×</button>
+      </div>
+      <div class="finance-modal-body">
+        <div class="finance-form-group">
+          <label>目标名称</label>
+          <input type="text" class="finance-form-input" id="finance-savings-name" placeholder="例：旅行基金" maxlength="20">
+        </div>
+        <div class="finance-form-group">
+          <label>目标金额 (¥)</label>
+          <input type="number" class="finance-form-input" id="finance-savings-target" placeholder="0.00" min="0" step="100">
+        </div>
+        <div class="finance-form-group">
+          <label>目标日期</label>
+          <input type="date" class="finance-form-input" id="finance-savings-date">
+        </div>
+        <div class="finance-form-group">
+          <label>已储蓄金额 (¥)</label>
+          <input type="number" class="finance-form-input" id="finance-savings-current" placeholder="0.00" min="0" step="100">
+        </div>
+      </div>
+      <div class="finance-modal-footer">
+        <button class="finance-modal-cancel" id="finance-savings-modal-cancel">取消</button>
+        <button class="finance-modal-confirm" id="finance-savings-modal-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 账户弹窗 -->
+  <div class="finance-modal-overlay" id="finance-accounts-modal-overlay" style="display:none">
+    <div class="finance-modal card">
+      <div class="finance-modal-header">
+        <h3 class="finance-modal-title" id="finance-accounts-modal-title">添加账户</h3>
+        <button class="finance-modal-close" id="finance-accounts-modal-close">×</button>
+      </div>
+      <div class="finance-modal-body">
+        <div class="finance-form-group">
+          <label>账户名称</label>
+          <input type="text" class="finance-form-input" id="finance-account-name" placeholder="例：招商银行" maxlength="20">
+        </div>
+        <div class="finance-form-group">
+          <label>账户类型</label>
+          <div class="finance-account-type-tags" id="finance-account-type-tags">
+            <button class="finance-tag selected" data-type="bank">🏦 银行卡</button>
+            <button class="finance-tag" data-type="alipay">🦋 支付宝</button>
+            <button class="finance-tag" data-type="wechat">💬 微信</button>
+            <button class="finance-tag" data-type="cash">💵 现金</button>
+            <button class="finance-tag" data-type="invest">📈 投资</button>
+            <button class="finance-tag" data-type="other">📦 其他</button>
+          </div>
+        </div>
+        <div class="finance-form-group">
+          <label>余额 (¥)</label>
+          <input type="number" class="finance-form-input" id="finance-account-balance" placeholder="0.00" step="0.01">
+        </div>
+      </div>
+      <div class="finance-modal-footer">
+        <button class="finance-modal-cancel" id="finance-accounts-modal-cancel">取消</button>
+        <button class="finance-modal-confirm" id="finance-accounts-modal-confirm">确认</button>
       </div>
     </div>
   </div>

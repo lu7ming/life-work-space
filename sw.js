@@ -3,7 +3,7 @@
  * v35 - 习惯链与习惯组合
  */
 
-const CACHE_NAME = 'life-work-space-v35';
+const CACHE_NAME = 'life-work-space-v36';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [

@@ -2,7 +2,7 @@
  * xiaolu.js - 小鹿AI伙伴
  * 人生工作台 · 基于 DeepSeek API 的 AI 对话功能
  * 小鹿定位：幽默轻松的 AI 伙伴，负责日常聊天、灵感整理、按需分析
- * v4.1 - 第二批优化：意图缓存扩展（查询类从Storage读取数据）+ ContextTracker多轮对话上下文增强（5分钟超时/修改/追加/清除）
+ * v4.2 - 第十三批优化：集成 PreferenceLearner 个性化 prompt 后缀 + learnFromInteraction
  */
 
 const XiaoluModule = (() => {
@@ -326,8 +326,15 @@ const XiaoluModule = (() => {
    * 发送消息到 DeepSeek API（原始单次调用，降级兜底用）
    */
   async function callDeepSeekAPI(token, userMessage) {
+    // 集成 PreferenceLearner：在 system prompt 末尾追加个性化后缀
+    let personalizedPrompt = SYSTEM_PROMPT;
+    if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.getPersonalizedPromptSuffix) {
+      try {
+        personalizedPrompt += PreferenceLearner.getPersonalizedPromptSuffix();
+      } catch (e) { /* 静默降级 */ }
+    }
     const messages = [
-      { role: 'system', content: SYSTEM_PROMPT }
+      { role: 'system', content: personalizedPrompt }
     ];
 
     const historySlice = _chatHistory.slice(-MAX_CONTEXT);
@@ -470,7 +477,9 @@ const XiaoluModule = (() => {
         .replace('{action_instruction}', actionInstruction)
         + (sharedContext ? '\n\n共享上下文：' + sharedContext : '')
         + (emotionStrategy === 'comfort' ? '\n用户情绪低落，语气要温暖关心。' : '')
-        + (emotionStrategy === 'celebrate' ? '\n用户情绪很好，一起开心！' : '');
+        + (emotionStrategy === 'celebrate' ? '\n用户情绪很好，一起开心！' : '')
+        // 集成 PreferenceLearner：追加个性化偏好后缀
+        + (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.getPersonalizedPromptSuffix ? PreferenceLearner.getPersonalizedPromptSuffix() : '');
 
       const step3Messages = [
         { role: 'system', content: '你是小鹿，幽默轻松的AI伙伴。' },
@@ -2085,6 +2094,11 @@ const XiaoluModule = (() => {
       // 使用链式意图识别（3 次 API 调用）
       const reply = await decomposedIntentChain(token, text);
 
+      // 集成 PreferenceLearner：从交互中学习偏好
+      if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.learnFromInteraction) {
+        try { PreferenceLearner.learnFromInteraction(text, reply); } catch (e) { /* 静默 */ }
+      }
+
       // 从 AI 回复中提取 ACTION 标签
       let actionObj = _extractActionFromReply(reply);
       let finalReply = actionObj ? _removeActionTag(reply) : reply;
@@ -2129,6 +2143,16 @@ const XiaoluModule = (() => {
             result: 'success',
             confirmed: true
           });
+          // 集成 PreferenceLearner：记录用户确认操作
+          if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.learnFromInteraction) {
+            try {
+              PreferenceLearner.learnFromInteraction(null, null, { action: 'confirm' });
+              // 记录分类偏好
+              if (actionObj.params && actionObj.params.category) {
+                PreferenceLearner.learnFromInteraction(null, null, { action: 'category', value: actionObj.params.category });
+              }
+            } catch (e) { /* 静默 */ }
+          }
         } else {
           finalReply += '\n\n❌ 操作失败：' + result.message;
           if (typeof AuditLog !== 'undefined') AuditLog.log({

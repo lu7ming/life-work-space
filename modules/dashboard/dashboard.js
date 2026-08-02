@@ -97,6 +97,7 @@ const DashboardModule = (() => {
         renderFocusCard(),
         renderTemplateReminder(),
         renderSmartSuggestions(),
+        renderPredictiveActions(),
         initWidgetSystem()
       ]);
       bindFocusEvents();
@@ -124,6 +125,89 @@ const DashboardModule = (() => {
         container.style.display = 'none';
       }
     } else {
+      container.style.display = 'none';
+    }
+  }
+
+  /**
+   * 渲染「猜你想做」预测操作卡片
+   * 基于 PredictiveEngine 的时间/行为预测，展示最多3个建议操作
+   */
+  async function renderPredictiveActions() {
+    const container = document.getElementById('dash-predictive-actions');
+    if (!container) return;
+
+    // 确保 PredictiveEngine 可用
+    if (typeof PredictiveEngine === 'undefined' || !PredictiveEngine.getPredictions) {
+      container.style.display = 'none';
+      return;
+    }
+
+    try {
+      const predictions = await PredictiveEngine.getPredictions();
+
+      if (!predictions || predictions.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+
+      container.style.display = '';
+
+      // 生成卡片 HTML
+      container.innerHTML = `
+        <div class="dash-predictive-header">
+          <span class="dash-predictive-icon">🔮</span>
+          <span class="dash-predictive-title">猜你想做</span>
+        </div>
+        <div class="dash-predictive-list">
+          ${predictions.map(p => `
+            <div class="dash-predictive-item" data-prediction-id="${escapeHtml(p.id)}">
+              <span class="dash-predictive-item-icon">${p.icon || '💡'}</span>
+              <div class="dash-predictive-item-content">
+                <div class="dash-predictive-item-title">${escapeHtml(p.title)}</div>
+                <div class="dash-predictive-item-desc">${escapeHtml(p.description || '')}</div>
+              </div>
+              <button class="dash-predictive-item-btn" data-prediction-id="${escapeHtml(p.id)}" title="${escapeHtml(p.title)}">去完成</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // 绑定操作按钮
+      container.querySelectorAll('.dash-predictive-item-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const predId = btn.dataset.predictionId;
+          const prediction = predictions.find(p => p.id === predId);
+          if (prediction) {
+            // 记录「有用」反馈
+            if (PredictiveEngine.recordFeedback) {
+              PredictiveEngine.recordFeedback(predId, true);
+            }
+            // 执行预测操作
+            if (PredictiveEngine.executePrediction) {
+              await PredictiveEngine.executePrediction(prediction);
+            }
+          }
+        });
+      });
+
+      // 绑定整个卡片点击
+      container.querySelectorAll('.dash-predictive-item').forEach(item => {
+        item.addEventListener('click', async () => {
+          const predId = item.dataset.predictionId;
+          const prediction = predictions.find(p => p.id === predId);
+          if (prediction && PredictiveEngine.executePrediction) {
+            if (PredictiveEngine.recordFeedback) {
+              PredictiveEngine.recordFeedback(predId, true);
+            }
+            await PredictiveEngine.executePrediction(prediction);
+          }
+        });
+      });
+
+    } catch (e) {
+      console.warn('[Dashboard] 预测操作渲染失败:', e);
       container.style.display = 'none';
     }
   }

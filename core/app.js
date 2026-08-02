@@ -95,6 +95,9 @@ const App = (() => {
       if (typeof SmartReminder !== 'undefined' && SmartReminder.destroy) {
         SmartReminder.destroy();
       }
+      if (typeof PredictiveEngine !== 'undefined' && PredictiveEngine.destroy) {
+        PredictiveEngine.destroy();
+      }
     });
 
     // 9.5 初始化白噪音模块
@@ -161,6 +164,16 @@ const App = (() => {
     if (typeof UserProfile !== 'undefined') {
       await UserProfile.init();
       UserProfile.buildProfile();
+    }
+
+    // 17.5 初始化偏好学习引擎
+    if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.init) {
+      await PreferenceLearner.init();
+    }
+
+    // 17.6 初始化预测性操作引擎
+    if (typeof PredictiveEngine !== 'undefined' && PredictiveEngine.init) {
+      await PredictiveEngine.init();
     }
 
     // 18. 自动保存定时器（30秒）

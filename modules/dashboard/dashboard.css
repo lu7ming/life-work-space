@@ -1514,3 +1514,92 @@
 [data-theme="dark"] .smart-suggestion-dismiss:hover {
   background: rgba(255,255,255,0.08);
 }
+
+/* ===== 「猜你想做」预测操作 ===== */
+.dash-predictive-actions {
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.dash-predictive-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.dash-predictive-icon {
+  font-size: 18px;
+}
+
+.dash-predictive-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dash-predictive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dash-predictive-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bg-card, #F5EDE3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dash-predictive-item:hover {
+  background: var(--bg-card-hover, #EDE5DB);
+  transform: translateX(2px);
+}
+
+.dash-predictive-item-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.dash-predictive-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-predictive-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.dash-predictive-item-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.dash-predictive-item-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent-orange, #E8A87C);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dash-predictive-item-btn:hover {
+  opacity: 0.85;
+  transform: scale(1.02);
+}
+
+.dash-predictive-item-btn:active {
+  transform: scale(0.98);
+}

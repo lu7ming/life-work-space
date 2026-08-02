@@ -635,6 +635,8 @@ export const XiaoluModule = (() => {
         tool_choice: 'auto'
       };
 
+      console.log('[Xiaolu/API] 请求发送:', { model: body.model, messages_count: messages.length, has_tools: !!tools, timeout });
+
       const resp = await fetch(API_URL, {
         method: 'POST',
         headers: {
@@ -647,11 +649,25 @@ export const XiaoluModule = (() => {
 
       clearTimeout(timer);
 
-      if (resp.status === 401) throw new Error('AUTH_ERROR');
-      if (resp.status === 429) throw new Error('API 额度已用完或请求太频繁，请稍后再试 😅');
-      if (!resp.ok) throw new Error(`请求失败 (${resp.status})`);
+      console.log('[Xiaolu/API] 响应状态:', resp.status, resp.statusText);
+
+      if (resp.status === 401) {
+        console.error('[Xiaolu/API] 认证失败(401)，token 可能无效或已过期');
+        throw new Error('AUTH_ERROR');
+      }
+      if (resp.status === 429) {
+        console.error('[Xiaolu/API] 请求被限流(429)');
+        throw new Error('API 额度已用完或请求太频繁，请稍后再试 😅');
+      }
+      if (!resp.ok) {
+        const errorBody = await resp.text().catch(() => '');
+        console.error('[Xiaolu/API] 请求失败:', resp.status, resp.statusText, errorBody);
+        throw new Error(`请求失败 (${resp.status}): ${errorBody.slice(0, 200)}`);
+      }
 
       const data = await resp.json();
+      console.log('[Xiaolu/API] 响应数据:', { has_choices: !!data.choices, choices_count: data.choices?.length, usage: data.usage, finish_reason: data.choices?.[0]?.finish_reason });
+
       if (data.choices && data.choices.length > 0 && data.choices[0].message) {
         const msg = data.choices[0].message;
         return {
@@ -660,12 +676,15 @@ export const XiaoluModule = (() => {
           usage: data.usage || null
         };
       }
+      console.error('[Xiaolu/API] 响应格式异常，无有效 choices:', JSON.stringify(data).slice(0, 500));
       throw new Error('未获取到有效回复');
     } catch (err) {
       clearTimeout(timer);
       if (err.name === 'AbortError') {
+        console.error('[Xiaolu/API] 请求超时（超过 ' + timeout + 'ms）');
         throw new Error('请求超时，请稍后再试');
       }
+      console.error('[Xiaolu/API] 请求异常:', err.message, err.stack);
       throw err;
     }
   }
@@ -805,7 +824,7 @@ export const XiaoluModule = (() => {
       // Function Calling 失败 → 回退到原有三轮跳转
       const elapsed = Date.now() - startTime;
       _fcStats.fallbackCount++;
-      console.warn(`[Xiaolu/FC] Function Calling 失败（${elapsed}ms），回退到三轮跳转:`, err.message);
+      console.warn(`[Xiaolu/FC] Function Calling 失败（${elapsed}ms），回退到三轮跳转:`, err.message, err.stack);
       return await _fallbackDecomposedChain(token, userMessage);
     }
   }
@@ -860,6 +879,7 @@ export const XiaoluModule = (() => {
         </div>
         <div class="xiaolu-header-actions">
           <button class="xiaolu-header-btn" id="xiaolu-switch-nicole" title="切换到妮可">🔵</button>
+          <button class="xiaolu-header-btn" id="xiaolu-config-key" title="配置API Key">🔑</button>
           <button class="xiaolu-header-btn" id="xiaolu-new-chat" title="新对话">💬</button>
           <button class="xiaolu-header-btn" id="xiaolu-close" title="关闭">✕</button>
         </div>
@@ -896,6 +916,19 @@ export const XiaoluModule = (() => {
       }
       if (window.NicoleModule?.open) {
         window.NicoleModule?.open();
+      }
+    });
+
+    // 配置 API Key
+    _bindEvent(panelEl.querySelector('#xiaolu-config-key'), 'click', async () => {
+      try {
+        const newToken = await showTokenDialog();
+        if (newToken) {
+          await saveDeepseekToken(newToken);
+          if (window.App) window.App?.showToast('API Key 已配置 ✅');
+        }
+      } catch (e) {
+        console.error('[Xiaolu] 配置 API Key 失败:', e);
       }
     });
 
@@ -1708,6 +1741,7 @@ export const XiaoluModule = (() => {
 
     addUserMessage(text);
 
+    try {
     // ===== 离线降级：检查 LocalAI 是否需要接管 =====
     if (window.LocalAI?.handleOffline) {
       const offlineResult = window.LocalAI?.handleOffline(text);
@@ -2157,6 +2191,19 @@ export const XiaoluModule = (() => {
         addErrorMessage(errMsg);
       }
     } finally {
+      _isLoading = false;
+      sendBtn.disabled = false;
+      inputEl.disabled = false;
+      inputEl.focus();
+    }
+
+    } catch (outerErr) {
+      // 顶层错误捕获：确保任何未预期的异常都能反馈给用户
+      console.error('[Xiaolu] handleSend 未捕获异常:', outerErr);
+      removeLoading();
+      addErrorMessage('小鹿出了点状况：' + (outerErr.message || '未知错误') + '，请重试 🦌');
+    } finally {
+      // 确保无论哪条代码路径，UI 都能恢复
       _isLoading = false;
       sendBtn.disabled = false;
       inputEl.disabled = false;

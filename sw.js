@@ -3,7 +3,7 @@
  * v64 - CORS 代理修复撤回
  */
 
-const CACHE_NAME = 'life-work-space-v69';
+const CACHE_NAME = 'life-work-space-v70';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

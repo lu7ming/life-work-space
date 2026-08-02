@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v63 - 日历视图整合
+ * v64 - CORS 代理修复
  */
 
-const CACHE_NAME = 'life-work-space-v66';
+const CACHE_NAME = 'life-work-space-v67';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

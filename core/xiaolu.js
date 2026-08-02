@@ -21,8 +21,24 @@ import { AuditLog } from './audit-log.js';
 export const XiaoluModule = (() => {
   // ===== 常量 =====
   const API_URL = 'https://api.deepseek.com/v1/chat/completions';
+  const DEFAULT_CORS_PROXY = 'https://corsproxy.io/?';
   const MODEL_NAME = 'deepseek-chat';
   const MAX_CONTEXT = 20; // 最多保留最近20条消息
+
+  /**
+   * 获取经过 CORS 代理的 API URL
+   * - 用户可在设置中自定义代理地址（localStorage: xiaolu_cors_proxy）
+   * - 留空则使用内置默认代理 corsproxy.io
+   * - 设为 "none" 则直连（绕过代理，用于本地开发等场景）
+   */
+  function getProxiedApiUrl() {
+    try {
+      const custom = localStorage.getItem('xiaolu_cors_proxy');
+      if (custom === 'none') return API_URL;          // 直连，绕过代理
+      if (custom && custom.trim()) return custom.trim() + API_URL;  // 用户自定义代理
+    } catch (e) { /* localStorage 不可用时走默认 */ }
+    return DEFAULT_CORS_PROXY + API_URL;               // 默认公共 CORS 代理
+  }
 
   // --- 原始系统提示词（降级兜底用） ---
   const SYSTEM_PROMPT = `你是「小鹿」，人生工作台的 AI 伙伴，服务主人「鹿7铭」。
@@ -259,6 +275,10 @@ export const XiaoluModule = (() => {
    */
   function showTokenDialog() {
     return new Promise((resolve) => {
+      // 读取当前代理配置
+      let currentProxy = '';
+      try { currentProxy = localStorage.getItem('xiaolu_cors_proxy') || ''; } catch (e) {}
+
       const overlay = document.createElement('div');
       overlay.style.cssText = `
         position: fixed; inset: 0; z-index: 10003;
@@ -272,6 +292,10 @@ export const XiaoluModule = (() => {
           <h3>🔑 配置 DeepSeek API Key</h3>
           <p>小鹿需要 DeepSeek API Key 才能工作 🦌<br>请在 DeepSeek 平台获取 API Key 后填入：</p>
           <input class="xiaolu-token-input" type="password" placeholder="请输入 DeepSeek API Key..." autocomplete="off" />
+          <div class="xiaolu-proxy-section" style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
+            <label style="font-size:12px;color:rgba(255,255,255,0.6);display:block;margin-bottom:4px;">🌐 CORS 代理地址（可选）</label>
+            <input class="xiaolu-proxy-input" type="text" placeholder="默认: https://corsproxy.io/?  （留空使用默认代理，输入 none 直连）" autocomplete="off" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#fff;font-size:13px;box-sizing:border-box;" value="${currentProxy}" />
+          </div>
           <div class="xiaolu-token-actions">
             <button class="xiaolu-token-btn cancel">取消</button>
             <button class="xiaolu-token-btn confirm">确认保存</button>
@@ -282,6 +306,7 @@ export const XiaoluModule = (() => {
       document.body.appendChild(overlay);
 
       const input = overlay.querySelector('.xiaolu-token-input');
+      const proxyInput = overlay.querySelector('.xiaolu-proxy-input');
       const cancelBtn = overlay.querySelector('.cancel');
       const confirmBtn = overlay.querySelector('.confirm');
 
@@ -294,6 +319,15 @@ export const XiaoluModule = (() => {
 
       _bindEvent(confirmBtn, 'click', () => {
         const token = input.value.trim();
+        // 保存代理配置
+        const proxyValue = proxyInput.value.trim();
+        try {
+          if (proxyValue) {
+            localStorage.setItem('xiaolu_cors_proxy', proxyValue);
+          } else {
+            localStorage.removeItem('xiaolu_cors_proxy');
+          }
+        } catch (e) { /* 静默 */ }
         overlay.remove();
         resolve(token || null);
       });
@@ -342,7 +376,7 @@ export const XiaoluModule = (() => {
     const timer = setTimeout(() => controller.abort(), timeout);
 
     try {
-      const resp = await fetch(API_URL, {
+      const resp = await fetch(getProxiedApiUrl(), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -415,7 +449,7 @@ export const XiaoluModule = (() => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     try {
-      resp = await fetch(API_URL, {
+      resp = await fetch(getProxiedApiUrl(), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -635,7 +669,7 @@ export const XiaoluModule = (() => {
         tool_choice: 'auto'
       };
 
-      const resp = await fetch(API_URL, {
+      const resp = await fetch(getProxiedApiUrl(), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

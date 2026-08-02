@@ -32,6 +32,7 @@ const MODULE_REGISTRY = {
   achievements:{ js: '../modules/achievements/achievements.js', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
   timetracker: { js: '../modules/timetracker/timetracker.js', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
   templates:   { js: '../modules/templates/templates_module.js', html: 'templates/templates.html' },
+  calendar:    { js: '../modules/calendar/calendar.js',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
 };
 
 // 模块名映射：路由名 → 导出的模块对象名
@@ -51,6 +52,7 @@ const MODULE_NAME_MAP = {
   achievements: 'AchievementsModule',
   timetracker: 'TimeTrackerModule',
   templates: 'TemplatesModule',
+  calendar: 'CalendarModule',
 };
 
 // ===== 懒加载核心模块缓存 =====

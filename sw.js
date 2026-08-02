@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v62 - 成就勋章系统
+ * v63 - 日历视图整合
  */
 
-const CACHE_NAME = 'life-work-space-v62';
+const CACHE_NAME = 'life-work-space-v63';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -104,6 +104,10 @@ const CACHE_ASSETS = [
   './modules/timetracker/timetracker.html',
   './modules/timetracker/timetracker.css',
   './modules/timetracker/timetracker.js',
+  // 日历视图
+  './modules/calendar/calendar.html',
+  './modules/calendar/calendar.css',
+  './modules/calendar/calendar.js',
   // PWA
   './manifest.json'
 ];

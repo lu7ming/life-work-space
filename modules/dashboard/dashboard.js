@@ -1888,6 +1888,12 @@ export const DashboardModule = (() => {
 
       daysContainer.appendChild(dayEl);
     }
+
+    // 日历总览快捷跳转
+    const goBtn = document.getElementById('dash-calendar-go');
+    if (goBtn) {
+      _bindEvent(goBtn, 'click', () => Router.navigate('calendar'));
+    }
   }
 
   /**

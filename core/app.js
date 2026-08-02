@@ -33,6 +33,7 @@ const MODULE_REGISTRY = {
   timetracker: { js: '../modules/timetracker/timetracker.js?v=70', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
   templates:   { js: '../modules/templates/templates_module.js?v=70', html: 'templates/templates.html' },
   calendar:    { js: '../modules/calendar/calendar.js?v=70',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
+  toolbox:     { js: '../modules/toolbox/toolbox.js?v=70',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
 };
 
 // 模块名映射：路由名 → 导出的模块对象名
@@ -53,6 +54,7 @@ const MODULE_NAME_MAP = {
   timetracker: 'TimeTrackerModule',
   templates: 'TemplatesModule',
   calendar: 'CalendarModule',
+  toolbox: 'ToolboxModule',
 };
 
 // ===== 懒加载核心模块缓存 =====

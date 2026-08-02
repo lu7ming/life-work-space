@@ -142,6 +142,10 @@ const HealthModule = (() => {
       healthData.id = dateStr;
       healthData.date = dateStr;
       await Storage.put('health', healthData);
+      // EventBus: 健康数据记录
+      if (typeof EventBus !== 'undefined') {
+        EventBus.emit('health:logged', { data: healthData });
+      }
     } catch (err) {
       console.error('[Health] 保存失败:', err);
     }

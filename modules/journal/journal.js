@@ -481,6 +481,10 @@ const JournalModule = (() => {
         await Storage.put('journal', record);
       } else {
         await Storage.add('journal', record);
+        // EventBus: 日记创建
+        if (typeof EventBus !== 'undefined') {
+          EventBus.emit('journal:created', { entry: record });
+        }
       }
       await loadData();
       closeDiaryEditor();

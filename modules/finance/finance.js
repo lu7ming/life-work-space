@@ -829,6 +829,10 @@ const FinanceModule = (() => {
       showToast('记录已更新');
     } else {
       await Storage.add('finance', record);
+      // EventBus: 财务记录新增
+      if (typeof EventBus !== 'undefined') {
+        EventBus.emit('finance:added', { record });
+      }
       showToast('记录已添加');
     }
     await loadData();

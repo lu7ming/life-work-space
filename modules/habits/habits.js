@@ -390,6 +390,12 @@ const HabitsModule = (() => {
 
       currentCheckedHabits = [...habits];
 
+      // EventBus: 习惯打卡完成
+      if (typeof EventBus !== 'undefined') {
+        const habitInfo = HABIT_MAP[habitId];
+        EventBus.emit('habit:completed', { habitId, habitName: habitInfo ? habitInfo.name : habitId, date: dateStr });
+      }
+
       // 数据驱动渲染：重新从数据刷新所有卡片状态
       updateCardsState(habits);
 

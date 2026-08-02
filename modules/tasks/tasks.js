@@ -258,6 +258,10 @@ const TasksModule = (() => {
       task.status = newStatus;
       task.completedAt = newStatus === 'done' ? formatDate(new Date()) : null;
       await Storage.put('tasks', task);
+      // EventBus: 任务完成
+      if (typeof EventBus !== 'undefined' && newStatus === 'done') {
+        EventBus.emit('task:completed', { taskId, taskName: task.title, priority: task.priority });
+      }
       renderAll();
     } catch (err) {
       console.error('[Tasks] 切换任务状态失败:', err);
@@ -387,6 +391,10 @@ const TasksModule = (() => {
       const id = await Storage.add('tasks', task);
       task.id = id;
       allTasks.push(task);
+      // EventBus: 任务创建
+      if (typeof EventBus !== 'undefined') {
+        EventBus.emit('task:created', { task });
+      }
       hideTaskModal();
       renderAll();
       if (typeof App !== 'undefined' && App.showToast) App.showToast('任务已创建 ✅');

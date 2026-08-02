@@ -1061,4 +1061,12 @@ const App = (() => {
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
   App.init();
+
+  // EventBus: 网络状态事件
+  window.addEventListener('online', () => {
+    if (typeof EventBus !== 'undefined') EventBus.emit('app:online');
+  });
+  window.addEventListener('offline', () => {
+    if (typeof EventBus !== 'undefined') EventBus.emit('app:offline');
+  });
 });

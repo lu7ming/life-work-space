@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v51 - 移除长按语音输入功能
+ * v52 - 统一事件总线系统
  */
 
-const CACHE_NAME = 'life-work-space-v51';
+const CACHE_NAME = 'life-work-space-v52';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -14,6 +14,7 @@ const CACHE_ASSETS = [
   './styles/search.css',
   './core/app.js',
   './core/router.js',
+  './core/event-bus.js',
   './core/storage.js',
   './core/utils.js',
   './core/user-profile.js',

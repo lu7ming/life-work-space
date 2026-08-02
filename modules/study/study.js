@@ -391,6 +391,10 @@ const StudyModule = (() => {
         const id = await Storage.add('courses', courseData);
         courseData.id = id;
         allCourses.push(courseData);
+        // EventBus: 学习会话记录（课程新增）
+        if (typeof EventBus !== 'undefined') {
+          EventBus.emit('study:session', { data: courseData });
+        }
       }
       hideCourseModal();
       renderTimetable();
@@ -657,6 +661,10 @@ const StudyModule = (() => {
         const id = await Storage.add('books', bookData);
         bookData.id = id;
         allBooks.push(bookData);
+        // EventBus: 学习会话记录（书籍新增）
+        if (typeof EventBus !== 'undefined') {
+          EventBus.emit('study:session', { data: bookData });
+        }
       }
       hideBookModal();
       renderBooks();
@@ -813,6 +821,10 @@ const StudyModule = (() => {
         const id = await Storage.add('skills', skillData);
         skillData.id = id;
         allSkills.push(skillData);
+        // EventBus: 学习会话记录（技能新增）
+        if (typeof EventBus !== 'undefined') {
+          EventBus.emit('study:session', { data: skillData });
+        }
       }
       hideSkillModal();
       renderSkills();

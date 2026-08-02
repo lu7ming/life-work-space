@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 9;
+const DB_VERSION = 10;
 
 /**
  * 存储管理器
@@ -165,6 +165,19 @@ const Storage = (() => {
             auditLogs.createIndex('source', 'source', { unique: false });
             auditLogs.createIndex('date', 'date', { unique: false });
             console.log('[Storage] v9 迁移：已创建 audit_logs 表（含 timestamp/action/source/date 索引）');
+          },
+          // v10: 创作日程模块
+          10: (db) => {
+            const contentTopics = db.createObjectStore('content_topics', { keyPath: 'id' });
+            contentTopics.createIndex('status', 'status', { unique: false });
+            contentTopics.createIndex('category', 'category', { unique: false });
+            const contentShootings = db.createObjectStore('content_shootings', { keyPath: 'id' });
+            contentShootings.createIndex('date', 'date', { unique: false });
+            contentShootings.createIndex('topicId', 'topicId', { unique: false });
+            const contentPublished = db.createObjectStore('content_published', { keyPath: 'id' });
+            contentPublished.createIndex('date', 'date', { unique: false });
+            contentPublished.createIndex('topicId', 'topicId', { unique: false });
+            console.log('[Storage] v10 迁移：已创建创作日程表（content_topics/content_shootings/content_published）');
           },
         };
 

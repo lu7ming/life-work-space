@@ -1,0 +1,213 @@
+<!-- content.html - 创作日程模块模板 -->
+<div class="content-module page-enter">
+
+  <!-- ===== 顶部：Tab 切换 ===== -->
+  <div class="content-header">
+    <h1 class="content-title">🎬 创作日程</h1>
+    <div class="content-tabs" id="content-tabs">
+      <button class="content-tab active" data-tab="topics">选题库</button>
+      <button class="content-tab" data-tab="shooting">拍摄计划</button>
+      <button class="content-tab" data-tab="published">发布追踪</button>
+    </div>
+  </div>
+
+  <!-- ===== 选题库面板 ===== -->
+  <div class="content-panel active" data-panel="topics">
+    <!-- 状态筛选 -->
+    <div class="content-filter" id="topic-filter">
+      <button class="content-filter-btn active" data-status="all">全部</button>
+      <button class="content-filter-btn" data-status="idea">💡 灵感</button>
+      <button class="content-filter-btn" data-status="prep">🔧 筹备中</button>
+      <button class="content-filter-btn" data-status="shot">🎬 已拍摄</button>
+      <button class="content-filter-btn" data-status="published">✅ 已发布</button>
+      <button class="content-filter-btn" data-status="abandoned">❌ 已放弃</button>
+    </div>
+    <!-- 选题列表 -->
+    <div id="topic-list"></div>
+    <!-- 空状态 -->
+    <div class="content-empty" id="topic-empty" style="display:none;">
+      <div class="content-empty-icon">💡</div>
+      <p>还没有选题，点击右下角 + 添加灵感</p>
+    </div>
+  </div>
+
+  <!-- ===== 拍摄计划面板 ===== -->
+  <div class="content-panel" data-panel="shooting">
+    <div class="shooting-nav">
+      <button class="shooting-nav-btn" id="shooting-prev">◀</button>
+      <span class="shooting-nav-label" id="shooting-label">本周</span>
+      <button class="shooting-nav-btn" id="shooting-next">▶</button>
+    </div>
+    <div class="shooting-week" id="shooting-week"></div>
+    <!-- 空状态（由JS控制） -->
+  </div>
+
+  <!-- ===== 发布追踪面板 ===== -->
+  <div class="content-panel" data-panel="published">
+    <!-- 数据汇总 -->
+    <div class="publish-summary" id="publish-summary">
+      <div class="publish-summary-card">
+        <div class="publish-summary-value" id="pub-total-count">0</div>
+        <div class="publish-summary-label">总发布数</div>
+      </div>
+      <div class="publish-summary-card">
+        <div class="publish-summary-value" id="pub-avg-plays">0</div>
+        <div class="publish-summary-label">平均播放量</div>
+      </div>
+      <div class="publish-summary-card">
+        <div class="publish-summary-value" id="pub-best-title">-</div>
+        <div class="publish-summary-label">最佳表现</div>
+      </div>
+    </div>
+    <!-- 排序 -->
+    <div class="publish-sort">
+      <span>排序：</span>
+      <button class="publish-sort-btn active" data-sort="date-desc">最新优先</button>
+      <button class="publish-sort-btn" data-sort="date-asc">最早优先</button>
+      <button class="publish-sort-btn" data-sort="plays-desc">播放量↓</button>
+    </div>
+    <!-- 发布列表 -->
+    <div id="published-list"></div>
+    <!-- 空状态 -->
+    <div class="content-empty" id="published-empty" style="display:none;">
+      <div class="content-empty-icon">📊</div>
+      <p>暂无发布记录，发布后在这里追踪数据</p>
+    </div>
+  </div>
+
+  <!-- ===== FAB 按钮 ===== -->
+  <button class="content-fab" id="content-fab" title="新建">+</button>
+
+  <!-- ===== 选题新建/编辑弹窗 ===== -->
+  <div class="content-modal-overlay" id="topic-modal-overlay">
+    <div class="content-modal" id="topic-modal">
+      <div class="content-modal-header">
+        <h3 id="topic-modal-title">新建选题</h3>
+        <button class="content-modal-close" id="topic-modal-close">✕</button>
+      </div>
+      <div class="content-modal-body">
+        <div class="content-form-group">
+          <label>标题</label>
+          <input type="text" class="content-input" id="topic-title-input" placeholder="选题标题..." maxlength="100" />
+        </div>
+        <div class="content-form-group">
+          <label>分类</label>
+          <select class="content-select" id="topic-category-input">
+            <option value="声乐教学">声乐教学</option>
+            <option value="翻唱">翻唱</option>
+            <option value="日常vlog">日常vlog</option>
+            <option value="颜值展示">颜值展示</option>
+          </select>
+        </div>
+        <div class="content-form-group">
+          <label>优先级</label>
+          <div class="content-priority-picker" id="topic-priority-picker">
+            <button class="content-priority-pick active-high" data-priority="high">🔴 高</button>
+            <button class="content-priority-pick" data-priority="medium">🟡 中</button>
+            <button class="content-priority-pick" data-priority="low">🔵 低</button>
+          </div>
+        </div>
+        <div class="content-form-group">
+          <label>状态</label>
+          <select class="content-select" id="topic-status-input">
+            <option value="idea">💡 灵感</option>
+            <option value="prep">🔧 筹备中</option>
+            <option value="shot">🎬 已拍摄</option>
+            <option value="published">✅ 已发布</option>
+            <option value="abandoned">❌ 已放弃</option>
+          </select>
+        </div>
+      </div>
+      <div class="content-modal-footer">
+        <button class="content-btn content-btn--cancel" id="topic-btn-cancel">取消</button>
+        <button class="content-btn content-btn--confirm" id="topic-btn-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 拍摄计划新建/编辑弹窗 ===== -->
+  <div class="content-modal-overlay" id="shooting-modal-overlay">
+    <div class="content-modal" id="shooting-modal">
+      <div class="content-modal-header">
+        <h3 id="shooting-modal-title">新建拍摄计划</h3>
+        <button class="content-modal-close" id="shooting-modal-close">✕</button>
+      </div>
+      <div class="content-modal-body">
+        <div class="content-form-group">
+          <label>关联选题</label>
+          <select class="content-select" id="shooting-topic-input">
+            <option value="">-- 选择选题 --</option>
+          </select>
+        </div>
+        <div class="content-form-group">
+          <label>拍摄日期</label>
+          <input type="date" class="content-input" id="shooting-date-input" />
+        </div>
+        <div class="content-form-group">
+          <label>拍摄时间</label>
+          <input type="time" class="content-input" id="shooting-time-input" />
+        </div>
+        <div class="content-form-group">
+          <label>拍摄地点</label>
+          <input type="text" class="content-input" id="shooting-location-input" placeholder="拍摄地点..." maxlength="50" />
+        </div>
+        <div class="content-form-group">
+          <label>备注</label>
+          <textarea class="content-textarea" id="shooting-note-input" placeholder="备注..." maxlength="200"></textarea>
+        </div>
+      </div>
+      <div class="content-modal-footer" id="shooting-modal-footer">
+        <button class="content-btn content-btn--cancel" id="shooting-btn-cancel">取消</button>
+        <button class="content-btn content-btn--confirm" id="shooting-btn-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 发布记录新建/编辑弹窗 ===== -->
+  <div class="content-modal-overlay" id="published-modal-overlay">
+    <div class="content-modal" id="published-modal">
+      <div class="content-modal-header">
+        <h3 id="published-modal-title">新建发布记录</h3>
+        <button class="content-modal-close" id="published-modal-close">✕</button>
+      </div>
+      <div class="content-modal-body">
+        <div class="content-form-group">
+          <label>标题</label>
+          <input type="text" class="content-input" id="pub-title-input" placeholder="发布标题..." maxlength="100" />
+        </div>
+        <div class="content-form-group">
+          <label>关联选题</label>
+          <select class="content-select" id="pub-topic-input">
+            <option value="">-- 选择选题 --</option>
+          </select>
+        </div>
+        <div class="content-form-group">
+          <label>发布日期</label>
+          <input type="date" class="content-input" id="pub-date-input" />
+        </div>
+        <div class="content-form-group">
+          <label>播放量</label>
+          <input type="number" class="content-input" id="pub-plays-input" placeholder="0" min="0" />
+        </div>
+        <div class="content-form-group">
+          <label>点赞数</label>
+          <input type="number" class="content-input" id="pub-likes-input" placeholder="0" min="0" />
+        </div>
+        <div class="content-form-group">
+          <label>评论数</label>
+          <input type="number" class="content-input" id="pub-comments-input" placeholder="0" min="0" />
+        </div>
+        <div class="content-form-group">
+          <label>收藏数</label>
+          <input type="number" class="content-input" id="pub-favorites-input" placeholder="0" min="0" />
+        </div>
+      </div>
+      <div class="content-modal-footer" id="published-modal-footer">
+        <button class="content-btn content-btn--danger" id="pub-btn-delete" style="display:none;">删除</button>
+        <button class="content-btn content-btn--cancel" id="pub-btn-cancel">取消</button>
+        <button class="content-btn content-btn--confirm" id="pub-btn-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+</div>

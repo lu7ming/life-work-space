@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v54 - 模块生命周期管理系统
+ * v55 - 新增创作日程模块
  */
 
-const CACHE_NAME = 'life-work-space-v54';
+const CACHE_NAME = 'life-work-space-v55';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -76,6 +76,10 @@ const CACHE_ASSETS = [
   './modules/lifetree/lifetree.html',
   './modules/lifetree/lifetree.css',
   './modules/lifetree/lifetree.js',
+  // v55 新增：创作日程模块
+  './modules/content/content.html',
+  './modules/content/content.css',
+  './modules/content/content.js',
   './modules/rest/rest.html',
   './modules/rest/rest.css',
   './modules/rest/rest.js',

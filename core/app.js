@@ -59,6 +59,7 @@ const App = (() => {
     Router.register('knowledge', loadKnowledge);
     Router.register('goals', loadGoals);
     Router.register('lifetree', loadLifeTree);
+    Router.register('content', loadContent);
     Router.register('templates', loadTemplates);
     Router.register('timetracker', loadTimeTracker);
 
@@ -258,6 +259,7 @@ const App = (() => {
       'knowledge': loadKnowledge,
       'goals': loadGoals,
       'lifetree': loadLifeTree,
+      'content': loadContent,
       'templates': loadTemplates,
       'timetracker': loadTimeTracker
     };
@@ -524,6 +526,28 @@ const App = (() => {
       }
     } catch (err) {
       console.error('[App] 加载生命树模块失败:', err);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
+   * 加载创作日程模块
+   */
+  async function loadContent() {
+    const container = document.getElementById('content-area');
+    try {
+      const html = await fetchModule('content/content.html');
+      container.innerHTML = html;
+      loadModuleCSS('content/content.css');
+      // 清理旧模块
+      cleanupCurrentModule();
+
+      if (typeof ContentModule !== 'undefined' && ContentModule.init) {
+        ContentModule.init();
+        _activeModule = ContentModule;
+      }
+    } catch (err) {
+      console.error('[App] 加载创作日程模块失败:', err);
       container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
     }
   }

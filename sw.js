@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v55 - 新增创作日程模块
+ * v56 - Dashboard 智能聚焦：根据时段自动切换首页内容
  */
 
-const CACHE_NAME = 'life-work-space-v55';
+const CACHE_NAME = 'life-work-space-v56';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [

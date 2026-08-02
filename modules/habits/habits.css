@@ -100,6 +100,181 @@
   align-items: start;
 }
 
+/* ===== 习惯组合：快捷打卡 ===== */
+.habits-groups {
+  margin-bottom: 16px;
+}
+
+.habits-groups-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.habits-groups-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.habits-group-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+
+.habits-group-btn:hover {
+  border-color: var(--accent-orange);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.habits-group-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.habits-group-btn.all-done {
+  background: var(--accent-green-light);
+  border-color: var(--accent-green);
+}
+
+.habits-group-btn.all-done .habits-group-progress {
+  color: var(--accent-green);
+}
+
+.habits-group-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.habits-group-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.habits-group-progress {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* ===== 习惯链：顺序引导 ===== */
+.habits-chains {
+  margin-bottom: 16px;
+}
+
+.habits-chains-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.habits-chains-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.habits-chain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+
+.habits-chain-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  min-width: 56px;
+}
+
+.habits-chain-nodes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.habits-chain-node {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  transition: all var(--transition-fast);
+}
+
+.habits-chain-node-emoji {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.habits-chain-node-name {
+  white-space: nowrap;
+}
+
+/* 链中已完成的节点 */
+.habits-chain-node.done {
+  background: var(--accent-green-light);
+  color: var(--accent-green);
+}
+
+/* 链中下一个待完成的节点（高亮） */
+.habits-chain-node.next {
+  background: var(--accent-orange);
+  color: #fff;
+  animation: chain-node-pulse 1.5s ease-in-out infinite;
+}
+
+.habits-chain-arrow {
+  font-size: 12px;
+  color: var(--text-light);
+  margin: 0 1px;
+}
+
+.habits-chain-status {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.habits-chain-status.done {
+  color: var(--accent-green);
+}
+
+.habits-chain-status.in-progress {
+  color: var(--accent-orange);
+}
+
 /* ===== 习惯卡片网格 ===== */
 .habits-grid {
   display: grid;
@@ -145,6 +320,22 @@
 .habits-card.checked .habits-card-check {
   opacity: 1;
   transform: scale(1);
+}
+
+/* 习惯链脉冲高亮：下一个待完成 */
+.habits-card.chain-next {
+  border: 2px solid var(--accent-orange);
+  animation: chain-card-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(230, 150, 50, 0.3);
+}
+
+@keyframes chain-card-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(230, 150, 50, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(230, 150, 50, 0);
+  }
 }
 
 /* emoji 图标 */
@@ -201,6 +392,34 @@
   opacity: 0;
   transform: scale(0.5);
   transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+/* 习惯链序号角标 */
+.habits-card-chain-badges {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: flex;
+  gap: 2px;
+}
+
+.habits-card-chain-badge {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-orange);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* 已打卡的卡片上角标变为绿色 */
+.habits-card.checked .habits-card-chain-badge {
+  background: var(--accent-green);
 }
 
 /* ===== 完成进度 ===== */
@@ -413,6 +632,16 @@
   height: 7px;
 }
 
+/* ===== 脉冲动画关键帧 ===== */
+@keyframes chain-node-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 /* ===== 响应式 ===== */
 
 /* iPad 竖屏 / 小桌面 */
@@ -424,6 +653,18 @@
 
   .habits-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .habits-chain {
+    padding: 8px 10px;
+  }
+
+  .habits-chain-node-name {
+    display: none;
+  }
+
+  .habits-chain-node {
+    padding: 3px 6px;
   }
 }
 
@@ -449,6 +690,30 @@
 
   .habits-title {
     font-size: 20px;
+  }
+
+  .habits-groups-list {
+    gap: 8px;
+  }
+
+  .habits-group-btn {
+    padding: 8px 12px;
+  }
+
+  .habits-group-name {
+    font-size: 12px;
+  }
+
+  .habits-chain {
+    flex-wrap: wrap;
+  }
+
+  .habits-chain-node-name {
+    display: none;
+  }
+
+  .habits-chain-node {
+    padding: 2px 5px;
   }
 }
 
@@ -478,5 +743,18 @@
   .habits-date-switcher {
     width: 100%;
     justify-content: center;
+  }
+
+  .habits-groups-list {
+    flex-direction: column;
+  }
+
+  .habits-group-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .habits-chain-label {
+    min-width: auto;
   }
 }

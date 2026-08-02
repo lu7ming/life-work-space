@@ -22,16 +22,35 @@ const HabitsModule = (() => {
     { id: 'finance',       emoji: '💰', name: '记账' },
   ];
 
+  // 习惯ID → 索引映射
+  const HABIT_MAP = {};
+  HABITS.forEach((h, i) => { HABIT_MAP[h.id] = { ...h, index: i }; });
+
   const TOTAL = HABITS.length;
+
+  // ===== 习惯链定义（有序） =====
+  const HABIT_CHAINS = [
+    { id: 'morning',  name: '晨间链', emoji: '🌅', habits: ['warm-water', 'breakfast', 'exercise'] },
+    { id: 'wellness', name: '养生链', emoji: '🌿', habits: ['drink-water', 'dinner-light', 'foot-bath', 'early-sleep'] },
+    { id: 'growth',   name: '成长链', emoji: '🌱', habits: ['study', 'reading', 'journal'] },
+  ];
+
+  // ===== 习惯组合定义（无序，一键打卡） =====
+  const HABIT_GROUPS = [
+    { id: 'morning-routine', name: '晨间 routine', emoji: '☀️', habits: ['warm-water', 'breakfast', 'exercise', 'stretch'] },
+    { id: 'noon-routine',    name: '午间 routine', emoji: '🌤️', habits: ['drink-water', 'stretch'] },
+    { id: 'evening-routine', name: '晚间 routine', emoji: '🌙', habits: ['dinner-light', 'foot-bath', 'early-sleep', 'journal'] },
+  ];
 
   // 当前查看的日期
   let currentDate = new Date();
   // 日历当前显示的月份
   let calendarMonth = new Date().getMonth();
   let calendarYear = new Date().getFullYear();
+  // 当前已打卡习惯列表（缓存）
+  let currentCheckedHabits = [];
 
   // ===== 工具函数 =====
-
 
   function formatMonth(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -73,6 +92,8 @@ const HabitsModule = (() => {
     calendarYear = currentDate.getFullYear();
 
     renderGrid();
+    renderGroups();
+    renderChains();
     bindEvents();
     await loadDateData();
     renderCalendar();
@@ -83,14 +104,78 @@ const HabitsModule = (() => {
     const grid = document.getElementById('habits-grid');
     if (!grid) return;
 
-    grid.innerHTML = HABITS.map((habit) => `
+    // 计算每个习惯所属的链及其位置
+    const chainBadgeMap = {}; // habitId → [{ chainName, position }]
+    HABIT_CHAINS.forEach(chain => {
+      chain.habits.forEach((hId, idx) => {
+        if (!chainBadgeMap[hId]) chainBadgeMap[hId] = [];
+        chainBadgeMap[hId].push({ chainEmoji: chain.emoji, position: idx + 1 });
+      });
+    });
+
+    grid.innerHTML = HABITS.map((habit) => {
+      const badges = chainBadgeMap[habit.id] || [];
+      const badgeHtml = badges.map(b =>
+        `<span class="habits-card-chain-badge" title="${b.chainEmoji} 第${b.position}步">${b.position}</span>`
+      ).join('');
+
+      return `
       <div class="habits-card" data-habit-id="${habit.id}">
         <span class="habits-card-emoji">${habit.emoji}</span>
         <span class="habits-card-name">${habit.name}</span>
         <div class="habits-card-btn"></div>
         <span class="habits-card-check">✓</span>
+        ${badgeHtml ? `<div class="habits-card-chain-badges">${badgeHtml}</div>` : ''}
       </div>
-    `).join('');
+    `;
+    }).join('');
+  }
+
+  // ===== 渲染习惯组合按钮 =====
+  function renderGroups() {
+    const container = document.getElementById('habits-groups-list');
+    if (!container) return;
+
+    container.innerHTML = HABIT_GROUPS.map(group => {
+      const total = group.habits.length;
+      return `
+        <button class="habits-group-btn" data-group-id="${group.id}">
+          <span class="habits-group-emoji">${group.emoji}</span>
+          <span class="habits-group-name">${group.name}</span>
+          <span class="habits-group-progress" data-group-progress="${group.id}">0/${total}</span>
+        </button>
+      `;
+    }).join('');
+  }
+
+  // ===== 渲染习惯链可视化 =====
+  function renderChains() {
+    const container = document.getElementById('habits-chains-list');
+    if (!container) return;
+
+    container.innerHTML = HABIT_CHAINS.map(chain => {
+      const nodesHtml = chain.habits.map((hId, idx) => {
+        const habit = HABIT_MAP[hId];
+        const arrow = idx < chain.habits.length - 1
+          ? '<span class="habits-chain-arrow">→</span>'
+          : '';
+        return `
+          <span class="habits-chain-node" data-chain-id="${chain.id}" data-habit-id="${hId}">
+            <span class="habits-chain-node-emoji">${habit.emoji}</span>
+            <span class="habits-chain-node-name">${habit.name}</span>
+          </span>
+          ${arrow}
+        `;
+      }).join('');
+
+      return `
+        <div class="habits-chain" data-chain-id="${chain.id}">
+          <span class="habits-chain-label">${chain.emoji} ${chain.name}</span>
+          <div class="habits-chain-nodes">${nodesHtml}</div>
+          <span class="habits-chain-status" data-chain-status="${chain.id}"></span>
+        </div>
+      `;
+    }).join('');
   }
 
   // ===== 绑定事件 =====
@@ -102,6 +187,17 @@ const HabitsModule = (() => {
         const card = e.target.closest('.habits-card');
         if (card) {
           toggleHabit(card.dataset.habitId);
+        }
+      });
+    }
+
+    // 习惯组合按钮点击
+    const groupsList = document.getElementById('habits-groups-list');
+    if (groupsList) {
+      groupsList.addEventListener('click', (e) => {
+        const btn = e.target.closest('.habits-group-btn');
+        if (btn) {
+          handleGroupCheckin(btn.dataset.groupId);
         }
       });
     }
@@ -140,7 +236,33 @@ const HabitsModule = (() => {
       console.error('[Habits] 读取打卡数据失败:', err);
     }
 
+    currentCheckedHabits = [...checkedHabits];
+
     // 更新卡片状态
+    updateCardsState(checkedHabits);
+
+    // 更新进度
+    updateProgress(checkedHabits.length);
+
+    // 更新组合进度
+    updateGroupProgress(checkedHabits);
+
+    // 更新习惯链状态
+    updateChainState(checkedHabits);
+
+    // 更新日历中选中状态
+    updateCalendarSelection();
+  }
+
+  // ===== 更新卡片状态（含链高亮动画） =====
+  function updateCardsState(checkedHabits) {
+    // 计算每条链的下一个待完成习惯
+    const nextHabitIds = new Set();
+    HABIT_CHAINS.forEach(chain => {
+      const nextHabit = getNextHabitInChain(chain, checkedHabits);
+      if (nextHabit) nextHabitIds.add(nextHabit);
+    });
+
     const cards = document.querySelectorAll('.habits-card');
     cards.forEach((card) => {
       const habitId = card.dataset.habitId;
@@ -149,13 +271,79 @@ const HabitsModule = (() => {
       } else {
         card.classList.remove('checked');
       }
+
+      // 脉冲高亮：是链中下一个待完成的习惯
+      if (nextHabitIds.has(habitId) && !checkedHabits.includes(habitId)) {
+        card.classList.add('chain-next');
+      } else {
+        card.classList.remove('chain-next');
+      }
     });
+  }
 
-    // 更新进度
-    updateProgress(checkedHabits.length);
+  // ===== 获取链中下一个待完成的习惯ID =====
+  function getNextHabitInChain(chain, checkedHabits) {
+    for (const hId of chain.habits) {
+      if (!checkedHabits.includes(hId)) return hId;
+    }
+    return null; // 全部完成
+  }
 
-    // 更新日历中选中状态
-    updateCalendarSelection();
+  // ===== 更新组合进度 =====
+  function updateGroupProgress(checkedHabits) {
+    HABIT_GROUPS.forEach(group => {
+      const done = group.habits.filter(hId => checkedHabits.includes(hId)).length;
+      const total = group.habits.length;
+      const progressEl = document.querySelector(`[data-group-progress="${group.id}"]`);
+      if (progressEl) progressEl.textContent = `${done}/${total}`;
+
+      // 全部完成时给按钮加完成样式
+      const btn = document.querySelector(`[data-group-id="${group.id}"]`);
+      if (btn) {
+        btn.classList.toggle('all-done', done === total);
+      }
+    });
+  }
+
+  // ===== 更新习惯链状态 =====
+  function updateChainState(checkedHabits) {
+    HABIT_CHAINS.forEach(chain => {
+      const done = chain.habits.filter(hId => checkedHabits.includes(hId)).length;
+      const total = chain.habits.length;
+
+      // 更新链节点状态
+      const nodes = document.querySelectorAll(`[data-chain-id="${chain.id}"].habits-chain-node`);
+      nodes.forEach(node => {
+        const hId = node.dataset.habitId;
+        if (checkedHabits.includes(hId)) {
+          node.classList.add('done');
+        } else {
+          node.classList.remove('done');
+        }
+        // 下一个待完成的节点加高亮
+        const nextHabit = getNextHabitInChain(chain, checkedHabits);
+        if (nextHabit === hId) {
+          node.classList.add('next');
+        } else {
+          node.classList.remove('next');
+        }
+      });
+
+      // 更新链状态文案
+      const statusEl = document.querySelector(`[data-chain-status="${chain.id}"]`);
+      if (statusEl) {
+        if (done === total) {
+          statusEl.textContent = '✅';
+          statusEl.className = 'habits-chain-status done';
+        } else if (done > 0) {
+          statusEl.textContent = `${done}/${total}`;
+          statusEl.className = 'habits-chain-status in-progress';
+        } else {
+          statusEl.textContent = '';
+          statusEl.className = 'habits-chain-status';
+        }
+      }
+    });
   }
 
   // ===== 切换打卡状态 =====
@@ -200,18 +388,22 @@ const HabitsModule = (() => {
         });
       }
 
+      currentCheckedHabits = [...habits];
+
       // 数据驱动渲染：重新从数据刷新所有卡片状态
-      const cards = document.querySelectorAll('.habits-card');
-      cards.forEach((card) => {
-        if (habits.includes(card.dataset.habitId)) {
-          card.classList.add('checked');
-        } else {
-          card.classList.remove('checked');
-        }
-      });
+      updateCardsState(habits);
 
       // 更新进度
       updateProgress(habits.length);
+
+      // 更新组合进度
+      updateGroupProgress(habits);
+
+      // 更新习惯链状态
+      updateChainState(habits);
+
+      // 检查链完成
+      checkChainCompletion(habitId, habits);
 
       // 刷新日历
       await renderCalendar();
@@ -226,6 +418,43 @@ const HabitsModule = (() => {
       if (typeof App !== 'undefined') App.showToast('打卡操作失败，请重试');
     } finally {
       isToggling = false;
+    }
+  }
+
+  // ===== 检查习惯链完成 =====
+  function checkChainCompletion(justCheckedId, checkedHabits) {
+    HABIT_CHAINS.forEach(chain => {
+      // 刚打卡的习惯是否属于此链
+      if (!chain.habits.includes(justCheckedId)) return;
+      // 此链是否全部完成
+      const allDone = chain.habits.every(hId => checkedHabits.includes(hId));
+      if (allDone) {
+        if (typeof App !== 'undefined') {
+          App.showToast(`${chain.emoji} ${chain.name}全部完成！顺序打卡太棒了！🎉`);
+        }
+      }
+    });
+  }
+
+  // ===== 习惯组合一键打卡 =====
+  async function handleGroupCheckin(groupId) {
+    const group = HABIT_GROUPS.find(g => g.id === groupId);
+    if (!group) return;
+
+    // 筛选未完成的习惯
+    const unchecked = group.habits.filter(hId => !currentCheckedHabits.includes(hId));
+    if (unchecked.length === 0) {
+      if (typeof App !== 'undefined') App.showToast(`${group.emoji} ${group.name}已全部完成！`);
+      return;
+    }
+
+    // 逐个调用已有的打卡逻辑（依次打卡未完成的）
+    for (const hId of unchecked) {
+      await toggleHabit(hId);
+    }
+
+    if (typeof App !== 'undefined') {
+      App.showToast(`${group.emoji} ${group.name}打卡成功！${unchecked.length}个习惯已记录`);
     }
   }
 

@@ -100,8 +100,10 @@ export const HabitsModule = (() => {
     renderGroups();
     renderChains();
     bindEvents();
+    bindRetroEvents();
     await loadDateData();
     renderCalendar();
+    await updateRetroBtnState();
   }
 
   // ===== 渲染习惯卡片网格 =====
@@ -617,6 +619,403 @@ export const HabitsModule = (() => {
       calendarYear--;
     }
     renderCalendar();
+  }
+
+  // ===== 补签功能 =====
+
+  // 每月默认补签次数上限
+  const RETROACTIVE_MONTHLY_LIMIT = 3;
+
+  // 补签日历当前月份
+  let retroMonth = new Date().getMonth();
+  let retroYear = new Date().getFullYear();
+
+  // 补签确认中选中的日期和习惯
+  let retroSelectedDate = null;
+  let retroSelectedHabits = new Set();
+
+  /**
+   * 获取指定月份的补签次数设置
+   * @param {string} monthStr - 'YYYY-MM'
+   * @returns {Promise<{used: number, limit: number}>}
+   */
+  async function getRetroQuota(monthStr) {
+    const limitKey = 'retroactive_limit_' + monthStr;
+    const usedKey = 'retroactive_count_' + monthStr;
+
+    let limit = RETROACTIVE_MONTHLY_LIMIT;
+    let used = 0;
+
+    try {
+      const limitSetting = await Storage.get('settings', limitKey);
+      if (limitSetting && typeof limitSetting.value === 'number') {
+        limit = limitSetting.value;
+      }
+      const usedSetting = await Storage.get('settings', usedKey);
+      if (usedSetting && typeof usedSetting.value === 'number') {
+        used = usedSetting.value;
+      }
+    } catch (err) {
+      console.error('[Habits] 获取补签配额失败:', err);
+    }
+
+    return { used, limit, remaining: Math.max(0, limit - used) };
+  }
+
+  /**
+   * 增加指定月份的补签使用次数
+   * @param {string} monthStr - 'YYYY-MM'
+   */
+  async function incrementRetroCount(monthStr) {
+    const usedKey = 'retroactive_count_' + monthStr;
+    const { used } = await getRetroQuota(monthStr);
+    await Storage.put('settings', { key: usedKey, value: used + 1 });
+  }
+
+  /**
+   * 更新补签按钮状态（显示剩余次数、禁用状态）
+   */
+  async function updateRetroBtnState() {
+    const btn = document.getElementById('habits-retroactive-btn');
+    const countEl = document.getElementById('habits-retroactive-count');
+    if (!btn || !countEl) return;
+
+    const now = new Date();
+    const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const quota = await getRetroQuota(monthStr);
+
+    countEl.textContent = quota.remaining;
+    btn.disabled = quota.remaining <= 0;
+
+    if (quota.remaining <= 0) {
+      btn.title = '本月补签次数已用完';
+    } else {
+      btn.title = `补签（本月还剩${quota.remaining}次）`;
+    }
+  }
+
+  /**
+   * 打开补签日历弹窗
+   */
+  async function openRetroCalendar() {
+    const overlay = document.getElementById('habits-retroactive-overlay');
+    if (!overlay) return;
+
+    // 重置到当前月
+    const now = new Date();
+    retroMonth = now.getMonth();
+    retroYear = now.getFullYear();
+
+    // 更新配额信息
+    await updateRetroInfo();
+
+    // 渲染补签日历
+    await renderRetroCalendar();
+
+    overlay.classList.add('active');
+  }
+
+  /**
+   * 关闭补签日历弹窗
+   */
+  function closeRetroCalendar() {
+    const overlay = document.getElementById('habits-retroactive-overlay');
+    if (overlay) overlay.classList.remove('active');
+  }
+
+  /**
+   * 更新补签配额显示
+   */
+  async function updateRetroInfo() {
+    const infoEl = document.getElementById('habits-retroactive-info');
+    if (!infoEl) return;
+
+    const monthStr = `${retroYear}-${String(retroMonth + 1).padStart(2, '0')}`;
+    const quota = await getRetroQuota(monthStr);
+
+    if (quota.remaining <= 0) {
+      infoEl.className = 'habits-retroactive-info no-quota';
+      infoEl.innerHTML = `本月补签次数已用完（${quota.used}/${quota.limit}）`;
+    } else {
+      infoEl.className = 'habits-retroactive-info';
+      infoEl.innerHTML = `本月还剩 <strong>${quota.remaining}</strong> 次补签机会（已用${quota.used}/${quota.limit}）`;
+    }
+  }
+
+  /**
+   * 渲染补签日历（30天视图）
+   */
+  async function renderRetroCalendar() {
+    const titleEl = document.getElementById('retroactive-cal-title');
+    const daysContainer = document.getElementById('retroactive-calendar-days');
+
+    if (titleEl) {
+      titleEl.textContent = `${retroYear}年${retroMonth + 1}月`;
+    }
+
+    if (!daysContainer) return;
+    daysContainer.innerHTML = '';
+
+    const monthStr = `${retroYear}-${String(retroMonth + 1).padStart(2, '0')}`;
+
+    // 获取本月打卡记录
+    let checkinMap = {};
+    try {
+      const records = await Storage.getByIndex('checkins', 'month', monthStr);
+      records.forEach((r) => {
+        checkinMap[r.date] = (r.habits || []).length;
+      });
+    } catch (err) {
+      console.error('[Habits] 获取补签月数据失败:', err);
+    }
+
+    const today = new Date();
+    const todayStr = formatDate(today);
+    const firstDay = new Date(retroYear, retroMonth, 1).getDay();
+    const daysInMonth = new Date(retroYear, retroMonth + 1, 0).getDate();
+
+    // 空白格
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'retroactive-day empty';
+      daysContainer.appendChild(empty);
+    }
+
+    // 日期格
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dd = String(day).padStart(2, '0');
+      const dateStr = `${retroYear}-${String(retroMonth + 1).padStart(2, '0')}-${dd}`;
+      const habitCount = checkinMap[dateStr] || 0;
+      const isFuture = dateStr > todayStr;
+
+      const dayEl = document.createElement('div');
+      dayEl.className = 'retroactive-day';
+      dayEl.textContent = day;
+
+      if (isFuture) {
+        dayEl.classList.add('future');
+      } else if (dateStr === todayStr) {
+        dayEl.classList.add('today');
+      }
+
+      // 已打卡
+      if (habitCount > 0) {
+        dayEl.classList.add('has-checkin');
+      }
+      // 全部完成
+      if (habitCount >= TOTAL) {
+        dayEl.classList.add('all-done');
+      }
+
+      // 可补签的日期：过去的日期且未全部完成
+      if (!isFuture && habitCount < TOTAL) {
+        dayEl.classList.add('can-retroactive');
+        _bindEvent(dayEl, 'click', () => openRetroConfirm(dateStr));
+      }
+
+      daysContainer.appendChild(dayEl);
+    }
+  }
+
+  /**
+   * 补签日历月份切换
+   */
+  async function shiftRetroMonth(delta) {
+    retroMonth += delta;
+    if (retroMonth > 11) {
+      retroMonth = 0;
+      retroYear++;
+    } else if (retroMonth < 0) {
+      retroMonth = 11;
+      retroYear--;
+    }
+    await updateRetroInfo();
+    await renderRetroCalendar();
+  }
+
+  /**
+   * 打开补签确认弹窗
+   * @param {string} dateStr - 'YYYY-MM-DD'
+   */
+  async function openRetroConfirm(dateStr) {
+    retroSelectedDate = dateStr;
+    retroSelectedHabits = new Set();
+
+    const overlay = document.getElementById('habits-retroactive-confirm-overlay');
+    const titleEl = document.getElementById('retroactive-confirm-title');
+    const listEl = document.getElementById('retroactive-confirm-list');
+
+    if (!overlay || !listEl) return;
+
+    // 设置标题
+    if (titleEl) {
+      titleEl.textContent = `补签 · ${dateStr}`;
+    }
+
+    // 获取该日期已有的打卡记录
+    let existingHabits = [];
+    try {
+      const record = await Storage.get('checkins', dateStr);
+      if (record && record.habits) {
+        existingHabits = record.habits;
+      }
+    } catch (err) {
+      console.error('[Habits] 获取补签日数据失败:', err);
+    }
+
+    // 渲染习惯列表
+    listEl.innerHTML = HABITS.map((habit) => {
+      const isAlreadyDone = existingHabits.includes(habit.id);
+      return `
+        <div class="retroactive-habit-item${isAlreadyDone ? ' already-done' : ''}" data-habit-id="${habit.id}">
+          <div class="retroactive-habit-checkbox">${isAlreadyDone ? '✓' : ''}</div>
+          <span class="retroactive-habit-emoji">${habit.emoji}</span>
+          <span class="retroactive-habit-name">${habit.name}</span>
+          <span class="retroactive-habit-badge">${isAlreadyDone ? '已打卡' : '未打卡'}</span>
+        </div>
+      `;
+    }).join('');
+
+    // 绑定勾选事件（只对未打卡的）
+    const items = listEl.querySelectorAll('.retroactive-habit-item:not(.already-done)');
+    items.forEach((item) => {
+      _bindEvent(item, 'click', () => {
+        const habitId = item.dataset.habitId;
+        if (retroSelectedHabits.has(habitId)) {
+          retroSelectedHabits.delete(habitId);
+          item.classList.remove('checked');
+          item.querySelector('.retroactive-habit-checkbox').textContent = '';
+          item.querySelector('.retroactive-habit-badge').textContent = '未打卡';
+        } else {
+          retroSelectedHabits.add(habitId);
+          item.classList.add('checked');
+          item.querySelector('.retroactive-habit-checkbox').textContent = '✓';
+          item.querySelector('.retroactive-habit-badge').textContent = '补签';
+        }
+        // 更新确认按钮状态
+        updateRetroOkBtn();
+      });
+    });
+
+    // 初始状态
+    updateRetroOkBtn();
+
+    overlay.classList.add('active');
+  }
+
+  /**
+   * 关闭补签确认弹窗
+   */
+  function closeRetroConfirm() {
+    const overlay = document.getElementById('habits-retroactive-confirm-overlay');
+    if (overlay) overlay.classList.remove('active');
+    retroSelectedDate = null;
+    retroSelectedHabits = new Set();
+  }
+
+  /**
+   * 更新补签确认按钮状态
+   */
+  function updateRetroOkBtn() {
+    const okBtn = document.getElementById('retroactive-ok-btn');
+    if (okBtn) {
+      okBtn.disabled = retroSelectedHabits.size === 0;
+    }
+  }
+
+  /**
+   * 确认补签
+   */
+  async function confirmRetro() {
+    if (!retroSelectedDate || retroSelectedHabits.size === 0) return;
+
+    const dateStr = retroSelectedDate;
+    const monthStr = dateStr.substring(0, 7);
+    const now = new Date();
+
+    // 检查补签配额
+    const quota = await getRetroQuota(monthStr);
+    if (quota.remaining <= 0) {
+      if (window.App) window.App?.showToast('本月补签次数已用完 ❌');
+      return;
+    }
+
+    try {
+      // 获取现有记录
+      let record = await Storage.get('checkins', dateStr);
+      let existingHabits = [];
+      if (record && record.habits) {
+        existingHabits = [...record.habits];
+      }
+
+      // 合并补签的习惯
+      const newHabits = [...new Set([...existingHabits, ...retroSelectedHabits])];
+
+      // 保存记录（标记 isRetroactive）
+      await Storage.put('checkins', {
+        date: dateStr,
+        month: monthStr,
+        time: record ? record.time : formatTime(now),
+        habits: newHabits,
+        isRetroactive: true
+      });
+
+      // 增加补签使用次数
+      await incrementRetroCount(monthStr);
+
+      // 关闭弹窗
+      closeRetroConfirm();
+      closeRetroCalendar();
+
+      // 刷新界面
+      await loadDateData();
+      await renderCalendar();
+      await updateRetroBtnState();
+
+      // Toast 提示
+      if (window.App) window.App?.showToast('补签成功 ✅');
+
+      // EventBus
+      EventBus.emit('habit:retroactive', { date: dateStr, habits: [...retroSelectedHabits] });
+
+    } catch (err) {
+      console.error('[Habits] 补签操作失败:', err);
+      if (window.App) window.App?.showToast('补签操作失败，请重试 ❌');
+    }
+  }
+
+  /**
+   * 绑定补签相关事件
+   */
+  function bindRetroEvents() {
+    const retroBtn = document.getElementById('habits-retroactive-btn');
+    const retroClose = document.getElementById('habits-retroactive-close');
+    const retroPrevMonth = document.getElementById('retroactive-prev-month');
+    const retroNextMonth = document.getElementById('retroactive-next-month');
+
+    const confirmClose = document.getElementById('habits-retroactive-confirm-close');
+    const confirmCancel = document.getElementById('retroactive-cancel-btn');
+    const confirmOk = document.getElementById('retroactive-ok-btn');
+
+    _bindEvent(retroBtn, 'click', openRetroCalendar);
+    _bindEvent(retroClose, 'click', closeRetroCalendar);
+    _bindEvent(retroPrevMonth, 'click', () => shiftRetroMonth(-1));
+    _bindEvent(retroNextMonth, 'click', () => shiftRetroMonth(1));
+
+    _bindEvent(confirmClose, 'click', closeRetroConfirm);
+    _bindEvent(confirmCancel, 'click', closeRetroConfirm);
+    _bindEvent(confirmOk, 'click', confirmRetro);
+
+    // 点击遮罩关闭
+    const retroOverlay = document.getElementById('habits-retroactive-overlay');
+    const confirmOverlay = document.getElementById('habits-retroactive-confirm-overlay');
+
+    _bindEvent(retroOverlay, 'click', (e) => {
+      if (e.target === retroOverlay) closeRetroCalendar();
+    });
+    _bindEvent(confirmOverlay, 'click', (e) => {
+      if (e.target === confirmOverlay) closeRetroConfirm();
+    });
   }
 
 

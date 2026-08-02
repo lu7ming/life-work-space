@@ -12,6 +12,11 @@
       </div>
       <button class="habits-date-btn" id="habits-next-day" title="后一天">›</button>
       <button class="habits-today-btn" id="habits-today-btn">今天</button>
+      <button class="habits-retroactive-btn" id="habits-retroactive-btn" title="补签">
+        <span class="habits-retroactive-icon">📅</span>
+        <span class="habits-retroactive-text">补签</span>
+        <span class="habits-retroactive-count" id="habits-retroactive-count"></span>
+      </button>
     </div>
   </div>
 
@@ -76,5 +81,53 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- 补签日历弹窗 -->
+  <div class="habits-retroactive-overlay" id="habits-retroactive-overlay">
+    <div class="habits-retroactive-dialog">
+      <div class="habits-retroactive-header">
+        <h2 class="habits-retroactive-title">📅 补签日历</h2>
+        <button class="habits-retroactive-close" id="habits-retroactive-close">✕</button>
+      </div>
+      <div class="habits-retroactive-info" id="habits-retroactive-info">
+        本月还剩 <strong>3</strong> 次补签机会
+      </div>
+      <div class="habits-retroactive-calendar">
+        <div class="habits-retroactive-calendar-header">
+          <button class="habits-retroactive-cal-nav" id="retroactive-prev-month">‹</button>
+          <span class="habits-retroactive-cal-title" id="retroactive-cal-title"></span>
+          <button class="habits-retroactive-cal-nav" id="retroactive-next-month">›</button>
+        </div>
+        <div class="habits-retroactive-calendar-weekdays">
+          <span>日</span><span>一</span><span>二</span><span>三</span>
+          <span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="habits-retroactive-calendar-days" id="retroactive-calendar-days">
+        </div>
+      </div>
+      <div class="habits-retroactive-legend">
+        <span class="habits-legend-item"><i class="habits-legend-dot" style="background:var(--accent-green)"></i>已打卡</span>
+        <span class="habits-legend-item"><i class="habits-legend-dot" style="background:var(--text-light)"></i>未打卡</span>
+        <span class="habits-legend-item"><i class="habits-legend-dot habits-legend-dot--today"></i>今天</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 补签确认弹窗 -->
+  <div class="habits-retroactive-confirm-overlay" id="habits-retroactive-confirm-overlay">
+    <div class="habits-retroactive-confirm-dialog">
+      <div class="habits-retroactive-confirm-header">
+        <h2 class="habits-retroactive-confirm-title" id="retroactive-confirm-title">补签 · YYYY-MM-DD</h2>
+        <button class="habits-retroactive-close" id="habits-retroactive-confirm-close">✕</button>
+      </div>
+      <div class="habits-retroactive-confirm-list" id="retroactive-confirm-list">
+        <!-- JS 动态生成习惯勾选列表 -->
+      </div>
+      <div class="habits-retroactive-confirm-footer">
+        <button class="habits-retroactive-cancel-btn" id="retroactive-cancel-btn">取消</button>
+        <button class="habits-retroactive-ok-btn" id="retroactive-ok-btn">确认补签</button>
+      </div>
+    </div>
   </div>
 </div>

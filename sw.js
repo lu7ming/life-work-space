@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v52 - 统一事件总线系统
+ * v53 - AI Function Calling 替代三轮跳转
  */
 
-const CACHE_NAME = 'life-work-space-v52';
+const CACHE_NAME = 'life-work-space-v53';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [

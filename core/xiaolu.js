@@ -2,7 +2,7 @@
  * xiaolu.js - 小鹿AI伙伴
  * 人生工作台 · 基于 DeepSeek API 的 AI 对话功能
  * 小鹿定位：幽默轻松的 AI 伙伴，负责日常聊天、灵感整理、按需分析
- * v4.3 - 第十四批优化：集成 EmotionAnalyzer 情感识别 + 情绪响应策略
+ * v5.0 - Function Calling 重构：合并三轮 API 调用为一次，对话提速降本
  */
 
 const XiaoluModule = (() => {
@@ -98,6 +98,64 @@ const XiaoluModule = (() => {
     chat: '',
     unknown: ''
   };
+
+  // --- Function Calling 工具定义 ---
+  // 将三轮跳转（意图分类→参数提取→回复生成）合并为一次 Function Calling 调用
+  const FC_TOOLS = [
+    {
+      type: 'function',
+      function: {
+        name: 'record_finance',
+        description: '记录收入或支出。当用户提到花钱、消费、支出、赚钱、收入、工资等财务相关操作时调用。',
+        parameters: {
+          type: 'object',
+          properties: {
+            type: { type: 'string', enum: ['income', 'expense'], description: '收入(income)或支出(expense)' },
+            amount: { type: 'number', description: '金额数字' },
+            category: { type: 'string', enum: ['餐饮', '交通', '购物', '娱乐', '其他'], description: '支出分类（仅支出时使用）' },
+            source: { type: 'string', enum: ['工资', '奖金', '兼职', '其他'], description: '收入来源（仅收入时使用）' },
+            note: { type: 'string', description: '可选备注' }
+          },
+          required: ['type', 'amount']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'create_task',
+        description: '创建待办任务。当用户要求创建任务、待办、提醒、要做某事时调用。',
+        parameters: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: '任务标题，简洁明确' },
+            priority: { type: 'string', enum: ['high', 'medium', 'low'], description: '优先级：紧急/重要=high，不急=low，默认medium' },
+            due_date: { type: 'string', description: '截止日期，格式YYYY-MM-DD，无则留空' }
+          },
+          required: ['title']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'habit_log',
+        description: '记录习惯打卡。当用户提到打卡、完成习惯、坚持某事时调用。',
+        parameters: {
+          type: 'object',
+          properties: {
+            habit: { type: 'string', description: '习惯名称' },
+            status: { type: 'string', enum: ['completed', 'missed'], description: '完成状态，默认completed' },
+            note: { type: 'string', description: '可选备注' }
+          },
+          required: ['habit']
+        }
+      }
+    }
+  ];
+
+  // Function Calling 统计（调试用）
+  let _fcStats = { callCount: 0, totalMs: 0, fallbackCount: 0 };
 
   // ===== 状态 =====
   let panelEl = null;
@@ -404,7 +462,7 @@ const XiaoluModule = (() => {
    * @param {string} userMessage - 用户消息
    * @returns {Promise<string>} AI 回复（可能包含 [ACTION:...] 标签）
    */
-  async function decomposedIntentChain(token, userMessage) {
+  async function _fallbackDecomposedChain(token, userMessage) {
     const today = getTodayStr();
 
     // 多轮对话上下文增强
@@ -534,6 +592,238 @@ const XiaoluModule = (() => {
 
     // 最终兜底
     return '嗯...让我想想 🤔 能再说详细一点吗？';
+  }
+
+  // ===== Function Calling 模式（一次调用替代三轮跳转） =====
+
+  /**
+   * 带 tools 的 DeepSeek API 调用
+   * 返回完整的 message 对象（包含 content 和/或 tool_calls）
+   * @param {string} token - API Key
+   * @param {Array} messages - 消息列表
+   * @param {Array} tools - Function Calling 工具定义
+   * @param {Object} options - { temperature, max_tokens, timeout }
+   * @returns {Promise<Object>} { content, tool_calls, usage }
+   */
+  async function callDeepSeekWithTools(token, messages, tools, options = {}) {
+    const { temperature = 0.7, max_tokens = 500, timeout = 20000 } = options;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const body = {
+        model: MODEL_NAME,
+        messages: messages,
+        temperature: temperature,
+        max_tokens: max_tokens,
+        stream: false,
+        tools: tools,
+        tool_choice: 'auto'
+      };
+
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+
+      clearTimeout(timer);
+
+      if (resp.status === 401) throw new Error('AUTH_ERROR');
+      if (resp.status === 429) throw new Error('API 额度已用完或请求太频繁，请稍后再试 😅');
+      if (!resp.ok) throw new Error(`请求失败 (${resp.status})`);
+
+      const data = await resp.json();
+      if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+        const msg = data.choices[0].message;
+        return {
+          content: msg.content || '',
+          tool_calls: msg.tool_calls || null,
+          usage: data.usage || null
+        };
+      }
+      throw new Error('未获取到有效回复');
+    } catch (err) {
+      clearTimeout(timer);
+      if (err.name === 'AbortError') {
+        throw new Error('请求超时，请稍后再试');
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Function Calling 模式：一次调用完成意图识别 + 参数提取 + 回复生成
+   *
+   * 流程：
+   * 1. 构建带 tools 的系统 prompt + 用户消息，一次 API 调用
+   * 2. 如果 AI 返回 tool_calls → 执行本地操作，用 AI 的 content（如有）或模板回复
+   * 3. 如果 AI 返回 content（无 tool_calls）→ 直接返回文本回复
+   * 4. 失败时回退到原有的三轮跳转 _fallbackDecomposedChain
+   *
+   * @param {string} token - API Key
+   * @param {string} userMessage - 用户消息
+   * @returns {Promise<string>} AI 回复（可能包含 [ACTION:...] 标签）
+   */
+  async function functionCallingChain(token, userMessage) {
+    const startTime = Date.now();
+
+    try {
+      // === 构建系统 Prompt（集成所有现有能力） ===
+      let systemPrompt = `你是「小鹿」，人生工作台的 AI 伙伴，服务主人「鹿7铭」。
+性格幽默轻松，像朋友一样聊天，偶尔皮一下但很靠谱。
+回复要简洁，不超过3句话，除非用户要求详细回答。
+适当使用 emoji 让对话更生动 🦌
+
+你可以帮用户执行本地操作，支持以下工具：
+1. record_finance：记录收支（如"花了35吃午饭"、"工资到账5000"）
+2. create_task：创建任务（如"提醒我明天开会"、"创建任务：写周报"）
+3. habit_log：记录习惯打卡（如"跑步打卡"、"今天早起完成"）
+
+当用户的消息明确涉及以上操作时，调用对应的工具函数。
+当用户只是闲聊、提问或聊天时，直接回复，不调用工具。`;
+
+      // 集成 PreferenceLearner：追加个性化偏好后缀
+      if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.getPersonalizedPromptSuffix) {
+        try { systemPrompt += PreferenceLearner.getPersonalizedPromptSuffix(); } catch (e) { /* 静默 */ }
+      }
+
+      // 集成 EmotionAnalyzer：根据情感分析结果调整回复风格
+      let emotionStrategy = '';
+      if (typeof EmotionAnalyzer !== 'undefined') {
+        try {
+          const emotionResult = EmotionAnalyzer.analyze(userMessage);
+          emotionStrategy = EmotionAnalyzer.getResponseStrategy(emotionResult);
+          // 记录情绪到 IndexedDB（异步，不阻塞主流程）
+          if (typeof EmotionAnalyzer.record === 'function') {
+            EmotionAnalyzer.record(emotionResult).catch(() => {});
+          }
+          if (emotionStrategy === 'celebrate') systemPrompt += '\n用户情绪很好，回复活泼欢快，一起开心！';
+          else if (emotionStrategy === 'encourage') systemPrompt += '\n用户情绪不错，鼓励继续保持！';
+          else if (emotionStrategy === 'comfort') systemPrompt += '\n用户情绪有些低落，语气温暖关心。';
+          else if (emotionStrategy === 'support') systemPrompt += '\n用户情绪很低落，回复格外温柔体贴，给予支持。';
+        } catch (e) { /* 静默降级 */ }
+      }
+
+      // 共享知识上下文
+      const sharedContext = typeof SharedKnowledge !== 'undefined' ? SharedKnowledge.getContextForPrompt('xiaolu') : '';
+      if (sharedContext) systemPrompt += '\n\n共享上下文：' + sharedContext;
+
+      // === 构建消息列表 ===
+      const messages = [{ role: 'system', content: systemPrompt }];
+
+      // 多轮对话上下文
+      const historySlice = _chatHistory.slice(-MAX_CONTEXT);
+      messages.push(...historySlice);
+
+      // 多轮上下文增强
+      const augmentedMessage = ContextTracker.getAugmentedMessage(userMessage);
+      messages.push({ role: 'user', content: augmentedMessage });
+
+      // === 一次 API 调用（Function Calling） ===
+      console.log('[Xiaolu/FC] 第1次调用：Function Calling 决策');
+      const fcStart = Date.now();
+      const result = await callDeepSeekWithTools(token, messages, FC_TOOLS, {
+        temperature: 0.7,
+        max_tokens: 400
+      });
+      const fcMs = Date.now() - fcStart;
+      console.log(`[Xiaolu/FC] 第1次调用完成，耗时 ${fcMs}ms，usage:`, result.usage);
+
+      // === 处理返回结果 ===
+      const hasToolCalls = result.tool_calls && result.tool_calls.length > 0;
+      const hasContent = result.content && result.content.trim().length > 0;
+
+      if (hasToolCalls) {
+        // --- 有 tool_call：AI 决定执行操作 ---
+        const toolCall = result.tool_calls[0]; // 取第一个 tool_call
+        const toolName = toolCall.function.name;
+        let toolParams;
+
+        try {
+          toolParams = JSON.parse(toolCall.function.arguments);
+        } catch (e) {
+          console.warn('[Xiaolu/FC] tool_call 参数解析失败，回退到三轮跳转:', toolCall.function.arguments);
+          return await _fallbackDecomposedChain(token, userMessage);
+        }
+
+        console.log(`[Xiaolu/FC] 工具决策: ${toolName}，参数:`, toolParams);
+
+        // 构建 ACTION 标签（兼容现有 handleSend 的 action 提取逻辑）
+        const actionTag = `[ACTION:{"tool":"${toolName}","params":${JSON.stringify(toolParams)}}]`;
+
+        if (hasContent) {
+          // AI 同时返回了文字回复 + tool_call → 最佳情况，1次调用完成
+          const elapsed = Date.now() - startTime;
+          _fcStats.callCount++;
+          _fcStats.totalMs += elapsed;
+          console.log(`[Xiaolu/FC] ✅ 1次调用完成（含文字+工具），总耗时 ${elapsed}ms`);
+          return actionTag + '\n' + result.content.trim();
+        }
+
+        // AI 只返回了 tool_call，没有文字回复 → 用模板生成回复（仍然只需1次调用）
+        const templateReply = _generateFcTemplateReply(toolName, toolParams);
+        const elapsed = Date.now() - startTime;
+        _fcStats.callCount++;
+        _fcStats.totalMs += elapsed;
+        console.log(`[Xiaolu/FC] ✅ 1次调用完成（工具+模板回复），总耗时 ${elapsed}ms`);
+        return actionTag + '\n' + templateReply;
+      }
+
+      if (hasContent) {
+        // --- 无 tool_call：纯聊天回复，1次调用完成 ---
+        const elapsed = Date.now() - startTime;
+        _fcStats.callCount++;
+        _fcStats.totalMs += elapsed;
+        console.log(`[Xiaolu/FC] ✅ 1次调用完成（纯聊天），总耗时 ${elapsed}ms`);
+        return result.content.trim();
+      }
+
+      // 既无 tool_call 也无 content → 异常，回退
+      console.warn('[Xiaolu/FC] API 返回既无 tool_call 也无 content，回退到三轮跳转');
+      return await _fallbackDecomposedChain(token, userMessage);
+
+    } catch (err) {
+      // Function Calling 失败 → 回退到原有三轮跳转
+      const elapsed = Date.now() - startTime;
+      _fcStats.fallbackCount++;
+      console.warn(`[Xiaolu/FC] Function Calling 失败（${elapsed}ms），回退到三轮跳转:`, err.message);
+      return await _fallbackDecomposedChain(token, userMessage);
+    }
+  }
+
+  /**
+   * 为 Function Calling 的 tool_call 生成模板化回复
+   * （当 AI 只返回 tool_call 没有文字时的兜底）
+   */
+  function _generateFcTemplateReply(toolName, params) {
+    switch (toolName) {
+      case 'record_finance': {
+        const typeLabel = (params.type === 'income') ? '收入' : '支出';
+        const amount = params.amount || 0;
+        const detail = params.type === 'income'
+          ? `来源：${params.source || '其他'}`
+          : `分类：${params.category || '其他'}`;
+        return `好的，已记录${typeLabel} ¥${amount}（${detail}）📝 🦌`;
+      }
+      case 'create_task': {
+        const title = params.title || '未命名任务';
+        const priorityMap = { high: '🔴高', medium: '🟡中', low: '🟢低' };
+        const pLabel = priorityMap[params.priority] || '🟡中';
+        return `好的，任务「${title}」已创建，${pLabel}优先级，加油！ 🚀`;
+      }
+      case 'habit_log': {
+        const habit = params.habit || '未知习惯';
+        return `打卡记录：${habit}，坚持就是胜利！ 💪🦌`;
+      }
+      default:
+        return '收到，帮你处理了~ 🦌';
+    }
   }
 
 
@@ -1713,8 +2003,11 @@ const XiaoluModule = (() => {
     showLoading();
 
     try {
-      // 使用链式意图识别（3 次 API 调用），发送脱敏后的文本
-      const reply = await decomposedIntentChain(token, sanitizedText);
+      // 使用 Function Calling（1 次 API 调用），失败回退到三轮跳转
+      const aiStartTime = Date.now();
+      const reply = await functionCallingChain(token, sanitizedText);
+      const aiElapsed = Date.now() - aiStartTime;
+      console.log(`[Xiaolu] AI 调用总耗时: ${aiElapsed}ms，FC统计: 调用${_fcStats.callCount}次/回退${_fcStats.fallbackCount}次/平均${_fcStats.callCount > 0 ? Math.round(_fcStats.totalMs / _fcStats.callCount) : 0}ms`);
 
       // 集成 PreferenceLearner：从交互中学习偏好
       if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.learnFromInteraction) {
@@ -1876,8 +2169,8 @@ const XiaoluModule = (() => {
 
   // ===== 初始化 =====
   function init() {
-    console.log('[Xiaolu] 小鹿AI初始化...');
-    console.log('[Xiaolu] 小鹿AI就绪 🦌');
+    console.log('[Xiaolu] 小鹿AI初始化（v5.0 Function Calling 模式）...');
+    console.log('[Xiaolu] 小鹿AI就绪 🦌 FC模式: 1次调用替代3次跳转');
   }
 
 

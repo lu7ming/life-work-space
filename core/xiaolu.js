@@ -4,8 +4,21 @@
  * 小鹿定位：幽默轻松的 AI 伙伴，负责日常聊天、灵感整理、按需分析
  * v5.0 - Function Calling 重构：合并三轮 API 调用为一次，对话提速降本
  */
+import { SecureStorage } from './secure-storage.js';
+import { Storage } from './storage.js';
+import { ModelRouter } from './model-router.js';
+import { PreferenceLearner } from './preference-learner.js';
+import { EmotionAnalyzer } from './emotion-analyzer.js';
+import { SharedKnowledge } from './shared-knowledge.js';
+import { KnowledgeExtractor } from './knowledge-extractor.js';
+import { DataMinimizer } from './data-minimizer.js';
+import { EventBus } from './event-bus.js';
+import { CrossLinker } from './cross-linker.js';
+import { AppUtils } from './utils.js';
+import { AuditLog } from './audit-log.js';
 
-const XiaoluModule = (() => {
+
+export const XiaoluModule = (() => {
   // ===== 常量 =====
   const API_URL = 'https://api.deepseek.com/v1/chat/completions';
   const MODEL_NAME = 'deepseek-chat';
@@ -204,13 +217,13 @@ const XiaoluModule = (() => {
   async function getDeepseekToken() {
     try {
       // 优先使用加密存储（getAPIKey 支持新键名 + 旧键名自动迁移）
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.getAPIKey) {
-        const token = await SecureStorage.getAPIKey('deepseek_api_key');
+      if (window.SecureStorage?.getAPIKey) {
+        const token = await window.SecureStorage?.getAPIKey('deepseek_api_key');
         return token;
       }
       // 兼容旧版 SecureStorage
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
-        const token = await SecureStorage.loadSecure('deepseek_token');
+      if (window.SecureStorage?.loadSecure) {
+        const token = await window.SecureStorage?.loadSecure('deepseek_token');
         return token;
       }
       // 回退到明文读取
@@ -225,13 +238,13 @@ const XiaoluModule = (() => {
   async function saveDeepseekToken(token) {
     try {
       // 优先使用加密存储（saveAPIKey 支持新键名 + 自动清理旧键名）
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.saveAPIKey) {
-        await SecureStorage.saveAPIKey('deepseek_api_key', token);
+      if (window.SecureStorage?.saveAPIKey) {
+        await window.SecureStorage?.saveAPIKey('deepseek_api_key', token);
         return;
       }
       // 兼容旧版 SecureStorage
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.saveSecure) {
-        await SecureStorage.saveSecure('deepseek_token', token);
+      if (window.SecureStorage?.saveSecure) {
+        await window.SecureStorage?.saveSecure('deepseek_token', token);
         return;
       }
       // 回退到明文存储
@@ -314,9 +327,9 @@ const XiaoluModule = (() => {
     const { temperature = 0.7, max_tokens = 500, timeout = 15000, taskType } = options;
 
     // 优先使用 ModelRouter 路由调用
-    if (typeof ModelRouter !== 'undefined' && ModelRouter.isEnabled() && taskType) {
+    if (window.ModelRouter?.isEnabled() && taskType) {
       try {
-        const result = await ModelRouter.callModel(taskType, token, messages, { temperature, max_tokens, timeout });
+        const result = await window.ModelRouter?.callModel(taskType, token, messages, { temperature, max_tokens, timeout });
         return result.content;
       } catch (err) {
         console.warn('[Xiaolu] ModelRouter 调用失败，降级到直接调用:', err.message);
@@ -372,18 +385,18 @@ const XiaoluModule = (() => {
   async function callDeepSeekAPI(token, userMessage) {
     // 集成 PreferenceLearner：在 system prompt 末尾追加个性化后缀
     let personalizedPrompt = SYSTEM_PROMPT;
-    if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.getPersonalizedPromptSuffix) {
+    if (window.PreferenceLearner?.getPersonalizedPromptSuffix) {
       try {
-        personalizedPrompt += PreferenceLearner.getPersonalizedPromptSuffix();
+        personalizedPrompt += window.PreferenceLearner?.getPersonalizedPromptSuffix();
       } catch (e) { /* 静默降级 */ }
     }
     // 集成 EmotionAnalyzer：根据情感分析结果调整回复风格
-    if (typeof EmotionAnalyzer !== 'undefined') {
+    if (true) /* EmotionAnalyzer always available via import */ {
       try {
-        const result = EmotionAnalyzer.analyze(userMessage);
-        const strategy = EmotionAnalyzer.getResponseStrategy(result);
+        const result = window.EmotionAnalyzer?.analyze(userMessage);
+        const strategy = window.EmotionAnalyzer?.getResponseStrategy(result);
         // 记录情绪（异步，不阻塞）
-        if (EmotionAnalyzer.record) EmotionAnalyzer.record(result).catch(() => {});
+        if (window.EmotionAnalyzer?.record) window.EmotionAnalyzer?.record(result).catch(() => {});
         if (strategy === 'celebrate') personalizedPrompt += '\n用户情绪很好，回复活泼欢快，一起开心！';
         else if (strategy === 'encourage') personalizedPrompt += '\n用户情绪不错，鼓励继续保持！';
         else if (strategy === 'comfort') personalizedPrompt += '\n用户情绪有些低落，语气温暖关心。';
@@ -469,15 +482,15 @@ const XiaoluModule = (() => {
     const augmentedMessage = ContextTracker.getAugmentedMessage(userMessage);
 
     // 情感分析
-    const emotionResult = EmotionAnalyzer.analyze(userMessage);
-    const emotionStrategy = EmotionAnalyzer.getResponseStrategy(emotionResult);
+    const emotionResult = window.EmotionAnalyzer?.analyze(userMessage);
+    const emotionStrategy = window.EmotionAnalyzer?.getResponseStrategy(emotionResult);
     // 记录情绪到 IndexedDB（异步，不阻塞主流程）
-    if (typeof EmotionAnalyzer.record === 'function') {
-      EmotionAnalyzer.record(emotionResult).catch(() => {});
+    if (typeof window.EmotionAnalyzer?.record === 'function') {
+      window.EmotionAnalyzer?.record(emotionResult).catch(() => {});
     }
 
     // 共享知识上下文
-    const sharedContext = typeof SharedKnowledge !== 'undefined' ? SharedKnowledge.getContextForPrompt('xiaolu') : '';
+    const sharedContext = true ? window.SharedKnowledge?.getContextForPrompt('xiaolu') : '';
 
     // --- 第一跳：意图分类 ---
     let intent = 'chat'; // 默认
@@ -542,7 +555,7 @@ const XiaoluModule = (() => {
         + (emotionStrategy === 'comfort' ? '\n用户情绪有些低落，语气要温暖关心。"怎么啦？聊聊？"' : '')
         + (emotionStrategy === 'support' ? '\n用户情绪很低落，回复要格外温柔体贴。"我在这，有什么能帮你的吗？"语气柔和，给予支持。' : '')
         // 集成 PreferenceLearner：追加个性化偏好后缀
-        + (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.getPersonalizedPromptSuffix ? PreferenceLearner.getPersonalizedPromptSuffix() : '');
+        + (window.PreferenceLearner?.getPersonalizedPromptSuffix ? window.PreferenceLearner?.getPersonalizedPromptSuffix() : '');
 
       const step3Messages = [
         { role: 'system', content: '你是小鹿，幽默轻松的AI伙伴。' },
@@ -689,19 +702,19 @@ const XiaoluModule = (() => {
 当用户只是闲聊、提问或聊天时，直接回复，不调用工具。`;
 
       // 集成 PreferenceLearner：追加个性化偏好后缀
-      if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.getPersonalizedPromptSuffix) {
-        try { systemPrompt += PreferenceLearner.getPersonalizedPromptSuffix(); } catch (e) { /* 静默 */ }
+      if (window.PreferenceLearner?.getPersonalizedPromptSuffix) {
+        try { systemPrompt += window.PreferenceLearner?.getPersonalizedPromptSuffix(); } catch (e) { /* 静默 */ }
       }
 
       // 集成 EmotionAnalyzer：根据情感分析结果调整回复风格
       let emotionStrategy = '';
-      if (typeof EmotionAnalyzer !== 'undefined') {
+      if (true) /* EmotionAnalyzer always available via import */ {
         try {
-          const emotionResult = EmotionAnalyzer.analyze(userMessage);
-          emotionStrategy = EmotionAnalyzer.getResponseStrategy(emotionResult);
+          const emotionResult = window.EmotionAnalyzer?.analyze(userMessage);
+          emotionStrategy = window.EmotionAnalyzer?.getResponseStrategy(emotionResult);
           // 记录情绪到 IndexedDB（异步，不阻塞主流程）
-          if (typeof EmotionAnalyzer.record === 'function') {
-            EmotionAnalyzer.record(emotionResult).catch(() => {});
+          if (typeof window.EmotionAnalyzer?.record === 'function') {
+            window.EmotionAnalyzer?.record(emotionResult).catch(() => {});
           }
           if (emotionStrategy === 'celebrate') systemPrompt += '\n用户情绪很好，回复活泼欢快，一起开心！';
           else if (emotionStrategy === 'encourage') systemPrompt += '\n用户情绪不错，鼓励继续保持！';
@@ -711,7 +724,7 @@ const XiaoluModule = (() => {
       }
 
       // 共享知识上下文
-      const sharedContext = typeof SharedKnowledge !== 'undefined' ? SharedKnowledge.getContextForPrompt('xiaolu') : '';
+      const sharedContext = true ? window.SharedKnowledge?.getContextForPrompt('xiaolu') : '';
       if (sharedContext) systemPrompt += '\n\n共享上下文：' + sharedContext;
 
       // === 构建消息列表 ===
@@ -878,11 +891,11 @@ const XiaoluModule = (() => {
     // 切换到妮可（手动覆盖路由）
     _bindEvent(panelEl.querySelector('#xiaolu-switch-nicole'), 'click', () => {
       close();
-      if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.setManualOverride) {
-        AIOrchestrator.setManualOverride('nicole');
+      if (window.AIOrchestrator?.setManualOverride) {
+        window.AIOrchestrator?.setManualOverride('nicole');
       }
-      if (typeof NicoleModule !== 'undefined' && NicoleModule.open) {
-        NicoleModule.open();
+      if (window.NicoleModule?.open) {
+        window.NicoleModule?.open();
       }
     });
 
@@ -891,7 +904,7 @@ const XiaoluModule = (() => {
       ContextTracker.clear(); // 清除多轮对话上下文
       messagesEl.innerHTML = '';
       showWelcome();
-      if (typeof App !== 'undefined') App.showToast('已开始新对话 🦌');
+      if (window.App) window.App?.showToast('已开始新对话 🦌');
     });
 
     _bindEvent(sendBtn, 'click', handleSend);
@@ -1505,8 +1518,8 @@ const XiaoluModule = (() => {
     `;
     _bindEvent(yesBtn, 'click', () => {
       // 跳转到日记页面
-      if (typeof Router !== 'undefined' && Router.navigate) {
-        Router.navigate('journal');
+      if (window.Router?.navigate) {
+        window.Router?.navigate('journal');
       }
       yesBtn.disabled = true;
       noBtn.disabled = true;
@@ -1696,8 +1709,8 @@ const XiaoluModule = (() => {
     addUserMessage(text);
 
     // ===== 离线降级：检查 LocalAI 是否需要接管 =====
-    if (typeof LocalAI !== 'undefined' && LocalAI.handleOffline) {
-      const offlineResult = LocalAI.handleOffline(text);
+    if (window.LocalAI?.handleOffline) {
+      const offlineResult = window.LocalAI?.handleOffline(text);
       if (offlineResult) {
         console.log('[Xiaolu] 离线降级命中:', offlineResult.intent);
         const reply = offlineResult.reply;
@@ -1718,17 +1731,17 @@ const XiaoluModule = (() => {
             finalReply += '\n\n' + result.message;
             ContextTracker.update(offlineResult.intent, actionObj.params, actionObj.tool);
             // 写入共享知识
-            if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.set) {
+            if (window.SharedKnowledge?.set) {
               const today = getTodayStr();
               switch (actionObj.tool) {
                 case 'record_finance':
-                  SharedKnowledge.set('last_expense', { type: actionObj.params.type, amount: actionObj.params.amount, category: actionObj.params.category, date: today }, 'xiaolu');
+                  window.SharedKnowledge?.set('last_expense', { type: actionObj.params.type, amount: actionObj.params.amount, category: actionObj.params.category, date: today }, 'xiaolu');
                   break;
                 case 'create_task':
-                  SharedKnowledge.set('last_task', { title: actionObj.params.title, priority: actionObj.params.priority, date: today }, 'xiaolu');
+                  window.SharedKnowledge?.set('last_task', { title: actionObj.params.title, priority: actionObj.params.priority, date: today }, 'xiaolu');
                   break;
                 case 'habit_log':
-                  SharedKnowledge.set('last_habit_checkin', { habit: actionObj.params.habit, date: today }, 'xiaolu');
+                  window.SharedKnowledge?.set('last_habit_checkin', { habit: actionObj.params.habit, date: today }, 'xiaolu');
                   break;
               }
             }
@@ -1742,7 +1755,7 @@ const XiaoluModule = (() => {
         }
 
         // 离线提示（非强制本地模式下显示）
-        if (!LocalAI.isLocalMode() || LocalAI.isOffline()) {
+        if (!window.LocalAI?.isLocalMode() || window.LocalAI?.isOffline()) {
           // 不额外提示，回复模板已包含离线信息
         }
 
@@ -1751,11 +1764,11 @@ const XiaoluModule = (() => {
     }
 
     // ===== AI 智能路由：判断消息应由小鹿还是妮可处理 =====
-    if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.route) {
-      const routeResult = AIOrchestrator.route(text);
+    if (window.AIOrchestrator?.route) {
+      const routeResult = window.AIOrchestrator?.route(text);
       // 更新路由指示器
-      if (AIOrchestrator.updateIndicator) {
-        AIOrchestrator.updateIndicator(routeResult.target, routeResult.confidence);
+      if (window.AIOrchestrator?.updateIndicator) {
+        window.AIOrchestrator?.updateIndicator(routeResult.target, routeResult.confidence);
       }
       // 高置信度路由到妮可 → 切换到妮可面板处理
       if (routeResult.target === 'nicole' && routeResult.confidence >= 0.6) {
@@ -1765,8 +1778,8 @@ const XiaoluModule = (() => {
         if (lastMsg) lastMsg.remove();
         // 关闭小鹿面板，打开妮可面板
         close();
-        if (typeof NicoleModule !== 'undefined' && NicoleModule.open) {
-          NicoleModule.open();
+        if (window.NicoleModule?.open) {
+          window.NicoleModule?.open();
           // 延迟后将消息填入妮可输入框并自动发送
           setTimeout(() => {
             const nicoleInput = document.getElementById('nicole-input');
@@ -1883,9 +1896,9 @@ const XiaoluModule = (() => {
 
     // ===== 快速路径：QuickInput 关键词匹配（零 API 成本，互斥优先） =====
     // 如果 QuickInput 关键词规则能明确识别意图，直接执行，不调用 AI
-    if (typeof QuickInput !== 'undefined' && QuickInput.parseKeywordsOnly) {
+    if (window.QuickInput?.parseKeywordsOnly) {
       try {
-        const qiParsed = QuickInput.parseKeywordsOnly(text);
+        const qiParsed = window.QuickInput?.parseKeywordsOnly(text);
         if (qiParsed && qiParsed.intent && qiParsed.intent !== 'unknown' && qiParsed.intent !== 'journal_entry') {
           // QuickInput 成功识别，直接构建 actionObj 并执行
           const toolMap = {
@@ -1962,8 +1975,8 @@ const XiaoluModule = (() => {
       // 如果需要导航，执行路由跳转
       if (localIntent.route) {
         setTimeout(() => {
-          if (typeof Router !== 'undefined' && Router.navigate) {
-            Router.navigate(localIntent.route);
+          if (window.Router?.navigate) {
+            window.Router?.navigate(localIntent.route);
           }
         }, 500);
       }
@@ -1984,16 +1997,16 @@ const XiaoluModule = (() => {
     // ===== 数据最小化：API 调用前脱敏 PII =====
     let _minimizeMapping = {};
     let sanitizedText = text;
-    if (typeof DataMinimizer !== 'undefined' && DataMinimizer.isEnabled()) {
+    if (window.DataMinimizer?.isEnabled()) {
       try {
-        const minimizeResult = await DataMinimizer.minimize(text, { source: 'xiaolu' });
+        const minimizeResult = await window.DataMinimizer?.minimize(text, { source: 'xiaolu' });
         sanitizedText = minimizeResult.sanitizedText;
         _minimizeMapping = minimizeResult.mapping;
       } catch (e) {
         console.warn('[Xiaolu] DataMinimizer 脱敏失败，使用原文:', e);
       }
       // 首次使用提示
-      DataMinimizer.showFirstTimeTip();
+      window.DataMinimizer?.showFirstTimeTip();
     }
 
     // 显示加载 + 禁用输入
@@ -2010,15 +2023,15 @@ const XiaoluModule = (() => {
       console.log(`[Xiaolu] AI 调用总耗时: ${aiElapsed}ms，FC统计: 调用${_fcStats.callCount}次/回退${_fcStats.fallbackCount}次/平均${_fcStats.callCount > 0 ? Math.round(_fcStats.totalMs / _fcStats.callCount) : 0}ms`);
 
       // 集成 PreferenceLearner：从交互中学习偏好
-      if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.learnFromInteraction) {
-        try { PreferenceLearner.learnFromInteraction(text, reply); } catch (e) { /* 静默 */ }
+      if (window.PreferenceLearner?.learnFromInteraction) {
+        try { window.PreferenceLearner?.learnFromInteraction(text, reply); } catch (e) { /* 静默 */ }
       }
 
       // ===== 数据最小化：还原 AI 回复中的占位符 =====
       let restoredReply = reply;
-      if (typeof DataMinimizer !== 'undefined' && Object.keys(_minimizeMapping).length > 0) {
+      if (true && Object.keys(_minimizeMapping).length > 0) {
         try {
-          restoredReply = DataMinimizer.restore(reply, _minimizeMapping);
+          restoredReply = window.DataMinimizer?.restore(reply, _minimizeMapping);
         } catch (e) {
           console.warn('[Xiaolu] DataMinimizer 还原失败:', e);
         }
@@ -2038,25 +2051,25 @@ const XiaoluModule = (() => {
           // 更新上下文追踪器
           ContextTracker.update(actionObj.tool, actionObj.params, actionObj.tool);
           // 通知 AIOrchestrator（更新妮可洞察缓存 + 写入共享知识）
-          if (typeof AIOrchestrator !== 'undefined') AIOrchestrator.notifyAction(actionObj.tool, result);
+          if (window.AIOrchestrator) window.AIOrchestrator?.notifyAction(actionObj.tool, result);
           // 写入共享知识（供妮可分析时引用）
-          if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.set) {
+          if (window.SharedKnowledge?.set) {
             const today = getTodayStr();
             switch (actionObj.tool) {
               case 'record_finance':
-                SharedKnowledge.set('last_expense', { type: actionObj.params.type, amount: actionObj.params.amount, category: actionObj.params.category, date: today }, 'xiaolu');
+                window.SharedKnowledge?.set('last_expense', { type: actionObj.params.type, amount: actionObj.params.amount, category: actionObj.params.category, date: today }, 'xiaolu');
                 // 更新消费画像：累计今日支出
                 try {
                   const finances = await Storage.getAll('finance') || [];
                   const todayExpense = finances.filter(f => f.type === 'expense' && f.date === today).reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
-                  SharedKnowledge.set('today_expense_total', { amount: todayExpense, date: today }, 'xiaolu');
+                  window.SharedKnowledge?.set('today_expense_total', { amount: todayExpense, date: today }, 'xiaolu');
                 } catch (e) { /* 静默 */ }
                 break;
               case 'create_task':
-                SharedKnowledge.set('last_task', { title: actionObj.params.title, priority: actionObj.params.priority, date: today }, 'xiaolu');
+                window.SharedKnowledge?.set('last_task', { title: actionObj.params.title, priority: actionObj.params.priority, date: today }, 'xiaolu');
                 break;
               case 'habit_log':
-                SharedKnowledge.set('last_habit_checkin', { habit: actionObj.params.habit, date: today }, 'xiaolu');
+                window.SharedKnowledge?.set('last_habit_checkin', { habit: actionObj.params.habit, date: today }, 'xiaolu');
                 break;
             }
           }
@@ -2066,7 +2079,7 @@ const XiaoluModule = (() => {
             create_task: 'ai_task_create',
             habit_log: 'ai_habit_checkin'
           };
-          if (typeof AuditLog !== 'undefined') AuditLog.log({
+          if (true) /* AuditLog always available via import */ window.AuditLog?.log({
             type: _auditActionMap[actionObj.tool] || ('ai_' + actionObj.tool),
             source: 'xiaolu',
             params: actionObj.params,
@@ -2075,12 +2088,12 @@ const XiaoluModule = (() => {
             duration: actionObj.duration || 0
           });
           // 集成 PreferenceLearner：记录用户确认操作
-          if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.learnFromInteraction) {
+          if (window.PreferenceLearner?.learnFromInteraction) {
             try {
-              PreferenceLearner.learnFromInteraction(null, null, { action: 'confirm' });
+              window.PreferenceLearner?.learnFromInteraction(null, null, { action: 'confirm' });
               // 记录分类偏好
               if (actionObj.params && actionObj.params.category) {
-                PreferenceLearner.learnFromInteraction(null, null, { action: 'category', value: actionObj.params.category });
+                window.PreferenceLearner?.learnFromInteraction(null, null, { action: 'category', value: actionObj.params.category });
               }
             } catch (e) { /* 静默 */ }
           }
@@ -2091,7 +2104,7 @@ const XiaoluModule = (() => {
             create_task: 'ai_task_create',
             habit_log: 'ai_habit_checkin'
           };
-          if (typeof AuditLog !== 'undefined') AuditLog.log({
+          if (true) /* AuditLog always available via import */ window.AuditLog?.log({
             type: _auditActionMap2[actionObj.tool] || ('ai_' + actionObj.tool),
             source: 'xiaolu',
             params: actionObj.params,
@@ -2117,12 +2130,12 @@ const XiaoluModule = (() => {
 
       // ===== 知识自动沉淀：异步分析对话内容 =====
       // 在 AI 回复显示后，后台静默分析是否有值得沉淀的知识
-      if (typeof KnowledgeExtractor !== 'undefined' && KnowledgeExtractor.analyzeConversation) {
+      if (window.KnowledgeExtractor?.analyzeConversation) {
         // 使用原始用户消息（还原后的）和 AI 回复进行知识提取
         const _keUserMsg = text; // 原始用户输入（未经脱敏）
         const _keAiReply = finalReply; // 最终展示的 AI 回复
         // 异步执行，不阻塞用户交互
-        KnowledgeExtractor.analyzeConversation(_keUserMsg, _keAiReply).catch(() => {
+        window.KnowledgeExtractor?.analyzeConversation(_keUserMsg, _keAiReply).catch(() => {
           // 静默忽略所有错误
         });
       }
@@ -2137,7 +2150,7 @@ const XiaoluModule = (() => {
           const newToken = await showTokenDialog();
           if (newToken) {
             await saveDeepseekToken(newToken);
-            if (typeof App !== 'undefined') App.showToast('API Key 已更新 🦌');
+            if (window.App) window.App?.showToast('API Key 已更新 🦌');
           }
         }, 800);
       } else {
@@ -2156,8 +2169,8 @@ const XiaoluModule = (() => {
   function open() {
     if (_isOpen) return;
 
-    if (typeof NicoleModule !== 'undefined' && NicoleModule.close) {
-      NicoleModule.close();
+    if (window.NicoleModule?.close) {
+      window.NicoleModule?.close();
     }
 
     if (!panelEl) {
@@ -2259,7 +2272,7 @@ const XiaoluModule = (() => {
   async function _performUndo(undoId) {
     const undoInfo = _undoStack.find(u => u.undoId === undoId);
     if (!undoInfo) {
-      if (typeof App !== 'undefined') App.showToast('⚠️ 撤销已过期或不存在');
+      if (window.App) window.App?.showToast('⚠️ 撤销已过期或不存在');
       return;
     }
 
@@ -2300,13 +2313,13 @@ const XiaoluModule = (() => {
         chatBtn.outerHTML = '<span style="font-size:12px;color:var(--text-muted,#8a7a6d);">↩️ 已撤销</span>';
       }
 
-      if (typeof App !== 'undefined') App.showToast('↩️ 已撤销', 2000);
+      if (window.App) window.App?.showToast('↩️ 已撤销', 2000);
 
       // 刷新相关模块
       _refreshAfterAction(undoInfo.intent);
     } catch (err) {
       console.error('[Xiaolu] 撤销失败:', err);
-      if (typeof App !== 'undefined') App.showToast('❌ 撤销失败');
+      if (window.App) window.App?.showToast('❌ 撤销失败');
     }
   }
 

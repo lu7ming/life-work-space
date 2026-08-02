@@ -11,8 +11,11 @@
  * - 预置回复模板，风格与小鹿一致（轻松、简短、带emoji）
  * - 返回格式与现有 API 调用结果兼容
  */
+import { EmotionAnalyzer } from './emotion-analyzer.js';
+import { EventBus } from './event-bus.js';
 
-const LocalAI = (() => {
+
+export const LocalAI = (() => {
   // ===== 网络状态 =====
   let _isOffline = typeof navigator !== 'undefined' ? !navigator.onLine : false;
   let _forceLocal = false; // 强制本地模式开关
@@ -280,11 +283,11 @@ const LocalAI = (() => {
    */
   function analyzeSentiment(text) {
     // 优先使用 EmotionAnalyzer
-    if (typeof EmotionAnalyzer !== 'undefined' && EmotionAnalyzer.analyze) {
+    if (window.EmotionAnalyzer?.analyze) {
       try {
-        const result = EmotionAnalyzer.analyze(text);
-        const strategy = EmotionAnalyzer.getResponseStrategy
-          ? EmotionAnalyzer.getResponseStrategy(result)
+        const result = window.EmotionAnalyzer?.analyze(text);
+        const strategy = window.EmotionAnalyzer?.getResponseStrategy
+          ? window.EmotionAnalyzer?.getResponseStrategy(result)
           : _fallbackStrategy(result.score);
         return {
           score: result.score,
@@ -519,8 +522,8 @@ const LocalAI = (() => {
     const fullReply = actionTag ? actionTag + '\n' + reply : reply;
 
     // 记录情绪（异步，不阻塞）
-    if (typeof EmotionAnalyzer !== 'undefined' && EmotionAnalyzer.record) {
-      EmotionAnalyzer.record({ score: sentimentResult.score, label: sentimentResult.label, keywords: sentimentResult.keywords }).catch(() => {});
+    if (window.EmotionAnalyzer?.record) {
+      window.EmotionAnalyzer?.record({ score: sentimentResult.score, label: sentimentResult.label, keywords: sentimentResult.keywords }).catch(() => {});
     }
 
     return {

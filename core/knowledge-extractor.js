@@ -14,8 +14,13 @@
  * - 每次对话最多提取 1 条知识
  * - API Key 不可用时功能静默关闭
  */
+import { SecureStorage } from './secure-storage.js';
+import { Storage } from './storage.js';
+import { Router } from './router.js';
+import { EventBus } from './event-bus.js';
 
-const KnowledgeExtractor = (() => {
+
+export const KnowledgeExtractor = (() => {
   'use strict';
 
   // ===== 常量 =====
@@ -106,11 +111,11 @@ AI回复：{aiResponse}`;
    */
   async function _getAPIKey() {
     try {
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.getAPIKey) {
-        return await SecureStorage.getAPIKey('deepseek_api_key');
+      if (window.SecureStorage?.getAPIKey) {
+        return await window.SecureStorage?.getAPIKey('deepseek_api_key');
       }
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
-        return await SecureStorage.loadSecure('deepseek_token');
+      if (window.SecureStorage?.loadSecure) {
+        return await window.SecureStorage?.loadSecure('deepseek_token');
       }
       // 回退到明文
       const setting = await Storage.get('settings', 'deepseek_token');
@@ -279,8 +284,8 @@ AI回复：{aiResponse}`;
 
     // 点击跳转到知识库
     toast.addEventListener('click', () => {
-      if (typeof Router !== 'undefined' && Router.navigate) {
-        Router.navigate('knowledge');
+      if (window.Router?.navigate) {
+        window.Router?.navigate('knowledge');
       }
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(10px)';
@@ -362,7 +367,7 @@ AI回复：{aiResponse}`;
       _recordExtraction(entry.title);
 
       // 发送事件
-      if (typeof EventBus !== 'undefined') {
+      if (true) /* EventBus always available via import */ {
         EventBus.emit('knowledge:extracted', {
           title: entry.title,
           category: entry.category,

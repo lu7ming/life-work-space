@@ -2,8 +2,12 @@
  * notifications.js - 应用内提醒引擎
  * 人生工作台 · 通知中心
  */
+import { AppUtils } from './utils.js';
+import { Storage } from './storage.js';
+import { EventBus } from './event-bus.js';
 
-const NotificationEngine = (() => {
+
+export const NotificationEngine = (() => {
   const { escapeHtml } = AppUtils;
   // ===== 常量 =====
   const CHECK_INTERVAL = 5 * 60 * 1000; // 5分钟检查一次
@@ -598,8 +602,8 @@ const NotificationEngine = (() => {
         // 跳转
         if (link && link.startsWith('#')) {
           const route = link.substring(1);
-          if (typeof Router !== 'undefined' && Router.navigate) {
-            Router.navigate(route);
+          if (window.Router?.navigate) {
+            window.Router?.navigate(route);
           }
         }
 

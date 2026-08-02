@@ -2,8 +2,13 @@
  * habits.js - 习惯打卡逻辑
  * 人生工作台 · 12个统一习惯的一键打卡
  */
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
 
-const HabitsModule = (() => {
+
+export const HabitsModule = (() => {
   const { formatDate } = AppUtils;
 
   // ===== 12 个统一习惯（固定列表） =====
@@ -391,7 +396,7 @@ const HabitsModule = (() => {
       currentCheckedHabits = [...habits];
 
       // EventBus: 习惯打卡完成
-      if (typeof EventBus !== 'undefined') {
+      if (true) /* EventBus always available via import */ {
         const habitInfo = HABIT_MAP[habitId];
         EventBus.emit('habit:completed', { habitId, habitName: habitInfo ? habitInfo.name : habitId, date: dateStr });
       }
@@ -415,13 +420,13 @@ const HabitsModule = (() => {
       await renderCalendar();
 
       // 更新侧边栏连续天数
-      if (typeof App !== 'undefined' && App.updateStreak) {
-        App.updateStreak();
+      if (window.App?.updateStreak) {
+        window.App?.updateStreak();
       }
 
     } catch (err) {
       console.error('[Habits] 打卡操作失败:', err);
-      if (typeof App !== 'undefined') App.showToast('打卡操作失败，请重试');
+      if (window.App) window.App?.showToast('打卡操作失败，请重试');
     } finally {
       isToggling = false;
     }
@@ -435,8 +440,8 @@ const HabitsModule = (() => {
       // 此链是否全部完成
       const allDone = chain.habits.every(hId => checkedHabits.includes(hId));
       if (allDone) {
-        if (typeof App !== 'undefined') {
-          App.showToast(`${chain.emoji} ${chain.name}全部完成！顺序打卡太棒了！🎉`);
+        if (window.App) {
+          window.App?.showToast(`${chain.emoji} ${chain.name}全部完成！顺序打卡太棒了！🎉`);
         }
       }
     });
@@ -450,7 +455,7 @@ const HabitsModule = (() => {
     // 筛选未完成的习惯
     const unchecked = group.habits.filter(hId => !currentCheckedHabits.includes(hId));
     if (unchecked.length === 0) {
-      if (typeof App !== 'undefined') App.showToast(`${group.emoji} ${group.name}已全部完成！`);
+      if (window.App) window.App?.showToast(`${group.emoji} ${group.name}已全部完成！`);
       return;
     }
 
@@ -459,8 +464,8 @@ const HabitsModule = (() => {
       await toggleHabit(hId);
     }
 
-    if (typeof App !== 'undefined') {
-      App.showToast(`${group.emoji} ${group.name}打卡成功！${unchecked.length}个习惯已记录`);
+    if (window.App) {
+      window.App?.showToast(`${group.emoji} ${group.name}打卡成功！${unchecked.length}个习惯已记录`);
     }
   }
 

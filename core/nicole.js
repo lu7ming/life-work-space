@@ -4,8 +4,18 @@
  * 妮可定位：严谨的系统管家 → 主动军师
  * 五阶段信息处理流水线：Collect → Annotate → Cluster → Refine → Spawn
  */
+import { SecureStorage } from './secure-storage.js';
+import { Storage } from './storage.js';
+import { DataMinimizer } from './data-minimizer.js';
+import { ModelRouter } from './model-router.js';
+import { EventBus } from './event-bus.js';
+import { SharedKnowledge } from './shared-knowledge.js';
+import { CrossLinker } from './cross-linker.js';
+import { AppUtils } from './utils.js';
+import { AuditLog } from './audit-log.js';
 
-const NicoleModule = (() => {
+
+export const NicoleModule = (() => {
   // ===== 常量 =====
   const BOT_ID = '7669022974943084584';
   const USER_ID = 'lu7ming';
@@ -50,13 +60,13 @@ const NicoleModule = (() => {
   async function getCozeToken() {
     try {
       // 优先使用加密存储（getAPIKey 支持新键名 + 旧键名自动迁移）
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.getAPIKey) {
-        const token = await SecureStorage.getAPIKey('coze_pat');
+      if (window.SecureStorage?.getAPIKey) {
+        const token = await window.SecureStorage?.getAPIKey('coze_pat');
         return token;
       }
       // 兼容旧版 SecureStorage
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
-        const token = await SecureStorage.loadSecure('coze_token');
+      if (window.SecureStorage?.loadSecure) {
+        const token = await window.SecureStorage?.loadSecure('coze_token');
         return token;
       }
       // 回退到明文读取
@@ -71,13 +81,13 @@ const NicoleModule = (() => {
   async function saveCozeToken(token) {
     try {
       // 优先使用加密存储（saveAPIKey 支持新键名 + 自动清理旧键名）
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.saveAPIKey) {
-        await SecureStorage.saveAPIKey('coze_pat', token);
+      if (window.SecureStorage?.saveAPIKey) {
+        await window.SecureStorage?.saveAPIKey('coze_pat', token);
         return;
       }
       // 兼容旧版 SecureStorage
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.saveSecure) {
-        await SecureStorage.saveSecure('coze_token', token);
+      if (window.SecureStorage?.saveSecure) {
+        await window.SecureStorage?.saveSecure('coze_token', token);
         return;
       }
       // 回退到明文存储
@@ -330,9 +340,9 @@ const NicoleModule = (() => {
     // ===== 数据最小化：API 调用前脱敏 PII =====
     let _pipelineMapping = {};
     let sanitizedPrompt = prompt;
-    if (typeof DataMinimizer !== 'undefined' && DataMinimizer.isEnabled()) {
+    if (window.DataMinimizer?.isEnabled()) {
       try {
-        const minimizeResult = await DataMinimizer.minimize(prompt, { source: 'nicole', intent: taskType });
+        const minimizeResult = await window.DataMinimizer?.minimize(prompt, { source: 'nicole', intent: taskType });
         sanitizedPrompt = minimizeResult.sanitizedText;
         _pipelineMapping = minimizeResult.mapping;
       } catch (e) {
@@ -341,15 +351,15 @@ const NicoleModule = (() => {
     }
 
     // 尝试使用 ModelRouter + DeepSeek 推理模型
-    if (typeof ModelRouter !== 'undefined' && ModelRouter.isEnabled()) {
+    if (window.ModelRouter?.isEnabled()) {
       try {
         // 获取 DeepSeek token
         let dsToken = null;
-        if (typeof SecureStorage !== 'undefined' && SecureStorage.getAPIKey) {
-          dsToken = await SecureStorage.getAPIKey('deepseek_api_key');
+        if (window.SecureStorage?.getAPIKey) {
+          dsToken = await window.SecureStorage?.getAPIKey('deepseek_api_key');
         }
-        if (!dsToken && typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
-          dsToken = await SecureStorage.loadSecure('deepseek_token');
+        if (!dsToken && window.SecureStorage?.loadSecure) {
+          dsToken = await window.SecureStorage?.loadSecure('deepseek_token');
         }
         if (!dsToken) {
           const setting = await Storage.get('settings', 'deepseek_token');
@@ -357,14 +367,14 @@ const NicoleModule = (() => {
         }
 
         if (dsToken) {
-          const result = await ModelRouter.callModel(taskType, dsToken, [
+          const result = await window.ModelRouter?.callModel(taskType, dsToken, [
             { role: 'user', content: sanitizedPrompt }
           ], { temperature, max_tokens, timeout });
           console.log(`[Nicole] ModelRouter 推理模型调用成功 (${taskType})，耗时 ${result.duration}ms`);
           // 还原脱敏占位符
-          if (typeof DataMinimizer !== 'undefined' && Object.keys(_pipelineMapping).length > 0) {
+          if (true && Object.keys(_pipelineMapping).length > 0) {
             try {
-              return DataMinimizer.restore(result.content, _pipelineMapping);
+              return window.DataMinimizer?.restore(result.content, _pipelineMapping);
             } catch (e) {
               console.warn('[Nicole] DataMinimizer 还原失败:', e);
             }
@@ -381,9 +391,9 @@ const NicoleModule = (() => {
     if (token) {
       const reply = await callCozeAPI(token, sanitizedPrompt);
       // 还原脱敏占位符
-      if (typeof DataMinimizer !== 'undefined' && Object.keys(_pipelineMapping).length > 0) {
+      if (true && Object.keys(_pipelineMapping).length > 0) {
         try {
-          return DataMinimizer.restore(reply, _pipelineMapping);
+          return window.DataMinimizer?.restore(reply, _pipelineMapping);
         } catch (e) {
           console.warn('[Nicole] DataMinimizer 还原失败:', e);
         }
@@ -906,10 +916,10 @@ ${clusterText}`;
 
     // 1. 写入通知（如果有重要提醒）
     const highClusters = clusters.filter(c => c.severity === 'high');
-    if (highClusters.length > 0 && typeof NotificationEngine !== 'undefined') {
+    if (highClusters.length > 0 && window.NotificationEngine) {
       highClusters.forEach(c => {
         try {
-          NotificationEngine.addNotification({
+          window.NotificationEngine?.addNotification({
             type: 'nicole-insight',
             title: `妮可洞察 · ${c.theme}`,
             message: c.summary,
@@ -936,8 +946,8 @@ ${clusterText}`;
     }
 
     // 3. 写入共享知识（供小鹿引用）
-    if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.setAnalysis) {
-      SharedKnowledge.setAnalysis('daily_insight', {
+    if (window.SharedKnowledge?.setAnalysis) {
+      window.SharedKnowledge?.setAnalysis('daily_insight', {
         summary: refinedInsights.summary?.slice(0, 200),
         clusterCount: clusters.length,
         highSeverity: clusters.filter(c => c.severity === 'high').length,
@@ -946,7 +956,7 @@ ${clusterText}`;
       });
       // 各维度洞察也单独写入
       clusters.slice(0, 5).forEach(c => {
-        SharedKnowledge.setAnalysis(`insight_${c.id}`, {
+        window.SharedKnowledge?.setAnalysis(`insight_${c.id}`, {
           theme: c.theme,
           severity: c.severity,
           summary: c.summary?.slice(0, 100),
@@ -957,14 +967,14 @@ ${clusterText}`;
     }
 
     // 4. 通知 AIOrchestrator
-    if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.notifyAnalysis) {
-      AIOrchestrator.notifyAnalysis('daily_pipeline', { date: today, clusterCount: clusters.length });
+    if (window.AIOrchestrator?.notifyAnalysis) {
+      window.AIOrchestrator?.notifyAnalysis('daily_pipeline', { date: today, clusterCount: clusters.length });
     }
 
     // 5. 触发 SmartSuggestion 重新生成建议（妮可分析完成后调用）
-    if (typeof SmartSuggestion !== 'undefined' && SmartSuggestion.generate) {
+    if (window.SmartSuggestion?.generate) {
       try {
-        await SmartSuggestion.generate(true); // forceRefresh = true
+        await window.SmartSuggestion?.generate(true); // forceRefresh = true
         console.log('[Pipeline][Stage5] 已触发 SmartSuggestion 重新生成');
       } catch (e) {
         console.warn('[Pipeline][Stage5] SmartSuggestion 生成失败:', e);
@@ -1098,8 +1108,8 @@ ${clusterText}`;
       console.log(`[Pipeline] ✅ 每日流水线执行完成，耗时 ${elapsed}ms`);
 
       // 写入审计日志
-      if (typeof AuditLog !== 'undefined') {
-        AuditLog.log({
+      if (true) /* AuditLog always available via import */ {
+        window.AuditLog?.log({
           type: 'nicole_analysis',
           source: 'nicole',
           params: { pipeline: 'daily', clusterCount: (refinedInsights?.clusters || []).length },
@@ -1276,11 +1286,11 @@ ${clusterText}`;
     // 切换到小鹿（手动覆盖路由）
     _bindEvent(panelEl.querySelector('#nicole-switch-xiaolu'), 'click', () => {
       close();
-      if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.setManualOverride) {
-        AIOrchestrator.setManualOverride('xiaolu');
+      if (window.AIOrchestrator?.setManualOverride) {
+        window.AIOrchestrator?.setManualOverride('xiaolu');
       }
-      if (typeof XiaoluModule !== 'undefined' && XiaoluModule.open) {
-        XiaoluModule.open();
+      if (window.XiaoluModule?.open) {
+        window.XiaoluModule?.open();
       }
     });
 
@@ -1288,7 +1298,7 @@ ${clusterText}`;
       _conversationId = null;
       messagesEl.innerHTML = '';
       showWelcome();
-      if (typeof App !== 'undefined') App.showToast('已开始新对话');
+      if (window.App) window.App?.showToast('已开始新对话');
     });
 
     // 刷新洞察按钮
@@ -1296,7 +1306,7 @@ ${clusterText}`;
       const today = getTodayStr();
       localStorage.removeItem(`nicole_daily_insight_${today}`);
       runDailyPipeline();
-      if (typeof App !== 'undefined') App.showToast('正在刷新今日洞察...');
+      if (window.App) window.App?.showToast('正在刷新今日洞察...');
     });
 
     _bindEvent(sendBtn, 'click', handleSend);
@@ -1412,7 +1422,7 @@ ${clusterText}`;
     addUserMessage(text);
 
     // ===== 离线降级：妮可离线模式提示 =====
-    if (typeof LocalAI !== 'undefined' && LocalAI.isOffline()) {
+    if (window.LocalAI?.isOffline()) {
       const offlineReply = '🔌 当前处于离线模式，妮可无法连接到云端进行分析。' +
         '恢复网络后我会第一时间为你服务 💎\n\n' +
         '💡 离线时可以找小鹿帮忙，她有基础的离线能力哦～';
@@ -1438,8 +1448,8 @@ ${clusterText}`;
     try {
       // 注入共享知识上下文
       let augmentedText = text;
-      if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.getContextForPrompt) {
-        const sharedContext = SharedKnowledge.getContextForPrompt('nicole');
+      if (window.SharedKnowledge?.getContextForPrompt) {
+        const sharedContext = window.SharedKnowledge?.getContextForPrompt('nicole');
         if (sharedContext) {
           augmentedText = text + sharedContext;
         }
@@ -1448,24 +1458,24 @@ ${clusterText}`;
       // ===== 数据最小化：API 调用前脱敏 PII =====
       let _minimizeMapping = {};
       let sanitizedText = augmentedText;
-      if (typeof DataMinimizer !== 'undefined' && DataMinimizer.isEnabled()) {
+      if (window.DataMinimizer?.isEnabled()) {
         try {
-          const minimizeResult = await DataMinimizer.minimize(augmentedText, { source: 'nicole' });
+          const minimizeResult = await window.DataMinimizer?.minimize(augmentedText, { source: 'nicole' });
           sanitizedText = minimizeResult.sanitizedText;
           _minimizeMapping = minimizeResult.mapping;
         } catch (e) {
           console.warn('[Nicole] DataMinimizer 脱敏失败，使用原文:', e);
         }
         // 首次使用提示
-        DataMinimizer.showFirstTimeTip();
+        window.DataMinimizer?.showFirstTimeTip();
       }
 
       let reply = await callCozeAPI(token, sanitizedText);
 
       // ===== 数据最小化：还原 AI 回复中的占位符 =====
-      if (typeof DataMinimizer !== 'undefined' && Object.keys(_minimizeMapping).length > 0) {
+      if (true && Object.keys(_minimizeMapping).length > 0) {
         try {
-          reply = DataMinimizer.restore(reply, _minimizeMapping);
+          reply = window.DataMinimizer?.restore(reply, _minimizeMapping);
         } catch (e) {
           console.warn('[Nicole] DataMinimizer 还原失败:', e);
         }
@@ -1474,12 +1484,12 @@ ${clusterText}`;
       removeLoading();
       addAIMessage(reply);
       // 分析完成后写入共享知识
-      if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.notifyAnalysis) {
-        AIOrchestrator.notifyAnalysis('conversation', { query: text.slice(0, 50), timestamp: Date.now() });
+      if (window.AIOrchestrator?.notifyAnalysis) {
+        window.AIOrchestrator?.notifyAnalysis('conversation', { query: text.slice(0, 50), timestamp: Date.now() });
       }
       // 写入审计日志
-      if (typeof AuditLog !== 'undefined') {
-        AuditLog.log({
+      if (true) /* AuditLog always available via import */ {
+        window.AuditLog?.log({
           type: 'nicole_analysis',
           source: 'nicole',
           params: { query: text.slice(0, 50) },
@@ -1497,7 +1507,7 @@ ${clusterText}`;
           const newToken = await showTokenDialog();
           if (newToken) {
             await saveCozeToken(newToken);
-            if (typeof App !== 'undefined') App.showToast('Token 已更新');
+            if (window.App) window.App?.showToast('Token 已更新');
           }
         }, 800);
       } else {
@@ -1543,8 +1553,8 @@ ${clusterText}`;
   function open() {
     if (_isOpen) return;
 
-    if (typeof XiaoluModule !== 'undefined' && XiaoluModule.close) {
-      XiaoluModule.close();
+    if (window.XiaoluModule?.close) {
+      window.XiaoluModule?.close();
     }
 
     if (!panelEl) {
@@ -1581,8 +1591,8 @@ ${clusterText}`;
     }, 2000);
 
     // 监听路由切换，切换到 dashboard 时触发
-    if (typeof Router !== 'undefined' && Router.onRouteChange) {
-      Router.onRouteChange((newRoute) => {
+    if (window.Router?.onRouteChange) {
+      window.Router?.onRouteChange((newRoute) => {
         if (newRoute === 'dashboard') {
           console.log('[Nicole] 切换到今日总览，触发流水线...');
           if (!loadCachedInsight()) {

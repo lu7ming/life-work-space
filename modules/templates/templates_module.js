@@ -2,8 +2,13 @@
  * templates_module.js - 模板页面交互逻辑
  * 人生工作台 · 复盘模板 UI 控制
  */
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { Templates } from '../../core/templates.js';
+import { EventBus } from '../../core/event-bus.js';
 
-const TemplatesModule = (() => {
+
+export const TemplatesModule = (() => {
   const { escapeHtml } = AppUtils;
 
   // ===== 状态 =====
@@ -34,7 +39,7 @@ const TemplatesModule = (() => {
     const grid = document.getElementById('templates-grid');
     if (!grid) return;
 
-    const templates = Templates.getTemplates();
+    const templates = window.Templates?.getTemplates();
     grid.innerHTML = templates.map(tpl => `
       <div class="template-card" data-template-id="${tpl.id}" style="--card-color: ${tpl.color}; --card-color-light: ${tpl.colorLight};">
         <span class="template-card-icon">${tpl.icon}</span>
@@ -100,7 +105,7 @@ const TemplatesModule = (() => {
         if (_currentReport) {
           // 先收集用户输入
           collectUserInputs();
-          const md = Templates.exportMarkdown(_currentReport);
+          const md = window.Templates?.exportMarkdown(_currentReport);
           downloadFile(md, `${_currentReport.templateName}_${_currentReport.monthStr}.md`, 'text/markdown');
         }
       });
@@ -110,7 +115,7 @@ const TemplatesModule = (() => {
       _bindEvent(exportJson, 'click', () => {
         if (_currentReport) {
           collectUserInputs();
-          const json = Templates.exportJSON(_currentReport);
+          const json = window.Templates?.exportJSON(_currentReport);
           downloadFile(json, `${_currentReport.templateName}_${_currentReport.monthStr}.json`, 'application/json');
         }
       });
@@ -121,14 +126,14 @@ const TemplatesModule = (() => {
         if (_currentReport) {
           collectUserInputs();
           try {
-            await Templates.saveReport(_currentReport);
-            if (typeof App !== 'undefined' && App.showToast) {
-              App.showToast('报告已保存 ✅');
+            await window.Templates?.saveReport(_currentReport);
+            if (window.App?.showToast) {
+              window.App?.showToast('报告已保存 ✅');
             }
             loadHistory();
           } catch (err) {
-            if (typeof App !== 'undefined' && App.showToast) {
-              App.showToast('保存失败 ❌');
+            if (window.App?.showToast) {
+              window.App?.showToast('保存失败 ❌');
             }
           }
         }
@@ -165,7 +170,7 @@ const TemplatesModule = (() => {
     `;
 
     try {
-      const report = await Templates.generateReport(templateId, _currentYear, _currentMonth);
+      const report = await window.Templates?.generateReport(templateId, _currentYear, _currentMonth);
       _currentReport = report;
       renderReportDetail(report);
     } catch (err) {
@@ -187,7 +192,7 @@ const TemplatesModule = (() => {
     const contentEl = document.getElementById('tpl-report-content');
     if (!contentEl) return;
 
-    const template = Templates.getTemplate(report.templateId);
+    const template = window.Templates?.getTemplate(report.templateId);
     if (!template) return;
 
     const data = report.data || {};
@@ -331,7 +336,7 @@ const TemplatesModule = (() => {
     if (!listEl) return;
 
     try {
-      const reports = await Templates.getHistory(_currentYear);
+      const reports = await window.Templates?.getHistory(_currentYear);
 
       if (reports.length === 0) {
         listEl.innerHTML = `
@@ -361,7 +366,7 @@ const TemplatesModule = (() => {
         _bindEvent(item, 'click', async () => {
           const reportId = item.dataset.reportIdx;
           // 从历史记录中找到并展示
-          const allReports = await Templates.getHistory();
+          const allReports = await window.Templates?.getHistory();
           const report = allReports.find(r => String(r.id) === String(reportId));
           if (report) {
             _currentReport = report;

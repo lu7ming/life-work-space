@@ -10,8 +10,12 @@
  *   - 路由决策日志
  *   - 操作通知：小鹿执行后通知妮可更新洞察
  */
+import { EventBus } from './event-bus.js';
+import { Storage } from './storage.js';
+import { AppUtils } from './utils.js';
 
-const AIOrchestrator = (() => {
+
+export const AIOrchestrator = (() => {
   // ===== 路由规则定义 =====
 
   /**
@@ -195,19 +199,19 @@ const AIOrchestrator = (() => {
     updateIndicator(routeResult.target, routeResult.confidence);
 
     if (routeResult.target === 'nicole') {
-      if (typeof NicoleModule !== 'undefined' && NicoleModule.open) {
-        return { ai: 'nicole', action: () => NicoleModule.open(), routeResult };
+      if (window.NicoleModule?.open) {
+        return { ai: 'nicole', action: () => window.NicoleModule?.open(), routeResult };
       }
       // 妮不可用，降级到小鹿
       console.warn('[Orchestrator] 妮可模块不可用，降级到小鹿');
       updateIndicator('xiaolu', 0.5);
-      if (typeof XiaoluModule !== 'undefined' && XiaoluModule.open) {
-        return { ai: 'xiaolu', action: () => XiaoluModule.open(), routeResult };
+      if (window.XiaoluModule?.open) {
+        return { ai: 'xiaolu', action: () => window.XiaoluModule?.open(), routeResult };
       }
     }
 
-    if (typeof XiaoluModule !== 'undefined' && XiaoluModule.open) {
-      return { ai: 'xiaolu', action: () => XiaoluModule.open(), routeResult };
+    if (window.XiaoluModule?.open) {
+      return { ai: 'xiaolu', action: () => window.XiaoluModule?.open(), routeResult };
     }
 
     return null;
@@ -230,11 +234,11 @@ const AIOrchestrator = (() => {
     } catch (e) { /* 静默 */ }
 
     // 2. 写入共享知识
-    if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.set) {
+    if (window.SharedKnowledge?.set) {
       switch (tool) {
         case 'record_finance':
           // 记录财务后更新消费画像
-          SharedKnowledge.set('last_finance_action', {
+          window.SharedKnowledge?.set('last_finance_action', {
             tool: 'record_finance',
             timestamp: Date.now(),
             today: today
@@ -243,7 +247,7 @@ const AIOrchestrator = (() => {
 
         case 'create_task':
           // 创建任务后更新任务概览
-          SharedKnowledge.set('last_task_action', {
+          window.SharedKnowledge?.set('last_task_action', {
             tool: 'create_task',
             timestamp: Date.now(),
             today: today
@@ -252,7 +256,7 @@ const AIOrchestrator = (() => {
 
         case 'habit_log':
           // 习惯打卡后更新打卡状态
-          SharedKnowledge.set('last_habit_action', {
+          window.SharedKnowledge?.set('last_habit_action', {
             tool: 'habit_log',
             timestamp: Date.now(),
             today: today
@@ -270,8 +274,8 @@ const AIOrchestrator = (() => {
    * @param {*} analysisResult - 分析结果
    */
   function notifyAnalysis(analysisType, analysisResult) {
-    if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.setAnalysis) {
-      SharedKnowledge.setAnalysis(`nicole_${analysisType}`, analysisResult);
+    if (window.SharedKnowledge?.setAnalysis) {
+      window.SharedKnowledge?.setAnalysis(`nicole_${analysisType}`, analysisResult);
       console.log(`[Orchestrator] 通知: 妮可完成了 ${analysisType} 分析，已写入共享知识`);
     }
   }

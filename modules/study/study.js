@@ -2,7 +2,12 @@
  * study.js - 学习与成长模块逻辑
  * 人生工作台 · 课程表 + 阅读记录 + 技能追踪
  */
-const StudyModule = (() => {
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+
+export const StudyModule = (() => {
   const { escapeHtml } = AppUtils;
 
   // ===== 常量 =====
@@ -335,12 +340,12 @@ const StudyModule = (() => {
 
     const name = nameInput?.value.trim();
     if (!name) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入课程名称');
+      if (window.App?.showToast) window.App?.showToast('请输入课程名称');
       return;
     }
 
     if (!currentSemesterId) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请先创建一个学期');
+      if (window.App?.showToast) window.App?.showToast('请先创建一个学期');
       return;
     }
 
@@ -350,7 +355,7 @@ const StudyModule = (() => {
 
     // 验证时间
     if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('结束时间必须晚于开始时间');
+      if (window.App?.showToast) window.App?.showToast('结束时间必须晚于开始时间');
       return;
     }
 
@@ -364,7 +369,7 @@ const StudyModule = (() => {
       return newStart < cEnd && newEnd > cStart; // 时间重叠
     });
     if (conflict) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('该时段已有课程');
+      if (window.App?.showToast) window.App?.showToast('该时段已有课程');
       return;
     }
 
@@ -391,13 +396,13 @@ const StudyModule = (() => {
         courseData.id = id;
         allCourses.push(courseData);
         // EventBus: 学习会话记录（课程新增）
-        if (typeof EventBus !== 'undefined') {
+        if (true) /* EventBus always available via import */ {
           EventBus.emit('study:session', { data: courseData });
         }
       }
       hideCourseModal();
       renderTimetable();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast(isEdit ? '已保存 ✅' : '课程已添加 ✅');
+      if (window.App?.showToast) window.App?.showToast(isEdit ? '已保存 ✅' : '课程已添加 ✅');
     } catch (err) {
       console.error('[Study] 保存课程失败:', err);
     }
@@ -410,7 +415,7 @@ const StudyModule = (() => {
       allCourses = allCourses.filter((c) => c.id !== editingCourseId);
       hideCourseModal();
       renderTimetable();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('课程已删除');
+      if (window.App?.showToast) window.App?.showToast('课程已删除');
     } catch (err) {
       console.error('[Study] 删除课程失败:', err);
     }
@@ -467,7 +472,7 @@ const StudyModule = (() => {
     const input = document.getElementById('semester-name-input');
     const name = input?.value.trim();
     if (!name) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入学期名称');
+      if (window.App?.showToast) window.App?.showToast('请输入学期名称');
       return;
     }
     try {
@@ -478,7 +483,7 @@ const StudyModule = (() => {
       renderSemesterList();
       renderSemesterSelect();
       renderTimetable();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('学期已添加 ✅');
+      if (window.App?.showToast) window.App?.showToast('学期已添加 ✅');
     } catch (err) {
       console.error('[Study] 添加学期失败:', err);
     }
@@ -633,7 +638,7 @@ const StudyModule = (() => {
 
     const title = titleInput?.value.trim();
     if (!title) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入书名');
+      if (window.App?.showToast) window.App?.showToast('请输入书名');
       return;
     }
 
@@ -661,13 +666,13 @@ const StudyModule = (() => {
         bookData.id = id;
         allBooks.push(bookData);
         // EventBus: 学习会话记录（书籍新增）
-        if (typeof EventBus !== 'undefined') {
+        if (true) /* EventBus always available via import */ {
           EventBus.emit('study:session', { data: bookData });
         }
       }
       hideBookModal();
       renderBooks();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast(isEdit ? '已保存 ✅' : '书籍已添加 ✅');
+      if (window.App?.showToast) window.App?.showToast(isEdit ? '已保存 ✅' : '书籍已添加 ✅');
     } catch (err) {
       console.error('[Study] 保存书籍失败:', err);
     }
@@ -680,7 +685,7 @@ const StudyModule = (() => {
       allBooks = allBooks.filter((b) => b.id !== editingBookId);
       hideBookModal();
       renderBooks();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('书籍已删除');
+      if (window.App?.showToast) window.App?.showToast('书籍已删除');
     } catch (err) {
       console.error('[Study] 删除书籍失败:', err);
     }
@@ -797,7 +802,7 @@ const StudyModule = (() => {
 
     const name = nameInput?.value.trim();
     if (!name) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入技能名称');
+      if (window.App?.showToast) window.App?.showToast('请输入技能名称');
       return;
     }
 
@@ -821,13 +826,13 @@ const StudyModule = (() => {
         skillData.id = id;
         allSkills.push(skillData);
         // EventBus: 学习会话记录（技能新增）
-        if (typeof EventBus !== 'undefined') {
+        if (true) /* EventBus always available via import */ {
           EventBus.emit('study:session', { data: skillData });
         }
       }
       hideSkillModal();
       renderSkills();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast(isEdit ? '已保存 ✅' : '技能已添加 ✅');
+      if (window.App?.showToast) window.App?.showToast(isEdit ? '已保存 ✅' : '技能已添加 ✅');
     } catch (err) {
       console.error('[Study] 保存技能失败:', err);
     }
@@ -840,7 +845,7 @@ const StudyModule = (() => {
       allSkills = allSkills.filter((s) => s.id !== editingSkillId);
       hideSkillModal();
       renderSkills();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('技能已删除');
+      if (window.App?.showToast) window.App?.showToast('技能已删除');
     } catch (err) {
       console.error('[Study] 删除技能失败:', err);
     }
@@ -856,7 +861,7 @@ const StudyModule = (() => {
     _bindEvent(fab, 'click', () => {
       if (currentTab === 'courses') {
         if (!currentSemesterId) {
-          if (typeof App !== 'undefined' && App.showToast) App.showToast('请先创建一个学期');
+          if (window.App?.showToast) window.App?.showToast('请先创建一个学期');
           return;
         }
         showCourseModal(null);

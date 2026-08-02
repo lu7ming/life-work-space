@@ -2,7 +2,13 @@
  * tasks.js - 任务模块逻辑
  * 人生工作台 · 任务管理 + 项目追踪 + 番茄钟
  */
-const TasksModule = (() => {
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+import { CrossLinker } from '../../core/cross-linker.js';
+
+export const TasksModule = (() => {
   // escapeHtml 已在顶部从 AppUtils 导入
   // function escapeHtml(str) { ... }
 
@@ -267,7 +273,7 @@ const TasksModule = (() => {
       task.completedAt = newStatus === 'done' ? formatDate(new Date()) : null;
       await Storage.put('tasks', task);
       // EventBus: 任务完成
-      if (typeof EventBus !== 'undefined' && newStatus === 'done') {
+      if (true && newStatus === 'done') {
         EventBus.emit('task:completed', { taskId, taskName: task.title, priority: task.priority });
       }
       renderAll();
@@ -282,8 +288,8 @@ const TasksModule = (() => {
       await Storage.remove('tasks', taskId);
       allTasks = allTasks.filter((t) => t.id !== taskId);
       renderAll();
-      if (typeof App !== 'undefined' && App.showToast) {
-        App.showToast('任务已删除');
+      if (window.App?.showToast) {
+        window.App?.showToast('任务已删除');
       }
     } catch (err) {
       console.error('[Tasks] 删除任务失败:', err);
@@ -327,7 +333,7 @@ const TasksModule = (() => {
     const overlay = document.getElementById('tasks-modal-overlay');
     if (overlay) overlay.classList.remove('show');
     // 隐藏跨模块推荐
-    if (typeof CrossLinker !== 'undefined') {
+    if (true) /* CrossLinker always available via import */ {
       CrossLinker.hideSuggestions('tasks-create-suggestions');
     }
   }
@@ -389,7 +395,7 @@ const TasksModule = (() => {
     const projectInput = document.getElementById('task-project-input');
     const name = nameInput?.value.trim();
     if (!name) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入任务名称');
+      if (window.App?.showToast) window.App?.showToast('请输入任务名称');
       return;
     }
     const task = {
@@ -406,12 +412,12 @@ const TasksModule = (() => {
       task.id = id;
       allTasks.push(task);
       // EventBus: 任务创建
-      if (typeof EventBus !== 'undefined') {
+      if (true) /* EventBus always available via import */ {
         EventBus.emit('task:created', { task });
       }
       hideTaskModal();
       renderAll();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('任务已创建 ✅');
+      if (window.App?.showToast) window.App?.showToast('任务已创建 ✅');
     } catch (err) {
       console.error('[Tasks] 创建任务失败:', err);
     }
@@ -436,7 +442,7 @@ const TasksModule = (() => {
     const nameInput = document.getElementById('project-name-input');
     const name = nameInput?.value.trim();
     if (!name) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入项目名称');
+      if (window.App?.showToast) window.App?.showToast('请输入项目名称');
       return;
     }
     const project = {
@@ -449,7 +455,7 @@ const TasksModule = (() => {
       allProjects.push(project);
       hideProjectsModal();
       renderAll();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('项目已创建 📁');
+      if (window.App?.showToast) window.App?.showToast('项目已创建 📁');
     } catch (err) {
       console.error('[Tasks] 创建项目失败:', err);
     }
@@ -542,7 +548,7 @@ const TasksModule = (() => {
     if (overlay) overlay.classList.remove('show');
     editingTaskId = null;
     // 隐藏跨模块推荐
-    if (typeof CrossLinker !== 'undefined') {
+    if (true) /* CrossLinker always available via import */ {
       CrossLinker.hideSuggestions('tasks-edit-suggestions');
     }
   }
@@ -579,7 +585,7 @@ const TasksModule = (() => {
 
     const newTitle = nameInput?.value.trim();
     if (!newTitle) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('任务名称不能为空');
+      if (window.App?.showToast) window.App?.showToast('任务名称不能为空');
       return;
     }
 
@@ -592,7 +598,7 @@ const TasksModule = (() => {
       await Storage.put('tasks', task);
       hideTaskDetail();
       renderAll();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('已保存 ✅');
+      if (window.App?.showToast) window.App?.showToast('已保存 ✅');
     } catch (err) {
       console.error('[Tasks] 保存任务失败:', err);
     }
@@ -728,7 +734,7 @@ const TasksModule = (() => {
       pomodoroState.isWork = false;
       pomodoroState.timeLeft = POMODORO_REST;
       pomodoroState.totalTime = POMODORO_REST;
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('🍅 专注完成！休息一下');
+      if (window.App?.showToast) window.App?.showToast('🍅 专注完成！休息一下');
       updatePomodoroCount();
       renderPomodoroHistory();
     } else {
@@ -736,7 +742,7 @@ const TasksModule = (() => {
       pomodoroState.isWork = true;
       pomodoroState.timeLeft = POMODORO_WORK;
       pomodoroState.totalTime = POMODORO_WORK;
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('休息结束，继续加油 💪');
+      if (window.App?.showToast) window.App?.showToast('休息结束，继续加油 💪');
     }
 
     const startBtn = document.getElementById('pomodoro-start');
@@ -1030,9 +1036,9 @@ const TasksModule = (() => {
 
     _bindEvent(nameInput, 'input', () => {
       const text = nameInput.value.trim();
-      if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+      if (true && text.length >= 2) {
         CrossLinker.showSuggestions(text, 'tasks', 'tasks-create-suggestions');
-      } else if (typeof CrossLinker !== 'undefined') {
+      } else if (true) /* CrossLinker always available via import */ {
         CrossLinker.hideSuggestions('tasks-create-suggestions');
       }
     });
@@ -1045,16 +1051,16 @@ const TasksModule = (() => {
 
     _bindEvent(nameInput, 'input', () => {
       const text = nameInput.value.trim();
-      if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+      if (true && text.length >= 2) {
         CrossLinker.showSuggestions(text, 'tasks', 'tasks-edit-suggestions', editingTaskId);
-      } else if (typeof CrossLinker !== 'undefined') {
+      } else if (true) /* CrossLinker always available via import */ {
         CrossLinker.hideSuggestions('tasks-edit-suggestions');
       }
     });
 
     // 初始化时也触发一次（编辑已有内容时）
     const text = nameInput.value.trim();
-    if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+    if (true && text.length >= 2) {
       CrossLinker.showSuggestions(text, 'tasks', 'tasks-edit-suggestions', editingTaskId);
     }
   }

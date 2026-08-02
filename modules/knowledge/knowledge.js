@@ -1,4 +1,9 @@
-const KnowledgeModule = (() => {
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+
+export const KnowledgeModule = (() => {
   const { escapeHtml } = AppUtils;
 
   // ========== State ==========
@@ -285,8 +290,8 @@ const KnowledgeModule = (() => {
   async function saveEntry() {
     const title = document.getElementById('knowledgeFormTitle').value.trim();
     if (!title) {
-      if (typeof App !== 'undefined' && App.showToast) {
-        App.showToast('请输入标题');
+      if (window.App?.showToast) {
+        window.App?.showToast('请输入标题');
       }
       document.getElementById('knowledgeFormTitle').focus();
       return;
@@ -319,17 +324,17 @@ const KnowledgeModule = (() => {
       renderAll();
       hideModal('knowledgeModal');
       // 隐藏跨模块推荐
-      if (typeof CrossLinker !== 'undefined') {
+      if (window.CrossLinker) {
         CrossLinker.hideSuggestions('knowledge-suggestions');
       }
 
-      if (typeof App !== 'undefined' && App.showToast) {
-        App.showToast(editingId ? '已更新' : '已添加');
+      if (window.App?.showToast) {
+        window.App?.showToast(editingId ? '已更新' : '已添加');
       }
     } catch (e) {
       console.error('[Knowledge] Save failed:', e);
-      if (typeof App !== 'undefined' && App.showToast) {
-        App.showToast('保存失败');
+      if (window.App?.showToast) {
+        window.App?.showToast('保存失败');
       }
     }
   }
@@ -342,11 +347,11 @@ const KnowledgeModule = (() => {
       renderAll();
       hideModal('knowledgeModal');
       // 隐藏跨模块推荐
-      if (typeof CrossLinker !== 'undefined') {
+      if (window.CrossLinker) {
         CrossLinker.hideSuggestions('knowledge-suggestions');
       }
-      if (typeof App !== 'undefined' && App.showToast) {
-        App.showToast('已删除');
+      if (window.App?.showToast) {
+        window.App?.showToast('已删除');
       }
     } catch (e) {
       console.error('[Knowledge] Delete failed:', e);
@@ -651,9 +656,9 @@ const KnowledgeModule = (() => {
       contentInput ? contentInput.value.trim() : ''
     ].join(' ').trim();
 
-    if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+    if (window.CrossLinker && text.length >= 2) {
       CrossLinker.showSuggestions(text, 'knowledge', 'knowledge-suggestions', editingId);
-    } else if (typeof CrossLinker !== 'undefined') {
+    } else if (window.CrossLinker) {
       CrossLinker.hideSuggestions('knowledge-suggestions');
     }
   }

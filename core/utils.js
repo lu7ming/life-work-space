@@ -3,10 +3,11 @@
  * 人生工作台 · 全局共享工具
  * v32 - 扩展 ErrorHandler、MarkdownToHtml、更多工具函数
  */
+import { Storage } from './storage.js';
 
-window.__APP_VERSION__ = 'v32';
 
-const AppUtils = (() => {
+
+export const AppUtils = (() => {
   /**
    * HTML 转义（防 XSS）
    */
@@ -300,8 +301,8 @@ const ErrorHandler = (() => {
 
     console.error(`[${context}] ${errMsg}`, error);
 
-    if (userMessage && typeof App !== 'undefined' && App.showToast) {
-      App.showToast(userMessage);
+    if (userMessage && window.App?.showToast) {
+      window.App?.showToast(userMessage);
     }
 
     // 严重错误 → 全屏提示
@@ -534,20 +535,20 @@ const KeyboardShortcuts = (() => {
 
     // 注册默认快捷键
     register('ctrl+s', () => {
-      if (typeof App !== 'undefined') App.showToast('数据已自动保存 ✅');
+      if (window.App) window.App?.showToast('数据已自动保存 ✅');
     }, '手动保存');
     register('ctrl+n', () => {
-      if (typeof QuickInput !== 'undefined') QuickInput.open();
+      if (window.QuickInput) window.QuickInput?.open();
     }, '新建记录');
-    register('1', () => { if (typeof Router !== 'undefined') Router.navigate('dashboard'); }, '今日总览');
-    register('2', () => { if (typeof Router !== 'undefined') Router.navigate('habits'); }, '习惯打卡');
-    register('3', () => { if (typeof Router !== 'undefined') Router.navigate('tasks'); }, '任务');
-    register('4', () => { if (typeof Router !== 'undefined') Router.navigate('study'); }, '学习');
-    register('5', () => { if (typeof Router !== 'undefined') Router.navigate('health'); }, '健康');
-    register('6', () => { if (typeof Router !== 'undefined') Router.navigate('finance'); }, '财务');
-    register('7', () => { if (typeof Router !== 'undefined') Router.navigate('journal'); }, '记录与反思');
-    register('8', () => { if (typeof Router !== 'undefined') Router.navigate('lifetree'); }, '生命树');
-    register('9', () => { if (typeof Router !== 'undefined') Router.navigate('templates'); }, '复盘模板');
+    register('1', () => { if (window.Router) window.Router?.navigate('dashboard'); }, '今日总览');
+    register('2', () => { if (window.Router) window.Router?.navigate('habits'); }, '习惯打卡');
+    register('3', () => { if (window.Router) window.Router?.navigate('tasks'); }, '任务');
+    register('4', () => { if (window.Router) window.Router?.navigate('study'); }, '学习');
+    register('5', () => { if (window.Router) window.Router?.navigate('health'); }, '健康');
+    register('6', () => { if (window.Router) window.Router?.navigate('finance'); }, '财务');
+    register('7', () => { if (window.Router) window.Router?.navigate('journal'); }, '记录与反思');
+    register('8', () => { if (window.Router) window.Router?.navigate('lifetree'); }, '生命树');
+    register('9', () => { if (window.Router) window.Router?.navigate('templates'); }, '复盘模板');
     register('?', () => showHelp(), '显示快捷键帮助');
 
     console.log('[Keyboard] 快捷键系统就绪 ⌨️');
@@ -586,9 +587,9 @@ const OfflineDetector = (() => {
 
   function _onOnline() {
     _hideBanner();
-    if (typeof App !== 'undefined') App.showToast('网络已恢复 🌐');
+    if (window.App) window.App?.showToast('网络已恢复 🌐');
     // 上线后尝试同步离线队列
-    if (typeof OfflineQueue !== 'undefined') OfflineQueue.flush();
+    if (window.OfflineQueue) window.OfflineQueue?.flush();
   }
 
   function _onOffline() {
@@ -636,7 +637,7 @@ const OfflineQueue = (() => {
 
   async function _executeOperation(op) {
     if (op.type === 'sync_github') {
-      if (typeof SyncModule !== 'undefined') await SyncModule.smartSync();
+      if (window.SyncModule) await window.SyncModule?.smartSync();
     }
     // 其他操作类型可在此扩展
   }
@@ -1058,7 +1059,7 @@ const SmartReminder = (() => {
   async function checkSmartReminders() {
     const reminders = [];
     try {
-      const profile = await UserProfile.buildProfile();
+      const profile = await window.UserProfile?.buildProfile();
       const today = AppUtils.getTodayStr();
 
       // 消费异常
@@ -1112,8 +1113,8 @@ const SmartReminder = (() => {
   }
 
   function _fireReminder(message, priority) {
-    if (typeof NotificationEngine !== 'undefined') {
-      NotificationEngine.addNotification({
+    if (window.NotificationEngine) {
+      window.NotificationEngine?.addNotification({
         type: 'smart_reminder',
         title: '智能提醒',
         message: message,
@@ -1121,7 +1122,7 @@ const SmartReminder = (() => {
         link: ''
       });
     }
-    if (typeof App !== 'undefined') App.showToast(message);
+    if (window.App) window.App?.showToast(message);
   }
 
   function destroy() {

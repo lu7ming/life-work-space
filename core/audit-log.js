@@ -13,8 +13,11 @@
  * 存储：IndexedDB audit_logs 表
  * 自动清理：保留最近30天，最多500条
  */
+import { Storage } from './storage.js';
+import { EventBus } from './event-bus.js';
 
-const AuditLog = (() => {
+
+export const AuditLog = (() => {
   // ===== 事件监听追踪 =====
   let _eventListeners = [];
 

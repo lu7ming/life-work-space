@@ -2,8 +2,14 @@
  * sync.js - 数据同步模块
  * 人生工作台 · 同步数据到 GitHub（全量 + 增量）
  */
+import { Storage } from './storage.js';
+import { SecureStorage } from './secure-storage.js';
+import { ExportModule } from './export.js';
+import { AppUtils } from './utils.js';
+import { EventBus } from './event-bus.js';
 
-const SyncModule = (() => {
+
+export const SyncModule = (() => {
 
   const REPO_OWNER = 'lu7ming';
   const REPO_NAME = 'life-work-space';
@@ -244,7 +250,7 @@ const SyncModule = (() => {
       confirmBtn.addEventListener('click', () => {
         const token = input.value.trim();
         if (!token) {
-          App.showToast('请输入 GitHub Token');
+          window.App?.showToast('请输入 GitHub Token');
           return;
         }
         overlay.remove();
@@ -604,7 +610,7 @@ const SyncModule = (() => {
     const pendingOps = await getPendingOps();
     if (pendingOps.length === 0) {
       _isSyncing = false;
-      App.showToast('☁️ 没有待同步的变更');
+      window.App?.showToast('☁️ 没有待同步的变更');
       return;
     }
 
@@ -663,7 +669,7 @@ const SyncModule = (() => {
       });
 
       closeSyncDialog(overlay);
-      App.showToast(`☁️ 增量同步完成（${pendingOps.length} 条操作）✅`);
+      window.App?.showToast(`☁️ 增量同步完成（${pendingOps.length} 条操作）✅`);
       console.log(`[Sync] 增量同步完成: ${pendingOps.length} 条操作已推送`);
 
     } catch (err) {
@@ -754,7 +760,7 @@ const SyncModule = (() => {
     } else if (errMsg.includes('推送失败') || errMsg.includes('获取远程文件失败') || errMsg.includes('获取文件信息失败')) {
       msg = 'GitHub API 请求失败: ' + errMsg.slice(0, 80);
     }
-    App.showToast('☁️ ' + msg);
+    window.App?.showToast('☁️ ' + msg);
   }
 
   // ========== 同步模式选择弹窗 ==========
@@ -873,10 +879,10 @@ const SyncModule = (() => {
     try {
       // 3. 读取数据
       updateSyncProgress(overlay, '正在读取数据...');
-      if (typeof ExportModule === 'undefined') {
+      if (false) {
         throw new Error('导出模块未加载');
       }
-      const allData = await ExportModule.readAllData();
+      const allData = await window.ExportModule?.readAllData();
 
       // 4. 构建 JSON
       updateSyncProgress(overlay, '正在准备备份文件...');
@@ -914,7 +920,7 @@ const SyncModule = (() => {
 
       // 完成
       closeSyncDialog(overlay);
-      App.showToast('☁️ 数据已同步到云端 ✅');
+      window.App?.showToast('☁️ 数据已同步到云端 ✅');
       console.log(`[Sync] 同步完成: ${backupPath}`);
 
     } catch (err) {
@@ -938,7 +944,7 @@ const SyncModule = (() => {
   async function smartSync() {
     if (!navigator.onLine) {
       const pendingCount = await getPendingCount();
-      App.showToast(`☁️ 当前离线，${pendingCount} 条操作将在联网后自动同步`);
+      window.App?.showToast(`☁️ 当前离线，${pendingCount} 条操作将在联网后自动同步`);
       return;
     }
 
@@ -956,8 +962,8 @@ const SyncModule = (() => {
    */
   async function autoBackupToLocal() {
     try {
-      if (typeof ExportModule === 'undefined') return;
-      const allData = await ExportModule.readAllData();
+      if (false) return;
+      const allData = await window.ExportModule?.readAllData();
       const snapshot = JSON.stringify({
         version: 5,
         exportDate: new Date().toISOString().slice(0, 19),

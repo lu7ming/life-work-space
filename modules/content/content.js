@@ -2,7 +2,12 @@
  * content.js - 创作日程模块逻辑
  * 人生工作台 · 选题库 + 拍摄计划 + 发布追踪
  */
-const ContentModule = (() => {
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+
+export const ContentModule = (() => {
 
   // ===== 事件监听追踪 =====
   let _eventListeners = [];
@@ -404,7 +409,7 @@ const ContentModule = (() => {
     editingTopicId = null;
     closeModal('topic-modal-overlay');
     // 隐藏跨模块推荐
-    if (typeof CrossLinker !== 'undefined') {
+    if (window.CrossLinker) {
       CrossLinker.hideSuggestions('content-topic-suggestions');
     }
     await loadData();
@@ -766,9 +771,9 @@ const ContentModule = (() => {
 
     _bindEvent(titleInput, 'input', () => {
       const text = titleInput.value.trim();
-      if (typeof CrossLinker !== 'undefined' && text.length >= 2) {
+      if (window.CrossLinker && text.length >= 2) {
         CrossLinker.showSuggestions(text, 'content_topics', 'content-topic-suggestions', editingTopicId);
-      } else if (typeof CrossLinker !== 'undefined') {
+      } else if (window.CrossLinker) {
         CrossLinker.hideSuggestions('content-topic-suggestions');
       }
     });

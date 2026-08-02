@@ -3,14 +3,14 @@
  * 人生工作台 · 数据持久层
  */
 
-const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 11;
+export const DB_NAME = 'LifeWorkSpace';
+export const DB_VERSION = 11;
 
 /**
  * 存储管理器
  * 提供对 IndexedDB 的 Promise 风格封装
  */
-const Storage = (() => {
+export const Storage = (() => {
   let _db = null;
 
   /**
@@ -589,7 +589,7 @@ const Storage = (() => {
 /**
  * MigrationRegistry - 数据迁移注册表
  */
-const MigrationRegistry = (() => {
+export const MigrationRegistry = (() => {
   const _migrations = new Map();
 
   function register(fromVer, toVer, migrateFn) {

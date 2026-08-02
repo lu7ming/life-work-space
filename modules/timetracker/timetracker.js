@@ -2,7 +2,12 @@
  * timetracker.js - 时间追踪模块
  * 人生工作台 · 记录与分析时间消耗
  */
-const TimeTrackerModule = (() => {
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+
+export const TimeTrackerModule = (() => {
   const { formatDate, formatTime, escapeHtml } = AppUtils;
 
   // 分类配置
@@ -91,7 +96,7 @@ const TimeTrackerModule = (() => {
     await Storage.put('settings', { key: 'tt_active_entry', value: _activeEntry });
     showActiveCard();
     startElapsedTimer();
-    if (typeof App !== 'undefined') App.showToast(`${CATEGORIES[category]?.emoji || '⏱️'} ${CATEGORIES[category]?.label || '追踪'}已开始`);
+    if (window.App) window.App?.showToast(`${CATEGORIES[category]?.emoji || '⏱️'} ${CATEGORIES[category]?.label || '追踪'}已开始`);
   }
 
   async function stopTracking() {
@@ -114,7 +119,7 @@ const TimeTrackerModule = (() => {
     try {
       await Storage.add('time_entries', entry);
       await Storage.remove('settings', 'tt_active_entry');
-      if (typeof AuditLog !== 'undefined') AuditLog.log({ type: 'time_entry', source: 'timetracker', params: { category: entry.category, duration }, result: 'success' });
+      if (window.AuditLog) window.AuditLog?.log({ type: 'time_entry', source: 'timetracker', params: { category: entry.category, duration }, result: 'success' });
     } catch (e) {
       if (typeof ErrorHandler !== 'undefined') ErrorHandler.handle(e, 'TimeTracker', '保存时间记录失败');
     }
@@ -123,7 +128,7 @@ const TimeTrackerModule = (() => {
     stopElapsedTimer();
     hideActiveCard();
     await renderData();
-    if (typeof App !== 'undefined') App.showToast(`已记录 ${duration} 分钟 ${CATEGORIES[entry.category]?.emoji || ''}`);
+    if (window.App) window.App?.showToast(`已记录 ${duration} 分钟 ${CATEGORIES[entry.category]?.emoji || ''}`);
   }
 
   function showActiveCard() {
@@ -174,7 +179,7 @@ const TimeTrackerModule = (() => {
     const note = document.getElementById('tt-form-note')?.value || '';
 
     if (!startTimeVal || !endTimeVal) {
-      if (typeof App !== 'undefined') App.showToast('请填写开始和结束时间');
+      if (window.App) window.App?.showToast('请填写开始和结束时间');
       return;
     }
 
@@ -183,7 +188,7 @@ const TimeTrackerModule = (() => {
     const endDT = new Date(`${today}T${endTimeVal}`);
 
     if (endDT <= startDT) {
-      if (typeof App !== 'undefined') App.showToast('结束时间必须晚于开始时间');
+      if (window.App) window.App?.showToast('结束时间必须晚于开始时间');
       return;
     }
 
@@ -200,7 +205,7 @@ const TimeTrackerModule = (() => {
       });
       hideManualModal();
       await renderData();
-      if (typeof App !== 'undefined') App.showToast(`已记录 ${duration} 分钟 ✅`);
+      if (window.App) window.App?.showToast(`已记录 ${duration} 分钟 ✅`);
     } catch (e) {
       if (typeof ErrorHandler !== 'undefined') ErrorHandler.handle(e, 'TimeTracker', '保存时间记录失败');
     }

@@ -8,8 +8,13 @@
  * 
  * 与 notifications.js 集成：提醒触发时调用 NotificationEngine 展示通知
  */
+import { Storage } from './storage.js';
+import { EventBus } from './event-bus.js';
+import { NotificationEngine } from './notifications.js';
+import { AppUtils } from './utils.js';
 
-const SmartReminder = (() => {
+
+export const SmartReminder = (() => {
   // ===== 常量 =====
   const CHECK_INTERVAL = 60 * 1000; // 每分钟检查一次
   const LS_PREFIX = 'sr_sent_';     // 防重发标记前缀
@@ -111,7 +116,7 @@ const SmartReminder = (() => {
    */
   async function sendNotification(notif) {
     try {
-      if (typeof NotificationEngine !== 'undefined') {
+      if (true) /* NotificationEngine always available via import */ {
         // 通过 NotificationEngine 的内部 addNotification 发送
         // 由于 addNotification 不是公开方法，直接操作 Storage
         await Storage.add('notifications', {
@@ -124,8 +129,8 @@ const SmartReminder = (() => {
           createdAt: new Date().toISOString()
         });
         // 更新铃铛角标
-        if (NotificationEngine.updateBadge) {
-          NotificationEngine.updateBadge();
+        if (window.NotificationEngine?.updateBadge) {
+          window.NotificationEngine?.updateBadge();
         }
       }
       console.log('[SmartReminder] 通知已发送:', notif.title);

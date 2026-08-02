@@ -10,7 +10,7 @@
   <title>人生工作台</title>
 
   <!-- 应用版本号（集中管理，升级时只需修改此处和 sw.js） -->
-  <script>window.__APP_VERSION__ = 'v60';</script>
+  <script>window.__APP_VERSION__ = 'v61';</script>
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://api.deepseek.com">
@@ -245,54 +245,8 @@
     <div class="rest-hint">轻触屏幕退出</div>
   </div>
 
-  <!-- 核心脚本（按依赖顺序加载） -->
-  <script src="core/storage.js?v=49"></script>
-  <script src="core/utils.js?v=32"></script>
-  <script src="core/shared-knowledge.js?v=32"></script>
-  <script src="core/orchestrator.js?v=32"></script>
-  <script src="core/secure-storage.js?v=49"></script>
-  <script src="core/router.js?v=32"></script>
-  <script src="core/event-bus.js?v=1"></script>
-  <script src="core/module-lifecycle.js?v=1"></script>
-  <script src="core/cross-linker.js?v=59"></script>
-  <script src="modules/dashboard/dashboard.js?v=32"></script>
-  <script src="modules/habits/habits.js?v=49"></script>
-  <script src="modules/tasks/tasks.js?v=49"></script>
-  <script src="modules/study/study.js?v=32"></script>
-  <script src="modules/health/health.js?v=32"></script>
-  <script src="modules/finance/finance.js?v=32"></script>
-  <script src="modules/journal/journal.js?v=49"></script>
-  <script src="modules/knowledge/knowledge.js?v=49"></script>
-  <script src="modules/goals/goals.js?v=32"></script>
-  <script src="modules/relations/relations.js?v=32"></script>
-  <script src="modules/lifetree/lifetree.js?v=32"></script>
-  <script src="modules/content/content.js?v=1"></script>
-  <script src="modules/timetracker/timetracker.js?v=32"></script>
-  <script src="core/notifications.js?v=32"></script>
-  <script src="core/smart-reminder.js?v=32"></script>
-  <script src="core/model-router.js?v=43"></script>
-  <script src="core/smart-suggestion.js?v=43"></script>
-  <script src="core/nicole.js?v=49"></script>
-  <script src="core/emotion-analyzer.js?v=45"></script>
-  <script src="core/data-minimizer.js?v=46"></script>
-  <script src="core/local-ai.js?v=48"></script>
-  <script src="core/knowledge-extractor.js?v=58"></script>
-  <script src="core/xiaolu.js?v=2"></script>
-  <script src="core/audit-log.js?v=47"></script>
-  <script src="modules/whitenoise/whitenoise.js?v=32"></script>
-  <script src="core/templates.js?v=32"></script>
-  <script src="modules/templates/templates_module.js?v=32"></script>
-  <script src="core/export.js?v=32"></script>
-  <script src="core/search.js?v=32"></script>
-  <script src="core/theme.js?v=32"></script>
-  <script src="core/sync.js?v=32"></script>
-  <script src="core/quickinput.js?v=49"></script>
-  <script src="core/user-profile.js?v=32"></script>
-  <script src="core/preference-learner.js?v=44"></script>
-  <script src="core/predictive-engine.js?v=44"></script>
-  <script src="core/app.js?v=48"></script>
-  <script src="modules/report/report.js?v=57"></script>
-  <script src="modules/rest/rest.js?v=32"></script>
+  <!-- ES Module 入口：核心依赖静态导入，功能模块按需动态加载 -->
+  <script type="module" src="core/app.js?v=61"></script>
 
 </body>
 </html>

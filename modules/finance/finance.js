@@ -3,8 +3,14 @@
  * 人生工作台 · 收入支出记账 / 预算管理 / 统计分析
  * 增强功能：年度趋势折线图 / 分类环比分析 / 储蓄目标 / 账户管理 / 预算智能推荐
  */
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+import { CrossLinker } from '../../core/cross-linker.js';
 
-const FinanceModule = (() => {
+
+export const FinanceModule = (() => {
   const { escapeHtml } = AppUtils;
 
   // ===== 状态 =====
@@ -77,8 +83,8 @@ const FinanceModule = (() => {
   }
 
   function showToast(msg) {
-    if (typeof App !== 'undefined' && App.showToast) {
-      App.showToast(msg);
+    if (window.App?.showToast) {
+      window.App?.showToast(msg);
     } else {
       console.log('[Finance Toast]', msg);
     }
@@ -830,7 +836,7 @@ const FinanceModule = (() => {
     } else {
       await Storage.add('finance', record);
       // EventBus: 财务记录新增
-      if (typeof EventBus !== 'undefined') {
+      if (true) /* EventBus always available via import */ {
         EventBus.emit('finance:added', { record });
       }
       showToast('记录已添加');

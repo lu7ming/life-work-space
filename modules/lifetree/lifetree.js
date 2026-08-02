@@ -2,7 +2,12 @@
  * 生命树模块 - 人生工作台
  * SVG 渲染可视化生命树，用户的日常行为滋养这棵树
  */
-const LifeTreeModule = (() => {
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+
+export const LifeTreeModule = (() => {
   const { escapeHtml } = AppUtils;
 
   'use strict';

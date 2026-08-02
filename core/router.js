@@ -4,8 +4,10 @@
  *
  * v2 - 集成 ModuleLifecycle，路由切换时自动停用旧模块
  */
+import { ModuleLifecycle } from './module-lifecycle.js';
 
-const Router = (() => {
+
+export const Router = (() => {
   // 路由注册表
   const routes = {};
   // 当前路由
@@ -50,7 +52,7 @@ const Router = (() => {
     currentRoute = route;
 
     // ===== 生命周期管理：停用旧模块 =====
-    if (typeof ModuleLifecycle !== 'undefined') {
+    if (true) /* ModuleLifecycle always available via import */ {
       ModuleLifecycle.deactivateCurrent();
     }
 

@@ -3,8 +3,14 @@
  * 人生工作台 · 联系人管理与生日提醒
  * 支持 ABCD 四层分类 + 跟进频率提醒
  */
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+import { CrossLinker } from '../../core/cross-linker.js';
 
-const RelationsModule = (() => {
+
+export const RelationsModule = (() => {
   const { escapeHtml } = AppUtils;
 
   const STORE = 'contacts';
@@ -462,7 +468,7 @@ const RelationsModule = (() => {
     const note = noteInput.value.trim();
 
     if (!date) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请选择日期');
+      if (window.App?.showToast) window.App?.showToast('请选择日期');
       return;
     }
 
@@ -612,11 +618,11 @@ const RelationsModule = (() => {
     const customTypeInput = document.getElementById('rel-form-custom-type');
 
     if (!name) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入姓名');
+      if (window.App?.showToast) window.App?.showToast('请输入姓名');
       return;
     }
     if (!birthday || !/^\d{2}-\d{2}$/.test(birthday)) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入正确的生日格式（MM-DD）');
+      if (window.App?.showToast) window.App?.showToast('请输入正确的生日格式（MM-DD）');
       return;
     }
 
@@ -624,7 +630,7 @@ const RelationsModule = (() => {
     if (formType === '__custom__') {
       type = customTypeInput.value.trim();
       if (!type) {
-        if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入自定义类型');
+        if (window.App?.showToast) window.App?.showToast('请输入自定义类型');
         return;
       }
     }
@@ -671,10 +677,10 @@ const RelationsModule = (() => {
 
       closeForm();
       renderAll();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('保存成功 ✓');
+      if (window.App?.showToast) window.App?.showToast('保存成功 ✓');
     } catch (e) {
       console.error('[Relations] 保存失败:', e);
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('保存失败，请重试');
+      if (window.App?.showToast) window.App?.showToast('保存失败，请重试');
     }
   }
 
@@ -688,7 +694,7 @@ const RelationsModule = (() => {
       allContacts = allContacts.filter(c => c.id !== selectedContact.id);
       closeDetail();
       renderAll();
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('已删除');
+      if (window.App?.showToast) window.App?.showToast('已删除');
     } catch (e) {
       console.error('[Relations] 删除失败:', e);
     }
@@ -697,7 +703,7 @@ const RelationsModule = (() => {
   // ===== 导出 =====
   function exportData() {
     if (allContacts.length === 0) {
-      if (typeof App !== 'undefined' && App.showToast) App.showToast('没有数据可导出');
+      if (window.App?.showToast) window.App?.showToast('没有数据可导出');
       return;
     }
     const json = JSON.stringify(allContacts, null, 2);

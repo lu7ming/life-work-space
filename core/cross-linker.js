@@ -5,7 +5,11 @@
  * 当用户在某个模块操作时，自动从其他模块检索相关内容并推荐展示。
  * 纯本地关键词匹配，不调用任何 API，零成本。
  */
-const CrossLinker = (() => {
+import { Storage } from './storage.js';
+import { EventBus } from './event-bus.js';
+import { Router } from './router.js';
+
+export const CrossLinker = (() => {
   'use strict';
 
   // ========== 停用词 ==========
@@ -458,7 +462,7 @@ const CrossLinker = (() => {
     };
 
     const route = moduleRouteMap[moduleKey];
-    if (route && typeof Router !== 'undefined' && Router.navigate) {
+    if (route && Router.navigate) {
       Router.navigate(route);
     }
   }

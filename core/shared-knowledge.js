@@ -8,8 +8,10 @@
  *   - 持久化到 IndexedDB settings 表
  *   - 按AI类型生成上下文注入prompt
  */
+import { Storage } from './storage.js';
 
-const SharedKnowledge = (() => {
+
+export const SharedKnowledge = (() => {
   // ===== 常量 =====
   const MAX_ENTRIES = 100;           // LRU 最大条目数
   const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24小时过期

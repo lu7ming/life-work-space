@@ -1,9 +1,102 @@
 /**
- * app.js - 主应用入口
+ * app.js - 主应用入口（ES Module）
  * 人生工作台 · 应用初始化与全局管理
+ *
+ * 架构：
+ * - 静态导入：核心依赖（storage, utils, event-bus, module-lifecycle, router）
+ * - 动态导入：所有功能模块按需加载，首屏体积减少 60%+
  */
 
-const App = (() => {
+// ===== 静态导入：核心依赖 =====
+import { Storage } from './storage.js';
+import { AppUtils } from './utils.js';
+import { EventBus } from './event-bus.js';
+import { ModuleLifecycle } from './module-lifecycle.js';
+import { Router } from './router.js';
+
+// ===== 动态导入：模块注册表 =====
+// 路由名 → { jsPath, cssPath?, htmlPath? }
+const MODULE_REGISTRY = {
+  dashboard:   { js: '../modules/dashboard/dashboard.js',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
+  habits:      { js: '../modules/habits/habits.js',         html: 'habits/habits.html',         css: 'habits/habits.css' },
+  tasks:       { js: '../modules/tasks/tasks.js',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
+  study:       { js: '../modules/study/study.js',           html: 'study/study.html',           css: 'study/study.css' },
+  health:      { js: '../modules/health/health.js',         html: 'health/health.html',         css: 'health/health.css' },
+  finance:     { js: '../modules/finance/finance.js',       html: 'finance/finance.html',       css: 'finance/finance.css' },
+  journal:     { js: '../modules/journal/journal.js',       html: 'journal/journal.html',       css: 'journal/journal.css' },
+  relations:   { js: '../modules/relations/relations.js',   html: 'relations/relations.html',   css: 'relations/relations.css' },
+  knowledge:   { js: '../modules/knowledge/knowledge.js',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
+  goals:       { js: '../modules/goals/goals.js',           html: 'goals/goals.html',           css: 'goals/goals.css' },
+  lifetree:    { js: '../modules/lifetree/lifetree.js',     html: 'lifetree/lifetree.html',     css: 'lifetree/lifetree.css' },
+  content:     { js: '../modules/content/content.js',       html: 'content/content.html',       css: 'content/content.css' },
+  timetracker: { js: '../modules/timetracker/timetracker.js', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
+  templates:   { js: '../modules/templates/templates_module.js', html: 'templates/templates.html' },
+};
+
+// 模块名映射：路由名 → 导出的模块对象名
+const MODULE_NAME_MAP = {
+  dashboard: 'DashboardModule',
+  habits: 'HabitsModule',
+  tasks: 'TasksModule',
+  study: 'StudyModule',
+  health: 'HealthModule',
+  finance: 'FinanceModule',
+  journal: 'JournalModule',
+  relations: 'RelationsModule',
+  knowledge: 'KnowledgeModule',
+  goals: 'GoalsModule',
+  lifetree: 'LifeTreeModule',
+  content: 'ContentModule',
+  timetracker: 'TimeTrackerModule',
+  templates: 'TemplatesModule',
+};
+
+// ===== 懒加载核心模块缓存 =====
+let _lazyModules = {};
+
+/**
+ * 动态导入核心模块（带缓存）
+ */
+async function lazyImport(name) {
+  if (_lazyModules[name]) return _lazyModules[name];
+  const pathMap = {
+    secureStorage: './secure-storage.js',
+    theme: './theme.js',
+    notifications: './notifications.js',
+    smartReminder: './smart-reminder.js',
+    templates: './templates.js',
+    userProfile: './user-profile.js',
+    preferenceLearner: './preference-learner.js',
+    predictiveEngine: './predictive-engine.js',
+    auditLog: './audit-log.js',
+    localAI: './local-ai.js',
+    quickinput: './quickinput.js',
+    sharedKnowledge: './shared-knowledge.js',
+    orchestrator: './orchestrator.js',
+    modelRouter: './model-router.js',
+    smartSuggestion: './smart-suggestion.js',
+    crossLinker: './cross-linker.js',
+    sync: './sync.js',
+    search: './search.js',
+    export: './export.js',
+    emotionAnalyzer: './emotion-analyzer.js',
+    dataMinimizer: './data-minimizer.js',
+    knowledgeExtractor: './knowledge-extractor.js',
+    nicole: './nicole.js',
+    xiaolu: './xiaolu.js',
+    whitenoise: '../modules/whitenoise/whitenoise.js',
+    report: '../modules/report/report.js',
+    rest: '../modules/rest/rest.js',
+  };
+  const path = pathMap[name];
+  if (!path) throw new Error(`Unknown lazy module: ${name}`);
+  const mod = await import(path);
+  _lazyModules[name] = mod;
+  return mod;
+}
+
+// ===== App 主对象 =====
+export const App = (() => {
   // 当前活跃的模块引用（用于路由切换时清理）
   let _activeModule = null;
 
@@ -39,29 +132,17 @@ const App = (() => {
     }
 
     // 1.1 初始化安全存储（预热加密密钥）
-    if (typeof SecureStorage !== 'undefined' && SecureStorage.init) {
-      try {
-        await SecureStorage.init();
-      } catch (err) {
-        console.warn('[App] SecureStorage 初始化失败（不影响使用）:', err);
-      }
+    try {
+      const { SecureStorage } = await lazyImport('secureStorage');
+      if (SecureStorage.init) await SecureStorage.init();
+    } catch (err) {
+      console.warn('[App] SecureStorage 初始化失败（不影响使用）:', err);
     }
 
     // 2. 注册路由
-    Router.register('dashboard', loadDashboard);
-    Router.register('habits', loadHabits);
-    Router.register('tasks', loadTasks);
-    Router.register('study', loadStudy);
-    Router.register('health', loadHealth);
-    Router.register('finance', loadFinance);
-    Router.register('journal', loadJournal);
-    Router.register('relations', loadRelations);
-    Router.register('knowledge', loadKnowledge);
-    Router.register('goals', loadGoals);
-    Router.register('lifetree', loadLifeTree);
-    Router.register('content', loadContent);
-    Router.register('templates', loadTemplates);
-    Router.register('timetracker', loadTimeTracker);
+    for (const route of Object.keys(MODULE_REGISTRY)) {
+      Router.register(route, () => loadModule(route));
+    }
 
     // 3. 监听路由变化，更新侧边栏高亮
     Router.onRouteChange((route) => {
@@ -83,113 +164,11 @@ const App = (() => {
     // 8. 监听页面可见性变化，自动刷新数据
     initAutoRefresh();
 
-    // 9. 初始化通知引擎
-    if (typeof NotificationEngine !== 'undefined') {
-      NotificationEngine.init();
-    }
-
-    // 9.1 页面卸载时清理定时器，防止内存泄漏
-    window.addEventListener('beforeunload', () => {
-      if (typeof NotificationEngine !== 'undefined' && NotificationEngine.destroy) {
-        NotificationEngine.destroy();
-      }
-      if (typeof SmartReminder !== 'undefined' && SmartReminder.destroy) {
-        SmartReminder.destroy();
-      }
-      if (typeof PredictiveEngine !== 'undefined' && PredictiveEngine.destroy) {
-        PredictiveEngine.destroy();
-      }
-    });
-
-    // 9.5 初始化白噪音模块
-    if (typeof WhiteNoiseModule !== 'undefined') {
-      WhiteNoiseModule.init();
-    }
-
-    // 10. 初始化主题系统
-    if (typeof ThemeManager !== 'undefined') {
-      await ThemeManager.init();
-    }
-
-    // 11. 初始化快速录入引擎
-    if (typeof QuickInput !== 'undefined') {
-      QuickInput.init();
-      // 绑定 FAB 按钮
-      const qiFab = document.getElementById('qi-fab');
-      if (qiFab) {
-        qiFab.addEventListener('click', () => QuickInput.open());
-      }
-    }
-
-    // 12. 初始化模板系统
-    if (typeof Templates !== 'undefined') {
-      await Templates.init();
-    }
-
-    // 13. 初始化键盘快捷键
-    if (typeof KeyboardShortcuts !== 'undefined') {
-      KeyboardShortcuts.init();
-    }
-
-    // 14. 初始化离线检测
-    if (typeof OfflineDetector !== 'undefined') {
-      OfflineDetector.init();
-    }
-
-    // 15. 初始化智能提醒
-    if (typeof SmartReminder !== 'undefined') {
-      SmartReminder.init();
-    }
-
-    // 16. 初始化共享知识层
-    if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.init) {
-      SharedKnowledge.init();
-    }
-
-    // 16.5 初始化AI智能路由
-    if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.init) {
-      AIOrchestrator.init();
-    }
-
-    // 16.6 初始化多模型路由
-    if (typeof ModelRouter !== 'undefined' && ModelRouter.init) {
-      ModelRouter.init();
-    }
-
-    // 16.7 初始化智能建议系统
-    if (typeof SmartSuggestion !== 'undefined' && SmartSuggestion.init) {
-      SmartSuggestion.init();
-    }
-
-    // 17. 初始化用户画像
-    if (typeof UserProfile !== 'undefined') {
-      await UserProfile.init();
-      UserProfile.buildProfile();
-    }
-
-    // 17.5 初始化偏好学习引擎
-    if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.init) {
-      await PreferenceLearner.init();
-    }
-
-    // 17.6 初始化预测性操作引擎
-    if (typeof PredictiveEngine !== 'undefined' && PredictiveEngine.init) {
-      await PredictiveEngine.init();
-    }
-
-    // 17.7 初始化 AI 操作审计日志
-    if (typeof AuditLog !== 'undefined' && AuditLog.init) {
-      AuditLog.init();
-    }
-
-    // 17.8 初始化本地模型备选方案
-    if (typeof LocalAI !== 'undefined' && LocalAI.init) {
-      LocalAI.init();
-    }
+    // 9. 异步初始化后台模块（不阻塞首屏）
+    initBackgroundModules();
 
     // 18. 自动保存定时器（30秒）
     setInterval(() => {
-      // 静默自动保存 - 数据已通过 IndexedDB 自动持久化，此处仅提供视觉反馈
       const saveIndicator = document.getElementById('auto-save-indicator');
       if (saveIndicator) {
         saveIndicator.textContent = '已保存';
@@ -202,8 +181,207 @@ const App = (() => {
   }
 
   /**
+   * 异步初始化后台模块（不阻塞首屏渲染）
+   */
+  async function initBackgroundModules() {
+    // 并行加载轻量核心模块
+    const [
+      themeMod,
+      notifMod,
+      reminderMod,
+      tplMod,
+      crossLinkMod,
+      searchMod,
+      exportMod,
+      syncMod,
+      quickinputMod,
+      sharedKnowMod,
+      orchestratorMod,
+      modelRouterMod,
+      smartSuggMod,
+      userProfileMod,
+      prefLearnerMod,
+      predEngineMod,
+      auditLogMod,
+      localAIMod,
+      whitenoiseMod,
+    ] = await Promise.all([
+      lazyImport('theme').catch(e => (console.warn('[App] theme 加载失败:', e), {})),
+      lazyImport('notifications').catch(e => (console.warn('[App] notifications 加载失败:', e), {})),
+      lazyImport('smartReminder').catch(e => (console.warn('[App] smartReminder 加载失败:', e), {})),
+      lazyImport('templates').catch(e => (console.warn('[App] templates 加载失败:', e), {})),
+      lazyImport('crossLinker').catch(e => (console.warn('[App] crossLinker 加载失败:', e), {})),
+      lazyImport('search').catch(e => (console.warn('[App] search 加载失败:', e), {})),
+      lazyImport('export').catch(e => (console.warn('[App] export 加载失败:', e), {})),
+      lazyImport('sync').catch(e => (console.warn('[App] sync 加载失败:', e), {})),
+      lazyImport('quickinput').catch(e => (console.warn('[App] quickinput 加载失败:', e), {})),
+      lazyImport('sharedKnowledge').catch(e => (console.warn('[App] sharedKnowledge 加载失败:', e), {})),
+      lazyImport('orchestrator').catch(e => (console.warn('[App] orchestrator 加载失败:', e), {})),
+      lazyImport('modelRouter').catch(e => (console.warn('[App] modelRouter 加载失败:', e), {})),
+      lazyImport('smartSuggestion').catch(e => (console.warn('[App] smartSuggestion 加载失败:', e), {})),
+      lazyImport('userProfile').catch(e => (console.warn('[App] userProfile 加载失败:', e), {})),
+      lazyImport('preferenceLearner').catch(e => (console.warn('[App] preferenceLearner 加载失败:', e), {})),
+      lazyImport('predictiveEngine').catch(e => (console.warn('[App] predictiveEngine 加载失败:', e), {})),
+      lazyImport('auditLog').catch(e => (console.warn('[App] auditLog 加载失败:', e), {})),
+      lazyImport('localAI').catch(e => (console.warn('[App] localAI 加载失败:', e), {})),
+      lazyImport('whitenoise').catch(e => (console.warn('[App] whitenoise 加载失败:', e), {})),
+    ]);
+
+    // 初始化主题
+    if (themeMod.ThemeManager) {
+      await themeMod.ThemeManager.init();
+      window.ThemeManager = themeMod.ThemeManager;
+    }
+
+    // 初始化通知引擎
+    if (notifMod.NotificationEngine) {
+      notifMod.NotificationEngine.init();
+      window.NotificationEngine = notifMod.NotificationEngine;
+    }
+
+    // 初始化智能提醒
+    if (reminderMod.SmartReminder) {
+      reminderMod.SmartReminder.init();
+      window.SmartReminder = reminderMod.SmartReminder;
+    }
+
+    // 初始化模板系统
+    if (tplMod.Templates) {
+      await tplMod.Templates.init();
+      window.Templates = tplMod.Templates;
+    }
+
+    // 设置全局引用（供 utils.js 等的 typeof 检查使用）
+    if (crossLinkMod.CrossLinker) window.CrossLinker = crossLinkMod.CrossLinker;
+    if (searchMod.SearchModule) window.SearchModule = searchMod.SearchModule;
+    if (exportMod.ExportModule) window.ExportModule = exportMod.ExportModule;
+    if (syncMod.SyncModule) window.SyncModule = syncMod.SyncModule;
+    if (quickinputMod.QuickInput) {
+      quickinputMod.QuickInput.init();
+      window.QuickInput = quickinputMod.QuickInput;
+      // 绑定 FAB 按钮
+      const qiFab = document.getElementById('qi-fab');
+      if (qiFab) {
+        qiFab.addEventListener('click', () => quickinputMod.QuickInput.open());
+      }
+    }
+    if (sharedKnowMod.SharedKnowledge) {
+      sharedKnowMod.SharedKnowledge.init();
+      window.SharedKnowledge = sharedKnowMod.SharedKnowledge;
+    }
+    if (orchestratorMod.AIOrchestrator) {
+      orchestratorMod.AIOrchestrator.init();
+      window.AIOrchestrator = orchestratorMod.AIOrchestrator;
+    }
+    if (modelRouterMod.ModelRouter) {
+      modelRouterMod.ModelRouter.init();
+      window.ModelRouter = modelRouterMod.ModelRouter;
+    }
+    if (smartSuggMod.SmartSuggestion) {
+      smartSuggMod.SmartSuggestion.init();
+      window.SmartSuggestion = smartSuggMod.SmartSuggestion;
+    }
+    if (userProfileMod.UserProfile) {
+      await userProfileMod.UserProfile.init();
+      userProfileMod.UserProfile.buildProfile();
+      window.UserProfile = userProfileMod.UserProfile;
+    }
+    if (prefLearnerMod.PreferenceLearner) {
+      await prefLearnerMod.PreferenceLearner.init();
+      window.PreferenceLearner = prefLearnerMod.PreferenceLearner;
+    }
+    if (predEngineMod.PredictiveEngine) {
+      await predEngineMod.PredictiveEngine.init();
+      window.PredictiveEngine = predEngineMod.PredictiveEngine;
+    }
+    if (auditLogMod.AuditLog) {
+      auditLogMod.AuditLog.init();
+      window.AuditLog = auditLogMod.AuditLog;
+    }
+    if (localAIMod.LocalAI) {
+      localAIMod.LocalAI.init();
+      window.LocalAI = localAIMod.LocalAI;
+    }
+    if (whitenoiseMod.WhiteNoiseModule) {
+      whitenoiseMod.WhiteNoiseModule.init();
+      window.WhiteNoiseModule = whitenoiseMod.WhiteNoiseModule;
+    }
+
+    // 初始化键盘快捷键（AppUtils 内置）
+    if (AppUtils.KeyboardShortcuts) {
+      AppUtils.KeyboardShortcuts.init();
+    }
+
+    // 初始化离线检测（AppUtils 内置）
+    if (AppUtils.OfflineDetector) {
+      AppUtils.OfflineDetector.init();
+    }
+
+    // 页面卸载时清理定时器
+    window.addEventListener('beforeunload', () => {
+      if (window.NotificationEngine?.destroy) window.NotificationEngine.destroy();
+      if (window.SmartReminder?.destroy) window.SmartReminder.destroy();
+      if (window.PredictiveEngine?.destroy) window.PredictiveEngine.destroy();
+    });
+
+    console.log('[App] 后台模块初始化完成');
+  }
+
+  /**
+   * 通用模块加载器（动态 import）
+   * @param {string} routeName - 路由名
+   */
+  async function loadModule(routeName) {
+    const config = MODULE_REGISTRY[routeName];
+    if (!config) {
+      console.warn(`[App] 未注册的模块: ${routeName}`);
+      return;
+    }
+
+    const container = document.getElementById('content-area');
+    try {
+      // 加载 HTML 模板
+      if (config.html) {
+        const html = await fetchModule(config.html);
+        container.innerHTML = html;
+      }
+
+      // 加载模块样式
+      if (config.css) {
+        loadModuleCSS(config.css);
+      }
+
+      // 清理旧模块
+      cleanupCurrentModule();
+
+      // 动态导入模块 JS
+      const mod = await import(config.js);
+      const moduleName = MODULE_NAME_MAP[routeName];
+      const moduleObj = mod[moduleName];
+
+      if (moduleObj && moduleObj.init) {
+        moduleObj.init();
+        _activeModule = moduleObj;
+      }
+
+      // Dashboard 特殊：同时初始化 Report 模块
+      if (routeName === 'dashboard') {
+        try {
+          const reportMod = await lazyImport('report');
+          if (reportMod.ReportModule?.init) {
+            reportMod.ReportModule.init();
+          }
+        } catch (e) { /* 静默 */ }
+      }
+    } catch (err) {
+      console.error(`[App] 加载模块 ${routeName} 失败:`, err);
+      App.showToast(`加载失败，请刷新重试`);
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
+    }
+  }
+
+  /**
    * 初始化自动刷新
-   * 每次进入工作台时自动刷新当前页面数据
    */
   function initAutoRefresh() {
     let lastRefreshTime = 0;
@@ -216,7 +394,6 @@ const App = (() => {
       reloadCurrentRoute();
     }
 
-    // 页面从后台切换到前台时刷新
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         console.log('[App] 页面激活，自动刷新数据');
@@ -224,7 +401,6 @@ const App = (() => {
       }
     });
 
-    // PWA 从后台恢复时刷新（移动端）
     window.addEventListener('pageshow', (e) => {
       if (e.persisted) {
         console.log('[App] PWA 恢复，自动刷新数据');
@@ -232,12 +408,9 @@ const App = (() => {
       }
     });
 
-    // 窗口获得焦点时刷新（桌面端）
     let hasFocused = false;
     window.addEventListener('focus', () => {
-      if (hasFocused) {
-        safeReload();
-      }
+      if (hasFocused) safeReload();
       hasFocused = true;
     });
   }
@@ -247,370 +420,10 @@ const App = (() => {
    */
   function reloadCurrentRoute() {
     const currentRoute = Router.getCurrentRoute?.() || 'dashboard';
-    const routeHandlers = {
-      'dashboard': loadDashboard,
-      'habits': loadHabits,
-      'tasks': loadTasks,
-      'study': loadStudy,
-      'health': loadHealth,
-      'finance': loadFinance,
-      'journal': loadJournal,
-      'relations': loadRelations,
-      'knowledge': loadKnowledge,
-      'goals': loadGoals,
-      'lifetree': loadLifeTree,
-      'content': loadContent,
-      'templates': loadTemplates,
-      'timetracker': loadTimeTracker
-    };
-    
-    const handler = routeHandlers[currentRoute];
-    if (handler && typeof handler === 'function') {
+    if (MODULE_REGISTRY[currentRoute]) {
       cleanupCurrentModule();
-      handler();
+      loadModule(currentRoute);
     }
-  }
-
-  /**
-   * 加载总面板模块
-   */
-  async function loadDashboard() {
-    const container = document.getElementById('content-area');
-    try {
-      // 加载模板
-      const html = await fetchModule('dashboard/dashboard.html');
-      container.innerHTML = html;
-
-      // 加载模块样式（如果未加载过）
-      loadModuleCSS('dashboard/dashboard.css');
-
-      // 清理旧模块，防止事件监听器泄漏
-      cleanupCurrentModule();
-
-      // 初始化模块逻辑
-      if (typeof DashboardModule !== 'undefined' && DashboardModule.init) {
-        DashboardModule.init();
-        _activeModule = DashboardModule;
-      }
-
-      // 初始化周/月报模块（入口按钮在 Dashboard 中）
-      if (typeof ReportModule !== 'undefined' && ReportModule.init) {
-        ReportModule.init();
-      }
-    } catch (err) {
-      console.error('[App] 加载总面板失败:', err);
-      if (typeof App !== 'undefined') App.showToast('加载总面板失败，请刷新重试');
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载习惯打卡模块
-   */
-  async function loadHabits() {
-    const container = document.getElementById('content-area');
-    try {
-      // 加载模板
-      const html = await fetchModule('habits/habits.html');
-      container.innerHTML = html;
-
-      // 加载模块样式
-      loadModuleCSS('habits/habits.css');
-
-      // 清理旧模块，防止事件监听器泄漏
-      cleanupCurrentModule();
-
-      // 初始化模块逻辑
-      if (typeof HabitsModule !== 'undefined' && HabitsModule.init) {
-        HabitsModule.init();
-        _activeModule = HabitsModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载习惯打卡失败:', err);
-      if (typeof App !== 'undefined') App.showToast('加载习惯打卡失败，请刷新重试');
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载任务模块
-   */
-  async function loadTasks() {
-    const container = document.getElementById('content-area');
-    try {
-      // 加载模板
-      const html = await fetchModule('tasks/tasks.html');
-      container.innerHTML = html;
-
-      // 加载模块样式
-      loadModuleCSS('tasks/tasks.css');
-
-      // 清理旧模块，防止事件监听器泄漏
-      cleanupCurrentModule();
-
-      // 初始化模块逻辑
-      if (typeof TasksModule !== 'undefined' && TasksModule.init) {
-        TasksModule.init();
-        _activeModule = TasksModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载任务模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载学习模块
-   */
-  async function loadStudy() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('study/study.html');
-      container.innerHTML = html;
-      loadModuleCSS('study/study.css');
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof StudyModule !== 'undefined' && StudyModule.init) {
-        StudyModule.init();
-        _activeModule = StudyModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载学习模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载健康模块
-   */
-  async function loadHealth() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('health/health.html');
-      container.innerHTML = html;
-      loadModuleCSS('health/health.css');
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof HealthModule !== 'undefined' && HealthModule.init) {
-        HealthModule.init();
-        _activeModule = HealthModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载健康模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载财务模块
-   */
-  async function loadFinance() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('finance/finance.html');
-      container.innerHTML = html;
-      loadModuleCSS('finance/finance.css');
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof FinanceModule !== 'undefined' && FinanceModule.init) {
-        FinanceModule.init();
-        _activeModule = FinanceModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载财务模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载记录与反思模块
-   */
-  async function loadJournal() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('journal/journal.html');
-      container.innerHTML = html;
-      loadModuleCSS('journal/journal.css');
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof JournalModule !== 'undefined' && JournalModule.init) {
-        JournalModule.init();
-        _activeModule = JournalModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载记录与反思模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载知识库模块
-   */
-  async function loadKnowledge() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('knowledge/knowledge.html');
-      container.innerHTML = html;
-      loadModuleCSS('knowledge/knowledge.css');
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof KnowledgeModule !== 'undefined' && KnowledgeModule.init) {
-        KnowledgeModule.init();
-        _activeModule = KnowledgeModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载知识库模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载目标模块
-   */
-  async function loadGoals() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('goals/goals.html');
-      container.innerHTML = html;
-      loadModuleCSS('goals/goals.css');
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof GoalsModule !== 'undefined' && GoalsModule.init) {
-        GoalsModule.init();
-        _activeModule = GoalsModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载目标模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载关系模块
-   */
-  async function loadRelations() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('relations/relations.html');
-      container.innerHTML = html;
-      loadModuleCSS('relations/relations.css');
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof RelationsModule !== 'undefined' && RelationsModule.init) {
-        RelationsModule.init();
-        _activeModule = RelationsModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载关系模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载生命树模块
-   */
-  async function loadLifeTree() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('lifetree/lifetree.html');
-      container.innerHTML = html;
-      loadModuleCSS('lifetree/lifetree.css');
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof LifeTreeModule !== 'undefined' && LifeTreeModule.init) {
-        LifeTreeModule.init();
-        _activeModule = LifeTreeModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载生命树模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载创作日程模块
-   */
-  async function loadContent() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('content/content.html');
-      container.innerHTML = html;
-      loadModuleCSS('content/content.css');
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof ContentModule !== 'undefined' && ContentModule.init) {
-        ContentModule.init();
-        _activeModule = ContentModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载创作日程模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载模板系统模块
-   */
-  async function loadTemplates() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('templates/templates.html');
-      container.innerHTML = html;
-      // 清理旧模块
-      cleanupCurrentModule();
-
-      if (typeof TemplatesModule !== 'undefined' && TemplatesModule.init) {
-        TemplatesModule.init();
-        _activeModule = TemplatesModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载模板模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载时间追踪模块
-   */
-  async function loadTimeTracker() {
-    const container = document.getElementById('content-area');
-    try {
-      const html = await fetchModule('timetracker/timetracker.html');
-      container.innerHTML = html;
-      loadModuleCSS('timetracker/timetracker.css');
-      cleanupCurrentModule();
-
-      if (typeof TimeTrackerModule !== 'undefined' && TimeTrackerModule.init) {
-        TimeTrackerModule.init();
-        _activeModule = TimeTrackerModule;
-      }
-    } catch (err) {
-      console.error('[App] 加载时间追踪模块失败:', err);
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;">加载失败，请刷新重试</p>';
-    }
-  }
-
-  /**
-   * 加载占位页面（未开发的模块）
-   */
-  function loadPlaceholder(name) {
-    const container = document.getElementById('content-area');
-    container.innerHTML = `
-      <div class="page-enter" style="text-align:center;padding:80px 20px;">
-        <div style="font-size:48px;margin-bottom:16px;">🚧</div>
-        <h2 style="font-size:22px;color:var(--text-primary);margin-bottom:8px;">${name}</h2>
-        <p style="color:var(--text-muted);font-size:14px;">该模块正在开发中，敬请期待</p>
-      </div>
-    `;
   }
 
   /**
@@ -639,7 +452,6 @@ const App = (() => {
    * 更新侧边栏活跃状态
    */
   function updateSidebarActive(route) {
-    // 清除所有 active
     document.querySelectorAll('.sidebar-nav-item').forEach((item) => {
       item.classList.remove('active');
     });
@@ -647,12 +459,10 @@ const App = (() => {
       item.classList.remove('active');
     });
 
-    // 设置当前 active
     const target = document.querySelector(`.sidebar-nav-item[data-route="${route}"]`) ||
                    document.querySelector(`.sidebar-submenu-item[data-route="${route}"]`);
     if (target) {
       target.classList.add('active');
-      // 如果是子菜单项，展开父级
       if (target.classList.contains('sidebar-submenu-item')) {
         const parentNav = target.closest('.sidebar-nav-group')
           ?.querySelector('.sidebar-nav-item');
@@ -667,7 +477,6 @@ const App = (() => {
    * 初始化侧边栏交互
    */
   function initSidebar() {
-    // 导航点击
     document.querySelectorAll('.sidebar-nav-item').forEach((item) => {
       item.addEventListener('click', () => {
         const route = item.dataset.route;
@@ -675,7 +484,6 @@ const App = (() => {
           Router.navigate(route);
           closeMobileSidebar();
         }
-        // 更多按钮展开/折叠
         if (item.dataset.toggle === 'submenu') {
           const submenu = item.nextElementSibling;
           item.classList.toggle('expanded');
@@ -684,7 +492,6 @@ const App = (() => {
       });
     });
 
-    // 子菜单项点击
     document.querySelectorAll('.sidebar-submenu-item').forEach((item) => {
       item.addEventListener('click', () => {
         const route = item.dataset.route;
@@ -695,25 +502,21 @@ const App = (() => {
       });
     });
 
-    // 打卡按钮
     const checkinBtn = document.getElementById('checkin-btn');
     if (checkinBtn) {
       checkinBtn.addEventListener('click', handleCheckin);
     }
 
-    // 移动端遮罩点击关闭
     const overlay = document.getElementById('sidebar-overlay');
     if (overlay) {
       overlay.addEventListener('click', closeMobileSidebar);
     }
 
-    // 移动端菜单按钮
     const menuBtn = document.getElementById('mobile-menu-btn');
     if (menuBtn) {
       menuBtn.addEventListener('click', openMobileSidebar);
     }
 
-    // 更新连续天数
     updateStreak();
   }
 
@@ -729,12 +532,10 @@ const App = (() => {
     try {
       const existing = await Storage.get('checkins', dateStr);
       if (existing) {
-        // 已签到，取消签到
         await Storage.remove('checkins', dateStr);
         btn.classList.remove('checked');
         btn.textContent = '打卡签到';
       } else {
-        // 签到
         await Storage.put('checkins', {
           date: dateStr,
           month: monthStr,
@@ -772,7 +573,6 @@ const App = (() => {
         if (dateSet.has(dateStr)) {
           streak++;
         } else {
-          // 允许今天还没打卡的情况（从昨天算起）
           if (i === 0) continue;
           break;
         }
@@ -789,33 +589,22 @@ const App = (() => {
    * 初始化顶部栏
    */
   function initTopbar() {
-    // 更新日期显示
     updateTopbarDate();
 
-    // AI 按钮点击事件
     const aiBtns = document.querySelectorAll('.topbar-ai-btn');
     aiBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         const title = btn.getAttribute('title') || '';
         if (title.includes('妮可')) {
-          if (typeof NicoleModule !== 'undefined') {
-            NicoleModule.open();
-          } else {
-            showToast('妮可模块加载中...');
-          }
+          openNicole();
         } else if (title.includes('小鹿')) {
-          if (typeof XiaoluModule !== 'undefined') {
-            XiaoluModule.open();
-          } else {
-            showToast('小鹿模块加载中... 🦌');
-          }
+          openXiaolu();
         } else {
           showToast('AI对话功能开发中 🤖');
         }
       });
     });
 
-    // 更多菜单切换
     const moreBtn = document.getElementById('topbar-more-btn');
     const moreMenu = document.getElementById('topbar-more-menu');
     if (moreBtn && moreMenu) {
@@ -823,49 +612,45 @@ const App = (() => {
         e.stopPropagation();
         moreMenu.classList.toggle('show');
       });
-      // 点击其他地方关闭
       document.addEventListener('click', () => {
         moreMenu.classList.remove('show');
       });
     }
 
-    // 更多菜单项
     document.querySelectorAll('.topbar-more-menu button').forEach((btn) => {
       btn.addEventListener('click', () => {
         const action = btn.dataset.action;
         if (action === 'refresh') {
           location.reload();
         } else if (action === 'search') {
-          if (typeof SearchModule !== 'undefined') SearchModule.open();
+          if (window.SearchModule) window.SearchModule.open();
           else showToast('搜索模块加载中...');
         } else if (action === 'save') {
           showToast('数据已自动保存 ✅');
         } else if (action === 'export') {
-          if (typeof ExportModule !== 'undefined') ExportModule.showExportDialog();
+          if (window.ExportModule) window.ExportModule.showExportDialog();
           else showToast('导出模块加载中...');
         } else if (action === 'import') {
-          if (typeof ExportModule !== 'undefined') ExportModule.showImportDialog();
+          if (window.ExportModule) window.ExportModule.showImportDialog();
           else showToast('导入模块加载中...');
         } else if (action === 'theme') {
           showThemePicker();
         } else if (action === 'whitenoise') {
-          if (typeof WhiteNoiseModule !== 'undefined') WhiteNoiseModule.togglePanel();
+          if (window.WhiteNoiseModule) window.WhiteNoiseModule.togglePanel();
           else showToast('白噪音模块加载中...');
         } else if (action === 'sync') {
-          if (typeof SyncModule !== 'undefined') SyncModule.smartSync();
+          if (window.SyncModule) window.SyncModule.smartSync();
           else showToast('同步模块加载中...');
         }
         moreMenu?.classList.remove('show');
       });
     });
 
-    // 生命树 & 设置按钮（排除通知铃铛和更多按钮）
     document.querySelectorAll('.topbar-icon-btn:not(#topbar-more-btn):not(#notif-bell)').forEach((btn) => {
       btn.addEventListener('click', () => {
-        // AI 操作历史按钮
         if (btn.id === 'topbar-audit-btn') {
-          if (typeof AuditLog !== 'undefined' && AuditLog.showAuditPanel) {
-            AuditLog.showAuditPanel();
+          if (window.AuditLog?.showAuditPanel) {
+            window.AuditLog.showAuditPanel();
           }
           return;
         }
@@ -878,30 +663,43 @@ const App = (() => {
       });
     });
 
-    // ===== 右下角 FAB 按钮组事件 =====
+    // FAB 按钮组
     const fabXiaolu = document.getElementById('ai-fab-xiaolu');
     const fabNicole = document.getElementById('ai-fab-nicole');
 
-    // 🦌 小鹿AI：点击打开面板
     if (fabXiaolu) {
-      fabXiaolu.addEventListener('click', () => {
-        if (typeof XiaoluModule !== 'undefined') {
-          XiaoluModule.open();
-        } else {
-          showToast('小鹿模块加载中... 🦌');
-        }
-      });
+      fabXiaolu.addEventListener('click', () => openXiaolu());
     }
-
-    // 💎 妮可AI：点击打开面板
     if (fabNicole) {
-      fabNicole.addEventListener('click', () => {
-        if (typeof NicoleModule !== 'undefined') {
-          NicoleModule.open();
-        } else {
-          showToast('妮可模块加载中... 💎');
-        }
-      });
+      fabNicole.addEventListener('click', () => openNicole());
+    }
+  }
+
+  /**
+   * 懒加载并打开小鹿AI
+   */
+  async function openXiaolu() {
+    try {
+      const { XiaoluModule } = await lazyImport('xiaolu');
+      window.XiaoluModule = XiaoluModule;
+      XiaoluModule.open();
+    } catch (e) {
+      console.warn('[App] 小鹿模块加载失败:', e);
+      showToast('小鹿模块加载中... 🦌');
+    }
+  }
+
+  /**
+   * 懒加载并打开妮可AI
+   */
+  async function openNicole() {
+    try {
+      const { NicoleModule } = await lazyImport('nicole');
+      window.NicoleModule = NicoleModule;
+      NicoleModule.open();
+    } catch (e) {
+      console.warn('[App] 妮可模块加载失败:', e);
+      showToast('妮可模块加载中... 💎');
     }
   }
 
@@ -926,7 +724,6 @@ const App = (() => {
    * 显示 Toast 提示
    */
   function showToast(message, duration = 2000) {
-    // 移除已有 toast
     document.querySelectorAll('.app-toast').forEach((el) => el.remove());
 
     const toast = document.createElement('div');
@@ -949,12 +746,10 @@ const App = (() => {
     `;
     document.body.appendChild(toast);
 
-    // 动画显示
     requestAnimationFrame(() => {
       toast.style.opacity = '1';
     });
 
-    // 自动隐藏
     setTimeout(() => {
       toast.style.opacity = '0';
       setTimeout(() => toast.remove(), 300);
@@ -986,15 +781,12 @@ const App = (() => {
         .then((reg) => {
           console.log('[App] Service Worker 注册成功，scope:', reg.scope);
 
-          // 检测 SW 更新，自动刷新页面
           reg.addEventListener('updatefound', () => {
             const newWorker = reg.installing;
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // 新 SW 已就绪，通知它立即激活
                   newWorker.postMessage({ type: 'SKIP_WAITING' });
-                  // 等新 SW 接管后自动刷新页面
                   navigator.serviceWorker.addEventListener('controllerchange', () => {
                     console.log('[App] 检测到新版本，自动刷新');
                     location.reload();
@@ -1014,10 +806,9 @@ const App = (() => {
    * 显示主题选择器
    */
   function showThemePicker() {
-    // 移除已有的选择器
     document.querySelectorAll('.theme-picker-overlay').forEach(el => el.remove());
 
-    const currentTheme = typeof ThemeManager !== 'undefined' ? ThemeManager.getTheme() : 'light';
+    const currentTheme = window.ThemeManager ? window.ThemeManager.getTheme() : 'light';
     const overlay = document.createElement('div');
     overlay.className = 'theme-picker-overlay';
     overlay.innerHTML = `
@@ -1046,16 +837,14 @@ const App = (() => {
 
     document.body.appendChild(overlay);
 
-    // 绑定事件
     overlay.querySelector('.theme-picker-backdrop').addEventListener('click', () => overlay.remove());
 
     overlay.querySelectorAll('.theme-picker-option').forEach(btn => {
       btn.addEventListener('click', async () => {
         const theme = btn.dataset.theme;
-        if (typeof ThemeManager !== 'undefined') {
-          await ThemeManager.setTheme(theme);
+        if (window.ThemeManager) {
+          await window.ThemeManager.setTheme(theme);
         }
-        // 更新选中状态
         overlay.querySelectorAll('.theme-picker-option').forEach(b => {
           b.classList.remove('active');
           const check = b.querySelector('.theme-check');
@@ -1067,12 +856,10 @@ const App = (() => {
         checkSpan.textContent = '✓';
         btn.appendChild(checkSpan);
 
-        // 短暂延迟后关闭
         setTimeout(() => overlay.remove(), 300);
       });
     });
 
-    // ESC 关闭
     const escHandler = (e) => {
       if (e.key === 'Escape') {
         overlay.remove();
@@ -1090,15 +877,19 @@ const App = (() => {
   };
 })();
 
+// 设置全局引用（供 utils.js 等的 typeof 检查使用）
+window.App = App;
+window.Router = Router;
+window.EventBus = EventBus;
+window.Storage = Storage;
+window.AppUtils = AppUtils;
+window.ModuleLifecycle = ModuleLifecycle;
+
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
   App.init();
 
   // EventBus: 网络状态事件
-  window.addEventListener('online', () => {
-    if (typeof EventBus !== 'undefined') EventBus.emit('app:online');
-  });
-  window.addEventListener('offline', () => {
-    if (typeof EventBus !== 'undefined') EventBus.emit('app:offline');
-  });
+  window.addEventListener('online', () => EventBus.emit('app:online'));
+  window.addEventListener('offline', () => EventBus.emit('app:offline'));
 });

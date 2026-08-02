@@ -2,8 +2,13 @@
  * report.js - 周/月报自动生成模块
  * 人生工作台 · 多模块数据汇总 + AI 总结
  */
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { SecureStorage } from '../../core/secure-storage.js';
 
-const ReportModule = (() => {
+
+export const ReportModule = (() => {
   // ===== 事件监听追踪 =====
   let _eventListeners = [];
   let _overlayEl = null;       // 报告面板 overlay
@@ -371,11 +376,11 @@ const ReportModule = (() => {
    */
   async function getDeepseekToken() {
     try {
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.getAPIKey) {
-        return await SecureStorage.getAPIKey('deepseek_api_key');
+      if (window.SecureStorage?.getAPIKey) {
+        return await window.SecureStorage?.getAPIKey('deepseek_api_key');
       }
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
-        return await SecureStorage.loadSecure('deepseek_token');
+      if (window.SecureStorage?.loadSecure) {
+        return await window.SecureStorage?.loadSecure('deepseek_token');
       }
       const setting = await Storage.get('settings', 'deepseek_token');
       return setting ? setting.value : null;
@@ -856,13 +861,13 @@ ${dataDesc}
       if (textarea) {
         try {
           await navigator.clipboard.writeText(textarea.value);
-          if (typeof App !== 'undefined') App.showToast('已复制到剪贴板 ✅');
+          if (window.App) window.App?.showToast('已复制到剪贴板 ✅');
           else alert('已复制到剪贴板');
         } catch (e) {
           // 降级：选中文本
           textarea.select();
           document.execCommand('copy');
-          if (typeof App !== 'undefined') App.showToast('已复制到剪贴板 ✅');
+          if (window.App) window.App?.showToast('已复制到剪贴板 ✅');
         }
       }
     });

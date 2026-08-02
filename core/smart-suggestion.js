@@ -3,8 +3,13 @@
  * 人生工作台 · 基于数据分析的可操作建议
  * 分析用户数据，生成优先级排序的建议卡片，支持操作路由
  */
+import { AppUtils } from './utils.js';
+import { Storage } from './storage.js';
+import { Router } from './router.js';
+import { EventBus } from './event-bus.js';
 
-const SmartSuggestion = (() => {
+
+export const SmartSuggestion = (() => {
   // ===== 常量 =====
   const MAX_SUGGESTIONS = 3;       // 最多显示 3 条建议
   const CACHE_TTL = 60 * 60 * 1000; // 缓存 1 小时
@@ -120,7 +125,7 @@ const SmartSuggestion = (() => {
   let _updateTimer = null;         // 定时更新定时器
 
   // ===== AppUtils 快捷引用 =====
-  const { getTodayStr, getWeekRange } = typeof AppUtils !== 'undefined' ? AppUtils : { getTodayStr: () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }, getWeekRange: () => { const n = new Date(); const d = new Date(n); d.setDate(d.getDate() - d.getDay()); const fmtDate = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; return { start: fmtDate(d), end: fmtDate(n) }; } };
+  const { getTodayStr, getWeekRange } = true ? AppUtils : { getTodayStr: () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }, getWeekRange: () => { const n = new Date(); const d = new Date(n); d.setDate(d.getDate() - d.getDay()); const fmtDate = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; return { start: fmtDate(d), end: fmtDate(n) }; } };
 
   /**
    * 收集数据（复用 NicoleModule 的 collectData 逻辑，独立实现以避免循环依赖）
@@ -397,7 +402,7 @@ const SmartSuggestion = (() => {
 
     switch (actionType) {
       case 'navigate':
-        if (route && typeof Router !== 'undefined' && Router.navigate) {
+        if (route && Router.navigate) {
           Router.navigate(route);
         }
         break;

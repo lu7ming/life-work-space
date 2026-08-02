@@ -2,8 +2,12 @@
  * search.js - 全局搜索模块
  * 人生工作台 · 跨模块关键词搜索 + 快捷指令导航
  */
+import { AppUtils } from './utils.js';
+import { Storage } from './storage.js';
+import { Router } from './router.js';
 
-const SearchModule = (() => {
+
+export const SearchModule = (() => {
   const { escapeHtml } = AppUtils;
 
   let panelEl = null;
@@ -203,7 +207,7 @@ const SearchModule = (() => {
       _bindEvent(el, 'click', () => {
         const route = el.dataset.route;
         if (route) {
-          Router.navigate(route);
+          window.Router?.navigate(route);
           close();
         }
       });
@@ -226,7 +230,7 @@ const SearchModule = (() => {
    * 执行指令（导航跳转）
    */
   function executeCommand(cmd) {
-    Router.navigate(cmd.route);
+    window.Router?.navigate(cmd.route);
     close();
   }
 
@@ -287,7 +291,7 @@ const SearchModule = (() => {
       _bindEvent(el, 'click', () => {
         const route = el.dataset.route;
         if (route) {
-          Router.navigate(route);
+          window.Router?.navigate(route);
           close();
         }
       });

@@ -3,8 +3,17 @@
  * 人生工作台 · 首页数据渲染与交互
  * v38 - 智能聚焦：根据时段自动切换首页内容
  */
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+import { CrossLinker } from '../../core/cross-linker.js';
+import { Router } from '../../core/router.js';
+import { SmartSuggestion } from '../../core/smart-suggestion.js';
+import { ReportModule } from '../report/report.js';
 
-const DashboardModule = (() => {
+
+export const DashboardModule = (() => {
   const { escapeHtml, getTodayStr } = AppUtils;
 
   // ===== F1: 今日聚焦状态 =====
@@ -143,7 +152,7 @@ const DashboardModule = (() => {
       startSmartFocusTimer();
     } catch (err) {
       console.error('[Dashboard] 初始化失败:', err);
-      if (typeof App !== 'undefined') App.showToast('总览加载失败，请刷新重试');
+      if (window.App) window.App?.showToast('总览加载失败，请刷新重试');
     }
   }
 
@@ -666,7 +675,7 @@ const DashboardModule = (() => {
           await renderSmartFocus();
 
           // 通知习惯模块
-          if (typeof EventBus !== 'undefined') {
+          if (true) /* EventBus always available via import */ {
             EventBus.emit('habit:checked', { habitId, date: todayStr });
           }
         } catch (e) {
@@ -702,9 +711,9 @@ const DashboardModule = (() => {
     if (!container) return;
 
     // 确保 SmartSuggestion 已初始化
-    if (typeof SmartSuggestion !== 'undefined' && SmartSuggestion.renderSuggestions) {
+    if (window.SmartSuggestion?.renderSuggestions) {
       try {
-        await SmartSuggestion.renderSuggestions(container);
+        await window.SmartSuggestion?.renderSuggestions(container);
       } catch (e) {
         console.warn('[Dashboard] 智能建议渲染失败:', e);
         container.style.display = 'none';
@@ -723,13 +732,13 @@ const DashboardModule = (() => {
     if (!container) return;
 
     // 确保 PredictiveEngine 可用
-    if (typeof PredictiveEngine === 'undefined' || !PredictiveEngine.getPredictions) {
+    if (!window.PredictiveEngine || !window.PredictiveEngine?.getPredictions) {
       container.style.display = 'none';
       return;
     }
 
     try {
-      const predictions = await PredictiveEngine.getPredictions();
+      const predictions = await window.PredictiveEngine?.getPredictions();
 
       if (!predictions || predictions.length === 0) {
         container.style.display = 'none';
@@ -766,12 +775,12 @@ const DashboardModule = (() => {
           const prediction = predictions.find(p => p.id === predId);
           if (prediction) {
             // 记录「有用」反馈
-            if (PredictiveEngine.recordFeedback) {
-              PredictiveEngine.recordFeedback(predId, true);
+            if (window.PredictiveEngine?.recordFeedback) {
+              window.PredictiveEngine?.recordFeedback(predId, true);
             }
             // 执行预测操作
-            if (PredictiveEngine.executePrediction) {
-              await PredictiveEngine.executePrediction(prediction);
+            if (window.PredictiveEngine?.executePrediction) {
+              await window.PredictiveEngine?.executePrediction(prediction);
             }
           }
         });
@@ -782,11 +791,11 @@ const DashboardModule = (() => {
         _bindEvent(item, 'click', async () => {
           const predId = item.dataset.predictionId;
           const prediction = predictions.find(p => p.id === predId);
-          if (prediction && PredictiveEngine.executePrediction) {
-            if (PredictiveEngine.recordFeedback) {
-              PredictiveEngine.recordFeedback(predId, true);
+          if (prediction && window.PredictiveEngine?.executePrediction) {
+            if (window.PredictiveEngine?.recordFeedback) {
+              window.PredictiveEngine?.recordFeedback(predId, true);
             }
-            await PredictiveEngine.executePrediction(prediction);
+            await window.PredictiveEngine?.executePrediction(prediction);
           }
         });
       });
@@ -1587,7 +1596,7 @@ const DashboardModule = (() => {
 
           // 检查是否已存在
           if (_widgetConfig.some(w => w.type === type)) {
-            if (typeof App !== 'undefined') App.showToast('该 Widget 已添加');
+            if (window.App) window.App?.showToast('该 Widget 已添加');
             typeMenu.classList.add('hidden');
             return;
           }
@@ -1822,7 +1831,7 @@ const DashboardModule = (() => {
 
     container.classList.remove('hidden');
     _bindEvent(container, 'click', () => {
-      if (typeof Router !== 'undefined') {
+      if (true) /* Router always available via import */ {
         Router.navigate('templates');
       }
     });
@@ -2073,8 +2082,8 @@ const DashboardModule = (() => {
     // 2. 获取 DeepSeek API Key（优先加密存储）
     let token = null;
     try {
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
-        token = await SecureStorage.loadSecure('deepseek_token');
+      if (window.SecureStorage?.loadSecure) {
+        token = await window.SecureStorage?.loadSecure('deepseek_token');
       }
       if (!token) {
         const setting = await Storage.get('settings', 'deepseek_token');

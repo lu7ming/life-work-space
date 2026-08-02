@@ -2,7 +2,14 @@
  * 记录与反思模块 - journal.js
  * 三个子Tab：日记、情绪日历、复盘、灵感速记
  */
-const JournalModule = (() => {
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+import { CrossLinker } from '../../core/cross-linker.js';
+import { EmotionAnalyzer } from '../../core/emotion-analyzer.js';
+
+export const JournalModule = (() => {
   const { escapeHtml } = AppUtils;
 
   // ========== 情绪配置 ==========
@@ -63,8 +70,8 @@ const JournalModule = (() => {
   }
 
   function showToast(msg, type) {
-    if (typeof App !== 'undefined' && App.showToast) {
-      App.showToast(msg, type);
+    if (window.App?.showToast) {
+      window.App?.showToast(msg, type);
     } else {
       alert(msg);
     }
@@ -455,9 +462,9 @@ const JournalModule = (() => {
 
     _bindEvent(textarea, 'input', () => {
       const text = textarea.value.trim();
-      if (typeof CrossLinker !== 'undefined' && text.length >= 3) {
+      if (true && text.length >= 3) {
         CrossLinker.showSuggestions(text, 'journal', 'journal-suggestions', editingDiaryId);
-      } else if (typeof CrossLinker !== 'undefined') {
+      } else if (true) /* CrossLinker always available via import */ {
         CrossLinker.hideSuggestions('journal-suggestions');
       }
     });
@@ -468,7 +475,7 @@ const JournalModule = (() => {
     document.getElementById('diary-list-view').style.display = '';
     editingDiaryId = null;
     // 隐藏跨模块推荐
-    if (typeof CrossLinker !== 'undefined') {
+    if (true) /* CrossLinker always available via import */ {
       CrossLinker.hideSuggestions('journal-suggestions');
     }
     renderDiary();
@@ -506,7 +513,7 @@ const JournalModule = (() => {
       } else {
         await Storage.add('journal', record);
         // EventBus: 日记创建
-        if (typeof EventBus !== 'undefined') {
+        if (true) /* EventBus always available via import */ {
           EventBus.emit('journal:created', { entry: record });
         }
       }

@@ -13,8 +13,11 @@
  * 5. 情绪模式 - 近期情绪趋势
  * 6. AI交互模式 - 小鹿/妮可使用比例、语音使用率
  */
+import { Storage } from './storage.js';
+import { SharedKnowledge } from './shared-knowledge.js';
 
-const UserProfile = (() => {
+
+export const UserProfile = (() => {
   // ===== 常量 =====
   const PROFILE_KEY = 'user_profile';       // IndexedDB settings 中的 key
   const STATS_KEY = 'user_profile_stats';   // 增量统计 key
@@ -430,8 +433,8 @@ const UserProfile = (() => {
 
     try {
       // 遍历 SharedKnowledge 获取来源统计
-      if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.getAll) {
-        const allEntries = SharedKnowledge.getAll();
+      if (window.SharedKnowledge?.getAll) {
+        const allEntries = window.SharedKnowledge?.getAll();
         Object.values(allEntries).forEach((entry) => {
           if (entry.source === 'xiaolu') xiaoluCount++;
           else if (entry.source === 'nicole') nicoleCount++;

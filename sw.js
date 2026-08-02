@@ -1,50 +1,56 @@
 /**
  * Service Worker - 人生工作台
- * v60 - 离线增量同步
+ * v61 - ES Module 重构 + 代码分割
  */
 
-const CACHE_NAME = 'life-work-space-v60';
+const CACHE_NAME = 'life-work-space-v61';
 
-// 需要缓存的资源列表
+// 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
   './life.html',
+  // 核心样式
   './styles/main.css',
   './styles/sidebar.css',
   './styles/dashboard.css',
   './styles/search.css',
+  './styles/nicole.css',
+  './styles/xiaolu.css',
+  './styles/audit-log.css',
+  './styles/quickinput.css',
+  './styles/templates.css',
+  // 核心 ES Modules（首屏静态导入）
   './core/app.js',
-  './core/router.js',
-  './core/event-bus.js',
-  './core/module-lifecycle.js',
-  './core/cross-linker.js',
   './core/storage.js',
   './core/utils.js',
-  './core/user-profile.js',
-  './core/preference-learner.js',
-  './core/predictive-engine.js',
+  './core/event-bus.js',
+  './core/module-lifecycle.js',
+  './core/router.js',
+  // 核心懒加载模块
+  './core/secure-storage.js',
   './core/shared-knowledge.js',
   './core/orchestrator.js',
-  './core/secure-storage.js',
+  './core/cross-linker.js',
   './core/notifications.js',
   './core/smart-reminder.js',
   './core/model-router.js',
   './core/smart-suggestion.js',
-  './core/export.js',
-  './core/search.js',
   './core/nicole.js',
-  './styles/nicole.css',
-  './core/xiaolu.js',
   './core/emotion-analyzer.js',
   './core/data-minimizer.js',
   './core/local-ai.js',
   './core/knowledge-extractor.js',
-  './styles/audit-log.css',
+  './core/xiaolu.js',
   './core/audit-log.js',
-  './styles/xiaolu.css',
-  './core/quickinput.js',
-  './styles/quickinput.css',
+  './core/templates.js',
+  './core/export.js',
+  './core/search.js',
   './core/theme.js',
   './core/sync.js',
+  './core/quickinput.js',
+  './core/user-profile.js',
+  './core/preference-learner.js',
+  './core/predictive-engine.js',
+  // 功能模块（动态 import 按需加载，但预缓存以保离线可用）
   './modules/dashboard/dashboard.html',
   './modules/dashboard/dashboard.css',
   './modules/dashboard/dashboard.js',
@@ -78,11 +84,9 @@ const CACHE_ASSETS = [
   './modules/lifetree/lifetree.html',
   './modules/lifetree/lifetree.css',
   './modules/lifetree/lifetree.js',
-  // v55 新增：创作日程模块
   './modules/content/content.html',
   './modules/content/content.css',
   './modules/content/content.js',
-  // v57 新增：周/月报模块
   './modules/report/report.html',
   './modules/report/report.css',
   './modules/report/report.js',
@@ -91,14 +95,12 @@ const CACHE_ASSETS = [
   './modules/rest/rest.js',
   './modules/whitenoise/whitenoise.css',
   './modules/whitenoise/whitenoise.js',
-  './core/templates.js',
   './modules/templates/templates.html',
   './modules/templates/templates_module.js',
-  './styles/templates.css',
-  // v33 新增：时间追踪模块
   './modules/timetracker/timetracker.html',
   './modules/timetracker/timetracker.css',
   './modules/timetracker/timetracker.js',
+  // PWA
   './manifest.json'
 ];
 

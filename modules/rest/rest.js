@@ -2,7 +2,7 @@
  * RestModule - 休息模式：魁北克蓝调雪夜
  * 全屏沉浸式Canvas场景，60fps优化
  */
-const RestModule = (() => {
+export const RestModule = (() => {
   'use strict';
 
   // ====== 配置 ======
@@ -169,15 +169,15 @@ const RestModule = (() => {
   // ====== 通知轮询控制 ======
   function pauseNotifications() {
     // 尝试停止全局定时器
-    if (NotificationEngine && typeof NotificationEngine.pause === 'function') {
-      NotificationEngine.pause();
+    if (NotificationEngine && typeof window.NotificationEngine?.pause === 'function') {
+      window.NotificationEngine?.pause();
       notifPaused = true;
     }
   }
 
   function resumeNotifications() {
-    if (notifPaused && NotificationEngine && typeof NotificationEngine.resume === 'function') {
-      NotificationEngine.resume();
+    if (notifPaused && NotificationEngine && typeof window.NotificationEngine?.resume === 'function') {
+      window.NotificationEngine?.resume();
       notifPaused = false;
     }
   }
@@ -755,5 +755,5 @@ const RestModule = (() => {
 
 // 在 DOMContentLoaded 时初始化
 _bindEvent(document, 'DOMContentLoaded', () => {
-  RestModule.init();
+  window.RestModule?.init();
 });

@@ -3,8 +3,12 @@
  * 人生工作台 · 智能模型选择与成本统计
  * 根据任务类型自动选择最优模型（快速/推理/视觉），记录调用成本
  */
+import { Storage } from './storage.js';
+import { SecureStorage } from './secure-storage.js';
+import { EventBus } from './event-bus.js';
 
-const ModelRouter = (() => {
+
+export const ModelRouter = (() => {
   // ===== 模型配置 =====
   const MODELS = {
     fast: {

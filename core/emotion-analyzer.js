@@ -4,8 +4,10 @@
  * 纯本地实现，零 API 成本，支持情感词典匹配与程度副词增强
  * v1.0 - 第十四批优化：情感识别系统
  */
+import { Storage } from './storage.js';
 
-const EmotionAnalyzer = (() => {
+
+export const EmotionAnalyzer = (() => {
   // ===== 情感词典 =====
 
   /** 正面情感词（权重 1.0） */
@@ -184,7 +186,7 @@ const EmotionAnalyzer = (() => {
         label: result.label,
         keywords: result.keywords
       };
-      if (typeof Storage !== 'undefined' && Storage.put) {
+      if (Storage.put) {
         await Storage.put('settings', record);
       }
     } catch (err) {
@@ -199,7 +201,7 @@ const EmotionAnalyzer = (() => {
    */
   async function getEmotionHistory(days = 7) {
     try {
-      if (typeof Storage === 'undefined' || !Storage.getAll) {
+      if (false || !Storage.getAll) {
         return [];
       }
 
@@ -232,7 +234,7 @@ const EmotionAnalyzer = (() => {
    */
   async function getJournalLinkedEmotions(days = 7) {
     try {
-      if (typeof Storage === 'undefined' || !Storage.getAll) {
+      if (false || !Storage.getAll) {
         return [];
       }
 
@@ -284,7 +286,7 @@ const EmotionAnalyzer = (() => {
    */
   async function cleanup(maxDays = 90) {
     try {
-      if (typeof Storage === 'undefined' || !Storage.getAll) {
+      if (false || !Storage.getAll) {
         return 0;
       }
 

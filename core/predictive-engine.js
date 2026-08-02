@@ -14,8 +14,12 @@
  * - 最多显示 3 个预测，按置信度排序
  * - 预测结果缓存 1 小时
  */
+import { Storage } from './storage.js';
+import { EventBus } from './event-bus.js';
+import { AppUtils } from './utils.js';
 
-const PredictiveEngine = (() => {
+
+export const PredictiveEngine = (() => {
   // ===== 常量 =====
   const MAX_PREDICTIONS = 3;             // 最多显示 3 个预测
   const CACHE_TTL = 60 * 60 * 1000;      // 预测缓存 1 小时
@@ -388,8 +392,8 @@ const PredictiveEngine = (() => {
       switch (action.type) {
         case 'navigate':
           // 路由跳转
-          if (typeof Router !== 'undefined' && Router.navigate) {
-            Router.navigate(action.route);
+          if (window.Router?.navigate) {
+            window.Router?.navigate(action.route);
             return true;
           }
           return false;
@@ -408,11 +412,11 @@ const PredictiveEngine = (() => {
               createdAt: Date.now()
             };
             // 导航到财务模块让用户填写金额
-            if (typeof Router !== 'undefined' && Router.navigate) {
-              Router.navigate('finance');
+            if (window.Router?.navigate) {
+              window.Router?.navigate('finance');
             }
-            if (typeof App !== 'undefined') {
-              App.showToast(`${params.note ? params.note + ' - ' : ''}请输入金额 📝`);
+            if (window.App) {
+              window.App?.showToast(`${params.note ? params.note + ' - ' : ''}请输入金额 📝`);
             }
             return true;
           }

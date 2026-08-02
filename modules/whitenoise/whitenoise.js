@@ -2,8 +2,12 @@
  * whitenoise.js - 白噪音系统
  * 人生工作台 · Web Audio API 生成环境音
  */
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
 
-const WhiteNoiseModule = (() => {
+
+export const WhiteNoiseModule = (() => {
   // ===== 状态 =====
   let audioCtx = null;
   let noiseNode = null;

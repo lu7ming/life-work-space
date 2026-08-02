@@ -2,8 +2,10 @@
  * theme.js - 主题管理模块
  * 人生工作台 · 明暗模式切换
  */
+import { Storage } from './storage.js';
 
-const ThemeManager = (() => {
+
+export const ThemeManager = (() => {
   const STORAGE_KEY = 'theme';
   const THEMES = { LIGHT: 'light', DARK: 'dark', AUTO: 'auto' };
   let currentTheme = THEMES.LIGHT;

@@ -10,8 +10,11 @@
  * 2. 操作偏好 - autoConfirm / defaultCategory / defaultPriority
  * 3. 时间偏好 - reminderTime / reportDay
  */
+import { Storage } from './storage.js';
+import { EventBus } from './event-bus.js';
 
-const PreferenceLearner = (() => {
+
+export const PreferenceLearner = (() => {
   // ===== 常量 =====
   const PREF_KEY = 'user_preferences';      // IndexedDB settings 表中的 key
   const LEARNING_RATE = 0.15;               // 渐进式学习步长（0~1，越小越保守）

@@ -10,8 +10,11 @@
  * - 内存缓存解密结果，30 分钟过期，避免频繁解密
  * - 日志中屏蔽完整 API Key，仅显示首尾各 4 字符
  */
+import { Storage } from './storage.js';
+import { AppUtils } from './utils.js';
 
-const SecureStorage = (() => {
+
+export const SecureStorage = (() => {
   /** @type {CryptoKey|null} 缓存的加密密钥 */
   let _encryptionKey = null;
 

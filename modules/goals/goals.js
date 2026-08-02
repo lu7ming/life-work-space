@@ -2,7 +2,12 @@
  * goals.js - 目标管理模块逻辑
  * 人生工作台 · 月度/季度/年度目标追踪
  */
-const GoalsModule = (() => {
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
+
+export const GoalsModule = (() => {
   const { escapeHtml, formatDate } = AppUtils;
 
   // ===== 常量 =====
@@ -44,8 +49,8 @@ const GoalsModule = (() => {
   }
 
   function showToast(msg) {
-    if (typeof App !== 'undefined' && App.showToast) {
-      App.showToast(msg);
+    if (window.App?.showToast) {
+      window.App?.showToast(msg);
     } else {
       console.log('[Goals Toast]', msg);
     }

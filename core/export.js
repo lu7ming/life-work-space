@@ -2,15 +2,18 @@
  * export.js - 数据导出/导入模块
  * 人生工作台 · 数据备份与恢复
  */
+import { Storage } from './storage.js';
+import { AppUtils } from './utils.js';
 
-const ALL_STORES = [
+
+export const ALL_STORES = [
   'checkins', 'habits', 'tasks', 'study', 'health',
   'finance', 'settings', 'meta', 'projects', 'pomodoros',
   'semesters', 'courses', 'books', 'skills', 'journal',
   'goals', 'contacts', 'knowledge', 'ideas', 'lifetree'
 ];
 
-const STORE_LABELS = {
+export const STORE_LABELS = {
   checkins: '打卡记录',
   habits: '习惯',
   tasks: '任务',
@@ -33,7 +36,7 @@ const STORE_LABELS = {
   lifetree: '生命树'
 };
 
-const ExportModule = (() => {
+export const ExportModule = (() => {
 
   // ========== 样式注入（仅一次） ==========
   let stylesInjected = false;
@@ -382,7 +385,7 @@ const ExportModule = (() => {
     _bindEvent(dialog.querySelector('#export-confirm'), 'click', async () => {
       const selected = Array.from(storeCbs).filter(cb => cb.checked).map(cb => cb.value);
       if (selected.length === 0) {
-        App.showToast('请至少选择一个模块');
+        window.App?.showToast('请至少选择一个模块');
         return;
       }
 
@@ -398,12 +401,12 @@ const ExportModule = (() => {
         const jsonObj = buildExportJSON(data);
         const fileName = downloadJSON(jsonObj);
         closeDialog(overlay);
-        App.showToast(`已导出 ${fileName} ✅`);
+        window.App?.showToast(`已导出 ${fileName} ✅`);
       } catch (err) {
         console.error('[Export] 导出失败:', err);
         btn.disabled = false;
         btn.textContent = '导出选中模块';
-        App.showToast('导出失败，请重试');
+        window.App?.showToast('导出失败，请重试');
       }
     });
   }
@@ -467,7 +470,7 @@ const ExportModule = (() => {
    */
   function handleFile(file, dialog) {
     if (!file.name.endsWith('.json')) {
-      App.showToast('请选择 .json 格式文件');
+      window.App?.showToast('请选择 .json 格式文件');
       return;
     }
 
@@ -476,14 +479,14 @@ const ExportModule = (() => {
       try {
         const json = JSON.parse(e.target.result);
         if (!json.data || typeof json.data !== 'object') {
-          App.showToast('文件格式不正确，缺少 data 字段');
+          window.App?.showToast('文件格式不正确，缺少 data 字段');
           return;
         }
         _importFileData = json;
         showImportOverview(dialog, json);
       } catch (err) {
         console.error('[Import] JSON 解析失败:', err);
-        App.showToast('文件解析失败，请确认是有效的 JSON 文件');
+        window.App?.showToast('文件解析失败，请确认是有效的 JSON 文件');
       }
     };
     reader.readAsText(file);
@@ -560,13 +563,13 @@ const ExportModule = (() => {
       try {
         await performImport(json.data, mode);
         closeDialog(dialog.closest('.export-overlay'));
-        App.showToast('数据导入成功 ✅ 即将刷新页面');
+        window.App?.showToast('数据导入成功 ✅ 即将刷新页面');
         setTimeout(() => location.reload(), 1200);
       } catch (err) {
         console.error('[Import] 导入失败:', err);
         confirmBtn.disabled = false;
         confirmBtn.textContent = '确认导入';
-        App.showToast('导入失败: ' + (err.message || '未知错误'));
+        window.App?.showToast('导入失败: ' + (err.message || '未知错误'));
       }
     };
   }

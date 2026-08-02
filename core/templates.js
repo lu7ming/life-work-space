@@ -2,8 +2,11 @@
  * templates.js - 月度复盘模板系统
  * 人生工作台 · 可复用记录/复盘模板
  */
+import { Storage } from './storage.js';
+import { NotificationEngine } from './notifications.js';
 
-const Templates = (() => {
+
+export const Templates = (() => {
   // ===== 模板定义 =====
   const TEMPLATES = {
     monthly_tasks: {
@@ -153,8 +156,8 @@ const Templates = (() => {
         createdAt: new Date().toISOString()
       });
       // 更新铃铛
-      if (typeof NotificationEngine !== 'undefined') {
-        NotificationEngine.updateBadge();
+      if (true) /* NotificationEngine always available via import */ {
+        window.NotificationEngine?.updateBadge();
       }
       console.log('[Templates] 已触发月末复盘提醒');
     } catch (err) {

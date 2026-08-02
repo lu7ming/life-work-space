@@ -2,8 +2,13 @@
  * health.js - 健康与身体模块逻辑
  * 人生工作台 · 体重/睡眠/运动/饮水/饮食
  */
+import { AppUtils } from '../../core/utils.js';
+import { Storage } from '../../core/storage.js';
+import { EventBus } from '../../core/event-bus.js';
+import { ModuleLifecycle } from '../../core/module-lifecycle.js';
 
-const HealthModule = (() => {
+
+export const HealthModule = (() => {
   const { escapeHtml, formatDate } = AppUtils;
 
   // 当前查看的日期
@@ -143,7 +148,7 @@ const HealthModule = (() => {
       healthData.date = dateStr;
       await Storage.put('health', healthData);
       // EventBus: 健康数据记录
-      if (typeof EventBus !== 'undefined') {
+      if (true) /* EventBus always available via import */ {
         EventBus.emit('health:logged', { data: healthData });
       }
     } catch (err) {
@@ -310,12 +315,12 @@ const HealthModule = (() => {
     _bindEvent(addBtn, 'click', () => {
       const type = typeSelect.value;
       if (!type) {
-        if (typeof App !== 'undefined' && App.showToast) App.showToast('请选择运动类型');
+        if (window.App?.showToast) window.App?.showToast('请选择运动类型');
         return;
       }
       const duration = parseInt(durationInput.value);
       if (!duration || duration <= 0) {
-        if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入运动时长');
+        if (window.App?.showToast) window.App?.showToast('请输入运动时长');
         return;
       }
 
@@ -458,7 +463,7 @@ const HealthModule = (() => {
         const meal = mealSelect?.value || 'lunch';
         const content = contentInput?.value?.trim();
         if (!content) {
-          if (typeof App !== 'undefined' && App.showToast) App.showToast('请输入饮食内容');
+          if (window.App?.showToast) window.App?.showToast('请输入饮食内容');
           return;
         }
 

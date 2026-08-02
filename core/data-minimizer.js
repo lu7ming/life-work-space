@@ -4,8 +4,10 @@
  * 在向 AI API 发送数据前，自动检测并替换个人身份信息
  * v1.0 - 第十五批优化：数据最小化与隐私保护
  */
+import { Storage } from './storage.js';
 
-const DataMinimizer = (() => {
+
+export const DataMinimizer = (() => {
   'use strict';
 
   // ===== 常量 =====
@@ -131,7 +133,7 @@ const DataMinimizer = (() => {
     }
 
     try {
-      if (typeof Storage !== 'undefined' && Storage.getAll) {
+      if (Storage.getAll) {
         const contacts = await Storage.getAll('contacts');
         if (contacts && contacts.length > 0) {
           _contactCache = contacts.map(c => c.name).filter(n => n && n.trim().length > 0);

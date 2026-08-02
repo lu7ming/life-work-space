@@ -2,8 +2,13 @@
  * quickinput.js - F9 快速录入引擎
  * 人生工作台 · 自然语言快速创建任务/记录收支/打卡习惯/写日记/番茄钟
  */
+import { AppUtils } from './utils.js';
+import { SecureStorage } from './secure-storage.js';
+import { Storage } from './storage.js';
+import { EventBus } from './event-bus.js';
 
-const QuickInput = (() => {
+
+export const QuickInput = (() => {
   const { escapeHtml, formatDate, parseChineseNumber } = AppUtils;
   const API_URL = 'https://api.deepseek.com/v1/chat/completions';
   const MODEL_NAME = 'deepseek-chat';
@@ -141,8 +146,8 @@ const QuickInput = (() => {
   async function getDeepseekToken() {
     try {
       // 优先使用加密存储
-      if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
-        const token = await SecureStorage.loadSecure('deepseek_token');
+      if (window.SecureStorage?.loadSecure) {
+        const token = await window.SecureStorage?.loadSecure('deepseek_token');
         return token;
       }
       // 回退到明文读取
@@ -573,14 +578,14 @@ const QuickInput = (() => {
       if (parsed) {
         renderPreview(parsed, text);
       } else {
-        if (typeof App !== 'undefined' && App.showToast) {
-          App.showToast('无法识别，请换个说法试试');
+        if (window.App?.showToast) {
+          window.App?.showToast('无法识别，请换个说法试试');
         }
       }
     } catch (err) {
       console.error('[QuickInput] 解析失败:', err);
-      if (typeof App !== 'undefined' && App.showToast) {
-        App.showToast('解析失败，请重试');
+      if (window.App?.showToast) {
+        window.App?.showToast('解析失败，请重试');
       }
     } finally {
       sendBtn.disabled = false;
@@ -600,13 +605,13 @@ const QuickInput = (() => {
 
     try {
       const result = await executeQuickInput(_currentParsed);
-      if (typeof App !== 'undefined' && App.showToast) {
-        App.showToast(result.message || '已完成 ✅');
+      if (window.App?.showToast) {
+        window.App?.showToast(result.message || '已完成 ✅');
       }
       close();
       // 刷新当前路由以显示最新数据
-      if (typeof Router !== 'undefined' && Router.getCurrentRoute) {
-        const current = Router.getCurrentRoute();
+      if (window.Router?.getCurrentRoute) {
+        const current = window.Router?.getCurrentRoute();
         // 触发模块重新加载数据
         const routeReloadMap = {
           'tasks': () => typeof TasksModule !== 'undefined' && TasksModule.init && TasksModule.init(),
@@ -621,8 +626,8 @@ const QuickInput = (() => {
       }
     } catch (err) {
       console.error('[QuickInput] 执行失败:', err);
-      if (typeof App !== 'undefined' && App.showToast) {
-        App.showToast(err.message || '执行失败，请重试');
+      if (window.App?.showToast) {
+        window.App?.showToast(err.message || '执行失败，请重试');
       }
     } finally {
       confirmBtn.disabled = false;

@@ -175,7 +175,7 @@ const DashboardModule = (() => {
 
       // 绑定操作按钮
       container.querySelectorAll('.dash-predictive-item-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        _bindEvent(btn, 'click', async (e) => {
           e.stopPropagation();
           const predId = btn.dataset.predictionId;
           const prediction = predictions.find(p => p.id === predId);
@@ -194,7 +194,7 @@ const DashboardModule = (() => {
 
       // 绑定整个卡片点击
       container.querySelectorAll('.dash-predictive-item').forEach(item => {
-        item.addEventListener('click', async () => {
+        _bindEvent(item, 'click', async () => {
           const predId = item.dataset.predictionId;
           const prediction = predictions.find(p => p.id === predId);
           if (prediction && PredictiveEngine.executePrediction) {
@@ -811,11 +811,11 @@ const DashboardModule = (() => {
         draggedItem = null;
       };
 
-      item.addEventListener('dragstart', onDragStart);
-      item.addEventListener('dragover', onDragOver);
-      item.addEventListener('dragleave', onDragLeave);
-      item.addEventListener('drop', onDrop);
-      item.addEventListener('dragend', onDragEnd);
+      _bindEvent(item, 'dragstart', onDragStart);
+      _bindEvent(item, 'dragover', onDragOver);
+      _bindEvent(item, 'dragleave', onDragLeave);
+      _bindEvent(item, 'drop', onDrop);
+      _bindEvent(item, 'dragend', onDragEnd);
 
       _widgetDragListeners.push(
         { el: item, event: 'dragstart', handler: onDragStart },
@@ -861,7 +861,7 @@ const DashboardModule = (() => {
     const editBtn = document.getElementById('dash-widget-edit-btn');
     if (editBtn) {
       const handler = () => showWidgetConfigModal();
-      editBtn.addEventListener('click', handler);
+      _bindEvent(editBtn, 'click', handler);
       _widgetEventListeners.push({ el: editBtn, event: 'click', handler });
     }
   }
@@ -923,24 +923,24 @@ const DashboardModule = (() => {
     let draggedItem = null;
 
     items.forEach(item => {
-      item.addEventListener('dragstart', (e) => {
+      _bindEvent(item, 'dragstart', (e) => {
         draggedItem = item;
         item.classList.add('dash-widget-config-dragging');
         e.dataTransfer.effectAllowed = 'move';
       });
 
-      item.addEventListener('dragover', (e) => {
+      _bindEvent(item, 'dragover', (e) => {
         e.preventDefault();
         if (item !== draggedItem) {
           item.classList.add('dash-widget-config-drag-over');
         }
       });
 
-      item.addEventListener('dragleave', () => {
+      _bindEvent(item, 'dragleave', () => {
         item.classList.remove('dash-widget-config-drag-over');
       });
 
-      item.addEventListener('drop', (e) => {
+      _bindEvent(item, 'drop', (e) => {
         e.preventDefault();
         item.classList.remove('dash-widget-config-drag-over');
         if (draggedItem && draggedItem !== item) {
@@ -952,7 +952,7 @@ const DashboardModule = (() => {
         }
       });
 
-      item.addEventListener('dragend', () => {
+      _bindEvent(item, 'dragend', () => {
         item.classList.remove('dash-widget-config-dragging');
         items.forEach(i => i.classList.remove('dash-widget-config-drag-over'));
         draggedItem = null;
@@ -974,8 +974,8 @@ const DashboardModule = (() => {
 
     // 关闭弹窗
     const closeHandler = () => { overlay.style.display = 'none'; };
-    if (closeBtn) closeBtn.addEventListener('click', closeHandler);
-    if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeHandler(); });
+    _bindEvent(closeBtn, 'click', closeHandler);
+    _bindEvent(overlay, 'click', (e) => { if (e.target === overlay) closeHandler(); });
 
     // 确认按钮 - 保存并重新渲染
     const confirmHandler = async () => {
@@ -984,18 +984,18 @@ const DashboardModule = (() => {
       await renderWidgets();
       overlay.style.display = 'none';
     };
-    if (confirmBtn) confirmBtn.addEventListener('click', confirmHandler);
+    _bindEvent(confirmBtn, 'click', confirmHandler);
 
     // 添加Widget按钮 - 切换类型菜单
     const toggleMenuHandler = () => {
       typeMenu && typeMenu.classList.toggle('hidden');
     };
-    if (addBtn) addBtn.addEventListener('click', toggleMenuHandler);
+    _bindEvent(addBtn, 'click', toggleMenuHandler);
 
     // 类型菜单项点击
     if (typeMenu) {
       typeMenu.querySelectorAll('.dash-widget-type-item').forEach(btn => {
-        btn.addEventListener('click', () => {
+        _bindEvent(btn, 'click', () => {
           const type = btn.dataset.type;
           const typeDef = WIDGET_TYPES[type];
           if (!typeDef) return;
@@ -1022,7 +1022,7 @@ const DashboardModule = (() => {
     // 预设布局按钮
     if (presetList) {
       presetList.querySelectorAll('.dash-widget-preset-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        _bindEvent(btn, 'click', () => {
           const preset = btn.dataset.preset;
           const presetConfig = WIDGET_PRESETS[preset];
           if (!presetConfig) return;
@@ -1043,7 +1043,7 @@ const DashboardModule = (() => {
 
     // 配置列表事件代理（上移/下移/删除）
     if (configList) {
-      configList.addEventListener('click', (e) => {
+      _bindEvent(configList, 'click', (e) => {
         const target = e.target;
         const idx = parseInt(target.dataset.idx);
         if (isNaN(idx)) return;
@@ -1066,7 +1066,7 @@ const DashboardModule = (() => {
       });
 
       // 编辑模式中Widget的删除/移动按钮
-      configList.addEventListener('click', (e) => {
+      _bindEvent(configList, 'click', (e) => {
         const deleteBtn = e.target.closest('.dash-widget-delete-btn');
         const moveBtn = e.target.closest('.dash-widget-move-btn');
         if (deleteBtn) {
@@ -1236,7 +1236,7 @@ const DashboardModule = (() => {
     }
 
     container.classList.remove('hidden');
-    container.addEventListener('click', () => {
+    _bindEvent(container, 'click', () => {
       if (typeof Router !== 'undefined') {
         Router.navigate('templates');
       }
@@ -1454,7 +1454,7 @@ const DashboardModule = (() => {
 
     // 绑定点击跳转
     container.querySelectorAll('.dash-feed-item[data-route]').forEach(el => {
-      el.addEventListener('click', () => {
+      _bindEvent(el, 'click', () => {
         const route = el.dataset.route;
         if (route) Router.navigate(route);
       });
@@ -1751,7 +1751,7 @@ ${context}
 
     // 绑定勾选事件
     container.querySelectorAll('.dash-focus-checkbox').forEach(cb => {
-      cb.addEventListener('change', async (e) => {
+      _bindEvent(cb, 'change', async (e) => {
         const taskId = parseInt(e.target.dataset.taskId);
         if (e.target.checked) {
           await completeFocusTask(taskId);
@@ -1793,7 +1793,7 @@ ${context}
     // 换一批
     const refreshBtn = document.getElementById('dash-focus-refresh');
     if (refreshBtn) {
-      refreshBtn.addEventListener('click', () => {
+      _bindEvent(refreshBtn, 'click', () => {
         customFocusIds = null;
         focusTasks = [];
         focusOffset += 3;
@@ -1803,14 +1803,12 @@ ${context}
 
     // 自定义
     const customizeBtn = document.getElementById('dash-focus-customize');
-    if (customizeBtn) {
-      customizeBtn.addEventListener('click', () => showCustomFocusModal());
-    }
+    _bindEvent(customizeBtn, 'click', () => showCustomFocusModal());
 
     // 自定义弹窗关闭
     const closeBtn = document.getElementById('dash-custom-focus-close');
     if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
+      _bindEvent(closeBtn, 'click', () => {
         document.getElementById('dash-custom-focus-overlay').style.display = 'none';
       });
     }
@@ -1818,7 +1816,7 @@ ${context}
     // 自定义弹窗确认
     const confirmBtn = document.getElementById('dash-custom-focus-confirm');
     if (confirmBtn) {
-      confirmBtn.addEventListener('click', () => {
+      _bindEvent(confirmBtn, 'click', () => {
         const checked = document.querySelectorAll('#dash-custom-task-list input:checked');
         customFocusIds = Array.from(checked).slice(0, 3).map(cb => parseInt(cb.dataset.taskId));
         focusTasks = [];
@@ -1831,7 +1829,7 @@ ${context}
     // 点击遮罩关闭
     const overlay = document.getElementById('dash-custom-focus-overlay');
     if (overlay) {
-      overlay.addEventListener('click', (e) => {
+      _bindEvent(overlay, 'click', (e) => {
         if (e.target === overlay) overlay.style.display = 'none';
       });
     }
@@ -1864,7 +1862,7 @@ ${context}
         // 限制最多选3个
         const checkboxes = listEl.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(cb => {
-          cb.addEventListener('change', () => {
+          _bindEvent(cb, 'change', () => {
             const checked = listEl.querySelectorAll('input:checked');
             if (checked.length > 3) {
               cb.checked = false;
@@ -1889,16 +1887,15 @@ ${context}
     const closeBtn = document.getElementById('dash-annual-close');
     const overlay = document.getElementById('dash-annual-overlay');
 
-    if (btn) {
-      btn.addEventListener('click', () => showAnnualReview(new Date().getFullYear()));
-    }
+    _bindEvent(btn, 'click', () => showAnnualReview(new Date().getFullYear()));
+
     if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
+      _bindEvent(closeBtn, 'click', () => {
         if (overlay) overlay.style.display = 'none';
       });
     }
     if (overlay) {
-      overlay.addEventListener('click', (e) => {
+      _bindEvent(overlay, 'click', (e) => {
         if (e.target === overlay) overlay.style.display = 'none';
       });
     }

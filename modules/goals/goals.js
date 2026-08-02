@@ -428,7 +428,7 @@ const GoalsModule = (() => {
   function bindEvents() {
     // 层级 Tab
     document.querySelectorAll('.goals-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
+      _bindEvent(tab, 'click', () => {
         document.querySelectorAll('.goals-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         currentLevel = tab.dataset.level;
@@ -439,7 +439,7 @@ const GoalsModule = (() => {
 
     // 视图切换
     document.querySelectorAll('.goals-view-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         document.querySelectorAll('.goals-view-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentView = btn.dataset.view;
@@ -448,29 +448,29 @@ const GoalsModule = (() => {
     });
 
     // FAB
-    document.getElementById('goalsFab').addEventListener('click', () => openModal(null));
+    _bindEvent(document.getElementById('goalsFab'), 'click', () => openModal(null));
 
     // Modal 关闭
-    document.getElementById('goalsModalClose').addEventListener('click', closeModal);
-    document.getElementById('goalsBtnCancel').addEventListener('click', closeModal);
-    document.getElementById('goalsModalOverlay').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('goalsModalClose'), 'click', closeModal);
+    _bindEvent(document.getElementById('goalsBtnCancel'), 'click', closeModal);
+    _bindEvent(document.getElementById('goalsModalOverlay'), 'click', (e) => {
       if (e.target === e.currentTarget) closeModal();
     });
 
     // 表单提交
-    document.getElementById('goalsForm').addEventListener('submit', (e) => {
+    _bindEvent(document.getElementById('goalsForm'), 'submit', (e) => {
       e.preventDefault();
       saveGoal();
     });
 
     // 删除按钮
-    document.getElementById('goalsBtnDelete').addEventListener('click', () => {
+    _bindEvent(document.getElementById('goalsBtnDelete'), 'click', () => {
       const editId = document.getElementById('goalEditId').value;
       if (editId) deleteGoal(parseInt(editId));
     });
 
     // 进度手动切换
-    document.getElementById('goalManualProgress').addEventListener('change', (e) => {
+    _bindEvent(document.getElementById('goalManualProgress'), 'change', (e) => {
       const progressInput = document.getElementById('goalProgress');
       if (e.target.checked) {
         progressInput.placeholder = '0-100';
@@ -480,7 +480,7 @@ const GoalsModule = (() => {
     });
 
     // 卡片点击展开 / 操作按钮
-    document.addEventListener('click', (e) => {
+    _bindEvent(document, 'click', (e) => {
       const actionBtn = e.target.closest('[data-action]');
       if (actionBtn) {
         e.stopPropagation();

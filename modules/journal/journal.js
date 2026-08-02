@@ -121,31 +121,31 @@ const JournalModule = (() => {
   function bindEvents() {
     // Tab 切换
     document.querySelectorAll('.journal-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         const tab = btn.dataset.tab;
         switchTab(tab);
       });
     });
 
     // 日历导航
-    document.getElementById('cal-prev').addEventListener('click', () => {
+    _bindEvent(document.getElementById('cal-prev'), 'click', () => {
       calMonth--;
       if (calMonth < 0) { calMonth = 11; calYear--; }
       renderCalendar();
     });
-    document.getElementById('cal-next').addEventListener('click', () => {
+    _bindEvent(document.getElementById('cal-next'), 'click', () => {
       calMonth++;
       if (calMonth > 11) { calMonth = 0; calYear++; }
       renderCalendar();
     });
 
     // 情绪日历导航
-    document.getElementById('mood-cal-prev').addEventListener('click', () => {
+    _bindEvent(document.getElementById('mood-cal-prev'), 'click', () => {
       moodCalMonth--;
       if (moodCalMonth < 0) { moodCalMonth = 11; moodCalYear--; }
       renderMoodCalendar();
     });
-    document.getElementById('mood-cal-next').addEventListener('click', () => {
+    _bindEvent(document.getElementById('mood-cal-next'), 'click', () => {
       moodCalMonth++;
       if (moodCalMonth > 11) { moodCalMonth = 0; moodCalYear++; }
       renderMoodCalendar();
@@ -153,7 +153,7 @@ const JournalModule = (() => {
 
     // 视图切换
     document.querySelectorAll('.view-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         diaryViewMode = btn.dataset.view;
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -162,14 +162,14 @@ const JournalModule = (() => {
     });
 
     // 日记编辑器
-    document.getElementById('diary-editor-back').addEventListener('click', () => {
+    _bindEvent(document.getElementById('diary-editor-back'), 'click', () => {
       closeDiaryEditor();
     });
-    document.getElementById('diary-editor-save').addEventListener('click', saveDiary);
+    _bindEvent(document.getElementById('diary-editor-save'), 'click', saveDiary);
 
     // 心情选择（新的5个emoji按钮）
     document.querySelectorAll('#diary-mood-picker .mood-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         const wasSelected = btn.classList.contains('selected');
         document.querySelectorAll('#diary-mood-picker .mood-btn').forEach(b => b.classList.remove('selected'));
         if (!wasSelected) {
@@ -185,13 +185,13 @@ const JournalModule = (() => {
     });
 
     // 情绪日历 - 查看某天日记详情关闭
-    document.getElementById('mood-day-detail-close').addEventListener('click', () => {
+    _bindEvent(document.getElementById('mood-day-detail-close'), 'click', () => {
       document.getElementById('mood-day-detail').classList.add('hidden');
     });
 
     // 复盘类型切换
     document.querySelectorAll('.review-type-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         currentReviewSubtype = btn.dataset.subtype;
         document.querySelectorAll('.review-type-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -200,17 +200,17 @@ const JournalModule = (() => {
     });
 
     // 复盘 Modal
-    document.getElementById('review-modal-close').addEventListener('click', () => closeModal('review-modal'));
-    document.getElementById('review-modal-cancel').addEventListener('click', () => closeModal('review-modal'));
-    document.getElementById('review-modal-save').addEventListener('click', saveReview);
+    _bindEvent(document.getElementById('review-modal-close'), 'click', () => closeModal('review-modal'));
+    _bindEvent(document.getElementById('review-modal-cancel'), 'click', () => closeModal('review-modal'));
+    _bindEvent(document.getElementById('review-modal-save'), 'click', saveReview);
 
     // 灵感 Modal
-    document.getElementById('idea-modal-close').addEventListener('click', () => closeModal('idea-modal'));
-    document.getElementById('idea-modal-cancel').addEventListener('click', () => closeModal('idea-modal'));
-    document.getElementById('idea-modal-save').addEventListener('click', saveIdea);
+    _bindEvent(document.getElementById('idea-modal-close'), 'click', () => closeModal('idea-modal'));
+    _bindEvent(document.getElementById('idea-modal-cancel'), 'click', () => closeModal('idea-modal'));
+    _bindEvent(document.getElementById('idea-modal-save'), 'click', saveIdea);
 
     // 灵感标签输入
-    document.getElementById('idea-tag-input').addEventListener('keydown', (e) => {
+    _bindEvent(document.getElementById('idea-tag-input'), 'keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         const val = e.target.value.trim();
@@ -223,20 +223,20 @@ const JournalModule = (() => {
     });
 
     // 灵感详情 Modal
-    document.getElementById('idea-detail-close').addEventListener('click', () => closeModal('idea-detail-modal'));
+    _bindEvent(document.getElementById('idea-detail-close'), 'click', () => closeModal('idea-detail-modal'));
 
     // 灵感搜索
-    document.getElementById('ideas-search').addEventListener('input', (e) => {
+    _bindEvent(document.getElementById('ideas-search'), 'input', (e) => {
       ideasFilter.search = e.target.value.trim().toLowerCase();
       renderIdeas();
     });
 
     // FAB
-    document.getElementById('journal-fab').addEventListener('click', handleFab);
+    _bindEvent(document.getElementById('journal-fab'), 'click', handleFab);
 
     // Modal overlay 点击关闭
     ['review-modal', 'idea-modal', 'idea-detail-modal'].forEach(id => {
-      document.getElementById(id).addEventListener('click', (e) => {
+      _bindEvent(document.getElementById(id), 'click', (e) => {
         if (e.target === e.currentTarget) closeModal(id);
       });
     });
@@ -321,7 +321,7 @@ const JournalModule = (() => {
       if (dateStr === today) el.classList.add('today');
       if (dateStr === selectedDate) el.classList.add('selected');
 
-      el.addEventListener('click', () => {
+      _bindEvent(el, 'click', () => {
         selectedDate = dateStr;
         // 更新日历高亮
         document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('selected'));
@@ -378,14 +378,14 @@ const JournalModule = (() => {
 
     // 绑定卡片事件
     container.querySelectorAll('[data-action="edit"]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      _bindEvent(btn, 'click', (e) => {
         e.stopPropagation();
         const id = parseInt(btn.dataset.id);
         openDiaryEditor(null, id);
       });
     });
     container.querySelectorAll('[data-action="delete"]').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
+      _bindEvent(btn, 'click', async (e) => {
         e.stopPropagation();
         const id = parseInt(btn.dataset.id);
         if (confirm('确定删除这篇日记吗？')) {
@@ -397,7 +397,7 @@ const JournalModule = (() => {
       });
     });
     container.querySelectorAll('.diary-card').forEach(card => {
-      card.addEventListener('click', () => {
+      _bindEvent(card, 'click', () => {
         const id = parseInt(card.dataset.id);
         openDiaryEditor(null, id);
       });
@@ -562,7 +562,7 @@ const JournalModule = (() => {
 
       if (dateStr === today) el.classList.add('today');
 
-      el.addEventListener('click', () => {
+      _bindEvent(el, 'click', () => {
         showMoodDayDetail(dateStr);
       });
 
@@ -604,7 +604,7 @@ const JournalModule = (() => {
     // 绑定：写日记按钮
     const addBtn = list.querySelector('.mood-day-add-btn');
     if (addBtn) {
-      addBtn.addEventListener('click', () => {
+      _bindEvent(addBtn, 'click', () => {
         // 切换到日记tab并打开编辑器
         switchTab('diary');
         selectedDate = dateStr;
@@ -614,7 +614,7 @@ const JournalModule = (() => {
 
     // 绑定：点击日记条目跳转编辑
     list.querySelectorAll('.mood-day-diary-item').forEach(item => {
-      item.addEventListener('click', () => {
+      _bindEvent(item, 'click', () => {
         const id = parseInt(item.dataset.id);
         switchTab('diary');
         selectedDate = dateStr;
@@ -819,13 +819,13 @@ const JournalModule = (() => {
 
     // 绑定事件
     container.querySelectorAll('[data-action="edit"]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      _bindEvent(btn, 'click', (e) => {
         e.stopPropagation();
         openReviewModal(parseInt(btn.dataset.id));
       });
     });
     container.querySelectorAll('[data-action="delete"]').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
+      _bindEvent(btn, 'click', async (e) => {
         e.stopPropagation();
         const id = parseInt(btn.dataset.id);
         if (confirm('确定删除这篇复盘吗？')) {
@@ -837,7 +837,7 @@ const JournalModule = (() => {
       });
     });
     container.querySelectorAll('.review-card').forEach(card => {
-      card.addEventListener('click', () => {
+      _bindEvent(card, 'click', () => {
         openReviewModal(parseInt(card.dataset.id));
       });
     });
@@ -964,7 +964,7 @@ const JournalModule = (() => {
 
     // 绑定事件
     container.querySelectorAll('.idea-card').forEach(card => {
-      card.addEventListener('click', () => {
+      _bindEvent(card, 'click', () => {
         openIdeaDetail(parseInt(card.dataset.id));
       });
     });
@@ -987,7 +987,7 @@ const JournalModule = (() => {
     `;
 
     container.querySelectorAll('.ideas-tag-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
+      _bindEvent(chip, 'click', () => {
         ideasFilter.tag = chip.dataset.tag;
         renderIdeas();
       });
@@ -1028,7 +1028,7 @@ const JournalModule = (() => {
     `).join('');
 
     container.querySelectorAll('.tag-chip-remove').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         ideaTags.splice(parseInt(btn.dataset.index), 1);
         renderIdeaTagChips();
       });
@@ -1102,12 +1102,12 @@ const JournalModule = (() => {
     `;
 
     // 绑定按钮事件
-    document.getElementById('idea-detail-edit').addEventListener('click', () => {
+    _bindEvent(document.getElementById('idea-detail-edit'), 'click', () => {
       closeModal('idea-detail-modal');
       openIdeaModal(id);
     });
 
-    document.getElementById('idea-detail-delete').addEventListener('click', async () => {
+    _bindEvent(document.getElementById('idea-detail-delete'), 'click', async () => {
       if (confirm('确定删除这条灵感吗？')) {
         await Storage.remove('ideas', id);
         await loadData();
@@ -1119,7 +1119,7 @@ const JournalModule = (() => {
 
     const transferBtn = document.getElementById('idea-detail-transfer');
     if (transferBtn) {
-      transferBtn.addEventListener('click', async () => {
+      _bindEvent(transferBtn, 'click', async () => {
         try {
           // 在 knowledge 表创建一条记录
           const knowledgeRecord = {

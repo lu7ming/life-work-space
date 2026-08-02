@@ -425,13 +425,13 @@ const QuickInput = (() => {
     document.body.appendChild(panelEl);
 
     // 绑定事件
-    document.getElementById('qi-close').addEventListener('click', close);
-    document.getElementById('qi-send-btn').addEventListener('click', handleSend);
-    document.getElementById('qi-cancel').addEventListener('click', resetPanel);
-    document.getElementById('qi-confirm').addEventListener('click', handleConfirm);
+    _bindEvent(document.getElementById('qi-close'), 'click', close);
+    _bindEvent(document.getElementById('qi-send-btn'), 'click', handleSend);
+    _bindEvent(document.getElementById('qi-cancel'), 'click', resetPanel);
+    _bindEvent(document.getElementById('qi-confirm'), 'click', handleConfirm);
 
     // 回车发送（Shift+回车换行）
-    document.getElementById('qi-input').addEventListener('keydown', (e) => {
+    _bindEvent(document.getElementById('qi-input'), 'keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSend();
@@ -440,7 +440,7 @@ const QuickInput = (() => {
 
     // 快捷标签点击
     panelEl.querySelectorAll('.qi-hint-tag').forEach(tag => {
-      tag.addEventListener('click', () => {
+      _bindEvent(tag, 'click', () => {
         const input = document.getElementById('qi-input');
         input.value = tag.dataset.hint;
         input.focus();
@@ -670,7 +670,7 @@ const QuickInput = (() => {
   function init() {
     console.log('[QuickInput] 快速录入引擎初始化...');
     createPanel();
-    document.addEventListener('keydown', handleKeydown);
+    _bindEvent(document, 'keydown', handleKeydown);
     console.log('[QuickInput] 快速录入引擎就绪 ⚡');
   }
 

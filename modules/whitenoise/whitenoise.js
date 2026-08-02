@@ -15,6 +15,14 @@ const WhiteNoiseModule = (() => {
   let timerRemaining = 0;
   let panelEl = null;
 
+  // ===== 事件监听追踪 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
   // ===== 噪声类型配置 =====
   const NOISE_TYPES = {
     white: { label: '白噪声', emoji: '🌊', description: '均匀频谱，专注力提升' },
@@ -214,7 +222,7 @@ const WhiteNoiseModule = (() => {
   // ===== iOS Safari 兼容 =====
 
   function setupVisibilityHandler() {
-    document.addEventListener('visibilitychange', () => {
+    _bindEvent(document, 'visibilitychange', () => {
       if (!audioCtx || !isPlaying) return;
       if (document.visibilityState === 'hidden') {
         // 页面隐藏时保持播放（不暂停）
@@ -286,13 +294,13 @@ const WhiteNoiseModule = (() => {
 
   function bindPanelEvents() {
     // 关闭按钮
-    panelEl.querySelector('#wn-close').addEventListener('click', () => {
+    _bindEvent(panelEl.querySelector('#wn-close'), 'click', () => {
       hidePanel();
     });
 
     // 类型选择
     panelEl.querySelectorAll('.wn-type-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         panelEl.querySelectorAll('.wn-type-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentType = btn.dataset.type;
@@ -306,13 +314,13 @@ const WhiteNoiseModule = (() => {
     const slider = panelEl.querySelector('.wn-volume-slider');
     const savedVol = parseFloat(localStorage.getItem('wn_volume') || '0.5');
     slider.value = savedVol;
-    slider.addEventListener('input', (e) => {
+    _bindEvent(slider, 'input', (e) => {
       setVolume(parseFloat(e.target.value));
     });
 
     // 定时选项
     panelEl.querySelectorAll('.wn-timer-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         panelEl.querySelectorAll('.wn-timer-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const minutes = parseInt(btn.dataset.minutes);
@@ -323,7 +331,7 @@ const WhiteNoiseModule = (() => {
     });
 
     // 播放按钮
-    panelEl.querySelector('#wn-play-btn').addEventListener('click', () => {
+    _bindEvent(panelEl.querySelector('#wn-play-btn'), 'click', () => {
       if (isPlaying) {
         stopNoise();
         clearTimer();
@@ -391,12 +399,23 @@ const WhiteNoiseModule = (() => {
     setupVisibilityHandler();
   }
 
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    clearTimer();
+    stopNoise();
+    console.log('[WhiteNoise] 模块已销毁');
+  }
+
   return {
     init,
     togglePanel,
     showPanel,
     hidePanel,
     startNoise,
-    stopNoise
+    stopNoise,
+    destroy
   };
 })();

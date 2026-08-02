@@ -183,7 +183,7 @@ const HabitsModule = (() => {
     // 习惯卡片点击
     const grid = document.getElementById('habits-grid');
     if (grid) {
-      grid.addEventListener('click', (e) => {
+      _bindEvent(grid, 'click', (e) => {
         const card = e.target.closest('.habits-card');
         if (card) {
           toggleHabit(card.dataset.habitId);
@@ -194,7 +194,7 @@ const HabitsModule = (() => {
     // 习惯组合按钮点击
     const groupsList = document.getElementById('habits-groups-list');
     if (groupsList) {
-      groupsList.addEventListener('click', (e) => {
+      _bindEvent(groupsList, 'click', (e) => {
         const btn = e.target.closest('.habits-group-btn');
         if (btn) {
           handleGroupCheckin(btn.dataset.groupId);
@@ -207,15 +207,15 @@ const HabitsModule = (() => {
     const nextBtn = document.getElementById('habits-next-day');
     const todayBtn = document.getElementById('habits-today-btn');
 
-    if (prevBtn) prevBtn.addEventListener('click', () => shiftDate(-1));
-    if (nextBtn) nextBtn.addEventListener('click', () => shiftDate(1));
-    if (todayBtn) todayBtn.addEventListener('click', goToday);
+    _bindEvent(prevBtn, 'click', () => shiftDate(-1));
+    _bindEvent(nextBtn, 'click', () => shiftDate(1));
+    _bindEvent(todayBtn, 'click', goToday);
 
     // 日历月份切换
     const prevMonth = document.getElementById('habits-prev-month');
     const nextMonth = document.getElementById('habits-next-month');
-    if (prevMonth) prevMonth.addEventListener('click', () => shiftMonth(-1));
-    if (nextMonth) nextMonth.addEventListener('click', () => shiftMonth(1));
+    _bindEvent(prevMonth, 'click', () => shiftMonth(-1));
+    _bindEvent(nextMonth, 'click', () => shiftMonth(1));
   }
 
   // ===== 加载指定日期的打卡数据 =====
@@ -572,7 +572,7 @@ const HabitsModule = (() => {
       if (habitCount >= TOTAL) dayEl.classList.add('all-done');
 
       // 点击切换日期
-      dayEl.addEventListener('click', () => {
+      _bindEvent(dayEl, 'click', () => {
         currentDate = new Date(calendarYear, calendarMonth, day);
         loadDateData();
         renderCalendar();

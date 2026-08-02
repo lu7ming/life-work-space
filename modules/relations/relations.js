@@ -716,13 +716,13 @@ const RelationsModule = (() => {
     if (!container) return;
 
     // 搜索
-    document.getElementById('rel-search-input').addEventListener('input', (e) => {
+    _bindEvent(document.getElementById('rel-search-input'), 'input', (e) => {
       searchQuery = e.target.value;
       renderGrid();
     });
 
     // ABCD 分类筛选
-    document.getElementById('rel-category-tabs').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-category-tabs'), 'click', (e) => {
       const tab = e.target.closest('.rel-category-tab');
       if (!tab) return;
       currentCategoryFilter = tab.dataset.category;
@@ -732,7 +732,7 @@ const RelationsModule = (() => {
     });
 
     // 类型筛选
-    document.getElementById('rel-type-tabs').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-type-tabs'), 'click', (e) => {
       const tab = e.target.closest('.rel-type-tab');
       if (!tab) return;
       currentFilter = tab.dataset.type;
@@ -742,13 +742,13 @@ const RelationsModule = (() => {
     });
 
     // 排序
-    document.getElementById('rel-sort-select').addEventListener('change', (e) => {
+    _bindEvent(document.getElementById('rel-sort-select'), 'change', (e) => {
       currentSort = e.target.value;
       renderGrid();
     });
 
     // 卡片点击 -> 打开详情
-    document.getElementById('rel-grid').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-grid'), 'click', (e) => {
       const card = e.target.closest('.rel-card');
       if (!card) return;
       const id = Number(card.dataset.id);
@@ -757,7 +757,7 @@ const RelationsModule = (() => {
     });
 
     // 生日卡片点击 -> 打开详情
-    document.getElementById('rel-birthday-list').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-birthday-list'), 'click', (e) => {
       const item = e.target.closest('.rel-birthday-item');
       if (!item) return;
       const id = Number(item.dataset.id);
@@ -766,18 +766,18 @@ const RelationsModule = (() => {
     });
 
     // 详情弹窗关闭
-    document.getElementById('rel-detail-close').addEventListener('click', closeDetail);
-    document.getElementById('rel-detail-modal').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-detail-close'), 'click', closeDetail);
+    _bindEvent(document.getElementById('rel-detail-modal'), 'click', (e) => {
       if (e.target === e.currentTarget) closeDetail();
     });
 
     // 详情标签切换
     document.querySelectorAll('.rel-detail-tab').forEach(tab => {
-      tab.addEventListener('click', () => switchDetailTab(tab.dataset.tab));
+      _bindEvent(tab, 'click', () => switchDetailTab(tab.dataset.tab));
     });
 
     // 编辑按钮
-    document.getElementById('rel-edit-btn').addEventListener('click', () => {
+    _bindEvent(document.getElementById('rel-edit-btn'), 'click', () => {
       if (selectedContact) {
         closeDetail();
         openForm(selectedContact);
@@ -785,13 +785,13 @@ const RelationsModule = (() => {
     });
 
     // 删除按钮
-    document.getElementById('rel-delete-btn').addEventListener('click', deleteContact);
+    _bindEvent(document.getElementById('rel-delete-btn'), 'click', deleteContact);
 
     // 添加互动
-    document.getElementById('rel-add-interaction-btn').addEventListener('click', addInteraction);
+    _bindEvent(document.getElementById('rel-add-interaction-btn'), 'click', addInteraction);
 
     // 删除互动
-    document.getElementById('rel-interaction-list').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-interaction-list'), 'click', (e) => {
       const btn = e.target.closest('.rel-interaction-delete');
       if (!btn) return;
       if (confirm('确定删除这条记录？')) {
@@ -800,20 +800,20 @@ const RelationsModule = (() => {
     });
 
     // FAB -> 添加联系人
-    document.getElementById('rel-fab').addEventListener('click', () => openForm(null));
+    _bindEvent(document.getElementById('rel-fab'), 'click', () => openForm(null));
 
     // 表单弹窗关闭
-    document.getElementById('rel-form-close').addEventListener('click', closeForm);
-    document.getElementById('rel-form-cancel').addEventListener('click', closeForm);
-    document.getElementById('rel-form-modal').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-form-close'), 'click', closeForm);
+    _bindEvent(document.getElementById('rel-form-cancel'), 'click', closeForm);
+    _bindEvent(document.getElementById('rel-form-modal'), 'click', (e) => {
       if (e.target === e.currentTarget) closeForm();
     });
 
     // 表单提交
-    document.getElementById('rel-form').addEventListener('submit', saveForm);
+    _bindEvent(document.getElementById('rel-form'), 'submit', saveForm);
 
     // 类型选择
-    document.getElementById('rel-form-type-selector').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-form-type-selector'), 'click', (e) => {
       const btn = e.target.closest('.rel-form-type-btn');
       if (!btn) return;
       formType = btn.dataset.type;
@@ -822,7 +822,7 @@ const RelationsModule = (() => {
     });
 
     // 自定义类型双击切换
-    document.getElementById('rel-form-type-selector').addEventListener('dblclick', (e) => {
+    _bindEvent(document.getElementById('rel-form-type-selector'), 'dblclick', (e) => {
       const btn = e.target.closest('.rel-form-type-btn');
       if (!btn) return;
       formType = '__custom__';
@@ -832,7 +832,7 @@ const RelationsModule = (() => {
     });
 
     // ABCD 分类选择
-    document.getElementById('rel-form-category-selector').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-form-category-selector'), 'click', (e) => {
       const btn = e.target.closest('.rel-form-cat-btn');
       if (!btn) return;
       formCategory = btn.dataset.cat;
@@ -840,19 +840,19 @@ const RelationsModule = (() => {
     });
 
     // 添加重要日期
-    document.getElementById('rel-add-date-btn').addEventListener('click', () => {
+    _bindEvent(document.getElementById('rel-add-date-btn'), 'click', () => {
       addDateRow('', '');
     });
 
     // 删除重要日期行
-    document.getElementById('rel-form-dates-list').addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('rel-form-dates-list'), 'click', (e) => {
       const btn = e.target.closest('.rel-form-date-remove');
       if (!btn) return;
       btn.closest('.rel-form-date-row').remove();
     });
 
     // 导出
-    document.getElementById('rel-export-btn').addEventListener('click', exportData);
+    _bindEvent(document.getElementById('rel-export-btn'), 'click', exportData);
   }
 
   // ===== 初始化 =====

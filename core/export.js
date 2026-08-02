@@ -207,7 +207,7 @@ const ExportModule = (() => {
     injectStyles();
     const overlay = document.createElement('div');
     overlay.className = 'export-overlay';
-    overlay.addEventListener('click', (e) => {
+    _bindEvent(overlay, 'click', (e) => {
       if (e.target === overlay) closeDialog(overlay);
     });
     document.body.appendChild(overlay);
@@ -353,13 +353,13 @@ const ExportModule = (() => {
     const toggleLink = dialog.querySelector('#export-toggle-all');
     let allChecked = true;
 
-    checkAll.addEventListener('change', () => {
+    _bindEvent(checkAll, 'change', () => {
       storeCbs.forEach(cb => cb.checked = checkAll.checked);
       allChecked = checkAll.checked;
       toggleLink.textContent = allChecked ? '取消全选' : '全选';
     });
 
-    toggleLink.addEventListener('click', () => {
+    _bindEvent(toggleLink, 'click', () => {
       allChecked = !allChecked;
       checkAll.checked = allChecked;
       storeCbs.forEach(cb => cb.checked = allChecked);
@@ -367,7 +367,7 @@ const ExportModule = (() => {
     });
 
     storeCbs.forEach(cb => {
-      cb.addEventListener('change', () => {
+      _bindEvent(cb, 'change', () => {
         const allOn = Array.from(storeCbs).every(c => c.checked);
         checkAll.checked = allOn;
         allChecked = allOn;
@@ -376,10 +376,10 @@ const ExportModule = (() => {
     });
 
     // 取消
-    dialog.querySelector('#export-cancel').addEventListener('click', () => closeDialog(overlay));
+    _bindEvent(dialog.querySelector('#export-cancel'), 'click', () => closeDialog(overlay));
 
     // 确认导出
-    dialog.querySelector('#export-confirm').addEventListener('click', async () => {
+    _bindEvent(dialog.querySelector('#export-confirm'), 'click', async () => {
       const selected = Array.from(storeCbs).filter(cb => cb.checked).map(cb => cb.value);
       if (selected.length === 0) {
         App.showToast('请至少选择一个模块');
@@ -442,22 +442,22 @@ const ExportModule = (() => {
     overlay.appendChild(dialog);
 
     // 取消
-    dialog.querySelector('#import-cancel').addEventListener('click', () => closeDialog(overlay));
+    _bindEvent(dialog.querySelector('#import-cancel'), 'click', () => closeDialog(overlay));
 
     // 文件选择
     const dropZone = dialog.querySelector('#import-drop');
     const fileInput = dialog.querySelector('#import-file-input');
 
-    dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => {
+    _bindEvent(dropZone, 'click', () => fileInput.click());
+    _bindEvent(dropZone, 'dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    _bindEvent(dropZone, 'dragleave', () => dropZone.classList.remove('dragover'));
+    _bindEvent(dropZone, 'drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('dragover');
       const file = e.dataTransfer.files[0];
       if (file) handleFile(file, dialog);
     });
-    fileInput.addEventListener('change', () => {
+    _bindEvent(fileInput, 'change', () => {
       if (fileInput.files[0]) handleFile(fileInput.files[0], dialog);
     });
   }
@@ -543,7 +543,7 @@ const ExportModule = (() => {
     // 模式选择交互
     const modeOptions = body.querySelectorAll('.import-mode-option');
     modeOptions.forEach(opt => {
-      opt.addEventListener('click', () => {
+      _bindEvent(opt, 'click', () => {
         modeOptions.forEach(o => o.classList.remove('selected'));
         opt.classList.add('selected');
         opt.querySelector('input[type="radio"]').checked = true;

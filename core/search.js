@@ -92,10 +92,10 @@ const SearchModule = (() => {
     hintEl = panelEl.querySelector('.global-search-hint');
 
     // 事件绑定
-    panelEl.querySelector('.global-search-backdrop').addEventListener('click', close);
-    panelEl.querySelector('.global-search-close').addEventListener('click', close);
+    _bindEvent(panelEl.querySelector('.global-search-backdrop'), 'click', close);
+    _bindEvent(panelEl.querySelector('.global-search-close'), 'click', close);
 
-    inputEl.addEventListener('input', () => {
+    _bindEvent(inputEl, 'input', () => {
       clearTimeout(debounceTimer);
       const value = inputEl.value;
       
@@ -113,7 +113,7 @@ const SearchModule = (() => {
       }
     });
 
-    inputEl.addEventListener('keydown', (e) => {
+    _bindEvent(inputEl, 'keydown', (e) => {
       if (e.key === 'Escape') {
         close();
         return;
@@ -131,7 +131,7 @@ const SearchModule = (() => {
     });
 
     // ESC 全局监听
-    document.addEventListener('keydown', (e) => {
+    _bindEvent(document, 'keydown', (e) => {
       if (e.key === 'Escape' && panelEl.classList.contains('show')) {
         close();
       }
@@ -200,7 +200,7 @@ const SearchModule = (() => {
 
     // 绑定点击事件
     resultsEl.querySelectorAll('.search-command-item').forEach(el => {
-      el.addEventListener('click', () => {
+      _bindEvent(el, 'click', () => {
         const route = el.dataset.route;
         if (route) {
           Router.navigate(route);
@@ -284,7 +284,7 @@ const SearchModule = (() => {
 
     // 绑定点击跳转
     resultsEl.querySelectorAll('.global-search-result-item').forEach(el => {
-      el.addEventListener('click', () => {
+      _bindEvent(el, 'click', () => {
         const route = el.dataset.route;
         if (route) {
           Router.navigate(route);

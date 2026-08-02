@@ -73,6 +73,13 @@ const RestModule = (() => {
   // 通知轮询暂停
   let notifPaused = false;
 
+  // ===== 事件监听追踪 =====
+  let _eventListeners = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
   // ====== 初始化 ======
   function init() {
     reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -85,15 +92,13 @@ const RestModule = (() => {
 
     // 绑定入口按钮
     const btn = document.getElementById('rest-mode-btn');
-    if (btn) {
-      btn.addEventListener('click', open);
-    }
+    _bindEvent(btn, 'click', open);
 
     // 点击退出
-    overlay.addEventListener('click', close);
+    _bindEvent(overlay, 'click', close);
 
     // 监听 reduced motion 变化
-    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
+    _bindEvent(window.matchMedia('(prefers-reduced-motion: reduce)'), 'change', (e) => {
       reducedMotion = e.matches;
     });
   }
@@ -116,7 +121,7 @@ const RestModule = (() => {
 
     // 设置canvas尺寸
     resize();
-    window.addEventListener('resize', resize);
+    _bindEvent(window, 'resize', resize);
 
     // 预渲染
     preRenderSprites();
@@ -738,10 +743,17 @@ const RestModule = (() => {
   }
 
   // ====== 公开API ======
-  return { init, open, close };
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    close();
+    console.log('[Rest] 模块已销毁');
+  }
+
+  return { init, open, close, destroy };
 })();
 
 // 在 DOMContentLoaded 时初始化
-document.addEventListener('DOMContentLoaded', () => {
+_bindEvent(document, 'DOMContentLoaded', () => {
   RestModule.init();
 });

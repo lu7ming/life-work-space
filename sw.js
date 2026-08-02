@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v53 - AI Function Calling 替代三轮跳转
+ * v54 - 模块生命周期管理系统
  */
 
-const CACHE_NAME = 'life-work-space-v53';
+const CACHE_NAME = 'life-work-space-v54';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -15,6 +15,7 @@ const CACHE_ASSETS = [
   './core/app.js',
   './core/router.js',
   './core/event-bus.js',
+  './core/module-lifecycle.js',
   './core/storage.js',
   './core/utils.js',
   './core/user-profile.js',

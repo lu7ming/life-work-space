@@ -997,7 +997,7 @@ const LifeTreeModule = (() => {
   // ===== 事件绑定 =====
   function bindEvents() {
     let resizeTimer;
-    window.addEventListener('resize', () => {
+    _bindEvent(window, 'resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         // SVG自适应，无需重绘，但面板可能需要刷新
@@ -1032,7 +1032,7 @@ const LifeTreeModule = (() => {
 })();
 
 // 自动初始化
-document.addEventListener('DOMContentLoaded', () => {
+_bindEvent(document, 'DOMContentLoaded', () => {
   if (typeof LifeTreeModule !== 'undefined') {
     LifeTreeModule.init();
   }

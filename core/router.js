@@ -1,6 +1,8 @@
 /**
  * router.js - 基于 hash 的路由管理
  * 人生工作台 · 页面导航
+ *
+ * v2 - 集成 ModuleLifecycle，路由切换时自动停用旧模块
  */
 
 const Router = (() => {
@@ -46,6 +48,11 @@ const Router = (() => {
 
     const prevRoute = currentRoute;
     currentRoute = route;
+
+    // ===== 生命周期管理：停用旧模块 =====
+    if (typeof ModuleLifecycle !== 'undefined') {
+      ModuleLifecycle.deactivateCurrent();
+    }
 
     // 触发路由监听器
     listeners.forEach((fn) => fn(route, prevRoute));

@@ -156,7 +156,7 @@ const HealthModule = (() => {
     const input = document.getElementById('health-weight-input');
     if (!input) return;
     let saveTimer = null;
-    input.addEventListener('input', () => {
+    _bindEvent(input, 'input', () => {
       const val = parseFloat(input.value);
       if (!isNaN(val) && val > 0) {
         healthData.weight = val;
@@ -216,9 +216,9 @@ const HealthModule = (() => {
       saveData._sleepTimer = setTimeout(() => saveData(), 500);
     };
 
-    if (bedtimeInput) bedtimeInput.addEventListener('change', update);
-    if (waketimeInput) waketimeInput.addEventListener('change', update);
-    if (napInput) napInput.addEventListener('input', update);
+    _bindEvent(bedtimeInput, 'change', update);
+    _bindEvent(waketimeInput, 'change', update);
+    _bindEvent(napInput, 'input', update);
   }
 
   function calcSleepDuration() {
@@ -282,7 +282,7 @@ const HealthModule = (() => {
 
     // 绑定删除
     list.querySelectorAll('.health-exercise-item-delete').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         const idx = parseInt(btn.dataset.index);
         healthData.exercises.splice(idx, 1);
         renderExercises();
@@ -300,14 +300,14 @@ const HealthModule = (() => {
     if (!typeSelect || !addBtn) return;
 
     // 自定义类型切换
-    typeSelect.addEventListener('change', () => {
+    _bindEvent(typeSelect, 'change', () => {
       if (customInput) {
         customInput.style.display = typeSelect.value === 'custom' ? '' : 'none';
       }
     });
 
     // 添加运动
-    addBtn.addEventListener('click', () => {
+    _bindEvent(addBtn, 'click', () => {
       const type = typeSelect.value;
       if (!type) {
         if (typeof App !== 'undefined' && App.showToast) App.showToast('请选择运动类型');
@@ -350,7 +350,7 @@ const HealthModule = (() => {
   function bindWaterEvents() {
     // 快捷按钮
     document.querySelectorAll('.health-water-btn[data-amount]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         const amount = parseInt(btn.dataset.amount);
         healthData.water = (healthData.water || 0) + amount;
         updateWaterDisplay();
@@ -362,7 +362,7 @@ const HealthModule = (() => {
     const customBtn = document.getElementById('health-water-custom-btn');
     const customInput = document.getElementById('health-water-custom-input');
     if (customBtn && customInput) {
-      customBtn.addEventListener('click', () => {
+      _bindEvent(customBtn, 'click', () => {
         if (customInput.style.display === 'none' || !customInput.style.display) {
           customInput.style.display = '';
           customInput.focus();
@@ -378,7 +378,7 @@ const HealthModule = (() => {
         }
       });
 
-      customInput.addEventListener('keydown', (e) => {
+      _bindEvent(customInput, 'keydown', (e) => {
         if (e.key === 'Enter') {
           const amount = parseInt(customInput.value);
           if (amount && amount > 0) {
@@ -419,7 +419,7 @@ const HealthModule = (() => {
 
     // 绑定删除
     list.querySelectorAll('.health-diet-item-delete').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         const idx = parseInt(btn.dataset.index);
         healthData.diets.splice(idx, 1);
         renderDiets();
@@ -439,14 +439,14 @@ const HealthModule = (() => {
     if (!addBtn || !form) return;
 
     // 展开表单
-    addBtn.addEventListener('click', () => {
+    _bindEvent(addBtn, 'click', () => {
       form.style.display = form.style.display === 'none' ? '' : 'none';
       if (form.style.display !== 'none' && contentInput) contentInput.focus();
     });
 
     // 取消
     if (cancelBtn) {
-      cancelBtn.addEventListener('click', () => {
+      _bindEvent(cancelBtn, 'click', () => {
         form.style.display = 'none';
         if (contentInput) contentInput.value = '';
       });
@@ -454,7 +454,7 @@ const HealthModule = (() => {
 
     // 确认
     if (confirmBtn) {
-      confirmBtn.addEventListener('click', () => {
+      _bindEvent(confirmBtn, 'click', () => {
         const meal = mealSelect?.value || 'lunch';
         const content = contentInput?.value?.trim();
         if (!content) {
@@ -478,9 +478,9 @@ const HealthModule = (() => {
     const prevBtn = document.getElementById('health-prev-day');
     const nextBtn = document.getElementById('health-next-day');
     const todayBtn = document.getElementById('health-today-btn');
-    if (prevBtn) prevBtn.addEventListener('click', () => shiftDate(-1));
-    if (nextBtn) nextBtn.addEventListener('click', () => shiftDate(1));
-    if (todayBtn) todayBtn.addEventListener('click', goToday);
+    _bindEvent(prevBtn, 'click', () => shiftDate(-1));
+    _bindEvent(nextBtn, 'click', () => shiftDate(1));
+    _bindEvent(todayBtn, 'click', goToday);
 
     bindWeightEvents();
     bindSleepEvents();

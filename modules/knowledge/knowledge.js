@@ -414,7 +414,7 @@ const KnowledgeModule = (() => {
     const searchClear = document.getElementById('knowledgeSearchClear');
     if (searchInput) {
       let debounceTimer;
-      searchInput.addEventListener('input', () => {
+      _bindEvent(searchInput, 'input', () => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           searchKeyword = searchInput.value;
@@ -425,7 +425,7 @@ const KnowledgeModule = (() => {
       });
     }
     if (searchClear) {
-      searchClear.addEventListener('click', () => {
+      _bindEvent(searchClear, 'click', () => {
         searchKeyword = '';
         if (searchInput) searchInput.value = '';
         searchClear.style.display = 'none';
@@ -437,7 +437,7 @@ const KnowledgeModule = (() => {
     // Type tabs
     const typeTabs = document.getElementById('knowledgeTypeTabs');
     if (typeTabs) {
-      typeTabs.addEventListener('click', (e) => {
+      _bindEvent(typeTabs, 'click', (e) => {
         const tab = e.target.closest('.knowledge-type-tab');
         if (!tab) return;
         currentType = tab.dataset.type;
@@ -451,7 +451,7 @@ const KnowledgeModule = (() => {
     // Tag list (delegated)
     const tagList = document.getElementById('knowledgeTagList');
     if (tagList) {
-      tagList.addEventListener('click', (e) => {
+      _bindEvent(tagList, 'click', (e) => {
         const tagBtn = e.target.closest('.knowledge-tag-item');
         if (!tagBtn) return;
         currentTag = tagBtn.dataset.tag;
@@ -465,7 +465,7 @@ const KnowledgeModule = (() => {
     // Sort buttons
     const sortBar = document.getElementById('knowledgeSortBar');
     if (sortBar) {
-      sortBar.addEventListener('click', (e) => {
+      _bindEvent(sortBar, 'click', (e) => {
         const btn = e.target.closest('.knowledge-sort-btn');
         if (!btn) return;
         currentSort = btn.dataset.sort;
@@ -478,7 +478,7 @@ const KnowledgeModule = (() => {
     // Card click -> edit modal
     const listEl = document.getElementById('knowledgeList');
     if (listEl) {
-      listEl.addEventListener('click', (e) => {
+      _bindEvent(listEl, 'click', (e) => {
         const card = e.target.closest('.knowledge-card');
         if (!card) return;
         const id = parseInt(card.dataset.id, 10);
@@ -489,30 +489,30 @@ const KnowledgeModule = (() => {
 
     // FAB
     const fab = document.getElementById('knowledgeFabBtn');
-    if (fab) fab.addEventListener('click', openCreateModal);
+    _bindEvent(fab, 'click', openCreateModal);
 
     // Stats button
     const statsBtn = document.getElementById('knowledgeStatsBtn');
-    if (statsBtn) statsBtn.addEventListener('click', openStatsModal);
+    _bindEvent(statsBtn, 'click', openStatsModal);
 
     // Stats modal close
     const statsClose = document.getElementById('knowledgeStatsClose');
-    if (statsClose) statsClose.addEventListener('click', () => hideModal('knowledgeStatsModal'));
+    _bindEvent(statsClose, 'click', () => hideModal('knowledgeStatsModal'));
 
     // Modal close
     const modalClose = document.getElementById('knowledgeModalClose');
-    if (modalClose) modalClose.addEventListener('click', () => hideModal('knowledgeModal'));
+    _bindEvent(modalClose, 'click', () => hideModal('knowledgeModal'));
 
     // Modal overlay click
     const modalOverlay = document.getElementById('knowledgeModal');
     if (modalOverlay) {
-      modalOverlay.addEventListener('click', (e) => {
+      _bindEvent(modalOverlay, 'click', (e) => {
         if (e.target === modalOverlay) hideModal('knowledgeModal');
       });
     }
     const statsOverlay = document.getElementById('knowledgeStatsModal');
     if (statsOverlay) {
-      statsOverlay.addEventListener('click', (e) => {
+      _bindEvent(statsOverlay, 'click', (e) => {
         if (e.target === statsOverlay) hideModal('knowledgeStatsModal');
       });
     }
@@ -520,7 +520,7 @@ const KnowledgeModule = (() => {
     // Form type buttons
     const formTypes = document.getElementById('knowledgeFormTypes');
     if (formTypes) {
-      formTypes.addEventListener('click', (e) => {
+      _bindEvent(formTypes, 'click', (e) => {
         const btn = e.target.closest('.knowledge-form-type-btn');
         if (!btn) return;
         formTypes.querySelectorAll('.knowledge-form-type-btn').forEach(b => b.classList.remove('active'));
@@ -531,7 +531,7 @@ const KnowledgeModule = (() => {
     // Tag input (Enter to add)
     const tagInput = document.getElementById('knowledgeTagInput');
     if (tagInput) {
-      tagInput.addEventListener('keydown', (e) => {
+      _bindEvent(tagInput, 'keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           const val = tagInput.value.trim();
@@ -548,7 +548,7 @@ const KnowledgeModule = (() => {
     // Remove form tag (delegated)
     const formTagsDisplay = document.getElementById('knowledgeFormTagsDisplay');
     if (formTagsDisplay) {
-      formTagsDisplay.addEventListener('click', (e) => {
+      _bindEvent(formTagsDisplay, 'click', (e) => {
         const removeBtn = e.target.closest('.knowledge-form-tag-remove');
         if (!removeBtn) return;
         const idx = parseInt(removeBtn.dataset.index, 10);
@@ -561,7 +561,7 @@ const KnowledgeModule = (() => {
     // Tag suggestions (delegated)
     const formTagsSuggest = document.getElementById('knowledgeFormTagsSuggest');
     if (formTagsSuggest) {
-      formTagsSuggest.addEventListener('click', (e) => {
+      _bindEvent(formTagsSuggest, 'click', (e) => {
         const item = e.target.closest('.knowledge-tag-suggest-item');
         if (!item) return;
         const tag = item.dataset.tag;
@@ -575,16 +575,16 @@ const KnowledgeModule = (() => {
 
     // Save button
     const saveBtn = document.getElementById('knowledgeFormSave');
-    if (saveBtn) saveBtn.addEventListener('click', saveEntry);
+    _bindEvent(saveBtn, 'click', saveEntry);
 
     // Cancel button
     const cancelBtn = document.getElementById('knowledgeFormCancel');
-    if (cancelBtn) cancelBtn.addEventListener('click', () => hideModal('knowledgeModal'));
+    _bindEvent(cancelBtn, 'click', () => hideModal('knowledgeModal'));
 
     // Delete button
     const deleteBtn = document.getElementById('knowledgeFormDelete');
     if (deleteBtn) {
-      deleteBtn.addEventListener('click', () => {
+      _bindEvent(deleteBtn, 'click', () => {
         if (editingId) {
           if (confirm('确定删除这条知识吗？')) {
             deleteEntry(editingId);
@@ -594,7 +594,7 @@ const KnowledgeModule = (() => {
     }
 
     // Keyboard: Escape to close modals
-    document.addEventListener('keydown', (e) => {
+    _bindEvent(document, 'keydown', (e) => {
       if (e.key === 'Escape') {
         hideModal('knowledgeModal');
         hideModal('knowledgeStatsModal');

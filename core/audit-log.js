@@ -15,6 +15,13 @@
  */
 
 const AuditLog = (() => {
+  // ===== 事件监听追踪 =====
+  let _eventListeners = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
   // ===== 常量 =====
   const STORE_NAME = 'audit_logs';
   const MAX_RECORDS = 500;           // 最大记录数
@@ -588,6 +595,12 @@ const AuditLog = (() => {
     console.log('[AuditLog] 审计日志模块就绪 📜');
   }
 
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    closeAuditPanel();
+  }
+
   return {
     init,
     log,
@@ -596,6 +609,7 @@ const AuditLog = (() => {
     getLogsByAction,
     getCostSummary,
     showAuditPanel,
-    closeAuditPanel
+    closeAuditPanel,
+    destroy
   };
 })();

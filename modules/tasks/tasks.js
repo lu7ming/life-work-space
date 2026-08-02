@@ -6,6 +6,14 @@ const TasksModule = (() => {
   // escapeHtml 已在顶部从 AppUtils 导入
   // function escapeHtml(str) { ... }
 
+  // ===== 事件监听追踪 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
   // ===== 常量 =====
   const PRIORITY_CONFIG = {
     A: { label: '紧急重要', color: '#E74C3C' },
@@ -105,7 +113,7 @@ const TasksModule = (() => {
   function bindTabEvents() {
     const tabs = document.getElementById('tasks-tabs');
     if (!tabs) return;
-    tabs.addEventListener('click', (e) => {
+    _bindEvent(tabs, 'click', (e) => {
       const tab = e.target.closest('.tasks-tab');
       if (!tab) return;
       const tabName = tab.dataset.tab;
@@ -238,14 +246,14 @@ const TasksModule = (() => {
       };
 
       // Touch events
-      item.addEventListener('touchstart', onStart, { passive: true });
-      item.addEventListener('touchmove', onMove, { passive: true });
-      item.addEventListener('touchend', onEnd);
+      _bindEvent(item, 'touchstart', onStart, { passive: true });
+      _bindEvent(item, 'touchmove', onMove, { passive: true });
+      _bindEvent(item, 'touchend', onEnd);
       // Mouse events (桌面端)
-      item.addEventListener('mousedown', onStart);
-      item.addEventListener('mousemove', onMove);
-      item.addEventListener('mouseup', onEnd);
-      item.addEventListener('mouseleave', onEnd);
+      _bindEvent(item, 'mousedown', onStart);
+      _bindEvent(item, 'mousemove', onMove);
+      _bindEvent(item, 'mouseup', onEnd);
+      _bindEvent(item, 'mouseleave', onEnd);
     });
   }
 
@@ -286,7 +294,7 @@ const TasksModule = (() => {
   function bindFabEvents() {
     const fab = document.getElementById('tasks-fab');
     if (!fab) return;
-    fab.addEventListener('click', () => {
+    _bindEvent(fab, 'click', () => {
       if (currentTab === 'projects') {
         showProjectsModal();
       } else {
@@ -320,26 +328,26 @@ const TasksModule = (() => {
 
   function bindModalEvents() {
     // 新建任务浮层
-    document.getElementById('tasks-modal-close')?.addEventListener('click', hideTaskModal);
-    document.getElementById('tasks-btn-cancel')?.addEventListener('click', hideTaskModal);
-    document.getElementById('tasks-modal-overlay')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('tasks-modal-close'), 'click', hideTaskModal);
+    _bindEvent(document.getElementById('tasks-btn-cancel'), 'click', hideTaskModal);
+    _bindEvent(document.getElementById('tasks-modal-overlay'), 'click', (e) => {
       if (e.target.id === 'tasks-modal-overlay') hideTaskModal();
     });
-    document.getElementById('tasks-btn-confirm')?.addEventListener('click', handleCreateTask);
+    _bindEvent(document.getElementById('tasks-btn-confirm'), 'click', handleCreateTask);
 
     // 优先级选择
-    document.getElementById('task-priority-picker')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('task-priority-picker'), 'click', (e) => {
       const btn = e.target.closest('.priority-pick-btn');
       if (btn) setActivePriority('task-priority-picker', btn.dataset.priority);
     });
 
     // 新建项目浮层
-    document.getElementById('projects-modal-close')?.addEventListener('click', hideProjectsModal);
-    document.getElementById('projects-btn-cancel')?.addEventListener('click', hideProjectsModal);
-    document.getElementById('projects-modal-overlay')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('projects-modal-close'), 'click', hideProjectsModal);
+    _bindEvent(document.getElementById('projects-btn-cancel'), 'click', hideProjectsModal);
+    _bindEvent(document.getElementById('projects-modal-overlay'), 'click', (e) => {
       if (e.target.id === 'projects-modal-overlay') hideProjectsModal();
     });
-    document.getElementById('projects-btn-confirm')?.addEventListener('click', handleCreateProject);
+    _bindEvent(document.getElementById('projects-btn-confirm'), 'click', handleCreateProject);
   }
 
   function setActivePriority(pickerId, priority) {
@@ -445,7 +453,7 @@ const TasksModule = (() => {
   function bindFilterEvents() {
     const filterBar = document.getElementById('tasks-filter');
     if (!filterBar) return;
-    filterBar.addEventListener('click', (e) => {
+    _bindEvent(filterBar, 'click', (e) => {
       const btn = e.target.closest('.tasks-filter-btn');
       if (!btn) return;
       currentFilter = btn.dataset.priority;
@@ -461,7 +469,7 @@ const TasksModule = (() => {
     const content = document.getElementById('tasks-content');
     if (!content) return;
 
-    content.addEventListener('click', (e) => {
+    _bindEvent(content, 'click', (e) => {
       // 矩阵视图 - 复选框
       const matrixCheck = e.target.closest('.matrix-task-check');
       if (matrixCheck) {
@@ -528,19 +536,19 @@ const TasksModule = (() => {
   }
 
   function bindDetailEvents() {
-    document.getElementById('task-detail-close')?.addEventListener('click', hideTaskDetail);
-    document.getElementById('task-detail-overlay')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('task-detail-close'), 'click', hideTaskDetail);
+    _bindEvent(document.getElementById('task-detail-overlay'), 'click', (e) => {
       if (e.target.id === 'task-detail-overlay') hideTaskDetail();
     });
     // 优先级选择
-    document.getElementById('edit-task-priority-picker')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('edit-task-priority-picker'), 'click', (e) => {
       const btn = e.target.closest('.priority-pick-btn');
       if (btn) setActivePriority('edit-task-priority-picker', btn.dataset.priority);
     });
     // 保存
-    document.getElementById('edit-task-save')?.addEventListener('click', handleSaveTask);
+    _bindEvent(document.getElementById('edit-task-save'), 'click', handleSaveTask);
     // 删除
-    document.getElementById('edit-task-delete')?.addEventListener('click', () => {
+    _bindEvent(document.getElementById('edit-task-delete'), 'click', () => {
       if (editingTaskId) {
         deleteTask(editingTaskId);
         hideTaskDetail();
@@ -628,9 +636,9 @@ const TasksModule = (() => {
 
   // ===== 番茄钟 =====
   function bindPomodoroEvents() {
-    document.getElementById('pomodoro-start')?.addEventListener('click', togglePomodoro);
-    document.getElementById('pomodoro-reset')?.addEventListener('click', resetPomodoro);
-    document.getElementById('pomodoro-skip')?.addEventListener('click', skipPomodoroPhase);
+    _bindEvent(document.getElementById('pomodoro-start'), 'click', togglePomodoro);
+    _bindEvent(document.getElementById('pomodoro-reset'), 'click', resetPomodoro);
+    _bindEvent(document.getElementById('pomodoro-skip'), 'click', skipPomodoroPhase);
   }
 
   function togglePomodoro() {
@@ -948,11 +956,11 @@ const TasksModule = (() => {
   // ===== 周计划事件绑定 =====
   function bindWeeklyEvents() {
     // 前进/后退按钮
-    document.getElementById('weekly-prev')?.addEventListener('click', () => {
+    _bindEvent(document.getElementById('weekly-prev'), 'click', () => {
       weeklyViewOffset--;
       renderWeeklyView();
     });
-    document.getElementById('weekly-next')?.addEventListener('click', () => {
+    _bindEvent(document.getElementById('weekly-next'), 'click', () => {
       weeklyViewOffset++;
       renderWeeklyView();
     });
@@ -964,12 +972,12 @@ const TasksModule = (() => {
     let startX = 0;
     let isDragging = false;
 
-    columnsEl.addEventListener('touchstart', (e) => {
+    _bindEvent(columnsEl, 'touchstart', (e) => {
       startX = e.touches[0].clientX;
       isDragging = true;
     }, { passive: true });
 
-    columnsEl.addEventListener('touchend', (e) => {
+    _bindEvent(columnsEl, 'touchend', (e) => {
       if (!isDragging) return;
       isDragging = false;
       const endX = e.changedTouches[0].clientX;
@@ -1000,15 +1008,19 @@ const TasksModule = (() => {
   }
 
   /**
-   * 模块销毁：清理番茄钟定时器，防止内存泄漏
+   * 模块销毁：清理事件监听器和定时器，防止内存泄漏
    */
   function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
     if (pomodoroState.intervalId) {
       clearInterval(pomodoroState.intervalId);
       pomodoroState.intervalId = null;
     }
     pomodoroState.running = false;
-    console.log('[Tasks] 模块已销毁，番茄钟定时器已清理');
+    console.log('[Tasks] 模块已销毁');
   }
 
   return { init, destroy };

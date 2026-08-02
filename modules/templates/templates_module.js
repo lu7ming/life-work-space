@@ -45,7 +45,7 @@ const TemplatesModule = (() => {
 
     // 绑定点击事件
     grid.querySelectorAll('.template-card').forEach(card => {
-      card.addEventListener('click', () => {
+      _bindEvent(card, 'click', () => {
         const templateId = card.dataset.templateId;
         generateAndShowReport(templateId);
       });
@@ -70,7 +70,7 @@ const TemplatesModule = (() => {
     const prevBtn = document.getElementById('tpl-prev-month');
     const nextBtn = document.getElementById('tpl-next-month');
     if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
+      _bindEvent(prevBtn, 'click', () => {
         _currentMonth--;
         if (_currentMonth < 1) { _currentMonth = 12; _currentYear--; }
         updateMonthDisplay();
@@ -78,7 +78,7 @@ const TemplatesModule = (() => {
       });
     }
     if (nextBtn) {
-      nextBtn.addEventListener('click', () => {
+      _bindEvent(nextBtn, 'click', () => {
         _currentMonth++;
         if (_currentMonth > 12) { _currentMonth = 1; _currentYear++; }
         updateMonthDisplay();
@@ -88,9 +88,7 @@ const TemplatesModule = (() => {
 
     // 返回按钮
     const backBtn = document.getElementById('tpl-back-btn');
-    if (backBtn) {
-      backBtn.addEventListener('click', () => showListView());
-    }
+    _bindEvent(backBtn, 'click', () => showListView());
 
     // 导出按钮
     const exportMd = document.getElementById('tpl-export-md');
@@ -98,7 +96,7 @@ const TemplatesModule = (() => {
     const saveBtn = document.getElementById('tpl-save-report');
 
     if (exportMd) {
-      exportMd.addEventListener('click', () => {
+      _bindEvent(exportMd, 'click', () => {
         if (_currentReport) {
           // 先收集用户输入
           collectUserInputs();
@@ -109,7 +107,7 @@ const TemplatesModule = (() => {
     }
 
     if (exportJson) {
-      exportJson.addEventListener('click', () => {
+      _bindEvent(exportJson, 'click', () => {
         if (_currentReport) {
           collectUserInputs();
           const json = Templates.exportJSON(_currentReport);
@@ -119,7 +117,7 @@ const TemplatesModule = (() => {
     }
 
     if (saveBtn) {
-      saveBtn.addEventListener('click', async () => {
+      _bindEvent(saveBtn, 'click', async () => {
         if (_currentReport) {
           collectUserInputs();
           try {
@@ -140,7 +138,7 @@ const TemplatesModule = (() => {
     // 开始总结按钮（月末提醒）
     const startSummaryBtn = document.getElementById('tpl-start-summary');
     if (startSummaryBtn) {
-      startSummaryBtn.addEventListener('click', () => {
+      _bindEvent(startSummaryBtn, 'click', () => {
         generateAndShowReport('monthly_summary');
       });
     }
@@ -360,7 +358,7 @@ const TemplatesModule = (() => {
 
       // 绑定点击
       listEl.querySelectorAll('.report-history-item').forEach(item => {
-        item.addEventListener('click', async () => {
+        _bindEvent(item, 'click', async () => {
           const reportId = item.dataset.reportIdx;
           // 从历史记录中找到并展示
           const allReports = await Templates.getHistory();

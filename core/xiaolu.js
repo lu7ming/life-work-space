@@ -274,18 +274,18 @@ const XiaoluModule = (() => {
 
       setTimeout(() => input.focus(), 100);
 
-      cancelBtn.addEventListener('click', () => {
+      _bindEvent(cancelBtn, 'click', () => {
         overlay.remove();
         resolve(null);
       });
 
-      confirmBtn.addEventListener('click', () => {
+      _bindEvent(confirmBtn, 'click', () => {
         const token = input.value.trim();
         overlay.remove();
         resolve(token || null);
       });
 
-      input.addEventListener('keydown', (e) => {
+      _bindEvent(input, 'keydown', (e) => {
         if (e.key === 'Enter') {
           confirmBtn.click();
         }
@@ -294,7 +294,7 @@ const XiaoluModule = (() => {
         }
       });
 
-      overlay.addEventListener('click', (e) => {
+      _bindEvent(overlay, 'click', (e) => {
         if (e.target === overlay) cancelBtn.click();
       });
     });
@@ -832,7 +832,7 @@ const XiaoluModule = (() => {
   function buildPanel() {
     overlayEl = document.createElement('div');
     overlayEl.className = 'xiaolu-overlay';
-    overlayEl.addEventListener('click', close);
+    _bindEvent(overlayEl, 'click', close);
 
     panelEl = document.createElement('div');
     panelEl.className = 'xiaolu-panel';
@@ -873,10 +873,10 @@ const XiaoluModule = (() => {
   }
 
   function bindEvents() {
-    panelEl.querySelector('#xiaolu-close').addEventListener('click', close);
+    _bindEvent(panelEl.querySelector('#xiaolu-close'), 'click', close);
 
     // 切换到妮可（手动覆盖路由）
-    panelEl.querySelector('#xiaolu-switch-nicole').addEventListener('click', () => {
+    _bindEvent(panelEl.querySelector('#xiaolu-switch-nicole'), 'click', () => {
       close();
       if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.setManualOverride) {
         AIOrchestrator.setManualOverride('nicole');
@@ -886,7 +886,7 @@ const XiaoluModule = (() => {
       }
     });
 
-    panelEl.querySelector('#xiaolu-new-chat').addEventListener('click', () => {
+    _bindEvent(panelEl.querySelector('#xiaolu-new-chat'), 'click', () => {
       _chatHistory = [];
       ContextTracker.clear(); // 清除多轮对话上下文
       messagesEl.innerHTML = '';
@@ -894,16 +894,16 @@ const XiaoluModule = (() => {
       if (typeof App !== 'undefined') App.showToast('已开始新对话 🦌');
     });
 
-    sendBtn.addEventListener('click', handleSend);
+    _bindEvent(sendBtn, 'click', handleSend);
 
-    inputEl.addEventListener('keydown', (e) => {
+    _bindEvent(inputEl, 'keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSend();
       }
     });
 
-    inputEl.addEventListener('input', () => {
+    _bindEvent(inputEl, 'input', () => {
       inputEl.style.height = 'auto';
       inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
     });
@@ -1058,7 +1058,7 @@ const XiaoluModule = (() => {
     const confirmBtn = confirmCard.querySelector('.xiaolu-action-btn.confirm');
     const cancelBtn = confirmCard.querySelector('.xiaolu-action-btn.cancel');
 
-    confirmBtn.addEventListener('click', async () => {
+    _bindEvent(confirmBtn, 'click', async () => {
       // 禁用按钮防止重复点击
       confirmBtn.disabled = true;
       cancelBtn.disabled = true;
@@ -1082,7 +1082,7 @@ const XiaoluModule = (() => {
       trimContext();
     });
 
-    cancelBtn.addEventListener('click', () => {
+    _bindEvent(cancelBtn, 'click', () => {
       // 替换确认卡片为取消提示
       const cancelEl = document.createElement('div');
       cancelEl.className = 'xiaolu-action-result xiaolu-action-cancelled';
@@ -1503,7 +1503,7 @@ const XiaoluModule = (() => {
       background:var(--card-bg,#FAF6F0);color:var(--text-primary,#4A3728);
       font-size:13px;cursor:pointer;transition:all 0.2s;
     `;
-    yesBtn.addEventListener('click', () => {
+    _bindEvent(yesBtn, 'click', () => {
       // 跳转到日记页面
       if (typeof Router !== 'undefined' && Router.navigate) {
         Router.navigate('journal');
@@ -1512,10 +1512,10 @@ const XiaoluModule = (() => {
       noBtn.disabled = true;
       yesBtn.style.opacity = '0.5';
     });
-    yesBtn.addEventListener('mouseenter', () => {
+    _bindEvent(yesBtn, 'mouseenter', () => {
       yesBtn.style.background = 'var(--accent,#D4BA9F)';
     });
-    yesBtn.addEventListener('mouseleave', () => {
+    _bindEvent(yesBtn, 'mouseleave', () => {
       yesBtn.style.background = 'var(--card-bg,#FAF6F0)';
     });
 
@@ -1526,7 +1526,7 @@ const XiaoluModule = (() => {
       background:transparent;color:var(--text-muted,#8a7a6d);
       font-size:13px;cursor:pointer;transition:all 0.2s;
     `;
-    noBtn.addEventListener('click', () => {
+    _bindEvent(noBtn, 'click', () => {
       addAIMessage('好的，有需要随时找我 🦌');
       yesBtn.disabled = true;
       noBtn.disabled = true;
@@ -2222,7 +2222,7 @@ const XiaoluModule = (() => {
       undoDiv.innerHTML = `
         <button id="chat-undo-${undoId}" style="padding:4px 12px;border-radius:8px;border:1px solid var(--border-light,#C8AD94);background:transparent;color:var(--text-muted,#8a7a6d);font-size:12px;cursor:pointer;">↩️ 撤销（15分钟内）</button>
       `;
-      undoDiv.querySelector('button').addEventListener('click', () => {
+      _bindEvent(undoDiv.querySelector('button'), 'click', () => {
         _performUndo(undoId);
       });
       lastMsg.appendChild(undoDiv);

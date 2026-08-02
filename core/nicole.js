@@ -122,18 +122,18 @@ const NicoleModule = (() => {
       // 聚焦
       setTimeout(() => input.focus(), 100);
 
-      cancelBtn.addEventListener('click', () => {
+      _bindEvent(cancelBtn, 'click', () => {
         overlay.remove();
         resolve(null);
       });
 
-      confirmBtn.addEventListener('click', () => {
+      _bindEvent(confirmBtn, 'click', () => {
         const token = input.value.trim();
         overlay.remove();
         resolve(token || null);
       });
 
-      input.addEventListener('keydown', (e) => {
+      _bindEvent(input, 'keydown', (e) => {
         if (e.key === 'Enter') {
           confirmBtn.click();
         }
@@ -143,7 +143,7 @@ const NicoleModule = (() => {
       });
 
       // 点击遮罩关闭
-      overlay.addEventListener('click', (e) => {
+      _bindEvent(overlay, 'click', (e) => {
         if (e.target === overlay) cancelBtn.click();
       });
     });
@@ -1222,7 +1222,7 @@ ${clusterText}`;
   function buildPanel() {
     overlayEl = document.createElement('div');
     overlayEl.className = 'nicole-overlay';
-    overlayEl.addEventListener('click', close);
+    _bindEvent(overlayEl, 'click', close);
 
     panelEl = document.createElement('div');
     panelEl.className = 'nicole-panel';
@@ -1271,10 +1271,10 @@ ${clusterText}`;
   }
 
   function bindEvents() {
-    panelEl.querySelector('#nicole-close').addEventListener('click', close);
+    _bindEvent(panelEl.querySelector('#nicole-close'), 'click', close);
 
     // 切换到小鹿（手动覆盖路由）
-    panelEl.querySelector('#nicole-switch-xiaolu').addEventListener('click', () => {
+    _bindEvent(panelEl.querySelector('#nicole-switch-xiaolu'), 'click', () => {
       close();
       if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.setManualOverride) {
         AIOrchestrator.setManualOverride('xiaolu');
@@ -1284,7 +1284,7 @@ ${clusterText}`;
       }
     });
 
-    panelEl.querySelector('#nicole-new-chat').addEventListener('click', () => {
+    _bindEvent(panelEl.querySelector('#nicole-new-chat'), 'click', () => {
       _conversationId = null;
       messagesEl.innerHTML = '';
       showWelcome();
@@ -1292,29 +1292,29 @@ ${clusterText}`;
     });
 
     // 刷新洞察按钮
-    panelEl.querySelector('#nicole-refresh-insight').addEventListener('click', () => {
+    _bindEvent(panelEl.querySelector('#nicole-refresh-insight'), 'click', () => {
       const today = getTodayStr();
       localStorage.removeItem(`nicole_daily_insight_${today}`);
       runDailyPipeline();
       if (typeof App !== 'undefined') App.showToast('正在刷新今日洞察...');
     });
 
-    sendBtn.addEventListener('click', handleSend);
+    _bindEvent(sendBtn, 'click', handleSend);
 
-    inputEl.addEventListener('keydown', (e) => {
+    _bindEvent(inputEl, 'keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSend();
       }
     });
 
-    inputEl.addEventListener('input', () => {
+    _bindEvent(inputEl, 'input', () => {
       inputEl.style.height = 'auto';
       inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
     });
 
     shortcutsEl.querySelectorAll('.nicole-shortcut-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      _bindEvent(btn, 'click', () => {
         handleShortcut(btn.dataset.action);
       });
     });

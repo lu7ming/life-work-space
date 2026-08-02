@@ -100,7 +100,7 @@ const StudyModule = (() => {
   function bindTabEvents() {
     const tabs = document.getElementById('study-tabs');
     if (!tabs) return;
-    tabs.addEventListener('click', (e) => {
+    _bindEvent(tabs, 'click', (e) => {
       const tab = e.target.closest('.study-tab');
       if (!tab) return;
       const tabName = tab.dataset.tab;
@@ -198,7 +198,7 @@ const StudyModule = (() => {
         // 点击空白格添加课程
         const clickArea = document.createElement('div');
         clickArea.className = 'study-cell-click-area';
-        clickArea.addEventListener('click', () => {
+        _bindEvent(clickArea, 'click', () => {
           showCourseModal(null, day, timeLabel);
         });
         cell.appendChild(clickArea);
@@ -251,7 +251,7 @@ const StudyModule = (() => {
       `;
 
       // 点击课程块 → 编辑
-      block.addEventListener('click', (e) => {
+      _bindEvent(block, 'click', (e) => {
         e.stopPropagation();
         showCourseModal(parseInt(block.dataset.courseId));
       });
@@ -264,15 +264,14 @@ const StudyModule = (() => {
   function bindSemesterEvents() {
     const select = document.getElementById('study-semester-select');
     if (select) {
-      select.addEventListener('change', () => {
+      _bindEvent(select, 'change', () => {
         currentSemesterId = select.value ? parseInt(select.value) : null;
         renderTimetable();
       });
     }
     const manageBtn = document.getElementById('study-semester-manage-btn');
-    if (manageBtn) {
-      manageBtn.addEventListener('click', showSemesterModal);
-    }
+    _bindEvent(manageBtn, 'click', showSemesterModal);
+
   }
 
   // ===== 课程浮层 =====
@@ -446,7 +445,7 @@ const StudyModule = (() => {
 
     // 点击切换学期
     list.querySelectorAll('.study-semester-list-item').forEach((item) => {
-      item.addEventListener('click', (e) => {
+      _bindEvent(item, 'click', (e) => {
         if (e.target.closest('.study-semester-list-item-del')) return;
         currentSemesterId = parseInt(item.dataset.semesterId);
         renderSemesterSelect();
@@ -457,7 +456,7 @@ const StudyModule = (() => {
 
     // 删除学期
     list.querySelectorAll('.study-semester-list-item-del').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+      _bindEvent(btn, 'click', (e) => {
         e.stopPropagation();
         deleteSemester(parseInt(btn.dataset.semesterId));
       });
@@ -559,7 +558,7 @@ const StudyModule = (() => {
 
     // 点击书籍卡片 → 编辑
     grid.querySelectorAll('.study-book-card').forEach((card) => {
-      card.addEventListener('click', () => {
+      _bindEvent(card, 'click', () => {
         showBookModal(parseInt(card.dataset.bookId));
       });
     });
@@ -727,7 +726,7 @@ const StudyModule = (() => {
 
     // 点击技能卡片 → 编辑
     grid.querySelectorAll('.study-skill-card').forEach((card) => {
-      card.addEventListener('click', () => {
+      _bindEvent(card, 'click', () => {
         showSkillModal(parseInt(card.dataset.skillId));
       });
     });
@@ -854,7 +853,7 @@ const StudyModule = (() => {
   function bindFabEvents() {
     const fab = document.getElementById('study-fab');
     if (!fab) return;
-    fab.addEventListener('click', () => {
+    _bindEvent(fab, 'click', () => {
       if (currentTab === 'courses') {
         if (!currentSemesterId) {
           if (typeof App !== 'undefined' && App.showToast) App.showToast('请先创建一个学期');
@@ -871,59 +870,59 @@ const StudyModule = (() => {
 
   function bindModalEvents() {
     // 课程浮层
-    document.getElementById('study-course-modal-close')?.addEventListener('click', hideCourseModal);
-    document.getElementById('study-course-cancel')?.addEventListener('click', hideCourseModal);
-    document.getElementById('study-course-modal-overlay')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('study-course-modal-close'), 'click', hideCourseModal);
+    _bindEvent(document.getElementById('study-course-cancel'), 'click', hideCourseModal);
+    _bindEvent(document.getElementById('study-course-modal-overlay'), 'click', (e) => {
       if (e.target.id === 'study-course-modal-overlay') hideCourseModal();
     });
-    document.getElementById('study-course-confirm')?.addEventListener('click', handleSaveCourse);
-    document.getElementById('study-course-delete')?.addEventListener('click', handleDeleteCourse);
+    _bindEvent(document.getElementById('study-course-confirm'), 'click', handleSaveCourse);
+    _bindEvent(document.getElementById('study-course-delete'), 'click', handleDeleteCourse);
 
     // 学期管理浮层
-    document.getElementById('study-semester-modal-close')?.addEventListener('click', hideSemesterModal);
-    document.getElementById('study-semester-modal-overlay')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('study-semester-modal-close'), 'click', hideSemesterModal);
+    _bindEvent(document.getElementById('study-semester-modal-overlay'), 'click', (e) => {
       if (e.target.id === 'study-semester-modal-overlay') hideSemesterModal();
     });
-    document.getElementById('semester-add-btn')?.addEventListener('click', handleAddSemester);
+    _bindEvent(document.getElementById('semester-add-btn'), 'click', handleAddSemester);
 
     // 书籍浮层
-    document.getElementById('study-book-modal-close')?.addEventListener('click', hideBookModal);
-    document.getElementById('study-book-cancel')?.addEventListener('click', hideBookModal);
-    document.getElementById('study-book-modal-overlay')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('study-book-modal-close'), 'click', hideBookModal);
+    _bindEvent(document.getElementById('study-book-cancel'), 'click', hideBookModal);
+    _bindEvent(document.getElementById('study-book-modal-overlay'), 'click', (e) => {
       if (e.target.id === 'study-book-modal-overlay') hideBookModal();
     });
-    document.getElementById('study-book-confirm')?.addEventListener('click', handleSaveBook);
-    document.getElementById('study-book-delete')?.addEventListener('click', handleDeleteBook);
+    _bindEvent(document.getElementById('study-book-confirm'), 'click', handleSaveBook);
+    _bindEvent(document.getElementById('study-book-delete'), 'click', handleDeleteBook);
 
     // 书籍状态选择
-    document.getElementById('book-status-picker')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('book-status-picker'), 'click', (e) => {
       const btn = e.target.closest('.study-status-btn');
       if (btn) setActiveBookStatus(btn.dataset.status);
     });
 
     // 书籍进度滑块
-    document.getElementById('book-progress-input')?.addEventListener('input', (e) => {
+    _bindEvent(document.getElementById('book-progress-input'), 'input', (e) => {
       const label = document.getElementById('book-progress-label');
       if (label) label.textContent = e.target.value;
     });
 
     // 技能浮层
-    document.getElementById('study-skill-modal-close')?.addEventListener('click', hideSkillModal);
-    document.getElementById('study-skill-cancel')?.addEventListener('click', hideSkillModal);
-    document.getElementById('study-skill-modal-overlay')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('study-skill-modal-close'), 'click', hideSkillModal);
+    _bindEvent(document.getElementById('study-skill-cancel'), 'click', hideSkillModal);
+    _bindEvent(document.getElementById('study-skill-modal-overlay'), 'click', (e) => {
       if (e.target.id === 'study-skill-modal-overlay') hideSkillModal();
     });
-    document.getElementById('study-skill-confirm')?.addEventListener('click', handleSaveSkill);
-    document.getElementById('study-skill-delete')?.addEventListener('click', handleDeleteSkill);
+    _bindEvent(document.getElementById('study-skill-confirm'), 'click', handleSaveSkill);
+    _bindEvent(document.getElementById('study-skill-delete'), 'click', handleDeleteSkill);
 
     // 技能星星选择
-    document.getElementById('skill-level-picker')?.addEventListener('click', (e) => {
+    _bindEvent(document.getElementById('skill-level-picker'), 'click', (e) => {
       const btn = e.target.closest('.study-star-btn');
       if (btn) setActiveSkillLevel(parseInt(btn.dataset.level));
     });
 
     // 技能进度滑块
-    document.getElementById('skill-progress-input')?.addEventListener('input', (e) => {
+    _bindEvent(document.getElementById('skill-progress-input'), 'input', (e) => {
       const label = document.getElementById('skill-progress-label');
       if (label) label.textContent = e.target.value;
     });

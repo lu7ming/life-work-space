@@ -318,7 +318,7 @@ export const SearchModule = (() => {
   function getItemMeta(item, storeName) {
     switch (storeName) {
       case 'tasks':
-        return item.date ? `${item.date} · ${item.status === 'done' ? '已完成' : item.status === 'todo' ? '待办' : item.status}` : '';
+        return item.date ? `${item.date} · ${(item.status === 'done' || item.status === 'completed') ? '已完成' : item.status === 'todo' ? '待办' : item.status}` : '';
       case 'journal':
         return item.date || '';
       case 'ideas':

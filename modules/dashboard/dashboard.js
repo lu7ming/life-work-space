@@ -359,7 +359,7 @@ export const DashboardModule = (() => {
 
     // 1) 上午完成进度
     const todayTasks = data.tasks.filter(t => t.date === todayStr || !t.date);
-    const doneTasks = todayTasks.filter(t => t.status === 'done');
+    const doneTasks = todayTasks.filter(t => t.status === 'done' || t.status === 'completed');
     const totalTasks = todayTasks.length;
     const doneCount = doneTasks.length;
     const progressPct = totalTasks > 0 ? Math.round((doneCount / totalTasks) * 100) : 0;
@@ -487,7 +487,7 @@ export const DashboardModule = (() => {
 
     // 1) 今日完成情况汇总
     const todayTasks = data.tasks.filter(t => t.date === todayStr || !t.date);
-    const doneTasks = todayTasks.filter(t => t.status === 'done');
+    const doneTasks = todayTasks.filter(t => t.status === 'done' || t.status === 'completed');
     const taskTotal = todayTasks.length;
     const taskDone = doneTasks.length;
 
@@ -1154,7 +1154,7 @@ export const DashboardModule = (() => {
       const monthStr = todayStr.slice(0, 7);
       try {
         const allTasks = await Storage.getAll('tasks');
-        value = allTasks.filter(t => t.status === 'done' && t.completedAt && t.completedAt.startsWith(monthStr)).length;
+        value = allTasks.filter(t => (t.status === 'done' || t.status === 'completed') && t.completedAt && t.completedAt.startsWith(monthStr)).length;
       } catch (e) { /* */ }
       label = '本月完成';
       unit = '项';

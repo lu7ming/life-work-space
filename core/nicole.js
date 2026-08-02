@@ -1169,7 +1169,7 @@ ${clusterText}`;
       const tasks = await Storage.getAll('tasks');
       summary.taskStatus = {
         todo: tasks.filter(t => t.status === 'todo').length,
-        done: tasks.filter(t => t.status === 'done').length
+        done: tasks.filter(t => t.status === 'done' || t.status === 'completed').length
       };
 
       const now = new Date();

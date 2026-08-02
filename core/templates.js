@@ -181,10 +181,10 @@ export const Templates = (() => {
             const dateStr = t.completedAt || t.createdAt || t.date || '';
             return dateStr.startsWith(monthStr);
           });
-          const doneTasks = monthTasks.filter(t => t.status === 'done');
+          const doneTasks = monthTasks.filter(t => t.status === 'done' || t.status === 'completed');
           const todoTasks = monthTasks.filter(t => t.status === 'todo' || t.status === 'in_progress');
           const overdueTasks = allTasks.filter(t =>
-            t.dueDate && t.dueDate.startsWith(monthStr) && t.status !== 'done'
+            t.dueDate && t.dueDate.startsWith(monthStr) && t.status !== 'done' && t.status !== 'completed'
           );
           const total = monthTasks.length;
           const done = doneTasks.length;
@@ -199,7 +199,7 @@ export const Templates = (() => {
               const ds = t.completedAt || t.createdAt || t.date || '';
               return ds.startsWith(mStr);
             });
-            const mDone = mTasks.filter(t => t.status === 'done').length;
+            const mDone = mTasks.filter(t => t.status === 'done' || t.status === 'completed').length;
             const mRate = mTasks.length > 0 ? Math.round((mDone / mTasks.length) * 100) : 0;
             trends.unshift({ month: mStr, rate: mRate });
           }
@@ -387,7 +387,7 @@ export const Templates = (() => {
           const monthTaskCount = tasks.filter(t => {
             const ds = t.completedAt || t.createdAt || t.date || '';
             return ds.startsWith(monthStr);
-          }).filter(t => t.status === 'done').length;
+          }).filter(t => t.status === 'done' || t.status === 'completed').length;
 
           const monthFinanceData = finance.filter(f => f.month === monthStr);
           const monthIncome = monthFinanceData.filter(f => f.type === 'income').reduce((s, f) => s + (f.amount || 0), 0);

@@ -92,13 +92,39 @@ const VoiceProcessor = (() => {
    */
   async function _initAudioContext() {
     // 获取麦克风权限
-    _mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
+    try {
+      // 先检查浏览器是否支持 navigator.permissions
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          const perm = await navigator.permissions.query({ name: 'microphone' });
+          if (perm.state === 'denied') {
+            throw new Error('麦克风权限已被拒绝，请在浏览器设置中开启 🎤');
+          }
+        } catch (e) {
+          // permissions API 不支持或查询失败，继续尝试 getUserMedia
+          if (e.message && e.message.includes('拒绝')) throw e;
+        }
       }
-    });
+
+      _mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }
+      });
+    } catch (err) {
+      // 明确区分权限拒绝和其他错误
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        throw new Error('麦克风权限被拒绝，请在浏览器设置中开启麦克风权限 🎤');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        throw new Error('未检测到麦克风设备 🎤');
+      } else if (err.name === 'NotReadableError') {
+        throw new Error('麦克风被其他应用占用，请关闭后重试 🎤');
+      } else {
+        throw new Error('麦克风初始化失败: ' + (err.message || err.name || '未知错误'));
+      }
+    }
 
     // 创建 AudioContext
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -470,7 +496,10 @@ const VoiceProcessor = (() => {
         console.log('[VoiceProcessor] VAD 已启动，阈值:', VAD_THRESHOLD);
       } catch (err) {
         console.warn('[VoiceProcessor] VAD 初始化失败，继续无 VAD 模式:', err.message);
-        // VAD 失败不影响语音识别
+        // VAD 失败不影响语音识别，但通知用户
+        if (_callbacks.onError) {
+          _callbacks.onError('音量检测不可用（' + err.message + '），语音识别仍可正常使用');
+        }
       }
     }
 

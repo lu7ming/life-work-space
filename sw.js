@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v37 - 数据看板2.0 Widget系统
+ * v38 - AI智能路由与知识共享
  */
 
-const CACHE_NAME = 'life-work-space-v37';
+const CACHE_NAME = 'life-work-space-v38';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -16,6 +16,8 @@ const CACHE_ASSETS = [
   './core/router.js',
   './core/storage.js',
   './core/utils.js',
+  './core/shared-knowledge.js',
+  './core/orchestrator.js',
   './core/secure-storage.js',
   './core/notifications.js',
   './core/export.js',

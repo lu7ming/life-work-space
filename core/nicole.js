@@ -851,6 +851,32 @@ ${clusterText}`;
       console.warn('[Pipeline][Stage5] 缓存失败:', e);
     }
 
+    // 3. 写入共享知识（供小鹿引用）
+    if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.setAnalysis) {
+      SharedKnowledge.setAnalysis('daily_insight', {
+        summary: refinedInsights.summary?.slice(0, 200),
+        clusterCount: clusters.length,
+        highSeverity: clusters.filter(c => c.severity === 'high').length,
+        date: today,
+        timestamp: Date.now()
+      });
+      // 各维度洞察也单独写入
+      clusters.slice(0, 5).forEach(c => {
+        SharedKnowledge.setAnalysis(`insight_${c.id}`, {
+          theme: c.theme,
+          severity: c.severity,
+          summary: c.summary?.slice(0, 100),
+          date: today
+        });
+      });
+      console.log('[Pipeline][Stage5] 已写入共享知识');
+    }
+
+    // 4. 通知 AIOrchestrator
+    if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.notifyAnalysis) {
+      AIOrchestrator.notifyAnalysis('daily_pipeline', { date: today, clusterCount: clusters.length });
+    }
+
     console.log('[Pipeline][Stage5] ✅ 动作触发完成');
   }
 
@@ -1105,6 +1131,7 @@ ${clusterText}`;
           </div>
         </div>
         <div class="nicole-header-actions">
+          <button class="nicole-header-btn" id="nicole-switch-xiaolu" title="切换到小鹿">🦌</button>
           <button class="nicole-header-btn" id="nicole-refresh-insight" title="刷新今日洞察">🔄</button>
           <button class="nicole-header-btn" id="nicole-new-chat" title="新对话">💬</button>
           <button class="nicole-header-btn" id="nicole-close" title="关闭">✕</button>
@@ -1140,6 +1167,17 @@ ${clusterText}`;
 
   function bindEvents() {
     panelEl.querySelector('#nicole-close').addEventListener('click', close);
+
+    // 切换到小鹿（手动覆盖路由）
+    panelEl.querySelector('#nicole-switch-xiaolu').addEventListener('click', () => {
+      close();
+      if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.setManualOverride) {
+        AIOrchestrator.setManualOverride('xiaolu');
+      }
+      if (typeof XiaoluModule !== 'undefined' && XiaoluModule.open) {
+        XiaoluModule.open();
+      }
+    });
 
     panelEl.querySelector('#nicole-new-chat').addEventListener('click', () => {
       _conversationId = null;
@@ -1284,9 +1322,21 @@ ${clusterText}`;
     showLoading();
 
     try {
-      const reply = await callCozeAPI(token, text);
+      // 注入共享知识上下文
+      let augmentedText = text;
+      if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.getContextForPrompt) {
+        const sharedContext = SharedKnowledge.getContextForPrompt('nicole');
+        if (sharedContext) {
+          augmentedText = text + sharedContext;
+        }
+      }
+      const reply = await callCozeAPI(token, augmentedText);
       removeLoading();
       addAIMessage(reply);
+      // 分析完成后写入共享知识
+      if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.notifyAnalysis) {
+        AIOrchestrator.notifyAnalysis('conversation', { query: text.slice(0, 50), timestamp: Date.now() });
+      }
     } catch (err) {
       removeLoading();
       const errMsg = err.message || '未知错误';

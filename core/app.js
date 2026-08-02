@@ -126,8 +126,13 @@ const App = (() => {
     }
 
     // 16. 初始化共享知识层
-    if (typeof SharedKnowledge !== 'undefined') {
-      SharedKnowledge.load();
+    if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.init) {
+      SharedKnowledge.init();
+    }
+
+    // 16.5 初始化AI智能路由
+    if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.init) {
+      AIOrchestrator.init();
     }
 
     // 17. 构建用户画像

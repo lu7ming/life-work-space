@@ -755,6 +755,7 @@ const XiaoluModule = (() => {
           </div>
         </div>
         <div class="xiaolu-header-actions">
+          <button class="xiaolu-header-btn" id="xiaolu-switch-nicole" title="切换到妮可">🔵</button>
           <button class="xiaolu-header-btn" id="xiaolu-new-chat" title="新对话">💬</button>
           <button class="xiaolu-header-btn" id="xiaolu-close" title="关闭">✕</button>
         </div>
@@ -802,6 +803,17 @@ const XiaoluModule = (() => {
 
   function bindEvents() {
     panelEl.querySelector('#xiaolu-close').addEventListener('click', close);
+
+    // 切换到妮可（手动覆盖路由）
+    panelEl.querySelector('#xiaolu-switch-nicole').addEventListener('click', () => {
+      close();
+      if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.setManualOverride) {
+        AIOrchestrator.setManualOverride('nicole');
+      }
+      if (typeof NicoleModule !== 'undefined' && NicoleModule.open) {
+        NicoleModule.open();
+      }
+    });
 
     panelEl.querySelector('#xiaolu-new-chat').addEventListener('click', () => {
       _chatHistory = [];
@@ -1406,6 +1418,37 @@ const XiaoluModule = (() => {
 
     addUserMessage(text);
 
+    // ===== AI 智能路由：判断消息应由小鹿还是妮可处理 =====
+    if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.route) {
+      const routeResult = AIOrchestrator.route(text);
+      // 更新路由指示器
+      if (AIOrchestrator.updateIndicator) {
+        AIOrchestrator.updateIndicator(routeResult.target, routeResult.confidence);
+      }
+      // 高置信度路由到妮可 → 切换到妮可面板处理
+      if (routeResult.target === 'nicole' && routeResult.confidence >= 0.6) {
+        console.log('[Xiaolu] 路由到妮可:', routeResult.reason);
+        // 移除刚添加的用户消息（妮可面板会重新显示）
+        const lastMsg = messagesEl.querySelector('.xiaolu-msg.user:last-of-type');
+        if (lastMsg) lastMsg.remove();
+        // 关闭小鹿面板，打开妮可面板
+        close();
+        if (typeof NicoleModule !== 'undefined' && NicoleModule.open) {
+          NicoleModule.open();
+          // 延迟后将消息填入妮可输入框并自动发送
+          setTimeout(() => {
+            const nicoleInput = document.getElementById('nicole-input');
+            const nicoleSend = document.getElementById('nicole-send');
+            if (nicoleInput && nicoleSend) {
+              nicoleInput.value = text;
+              nicoleSend.click();
+            }
+          }, 500);
+        }
+        return; // 小鹿不处理此消息
+      }
+    }
+
     // ===== 多轮上下文：修改/追加意图处理（零 API 成本） =====
     // 检查用户是否在修改/追加上一轮操作（如"改成50"→修改金额）
     const modContext = ContextTracker.getModificationContext(text);
@@ -1565,8 +1608,29 @@ const XiaoluModule = (() => {
           finalReply += '\n\n' + result.message;
           // 更新上下文追踪器
           ContextTracker.update(actionObj.tool, actionObj.params, actionObj.tool);
-          // 通知 AIOrchestrator（更新妮可洞察缓存）
+          // 通知 AIOrchestrator（更新妮可洞察缓存 + 写入共享知识）
           if (typeof AIOrchestrator !== 'undefined') AIOrchestrator.notifyAction(actionObj.tool, result);
+          // 写入共享知识（供妮可分析时引用）
+          if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.set) {
+            const today = getTodayStr();
+            switch (actionObj.tool) {
+              case 'record_finance':
+                SharedKnowledge.set('last_expense', { type: actionObj.params.type, amount: actionObj.params.amount, category: actionObj.params.category, date: today }, 'xiaolu');
+                // 更新消费画像：累计今日支出
+                try {
+                  const finances = await Storage.getAll('finance') || [];
+                  const todayExpense = finances.filter(f => f.type === 'expense' && f.date === today).reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+                  SharedKnowledge.set('today_expense_total', { amount: todayExpense, date: today }, 'xiaolu');
+                } catch (e) { /* 静默 */ }
+                break;
+              case 'create_task':
+                SharedKnowledge.set('last_task', { title: actionObj.params.title, priority: actionObj.params.priority, date: today }, 'xiaolu');
+                break;
+              case 'habit_log':
+                SharedKnowledge.set('last_habit_checkin', { habit: actionObj.params.habit, date: today }, 'xiaolu');
+                break;
+            }
+          }
           // 写入审计日志
           if (typeof AuditLog !== 'undefined') AuditLog.log({
             type: 'ai_' + actionObj.tool,

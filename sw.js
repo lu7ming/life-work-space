@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v64 - CORS 代理修复撤回
+ * v71 - 白噪音模块升级为音乐模块
  */
 
-const CACHE_NAME = 'life-work-space-v70';
+const CACHE_NAME = 'life-work-space-v71';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -97,8 +97,8 @@ const CACHE_ASSETS = [
   './modules/rest/rest.html',
   './modules/rest/rest.css',
   './modules/rest/rest.js',
-  './modules/whitenoise/whitenoise.css',
-  './modules/whitenoise/whitenoise.js',
+  './modules/music/music.css',
+  './modules/music/music.js',
   './modules/templates/templates.html',
   './modules/templates/templates_module.js',
   './modules/timetracker/timetracker.html',

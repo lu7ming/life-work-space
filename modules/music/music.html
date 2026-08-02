@@ -1,0 +1,58 @@
+<!-- 音乐模块 - 环境音与疗愈音 -->
+<div class="music-panel" id="music-panel">
+  <div class="music-panel-header">
+    <span class="music-panel-title">🎵 音乐</span>
+    <button class="music-panel-close" id="music-close">✕</button>
+  </div>
+  <div class="music-panel-body">
+    <!-- 当前播放状态 -->
+    <div class="music-now-playing" id="music-now-playing" style="display:none;">
+      <span class="music-now-emoji" id="music-now-emoji"></span>
+      <span class="music-now-name" id="music-now-name"></span>
+      <button class="music-now-stop" id="music-now-stop" title="停止">⏹</button>
+    </div>
+
+    <!-- 音量控制 -->
+    <div class="music-volume">
+      <span class="music-volume-icon">🔈</span>
+      <input type="range" class="music-volume-slider" id="music-volume-slider" min="0" max="1" step="0.05" value="0.5">
+      <span class="music-volume-icon">🔊</span>
+    </div>
+
+    <!-- 定时关闭 -->
+    <div class="music-timer">
+      <span class="music-timer-label">定时关闭：</span>
+      <div class="music-timer-options">
+        <button class="music-timer-btn" data-minutes="15">15分钟</button>
+        <button class="music-timer-btn" data-minutes="30">30分钟</button>
+        <button class="music-timer-btn" data-minutes="60">60分钟</button>
+        <button class="music-timer-btn active" data-minutes="0">不限</button>
+      </div>
+      <div class="music-timer-remaining" id="music-timer-remaining" style="display:none;"></div>
+    </div>
+
+    <!-- 自然声类 -->
+    <div class="music-category">
+      <div class="music-category-title">🌿 自然声</div>
+      <div class="music-cards" id="music-cards-nature"></div>
+    </div>
+
+    <!-- 疗愈音类 -->
+    <div class="music-category">
+      <div class="music-category-title">🧘 疗愈音</div>
+      <div class="music-cards" id="music-cards-healing"></div>
+    </div>
+
+    <!-- 乐器/环境类 -->
+    <div class="music-category">
+      <div class="music-category-title">🎹 乐器与环境</div>
+      <div class="music-cards" id="music-cards-ambient"></div>
+    </div>
+
+    <!-- 经典噪声 -->
+    <div class="music-category">
+      <div class="music-category-title">🔊 经典噪声</div>
+      <div class="music-cards" id="music-cards-noise"></div>
+    </div>
+  </div>
+</div>

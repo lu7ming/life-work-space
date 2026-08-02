@@ -84,7 +84,7 @@ export const CalendarModule = (() => {
           if (!data.tasks[t.date]) {
             data.tasks[t.date] = { completed: 0, pending: 0, items: [] };
           }
-          if (t.status === 'completed') {
+          if (t.status === 'done' || t.status === 'completed') {
             data.tasks[t.date].completed++;
           } else {
             data.tasks[t.date].pending++;
@@ -427,7 +427,7 @@ export const CalendarModule = (() => {
         return '<div class="calendar-detail-empty">暂无任务</div>';
       }
       const items = taskInfo.items.slice(0, 5).map(t => {
-        const isDone = t.status === 'completed';
+        const isDone = t.status === 'done' || t.status === 'completed';
         return `<div class="calendar-detail-task-item">
           <span class="calendar-detail-task-check${isDone ? ' done' : ''}">${isDone ? '✓' : ''}</span>
           <span class="calendar-detail-task-text${isDone ? ' done' : ''}">${escapeHtml(t.title || t.text || '未命名任务')}</span>

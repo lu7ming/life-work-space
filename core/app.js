@@ -262,7 +262,10 @@ export const App = (() => {
     if (crossLinkMod.CrossLinker) window.CrossLinker = crossLinkMod.CrossLinker;
     if (searchMod.SearchModule) window.SearchModule = searchMod.SearchModule;
     if (exportMod.ExportModule) window.ExportModule = exportMod.ExportModule;
-    if (syncMod.SyncModule) window.SyncModule = syncMod.SyncModule;
+    if (syncMod.SyncModule) {
+      window.SyncModule = syncMod.SyncModule;
+      syncMod.SyncModule.scheduleAutoSync();
+    }
     if (quickinputMod.QuickInput) {
       quickinputMod.QuickInput.init();
       window.QuickInput = quickinputMod.QuickInput;

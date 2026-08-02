@@ -3,7 +3,7 @@
  * v63 - 日历视图整合
  */
 
-const CACHE_NAME = 'life-work-space-v63';
+const CACHE_NAME = 'life-work-space-v64';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

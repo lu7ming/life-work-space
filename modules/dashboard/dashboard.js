@@ -676,7 +676,7 @@ export const DashboardModule = (() => {
 
           // 通知习惯模块
           if (true) /* EventBus always available via import */ {
-            EventBus.emit('habit:checked', { habitId, date: todayStr });
+            EventBus.emit('habit:completed', { habitId, habitName: habitInfo?.name || habitId, date: todayStr });
           }
         } catch (e) {
           console.warn('[SmartFocus] 习惯打卡失败:', e);

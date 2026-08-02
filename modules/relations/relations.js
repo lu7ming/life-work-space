@@ -13,6 +13,22 @@ import { CrossLinker } from '../../core/cross-linker.js';
 export const RelationsModule = (() => {
   const { escapeHtml } = AppUtils;
 
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[RelationsModule] 模块已销毁');
+  }
+
   const STORE = 'contacts';
 
   // ABCD 分类配置
@@ -107,24 +123,7 @@ export const RelationsModule = (() => {
 
     if (!lastContactDate) {
       if (category === 'D') return { level: 'none', days: -1, text: '暂无联系记录', percent: 50 };
-    
-  // ===== 模块生命周期 =====
-  let _eventListeners = [];
-  let _intervals = [];
-
-  function _bindEvent(el, event, handler) {
-    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
-  }
-
-  function destroy() {
-    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
-    _eventListeners = [];
-    _intervals.forEach(id => clearInterval(id));
-    _intervals = [];
-    console.log('[RelationsModule] 模块已销毁');
-  }
-
-  return { level: 'none', days: -1, text: '暂无联系记录', percent: 0 };
+      return { level: 'none', days: -1, text: '暂无联系记录', percent: 0 };
     }
 
     const last = new Date(lastContactDate);

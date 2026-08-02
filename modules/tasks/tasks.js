@@ -9,8 +9,7 @@ import { ModuleLifecycle } from '../../core/module-lifecycle.js';
 import { CrossLinker } from '../../core/cross-linker.js';
 
 export const TasksModule = (() => {
-  // escapeHtml 已在顶部从 AppUtils 导入
-  // function escapeHtml(str) { ... }
+  const { formatDate, escapeHtml } = AppUtils;
 
   // ===== 事件监听追踪 =====
   let _eventListeners = [];

@@ -33,6 +33,22 @@ export const QuickInput = (() => {
 如果无法判断意图，返回：{"intent":"unknown","params":{"content":"原始输入"}}
 只返回JSON对象，不要markdown代码块包裹。`;
 
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[QuickInput] 模块已销毁');
+  }
+
   // ===== DOM 元素 =====
   let panelEl = null;
   let backdropEl = null;
@@ -100,24 +116,7 @@ export const QuickInput = (() => {
       parse: (text) => {
         let name = text.replace(/打卡|坚持|完成|做了|今天/g, '').trim();
         if (!name) name = text.trim();
-      
-  // ===== 模块生命周期 =====
-  let _eventListeners = [];
-  let _intervals = [];
-
-  function _bindEvent(el, event, handler) {
-    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
-  }
-
-  function destroy() {
-    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
-    _eventListeners = [];
-    _intervals.forEach(id => clearInterval(id));
-    _intervals = [];
-    console.log('[Unknown] 模块已销毁');
-  }
-
-  return { habit_name: name };
+        return { habit_name: name };
       }
     },
     {
@@ -683,6 +682,7 @@ export const QuickInput = (() => {
     init,
     open,
     close,
+    destroy,
     parseQuickInput,
     parseKeywordsOnly,
     executeQuickInput,

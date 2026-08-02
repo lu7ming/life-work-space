@@ -18,6 +18,22 @@ export const LifeTreeModule = (() => {
 
   // 数据状态
   let weatherData = { type: 'cloudy', label: '多云', emoji: '☁️' };
+
+  // ===== 模块生命周期 =====
+  let _eventListeners = [];
+  let _intervals = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
+  }
+
+  function destroy() {
+    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners = [];
+    _intervals.forEach(id => clearInterval(id));
+    _intervals = [];
+    console.log('[LifeTreeModule] 模块已销毁');
+  }
   let seasonData = { type: 'spring', label: '春', emoji: '🌱' };
   let soilState = { moisture: 50, fertility: 50, temperature: 50, sunlight: 50 };
   let dimensions = [];
@@ -186,24 +202,7 @@ export const LifeTreeModule = (() => {
   function calculateWeather() {
     const hour = getHour();
     if (hour >= 0 && hour < 5) {
-    
-  // ===== 模块生命周期 =====
-  let _eventListeners = [];
-  let _intervals = [];
-
-  function _bindEvent(el, event, handler) {
-    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
-  }
-
-  function destroy() {
-    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
-    _eventListeners = [];
-    _intervals.forEach(id => clearInterval(id));
-    _intervals = [];
-    console.log('[LifeTreeModule] 模块已销毁');
-  }
-
-  return { type: 'starry', label: '星空', emoji: '🌙' };
+      return { type: 'starry', label: '星空', emoji: '🌙' };
     }
     if (!recentActive) {
       return { type: 'dormant', label: '休眠', emoji: '💤' };
@@ -1037,7 +1036,7 @@ export const LifeTreeModule = (() => {
 })();
 
 // 自动初始化
-_bindEvent(document, 'DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
   if (typeof LifeTreeModule !== 'undefined') {
     LifeTreeModule.init();
   }

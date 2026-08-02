@@ -754,6 +754,6 @@ export const RestModule = (() => {
 })();
 
 // 在 DOMContentLoaded 时初始化
-_bindEvent(document, 'DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
   window.RestModule?.init();
 });

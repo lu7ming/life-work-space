@@ -2102,6 +2102,21 @@ const XiaoluModule = (() => {
       await saveDeepseekToken(token);
     }
 
+    // ===== 数据最小化：API 调用前脱敏 PII =====
+    let _minimizeMapping = {};
+    let sanitizedText = text;
+    if (typeof DataMinimizer !== 'undefined' && DataMinimizer.isEnabled()) {
+      try {
+        const minimizeResult = await DataMinimizer.minimize(text, { source: 'xiaolu' });
+        sanitizedText = minimizeResult.sanitizedText;
+        _minimizeMapping = minimizeResult.mapping;
+      } catch (e) {
+        console.warn('[Xiaolu] DataMinimizer 脱敏失败，使用原文:', e);
+      }
+      // 首次使用提示
+      DataMinimizer.showFirstTimeTip();
+    }
+
     // 显示加载 + 禁用输入
     _isLoading = true;
     sendBtn.disabled = true;
@@ -2110,17 +2125,27 @@ const XiaoluModule = (() => {
     showLoading();
 
     try {
-      // 使用链式意图识别（3 次 API 调用）
-      const reply = await decomposedIntentChain(token, text);
+      // 使用链式意图识别（3 次 API 调用），发送脱敏后的文本
+      const reply = await decomposedIntentChain(token, sanitizedText);
 
       // 集成 PreferenceLearner：从交互中学习偏好
       if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.learnFromInteraction) {
         try { PreferenceLearner.learnFromInteraction(text, reply); } catch (e) { /* 静默 */ }
       }
 
+      // ===== 数据最小化：还原 AI 回复中的占位符 =====
+      let restoredReply = reply;
+      if (typeof DataMinimizer !== 'undefined' && Object.keys(_minimizeMapping).length > 0) {
+        try {
+          restoredReply = DataMinimizer.restore(reply, _minimizeMapping);
+        } catch (e) {
+          console.warn('[Xiaolu] DataMinimizer 还原失败:', e);
+        }
+      }
+
       // 从 AI 回复中提取 ACTION 标签
-      let actionObj = _extractActionFromReply(reply);
-      let finalReply = actionObj ? _removeActionTag(reply) : reply;
+      let actionObj = _extractActionFromReply(restoredReply);
+      let finalReply = actionObj ? _removeActionTag(restoredReply) : restoredReply;
 
       removeLoading();
 
@@ -2181,7 +2206,7 @@ const XiaoluModule = (() => {
             result: 'failed'
           });
         }
-        _chatHistory.push({ role: 'user', content: text });
+        _chatHistory.push({ role: 'user', content: sanitizedText });
         _chatHistory.push({ role: 'assistant', content: finalReply });
         trimContext();
         addAIMessage(finalReply);
@@ -2192,7 +2217,7 @@ const XiaoluModule = (() => {
         }
       } else {
         // 没有操作，纯文字回复
-        _chatHistory.push({ role: 'user', content: text });
+        _chatHistory.push({ role: 'user', content: sanitizedText });
         _chatHistory.push({ role: 'assistant', content: finalReply });
         trimContext();
         addAIMessage(finalReply);

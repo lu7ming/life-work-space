@@ -327,6 +327,19 @@ const NicoleModule = (() => {
   async function callReasoningModel(taskType, prompt, options = {}) {
     const { temperature = 0.7, max_tokens = 800, timeout = 30000 } = options;
 
+    // ===== 数据最小化：API 调用前脱敏 PII =====
+    let _pipelineMapping = {};
+    let sanitizedPrompt = prompt;
+    if (typeof DataMinimizer !== 'undefined' && DataMinimizer.isEnabled()) {
+      try {
+        const minimizeResult = await DataMinimizer.minimize(prompt, { source: 'nicole', intent: taskType });
+        sanitizedPrompt = minimizeResult.sanitizedText;
+        _pipelineMapping = minimizeResult.mapping;
+      } catch (e) {
+        console.warn('[Nicole] DataMinimizer 脱敏失败，使用原文:', e);
+      }
+    }
+
     // 尝试使用 ModelRouter + DeepSeek 推理模型
     if (typeof ModelRouter !== 'undefined' && ModelRouter.isEnabled()) {
       try {
@@ -345,9 +358,17 @@ const NicoleModule = (() => {
 
         if (dsToken) {
           const result = await ModelRouter.callModel(taskType, dsToken, [
-            { role: 'user', content: prompt }
+            { role: 'user', content: sanitizedPrompt }
           ], { temperature, max_tokens, timeout });
           console.log(`[Nicole] ModelRouter 推理模型调用成功 (${taskType})，耗时 ${result.duration}ms`);
+          // 还原脱敏占位符
+          if (typeof DataMinimizer !== 'undefined' && Object.keys(_pipelineMapping).length > 0) {
+            try {
+              return DataMinimizer.restore(result.content, _pipelineMapping);
+            } catch (e) {
+              console.warn('[Nicole] DataMinimizer 还原失败:', e);
+            }
+          }
           return result.content;
         }
       } catch (err) {
@@ -358,7 +379,16 @@ const NicoleModule = (() => {
     // 降级：使用 Coze API
     const token = await getCozeToken();
     if (token) {
-      return await callCozeAPI(token, prompt);
+      const reply = await callCozeAPI(token, sanitizedPrompt);
+      // 还原脱敏占位符
+      if (typeof DataMinimizer !== 'undefined' && Object.keys(_pipelineMapping).length > 0) {
+        try {
+          return DataMinimizer.restore(reply, _pipelineMapping);
+        } catch (e) {
+          console.warn('[Nicole] DataMinimizer 还原失败:', e);
+        }
+      }
+      return reply;
     }
 
     throw new Error('无可用的 AI 服务');
@@ -1394,7 +1424,33 @@ ${clusterText}`;
           augmentedText = text + sharedContext;
         }
       }
-      const reply = await callCozeAPI(token, augmentedText);
+
+      // ===== 数据最小化：API 调用前脱敏 PII =====
+      let _minimizeMapping = {};
+      let sanitizedText = augmentedText;
+      if (typeof DataMinimizer !== 'undefined' && DataMinimizer.isEnabled()) {
+        try {
+          const minimizeResult = await DataMinimizer.minimize(augmentedText, { source: 'nicole' });
+          sanitizedText = minimizeResult.sanitizedText;
+          _minimizeMapping = minimizeResult.mapping;
+        } catch (e) {
+          console.warn('[Nicole] DataMinimizer 脱敏失败，使用原文:', e);
+        }
+        // 首次使用提示
+        DataMinimizer.showFirstTimeTip();
+      }
+
+      let reply = await callCozeAPI(token, sanitizedText);
+
+      // ===== 数据最小化：还原 AI 回复中的占位符 =====
+      if (typeof DataMinimizer !== 'undefined' && Object.keys(_minimizeMapping).length > 0) {
+        try {
+          reply = DataMinimizer.restore(reply, _minimizeMapping);
+        } catch (e) {
+          console.warn('[Nicole] DataMinimizer 还原失败:', e);
+        }
+      }
+
       removeLoading();
       addAIMessage(reply);
       // 分析完成后写入共享知识

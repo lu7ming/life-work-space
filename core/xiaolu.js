@@ -1871,6 +1871,61 @@ const XiaoluModule = (() => {
 
     addUserMessage(text);
 
+    // ===== 离线降级：检查 LocalAI 是否需要接管 =====
+    if (typeof LocalAI !== 'undefined' && LocalAI.handleOffline) {
+      const offlineResult = LocalAI.handleOffline(text);
+      if (offlineResult) {
+        console.log('[Xiaolu] 离线降级命中:', offlineResult.intent);
+        const reply = offlineResult.reply;
+
+        // 从本地回复中提取 ACTION 标签
+        let actionObj = _extractActionFromReply(reply);
+        let finalReply = actionObj ? _removeActionTag(reply) : reply;
+
+        _chatHistory.push({ role: 'user', content: text });
+        _chatHistory.push({ role: 'assistant', content: finalReply });
+        trimContext();
+        addAIMessage(finalReply);
+
+        // 如果有可执行操作，执行它
+        if (actionObj) {
+          const result = await executeLocalAction(actionObj);
+          if (result.success) {
+            finalReply += '\n\n' + result.message;
+            ContextTracker.update(offlineResult.intent, actionObj.params, actionObj.tool);
+            // 写入共享知识
+            if (typeof SharedKnowledge !== 'undefined' && SharedKnowledge.set) {
+              const today = getTodayStr();
+              switch (actionObj.tool) {
+                case 'record_finance':
+                  SharedKnowledge.set('last_expense', { type: actionObj.params.type, amount: actionObj.params.amount, category: actionObj.params.category, date: today }, 'xiaolu');
+                  break;
+                case 'create_task':
+                  SharedKnowledge.set('last_task', { title: actionObj.params.title, priority: actionObj.params.priority, date: today }, 'xiaolu');
+                  break;
+                case 'habit_log':
+                  SharedKnowledge.set('last_habit_checkin', { habit: actionObj.params.habit, date: today }, 'xiaolu');
+                  break;
+              }
+            }
+            if (result.undoInfo) {
+              _appendUndoButton(result.undoInfo, actionObj.tool);
+            }
+            addAIMessage(result.message);
+          } else {
+            addAIMessage('❌ 操作失败：' + result.message);
+          }
+        }
+
+        // 离线提示（非强制本地模式下显示）
+        if (!LocalAI.isLocalMode() || LocalAI.isOffline()) {
+          // 不额外提示，回复模板已包含离线信息
+        }
+
+        return; // 离线降级已处理
+      }
+    }
+
     // ===== AI 智能路由：判断消息应由小鹿还是妮可处理 =====
     if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.route) {
       const routeResult = AIOrchestrator.route(text);

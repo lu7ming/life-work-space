@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v47 - AI操作审计日志系统
+ * v48 - 本地模型备选方案
  */
 
-const CACHE_NAME = 'life-work-space-v47';
+const CACHE_NAME = 'life-work-space-v48';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -34,6 +34,7 @@ const CACHE_ASSETS = [
   './core/voice-processor.js',
   './core/emotion-analyzer.js',
   './core/data-minimizer.js',
+  './core/local-ai.js',
   './styles/audit-log.css',
   './core/audit-log.js',
   './styles/xiaolu.css',

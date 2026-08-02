@@ -181,6 +181,11 @@ const App = (() => {
       AuditLog.init();
     }
 
+    // 17.8 初始化本地模型备选方案
+    if (typeof LocalAI !== 'undefined' && LocalAI.init) {
+      LocalAI.init();
+    }
+
     // 18. 自动保存定时器（30秒）
     setInterval(() => {
       // 静默自动保存 - 数据已通过 IndexedDB 自动持久化，此处仅提供视觉反馈

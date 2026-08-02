@@ -1411,6 +1411,15 @@ ${clusterText}`;
 
     addUserMessage(text);
 
+    // ===== 离线降级：妮可离线模式提示 =====
+    if (typeof LocalAI !== 'undefined' && LocalAI.isOffline()) {
+      const offlineReply = '🔌 当前处于离线模式，妮可无法连接到云端进行分析。' +
+        '恢复网络后我会第一时间为你服务 💎\n\n' +
+        '💡 离线时可以找小鹿帮忙，她有基础的离线能力哦～';
+      addAIMessage(offlineReply);
+      return; // 离线模式，不调用 API
+    }
+
     let token = await getCozeToken();
     if (!token) {
       token = await showTokenDialog();

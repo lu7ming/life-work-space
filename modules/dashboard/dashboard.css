@@ -713,3 +713,661 @@
 [data-theme="dark"] .dash-modal-overlay {
   background: rgba(0, 0, 0, 0.6);
 }
+
+/* ================================================================== */
+/* ===== 数据看板2.0 - Widget系统样式 ===== */
+/* ================================================================== */
+
+/* ===== Widget区域 ===== */
+.dash-widget-section {
+  margin-bottom: 24px;
+}
+
+.dash-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.dash-widget-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dash-widget-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dash-widget-btn {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  background: rgba(232, 168, 124, 0.1);
+  transition: all var(--transition-fast);
+}
+
+.dash-widget-btn:hover {
+  background: rgba(232, 168, 124, 0.2);
+  color: var(--text-primary);
+}
+
+/* ===== Widget网格 ===== */
+.dash-widget-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ===== Widget卡片 ===== */
+.dash-widget-item {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-widget-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.dash-widget-item-wide {
+  grid-column: span 2;
+}
+
+/* 编辑模式 */
+.dash-widget-item.dash-widget-editing {
+  outline: 2px dashed rgba(232, 168, 124, 0.4);
+  outline-offset: -2px;
+  cursor: grab;
+}
+
+.dash-widget-item.dash-widget-dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.dash-widget-item.dash-widget-drag-over {
+  outline-color: var(--accent-orange);
+  outline-width: 2px;
+}
+
+/* ===== Widget卡片头部 ===== */
+.dash-widget-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.dash-widget-item-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.dash-widget-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.dash-widget-item-edit-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.dash-widget-move-btn,
+.dash-widget-delete-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.dash-widget-move-btn:hover,
+.dash-widget-delete-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.dash-widget-delete-btn:hover {
+  color: var(--accent-red);
+}
+
+/* ===== Widget内容区 ===== */
+.dash-widget-item-body {
+  min-height: 60px;
+}
+
+.dash-widget-no-data {
+  text-align: center;
+  padding: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ===== Widget空状态 ===== */
+.dash-widget-empty {
+  grid-column: span 2;
+  text-align: center;
+  padding: 32px 20px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.dash-widget-empty-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.dash-widget-empty p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ===== 进度环Widget ===== */
+.dash-widget-progress-ring {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 8px;
+}
+
+.dash-widget-ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.dash-widget-ring-bg {
+  stroke: var(--bg-hover);
+}
+
+.dash-widget-ring-fg {
+  stroke: var(--accent-orange);
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.dash-widget-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-widget-ring-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.dash-widget-ring-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.dash-widget-ring-detail {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== 迷你折线图Widget ===== */
+.dash-widget-chart-header {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.dash-widget-chart-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.dash-widget-chart-unit {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dash-widget-line-canvas {
+  width: 100%;
+  display: block;
+}
+
+/* ===== 计数器Widget ===== */
+.dash-widget-counter {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.dash-widget-counter-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.dash-widget-counter-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.dash-widget-counter-unit {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.dash-widget-counter-label {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== 列表Widget ===== */
+.dash-widget-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dash-widget-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-main);
+  transition: background var(--transition-fast);
+}
+
+.dash-widget-list-item:hover {
+  background: var(--bg-hover);
+}
+
+.dash-widget-list-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-orange);
+  flex-shrink: 0;
+}
+
+.dash-widget-list-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dash-widget-list-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: var(--bg-hover);
+}
+
+.dash-widget-list-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ===== 饼图Widget ===== */
+.dash-widget-pie-canvas {
+  display: block;
+  margin: 0 auto 8px;
+}
+
+.dash-widget-pie-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.dash-widget-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dash-widget-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ===== Widget配置弹窗 ===== */
+.dash-widget-preset-section {
+  margin-bottom: 20px;
+}
+
+.dash-widget-preset-list {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.dash-widget-preset-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--bg-main);
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  border: 2px solid transparent;
+}
+
+.dash-widget-preset-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.dash-widget-preset-btn.active {
+  border-color: var(--accent-orange);
+  background: rgba(232, 168, 124, 0.1);
+  color: var(--accent-orange);
+  font-weight: 500;
+}
+
+/* 配置列表 */
+.dash-widget-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  min-height: 40px;
+}
+
+.dash-widget-config-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg-main);
+  transition: all var(--transition-fast);
+  cursor: grab;
+}
+
+.dash-widget-config-item:hover {
+  background: var(--bg-hover);
+}
+
+.dash-widget-config-drag {
+  color: var(--text-light);
+  font-size: 14px;
+  cursor: grab;
+  letter-spacing: -1px;
+  user-select: none;
+}
+
+.dash-widget-config-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.dash-widget-config-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.dash-widget-config-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.dash-widget-config-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.dash-widget-config-move,
+.dash-widget-config-delete {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.dash-widget-config-move:hover,
+.dash-widget-config-delete:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.dash-widget-config-delete:hover {
+  color: var(--accent-red);
+}
+
+.dash-widget-config-item.dash-widget-config-dragging {
+  opacity: 0.4;
+}
+
+.dash-widget-config-item.dash-widget-config-drag-over {
+  outline: 2px dashed var(--accent-orange);
+  outline-offset: -2px;
+}
+
+/* 添加Widget区域 */
+.dash-widget-add-section {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.dash-widget-add-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px dashed var(--border-light);
+  color: var(--text-muted);
+  font-size: 13px;
+  transition: all var(--transition-fast);
+}
+
+.dash-widget-add-btn:hover {
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+  background: rgba(232, 168, 124, 0.05);
+}
+
+.dash-widget-type-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  animation: widgetMenuIn 0.2s ease;
+}
+
+.dash-widget-type-menu.hidden {
+  display: none;
+}
+
+@keyframes widgetMenuIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dash-widget-type-item {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--bg-main);
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.dash-widget-type-item:hover {
+  background: rgba(232, 168, 124, 0.15);
+  color: var(--accent-orange);
+}
+
+/* ===== Widget响应式 ===== */
+@media (max-width: 768px) {
+  .dash-widget-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-widget-item-wide {
+    grid-column: span 1;
+  }
+
+  .dash-widget-preset-list {
+    flex-direction: column;
+  }
+
+  .dash-widget-counter-value {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dash-widget-item {
+    padding: 14px 16px;
+  }
+
+  .dash-widget-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .dash-widget-counter-value {
+    font-size: 24px;
+  }
+
+  .dash-widget-progress-ring {
+    width: 80px;
+    height: 80px;
+  }
+
+  .dash-widget-ring-value {
+    font-size: 18px;
+  }
+
+  .dash-widget-type-menu {
+    gap: 6px;
+  }
+
+  .dash-widget-type-item {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* ===== Widget暗色模式 ===== */
+[data-theme="dark"] .dash-widget-btn {
+  background: rgba(232, 168, 124, 0.15);
+}
+
+[data-theme="dark"] .dash-widget-item {
+  background: var(--bg-card);
+}
+
+[data-theme="dark"] .dash-widget-item.dash-widget-editing {
+  outline-color: rgba(232, 168, 124, 0.5);
+}
+
+[data-theme="dark"] .dash-widget-ring-bg {
+  stroke: var(--bg-hover);
+}
+
+[data-theme="dark"] .dash-widget-ring-fg {
+  stroke: var(--accent-orange);
+}
+
+[data-theme="dark"] .dash-widget-list-item {
+  background: var(--bg-main);
+}
+
+[data-theme="dark"] .dash-widget-list-item:hover {
+  background: var(--bg-hover);
+}
+
+[data-theme="dark"] .dash-widget-list-dot {
+  background: var(--accent-orange);
+}
+
+[data-theme="dark"] .dash-widget-list-meta {
+  background: var(--bg-hover);
+}
+
+[data-theme="dark"] .dash-widget-add-btn {
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .dash-widget-add-btn:hover {
+  border-color: var(--accent-orange);
+  background: rgba(232, 168, 124, 0.08);
+}
+
+[data-theme="dark"] .dash-widget-preset-btn {
+  background: var(--bg-main);
+}
+
+[data-theme="dark"] .dash-widget-preset-btn:hover {
+  background: var(--bg-hover);
+}
+
+[data-theme="dark"] .dash-widget-preset-btn.active {
+  background: rgba(232, 168, 124, 0.12);
+  border-color: var(--accent-orange);
+}
+
+[data-theme="dark"] .dash-widget-config-item {
+  background: var(--bg-main);
+}
+
+[data-theme="dark"] .dash-widget-config-item:hover {
+  background: var(--bg-hover);
+}
+
+[data-theme="dark"] .dash-widget-type-item {
+  background: var(--bg-main);
+}
+
+[data-theme="dark"] .dash-widget-type-item:hover {
+  background: rgba(232, 168, 124, 0.12);
+}

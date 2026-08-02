@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v35 - 习惯链与习惯组合
+ * v37 - 数据看板2.0 Widget系统
  */
 
-const CACHE_NAME = 'life-work-space-v36';
+const CACHE_NAME = 'life-work-space-v37';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [

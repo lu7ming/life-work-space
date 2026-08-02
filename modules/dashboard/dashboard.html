@@ -101,6 +101,19 @@
     </div>
   </div>
 
+  <!-- ===== 数据看板2.0 - Widget系统 ===== -->
+  <div class="dash-widget-section" id="dash-widget-section">
+    <div class="dash-widget-header">
+      <h3 class="dash-widget-title">📊 数据看板</h3>
+      <div class="dash-widget-actions">
+        <button class="dash-widget-btn" id="dash-widget-edit-btn" title="编辑首页">✏️ 编辑首页</button>
+      </div>
+    </div>
+    <div class="dash-widget-grid" id="dash-widget-grid">
+      <!-- JS 动态渲染 Widget -->
+    </div>
+  </div>
+
   <!-- F5: 年度回顾入口 -->
   <div class="dash-annual-entry">
     <button class="dash-annual-btn" id="dash-annual-btn">📊 年度回顾</button>
@@ -134,6 +147,45 @@
       </div>
       <div class="dash-modal-body" id="dash-annual-body">
         <!-- JS 动态生成 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Widget配置弹窗 ===== -->
+  <div class="dash-modal-overlay" id="dash-widget-config-overlay" style="display:none;">
+    <div class="dash-modal dash-modal-wide card">
+      <div class="dash-modal-header">
+        <h3>✏️ 编辑数据看板</h3>
+        <button class="dash-modal-close" id="dash-widget-config-close">✕</button>
+      </div>
+      <div class="dash-modal-body">
+        <!-- 预设布局方案 -->
+        <div class="dash-widget-preset-section">
+          <p class="dash-modal-tip">选择预设布局方案，或自定义 Widget</p>
+          <div class="dash-widget-preset-list" id="dash-widget-preset-list">
+            <button class="dash-widget-preset-btn" data-preset="simple">🌿 简洁</button>
+            <button class="dash-widget-preset-btn" data-preset="rich">✨ 丰富</button>
+            <button class="dash-widget-preset-btn" data-preset="data">📈 数据控</button>
+          </div>
+        </div>
+        <!-- 当前Widget列表（可拖拽排序、删除） -->
+        <div class="dash-widget-config-list" id="dash-widget-config-list">
+          <!-- JS 动态生成 -->
+        </div>
+        <!-- 添加Widget -->
+        <div class="dash-widget-add-section">
+          <button class="dash-widget-add-btn" id="dash-widget-add-btn">➕ 添加 Widget</button>
+          <div class="dash-widget-type-menu hidden" id="dash-widget-type-menu">
+            <button class="dash-widget-type-item" data-type="progress-ring">⭕ 进度环</button>
+            <button class="dash-widget-type-item" data-type="mini-line-chart">📈 迷你折线图</button>
+            <button class="dash-widget-type-item" data-type="counter">🔢 计数器</button>
+            <button class="dash-widget-type-item" data-type="list-widget">📋 列表</button>
+            <button class="dash-widget-type-item" data-type="chart-widget">🥧 饼图</button>
+          </div>
+        </div>
+      </div>
+      <div class="dash-modal-footer">
+        <button class="dash-modal-confirm" id="dash-widget-config-confirm">完成</button>
       </div>
     </div>
   </div>

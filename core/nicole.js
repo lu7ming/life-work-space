@@ -1097,6 +1097,17 @@ ${clusterText}`;
       const elapsed = Date.now() - startTime;
       console.log(`[Pipeline] ✅ 每日流水线执行完成，耗时 ${elapsed}ms`);
 
+      // 写入审计日志
+      if (typeof AuditLog !== 'undefined') {
+        AuditLog.log({
+          type: 'nicole_analysis',
+          source: 'nicole',
+          params: { pipeline: 'daily', clusterCount: (refinedInsights?.clusters || []).length },
+          result: 'success',
+          duration: elapsed
+        });
+      }
+
       return refinedInsights;
     } catch (e) {
       console.error('[Pipeline] ❌ 流水线执行失败:', e);
@@ -1456,6 +1467,15 @@ ${clusterText}`;
       // 分析完成后写入共享知识
       if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.notifyAnalysis) {
         AIOrchestrator.notifyAnalysis('conversation', { query: text.slice(0, 50), timestamp: Date.now() });
+      }
+      // 写入审计日志
+      if (typeof AuditLog !== 'undefined') {
+        AuditLog.log({
+          type: 'nicole_analysis',
+          source: 'nicole',
+          params: { query: text.slice(0, 50) },
+          result: 'success'
+        });
       }
     } catch (err) {
       removeLoading();

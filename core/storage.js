@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'LifeWorkSpace';
-const DB_VERSION = 8;
+const DB_VERSION = 9;
 
 /**
  * 存储管理器
@@ -150,6 +150,21 @@ const Storage = (() => {
             // IndexedDB 是 schemaless，无需 ALTER TABLE
             // 旧记录读取时自动兼容：mood_score 为 undefined → 视为 null
             // 此迁移仅作为版本标记，确保 onupgradeneeded 触发
+          },
+
+          // v9: AI 操作审计日志表
+          9: (db) => {
+            // 如果已存在旧版 audit_log 表（v7 创建），先删除重建为新的 audit_logs
+            if (db.objectStoreNames.contains('audit_log')) {
+              db.deleteObjectStore('audit_log');
+              console.log('[Storage] v9 迁移：已删除旧版 audit_log 表');
+            }
+            const auditLogs = db.createObjectStore('audit_logs', { keyPath: 'id', autoIncrement: true });
+            auditLogs.createIndex('timestamp', 'timestamp', { unique: false });
+            auditLogs.createIndex('action', 'action', { unique: false });
+            auditLogs.createIndex('source', 'source', { unique: false });
+            auditLogs.createIndex('date', 'date', { unique: false });
+            console.log('[Storage] v9 迁移：已创建 audit_logs 表（含 timestamp/action/source/date 索引）');
           },
         };
 

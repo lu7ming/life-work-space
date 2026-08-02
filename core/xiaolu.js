@@ -2180,12 +2180,18 @@ const XiaoluModule = (() => {
             }
           }
           // 写入审计日志
+          const _auditActionMap = {
+            record_finance: 'ai_finance_record',
+            create_task: 'ai_task_create',
+            habit_log: 'ai_habit_checkin'
+          };
           if (typeof AuditLog !== 'undefined') AuditLog.log({
-            type: 'ai_' + actionObj.tool,
+            type: _auditActionMap[actionObj.tool] || ('ai_' + actionObj.tool),
             source: 'xiaolu',
             params: actionObj.params,
             result: 'success',
-            confirmed: true
+            confirmed: true,
+            duration: actionObj.duration || 0
           });
           // 集成 PreferenceLearner：记录用户确认操作
           if (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.learnFromInteraction) {
@@ -2199,8 +2205,13 @@ const XiaoluModule = (() => {
           }
         } else {
           finalReply += '\n\n❌ 操作失败：' + result.message;
+          const _auditActionMap2 = {
+            record_finance: 'ai_finance_record',
+            create_task: 'ai_task_create',
+            habit_log: 'ai_habit_checkin'
+          };
           if (typeof AuditLog !== 'undefined') AuditLog.log({
-            type: 'ai_' + actionObj.tool,
+            type: _auditActionMap2[actionObj.tool] || ('ai_' + actionObj.tool),
             source: 'xiaolu',
             params: actionObj.params,
             result: 'failed'

@@ -176,6 +176,11 @@ const App = (() => {
       await PredictiveEngine.init();
     }
 
+    // 17.7 初始化 AI 操作审计日志
+    if (typeof AuditLog !== 'undefined' && AuditLog.init) {
+      AuditLog.init();
+    }
+
     // 18. 自动保存定时器（30秒）
     setInterval(() => {
       // 静默自动保存 - 数据已通过 IndexedDB 自动持久化，此处仅提供视觉反馈
@@ -874,6 +879,13 @@ const App = (() => {
     // 生命树 & 设置按钮（排除通知铃铛和更多按钮）
     document.querySelectorAll('.topbar-icon-btn:not(#topbar-more-btn):not(#notif-bell)').forEach((btn) => {
       btn.addEventListener('click', () => {
+        // AI 操作历史按钮
+        if (btn.id === 'topbar-audit-btn') {
+          if (typeof AuditLog !== 'undefined' && AuditLog.showAuditPanel) {
+            AuditLog.showAuditPanel();
+          }
+          return;
+        }
         const tip = btn.dataset.tip || '功能开发中';
         if (tip.includes('生命树')) {
           Router.navigate('lifetree');

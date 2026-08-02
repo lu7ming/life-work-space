@@ -1256,6 +1256,217 @@ const XiaoluModule = (() => {
     return '查询数据时出了点问题，请稍后再试 🦌';
   }
 
+  // ===== 模糊意图识别（FuzzyIntentHandler） =====
+
+  /**
+   * 模糊意图定义
+   * match: 正则匹配关键词
+   * needClarify: 需要澄清的参数列表
+   * questions: 参数名 → 澄清问题映射
+   * autoSuggest: 自动建议文案（不需要澄清，直接提示）
+   * buildAction: 用户回答后，结合上下文构建完整操作对象
+   */
+  const FUZZY_INTENTS = [
+    {
+      match: /花了|消费|支出/,
+      needClarify: ['amount'],
+      questions: { amount: '花了多少呀？告诉我金额就好 🦌' },
+      intentType: 'finance_record',
+      buildAction: (ctx) => ({
+        tool: 'record_finance',
+        params: { type: 'expense', amount: Number(ctx.amount) || 0, category: ctx.category || '其他', source: '其他', note: '' }
+      })
+    },
+    {
+      match: /赚了|收入|进账/,
+      needClarify: ['amount'],
+      questions: { amount: '赚了多少呀？告诉我金额就好 🦌' },
+      intentType: 'finance_record',
+      buildAction: (ctx) => ({
+        tool: 'record_finance',
+        params: { type: 'income', amount: Number(ctx.amount) || 0, category: '其他', source: ctx.source || '其他', note: '' }
+      })
+    },
+    {
+      match: /记得|别忘了|别忘了/,
+      needClarify: ['intent_type'],
+      questions: { intent_type: '是要创建任务还是记个备忘？🤔' },
+      intentType: 'task_or_memo',
+      buildAction: (ctx) => {
+        if (ctx.intent_type && /备忘|记事|笔记/.test(ctx.intent_type)) {
+          return { tool: 'create_task', params: { title: ctx.title || '备忘', priority: 'low', due_date: '' } };
+        }
+        return { tool: 'create_task', params: { title: ctx.title || '待办任务', priority: 'medium', due_date: '' } };
+      }
+    },
+    {
+      match: /今天|好累|好开心|好烦|好郁闷|心情/,
+      needClarify: [],
+      autoSuggest: '要记一篇日记吗？📝',
+      intentType: 'journal_suggest'
+    }
+  ];
+
+  /**
+   * 模糊意图上下文存储
+   * 记录当前正在等待澄清的模糊意图，以及已收集的参数
+   */
+  let _fuzzyContext = null; // { intentDef, collected: {}, originalText }
+
+  /**
+   * 检查用户消息是否匹配模糊意图
+   * 返回 { needClarify, questions, autoSuggest, intentDef } 或 null
+   */
+  function matchFuzzyIntent(text) {
+    if (!text) return null;
+
+    for (const intent of FUZZY_INTENTS) {
+      if (intent.match.test(text)) {
+        // 检查是否已经有完整的参数（如"花了35"已有金额，不需要澄清）
+        if (intent.needClarify && intent.needClarify.includes('amount')) {
+          const amountMatch = text.match(/(\d+\.?\d*)/);
+          if (amountMatch) {
+            // 金额已包含在消息中，不需要澄清
+            continue; // 让后续的 QuickInput/local intent 处理
+          }
+        }
+
+        return {
+          needClarify: intent.needClarify || [],
+          questions: intent.questions || {},
+          autoSuggest: intent.autoSuggest || '',
+          intentDef: intent
+        };
+      }
+    }
+    return null;
+  }
+
+  /**
+   * 尝试处理模糊意图的澄清回答
+   * 如果当前有等待澄清的上下文，且用户回复了所需参数，则完成意图识别
+   * @param {string} text - 用户当前消息
+   * @returns {Object|null} { actionObj, reply } 或 null（无上下文或不完整的回答）
+   */
+  function tryResolveFuzzyClarification(text) {
+    if (!_fuzzyContext) return null;
+
+    const { intentDef, collected, originalText } = _fuzzyContext;
+    const needClarify = intentDef.needClarify || [];
+
+    // 尝试从用户回答中提取参数
+    if (needClarify.includes('amount')) {
+      const amountMatch = text.match(/(\d+\.?\d*)/);
+      if (amountMatch) {
+        collected.amount = amountMatch[1];
+      }
+    }
+    if (needClarify.includes('intent_type')) {
+      // 用户回答是任务还是备忘
+      if (/任务|待办|todo/.test(text)) {
+        collected.intent_type = 'task';
+      } else if (/备忘|记事|笔记|memo/.test(text)) {
+        collected.intent_type = 'memo';
+      } else {
+        // 默认理解为任务
+        collected.intent_type = text;
+      }
+    }
+
+    // 检查是否所有需要的参数都已收集
+    const allCollected = needClarify.every(key => collected[key] !== undefined);
+
+    if (allCollected) {
+      // 清除模糊上下文
+      _fuzzyContext = null;
+
+      // 构建操作对象
+      if (intentDef.buildAction) {
+        const actionObj = intentDef.buildAction(collected);
+        // 用原始文本补充 title 等信息
+        if (actionObj.tool === 'create_task' && !collected.title) {
+          actionObj.params.title = originalText.replace(/记得|别忘了|别忘了/g, '').trim() || '待办任务';
+        }
+        return {
+          actionObj,
+          reply: `好的，明白了！让我帮你处理 🦌`
+        };
+      }
+    }
+
+    // 参数还不完整，继续等待
+    return { waiting: true, missingParams: needClarify.filter(key => collected[key] === undefined) };
+  }
+
+  /**
+   * 显示澄清问题（直接在聊天中回复）
+   */
+  function showClarification(questions, missingParams) {
+    const questionTexts = missingParams
+      .map(key => questions[key])
+      .filter(Boolean)
+      .join(' ');
+
+    if (questionTexts) {
+      _chatHistory.push({ role: 'user', content: _fuzzyContext ? _fuzzyContext.originalText : '' });
+      _chatHistory.push({ role: 'assistant', content: questionTexts });
+      trimContext();
+      addAIMessage(questionTexts);
+    }
+  }
+
+  /**
+   * 显示自动建议（带建议按钮）
+   */
+  function showAutoSuggest(suggestText) {
+    const msgEl = addAIMessage(suggestText);
+
+    // 添加建议按钮
+    const btnContainer = document.createElement('div');
+    btnContainer.style.cssText = 'margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;';
+
+    const yesBtn = document.createElement('button');
+    yesBtn.textContent = '📝 好的，写日记';
+    yesBtn.style.cssText = `
+      padding:6px 14px;border-radius:12px;border:1px solid var(--border-light,#C8AD94);
+      background:var(--card-bg,#FAF6F0);color:var(--text-primary,#4A3728);
+      font-size:13px;cursor:pointer;transition:all 0.2s;
+    `;
+    yesBtn.addEventListener('click', () => {
+      // 跳转到日记页面
+      if (typeof Router !== 'undefined' && Router.navigate) {
+        Router.navigate('journal');
+      }
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+      yesBtn.style.opacity = '0.5';
+    });
+    yesBtn.addEventListener('mouseenter', () => {
+      yesBtn.style.background = 'var(--accent,#D4BA9F)';
+    });
+    yesBtn.addEventListener('mouseleave', () => {
+      yesBtn.style.background = 'var(--card-bg,#FAF6F0)';
+    });
+
+    const noBtn = document.createElement('button');
+    noBtn.textContent = '不了谢谢';
+    noBtn.style.cssText = `
+      padding:6px 14px;border-radius:12px;border:1px solid var(--border-light,#C8AD94);
+      background:transparent;color:var(--text-muted,#8a7a6d);
+      font-size:13px;cursor:pointer;transition:all 0.2s;
+    `;
+    noBtn.addEventListener('click', () => {
+      addAIMessage('好的，有需要随时找我 🦌');
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+      noBtn.style.opacity = '0.5';
+    });
+
+    btnContainer.appendChild(yesBtn);
+    btnContainer.appendChild(noBtn);
+    msgEl.appendChild(btnContainer);
+  }
+
   // ===== 扩展本地意图规则（零 API 成本） =====
 
   /**
@@ -1446,6 +1657,71 @@ const XiaoluModule = (() => {
           }, 500);
         }
         return; // 小鹿不处理此消息
+      }
+    }
+
+    // ===== 模糊意图识别：澄清回答处理（零 API 成本） =====
+    // 如果当前有等待澄清的模糊意图上下文，先尝试解析用户的回答
+    if (_fuzzyContext) {
+      const clarification = tryResolveFuzzyClarification(text);
+      if (clarification && clarification.actionObj) {
+        // 澄清完成，执行操作
+        console.log('[Xiaolu] handleSend: 模糊意图澄清完成，执行操作');
+        const result = await executeLocalAction(clarification.actionObj);
+        let displayReply = clarification.reply;
+        if (result.success) {
+          displayReply += '\n' + result.message;
+          ContextTracker.update(clarification.actionObj.tool, clarification.actionObj.params, clarification.actionObj.tool);
+          if (result.undoInfo) {
+            _appendUndoButton(result.undoInfo, clarification.actionObj.tool);
+          }
+        } else {
+          displayReply += '\n❌ 操作失败：' + result.message;
+        }
+        _chatHistory.push({ role: 'user', content: text });
+        _chatHistory.push({ role: 'assistant', content: displayReply });
+        trimContext();
+        addAIMessage(displayReply);
+        return; // 澄清已处理
+      } else if (clarification && clarification.waiting) {
+        // 参数还不完整，继续等待
+        console.log('[Xiaolu] handleSend: 模糊意图参数不完整，继续等待');
+        _chatHistory.push({ role: 'user', content: text });
+        trimContext();
+        const missingParams = clarification.missingParams || [];
+        const questions = _fuzzyContext.intentDef.questions || {};
+        showClarification(questions, missingParams);
+        return;
+      }
+      // 如果无法解析为澄清回答，清除模糊上下文，继续正常流程
+      _fuzzyContext = null;
+    }
+
+    // ===== 模糊意图识别：首次模糊意图匹配（零 API 成本） =====
+    // 在关键词规则匹配之前，先检查模糊意图
+    const fuzzyResult = matchFuzzyIntent(text);
+    if (fuzzyResult) {
+      console.log('[Xiaolu] handleSend: 模糊意图命中:', fuzzyResult.intentDef.intentType);
+
+      if (fuzzyResult.needClarify.length > 0) {
+        // 需要澄清 → 设置上下文，回复澄清问题，不走 API
+        _fuzzyContext = {
+          intentDef: fuzzyResult.intentDef,
+          collected: {},
+          originalText: text
+        };
+        _chatHistory.push({ role: 'user', content: text });
+        trimContext();
+        showClarification(fuzzyResult.questions, fuzzyResult.needClarify);
+        return; // 等待用户回答
+      }
+
+      if (fuzzyResult.autoSuggest) {
+        // 自动建议 → 显示建议按钮，不走 API
+        _chatHistory.push({ role: 'user', content: text });
+        trimContext();
+        showAutoSuggest(fuzzyResult.autoSuggest);
+        return;
       }
     }
 

@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v38 - AI智能路由与知识共享
+ * v39 - 主动提醒引擎与模糊意图识别
  */
 
-const CACHE_NAME = 'life-work-space-v38';
+const CACHE_NAME = 'life-work-space-v39';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -20,6 +20,7 @@ const CACHE_ASSETS = [
   './core/orchestrator.js',
   './core/secure-storage.js',
   './core/notifications.js',
+  './core/smart-reminder.js',
   './core/export.js',
   './core/search.js',
   './core/nicole.js',

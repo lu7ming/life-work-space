@@ -78,10 +78,13 @@ const App = (() => {
       NotificationEngine.init();
     }
 
-    // 9.1 页面卸载时清理通知引擎定时器，防止内存泄漏
+    // 9.1 页面卸载时清理定时器，防止内存泄漏
     window.addEventListener('beforeunload', () => {
       if (typeof NotificationEngine !== 'undefined' && NotificationEngine.destroy) {
         NotificationEngine.destroy();
+      }
+      if (typeof SmartReminder !== 'undefined' && SmartReminder.destroy) {
+        SmartReminder.destroy();
       }
     });
 

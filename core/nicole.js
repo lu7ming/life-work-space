@@ -49,7 +49,12 @@ const NicoleModule = (() => {
   // ===== Token 管理 =====
   async function getCozeToken() {
     try {
-      // 优先使用加密存储
+      // 优先使用加密存储（getAPIKey 支持新键名 + 旧键名自动迁移）
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.getAPIKey) {
+        const token = await SecureStorage.getAPIKey('coze_pat');
+        return token;
+      }
+      // 兼容旧版 SecureStorage
       if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
         const token = await SecureStorage.loadSecure('coze_token');
         return token;
@@ -65,7 +70,12 @@ const NicoleModule = (() => {
 
   async function saveCozeToken(token) {
     try {
-      // 优先使用加密存储
+      // 优先使用加密存储（saveAPIKey 支持新键名 + 自动清理旧键名）
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.saveAPIKey) {
+        await SecureStorage.saveAPIKey('coze_pat', token);
+        return;
+      }
+      // 兼容旧版 SecureStorage
       if (typeof SecureStorage !== 'undefined' && SecureStorage.saveSecure) {
         await SecureStorage.saveSecure('coze_token', token);
         return;

@@ -38,6 +38,15 @@ const App = (() => {
       console.error('[App] IndexedDB 初始化失败:', err);
     }
 
+    // 1.1 初始化安全存储（预热加密密钥）
+    if (typeof SecureStorage !== 'undefined' && SecureStorage.init) {
+      try {
+        await SecureStorage.init();
+      } catch (err) {
+        console.warn('[App] SecureStorage 初始化失败（不影响使用）:', err);
+      }
+    }
+
     // 2. 注册路由
     Router.register('dashboard', loadDashboard);
     Router.register('habits', loadHabits);

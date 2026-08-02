@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v40 - 个性化用户画像系统
+ * v41 - API Key加密存储
  */
 
-const CACHE_NAME = 'life-work-space-v40';
+const CACHE_NAME = 'life-work-space-v41';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [

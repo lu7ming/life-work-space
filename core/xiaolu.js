@@ -159,7 +159,12 @@ const XiaoluModule = (() => {
   // ===== Token 管理 =====
   async function getDeepseekToken() {
     try {
-      // 优先使用加密存储
+      // 优先使用加密存储（getAPIKey 支持新键名 + 旧键名自动迁移）
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.getAPIKey) {
+        const token = await SecureStorage.getAPIKey('deepseek_api_key');
+        return token;
+      }
+      // 兼容旧版 SecureStorage
       if (typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
         const token = await SecureStorage.loadSecure('deepseek_token');
         return token;
@@ -175,7 +180,12 @@ const XiaoluModule = (() => {
 
   async function saveDeepseekToken(token) {
     try {
-      // 优先使用加密存储
+      // 优先使用加密存储（saveAPIKey 支持新键名 + 自动清理旧键名）
+      if (typeof SecureStorage !== 'undefined' && SecureStorage.saveAPIKey) {
+        await SecureStorage.saveAPIKey('deepseek_api_key', token);
+        return;
+      }
+      // 兼容旧版 SecureStorage
       if (typeof SecureStorage !== 'undefined' && SecureStorage.saveSecure) {
         await SecureStorage.saveSecure('deepseek_token', token);
         return;

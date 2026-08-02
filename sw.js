@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v61 - ES Module 重构 + 代码分割
+ * v62 - 成就勋章系统
  */
 
-const CACHE_NAME = 'life-work-space-v61';
+const CACHE_NAME = 'life-work-space-v62';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -50,6 +50,7 @@ const CACHE_ASSETS = [
   './core/user-profile.js',
   './core/preference-learner.js',
   './core/predictive-engine.js',
+  './core/achievements.js',
   // 功能模块（动态 import 按需加载，但预缓存以保离线可用）
   './modules/dashboard/dashboard.html',
   './modules/dashboard/dashboard.css',
@@ -87,6 +88,9 @@ const CACHE_ASSETS = [
   './modules/content/content.html',
   './modules/content/content.css',
   './modules/content/content.js',
+  './modules/achievements/achievements.html',
+  './modules/achievements/achievements.css',
+  './modules/achievements/achievements.js',
   './modules/report/report.html',
   './modules/report/report.css',
   './modules/report/report.js',

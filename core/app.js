@@ -29,6 +29,7 @@ const MODULE_REGISTRY = {
   goals:       { js: '../modules/goals/goals.js',           html: 'goals/goals.html',           css: 'goals/goals.css' },
   lifetree:    { js: '../modules/lifetree/lifetree.js',     html: 'lifetree/lifetree.html',     css: 'lifetree/lifetree.css' },
   content:     { js: '../modules/content/content.js',       html: 'content/content.html',       css: 'content/content.css' },
+  achievements:{ js: '../modules/achievements/achievements.js', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
   timetracker: { js: '../modules/timetracker/timetracker.js', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
   templates:   { js: '../modules/templates/templates_module.js', html: 'templates/templates.html' },
 };
@@ -47,6 +48,7 @@ const MODULE_NAME_MAP = {
   goals: 'GoalsModule',
   lifetree: 'LifeTreeModule',
   content: 'ContentModule',
+  achievements: 'AchievementsModule',
   timetracker: 'TimeTrackerModule',
   templates: 'TemplatesModule',
 };
@@ -87,6 +89,7 @@ async function lazyImport(name) {
     whitenoise: '../modules/whitenoise/whitenoise.js',
     report: '../modules/report/report.js',
     rest: '../modules/rest/rest.js',
+    achievements: './achievements.js',
   };
   const path = pathMap[name];
   if (!path) throw new Error(`Unknown lazy module: ${name}`);
@@ -205,6 +208,7 @@ export const App = (() => {
       auditLogMod,
       localAIMod,
       whitenoiseMod,
+      achievementsMod,
     ] = await Promise.all([
       lazyImport('theme').catch(e => (console.warn('[App] theme 加载失败:', e), {})),
       lazyImport('notifications').catch(e => (console.warn('[App] notifications 加载失败:', e), {})),
@@ -225,6 +229,7 @@ export const App = (() => {
       lazyImport('auditLog').catch(e => (console.warn('[App] auditLog 加载失败:', e), {})),
       lazyImport('localAI').catch(e => (console.warn('[App] localAI 加载失败:', e), {})),
       lazyImport('whitenoise').catch(e => (console.warn('[App] whitenoise 加载失败:', e), {})),
+      lazyImport('achievements').catch(e => (console.warn('[App] achievements 加载失败:', e), {})),
     ]);
 
     // 初始化主题
@@ -305,6 +310,12 @@ export const App = (() => {
     if (whitenoiseMod.WhiteNoiseModule) {
       whitenoiseMod.WhiteNoiseModule.init();
       window.WhiteNoiseModule = whitenoiseMod.WhiteNoiseModule;
+    }
+
+    // 初始化成就系统
+    if (achievementsMod.Achievements) {
+      await achievementsMod.Achievements.init();
+      window.Achievements = achievementsMod.Achievements;
     }
 
     // 初始化键盘快捷键（AppUtils 内置）

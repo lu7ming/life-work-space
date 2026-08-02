@@ -558,6 +558,8 @@ export const ContentModule = (() => {
     await Storage.put('content_published', pub);
     editingPublishedId = null;
     closeModal('published-modal-overlay');
+    // EventBus: 内容发布
+    EventBus.emit('content:published', { id: pub.id, title: pub.title, date: pub.date });
     await loadData();
     renderAll();
   }

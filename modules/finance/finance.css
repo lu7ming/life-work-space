@@ -1432,3 +1432,68 @@
     font-size: 20px;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .finance-modal-overlay { background: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .finance-modal { background: var(--bg-card); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); }
+
+[data-theme="dark"] .finance-budget-input,
+[data-theme="dark"] .finance-form-input,
+[data-theme="dark"] .finance-month-picker {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .finance-budget-input::placeholder,
+[data-theme="dark"] .finance-form-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* 收支颜色深色适配 */
+[data-theme="dark"] .finance-stat-income .finance-stat-value { color: #6DBF7E; }
+[data-theme="dark"] .finance-stat-expense .finance-stat-value { color: #D87878; }
+[data-theme="dark"] .finance-transaction-amount.income { color: #6DBF7E; }
+[data-theme="dark"] .finance-transaction-amount.expense { color: #D87878; }
+[data-theme="dark"] .finance-mom-arrow.up,
+[data-theme="dark"] .finance-mom-percent.up { color: #D87878; }
+[data-theme="dark"] .finance-mom-arrow.down,
+[data-theme="dark"] .finance-mom-percent.down { color: #6DBF7E; }
+
+/* 超支警告深色 */
+[data-theme="dark"] .finance-overbudget-alert { background: var(--accent-red-light); border-color: rgba(216, 120, 120, 0.3); }
+[data-theme="dark"] .finance-overbudget-text { color: var(--accent-red); }
+
+/* 预算推荐提示深色 */
+[data-theme="dark"] .finance-budget-recommend-hint { background: var(--accent-blue-light); color: var(--accent-blue); }
+[data-theme="dark"] .finance-budget-recommend-hint:hover { background: #1E2A36; }
+[data-theme="dark"] .finance-budget-smart-btn { background: var(--accent-blue-light); color: var(--accent-blue); border-color: rgba(122, 172, 206, 0.3); }
+[data-theme="dark"] .finance-budget-smart-btn:hover { background: #1E2A36; border-color: var(--accent-blue); }
+
+/* 趋势/年度色深色 */
+[data-theme="dark"] .finance-trend-bar { background: var(--accent-blue); }
+[data-theme="dark"] .finance-yearly-bar { background: var(--accent-blue); }
+
+/* 图表tooltip深色 */
+[data-theme="dark"] .finance-chart-tooltip { background: rgba(30, 26, 22, 0.95); color: #E8E0D8; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+[data-theme="dark"] .finance-chart-tooltip::after { border-top-color: rgba(30, 26, 22, 0.95); }
+
+/* 储蓄进度深色 */
+[data-theme="dark"] .finance-savings-progress-bar { background: linear-gradient(90deg, #6DBF7E, #5EAF6E); }
+[data-theme="dark"] .finance-savings-percent { color: #6DBF7E; }
+[data-theme="dark"] .finance-savings-eta { color: var(--accent-blue); }
+
+/* 增强Tab深色 */
+[data-theme="dark"] .finance-enhance-tab.active { background: var(--accent); color: #fff; }
+[data-theme="dark"] .finance-type-btn.active { background: var(--bg-card); color: var(--text-primary); }
+[data-theme="dark"] .finance-tag.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+[data-theme="dark"] .finance-budget-toggle-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* 删除/危险态深色 */
+[data-theme="dark"] .finance-transaction-action-btn.delete:hover,
+[data-theme="dark"] .finance-account-action-btn.delete:hover,
+[data-theme="dark"] .finance-savings-action-btn.delete:hover { background: var(--accent-red-light); color: var(--accent-red); }
+
+/* 分页深色 */
+[data-theme="dark"] .finance-page-btn { background: var(--bg-card); border-color: var(--border-light); color: var(--text-secondary); }
+[data-theme="dark"] .finance-page-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }

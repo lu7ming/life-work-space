@@ -5,14 +5,14 @@
 
 /* ===== 日历专属 CSS 变量 ===== */
 :root {
-  --cal-habits: #5CAF6E;
-  --cal-tasks: #6A9BBE;
+  --cal-habits: #6DBF7E;
+  --cal-tasks: #7AACCE;
   --cal-journal: #E8A87C;
-  --cal-expense: #D07070;
-  --cal-income: #5CAF6E;
-  --cal-health: #9880BE;
+  --cal-expense: #D87878;
+  --cal-income: #6DBF7E;
+  --cal-health: #A88EC8;
   --cal-study: #4DB6AC;
-  --cal-today-bg: rgba(92, 175, 110, 0.15);
+  --cal-today-bg: rgba(109, 191, 126, 0.15);
   --cal-weekend-bg: rgba(0, 0, 0, 0.04);
   --cal-cell-bg: var(--bg-card);
   --cal-cell-border: rgba(0, 0, 0, 0.06);
@@ -20,14 +20,14 @@
 }
 
 [data-theme="dark"] {
-  --cal-habits: #7EBF8E;
-  --cal-tasks: #8BB8D4;
+  --cal-habits: #6DBF7E;
+  --cal-tasks: #7AACCE;
   --cal-journal: #E8A87C;
-  --cal-expense: #E08B8B;
-  --cal-income: #7EBF8E;
-  --cal-health: #B8A0D4;
+  --cal-expense: #D87878;
+  --cal-income: #6DBF7E;
+  --cal-health: #A88EC8;
   --cal-study: #6DD5C8;
-  --cal-today-bg: rgba(126, 191, 142, 0.18);
+  --cal-today-bg: rgba(109, 191, 126, 0.18);
   --cal-weekend-bg: rgba(255, 255, 255, 0.03);
   --cal-cell-bg: var(--bg-card);
   --cal-cell-border: rgba(255, 255, 255, 0.06);

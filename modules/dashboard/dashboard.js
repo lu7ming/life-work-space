@@ -1065,7 +1065,7 @@ export const DashboardModule = (() => {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const lineColor = isDark ? '#E8A87C' : '#E8A87C';
     const fillColor = isDark ? 'rgba(232,168,124,0.15)' : 'rgba(232,168,124,0.15)';
-    const textColor = isDark ? '#6E6E82' : '#8A7D71';
+    const textColor = isDark ? '#7A7268' : '#8A7D71';
     const dotColor = isDark ? '#E8A87C' : '#E8A87C';
 
     // 绘制填充区域
@@ -1311,9 +1311,9 @@ export const DashboardModule = (() => {
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      ctx.fillStyle = isDark ? '#2A2A4A' : '#DCC5AD';
+      ctx.fillStyle = isDark ? '#3A3530' : '#DCC5AD';
       ctx.fill();
-      ctx.fillStyle = isDark ? '#6E6E82' : '#8A7D71';
+      ctx.fillStyle = isDark ? '#7A7268' : '#8A7D71';
       ctx.font = '11px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('暂无数据', cx, cy + 4);
@@ -1343,18 +1343,18 @@ export const DashboardModule = (() => {
     ctx.beginPath();
     ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    ctx.fillStyle = isDark ? '#0F3460' : '#EEE9E3';
+    ctx.fillStyle = isDark ? '#2A2420' : '#EEE9E3';
     ctx.fill();
 
     // 中心文字
-    ctx.fillStyle = isDark ? '#E0E0E0' : '#3D3027';
+    ctx.fillStyle = isDark ? '#E8E0D8' : '#3D3027';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const balance = income - expense;
     ctx.fillText(`¥${Math.abs(balance).toLocaleString()}`, cx, cy - 4);
     ctx.font = '9px sans-serif';
-    ctx.fillStyle = isDark ? '#6E6E82' : '#8A7D71';
+    ctx.fillStyle = isDark ? '#7A7268' : '#8A7D71';
     ctx.fillText(balance >= 0 ? '结余' : '超支', cx, cy + 10);
   }
 

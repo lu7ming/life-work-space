@@ -927,3 +927,77 @@
     font-size: 24px;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .study-modal-overlay { background: rgba(0, 0, 0, 0.6); }
+
+/* 表单深色 */
+[data-theme="dark"] .study-input,
+[data-theme="dark"] .study-select,
+[data-theme="dark"] .study-textarea,
+[data-theme="dark"] .study-semester-select {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .study-input::placeholder,
+[data-theme="dark"] .study-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Tab 深色 */
+[data-theme="dark"] .study-tab.active { background: var(--accent-orange); color: #fff; }
+[data-theme="dark"] .study-status-btn.active { background: var(--accent-orange); color: #fff; }
+[data-theme="dark"] .study-star-btn.active { background: var(--accent-orange-light); color: var(--accent-orange); }
+[data-theme="dark"] .study-star-btn { color: var(--text-muted); background: var(--bg-hover); }
+
+/* select 下拉箭头深色 */
+[data-theme="dark"] .study-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23B0A898' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+}
+
+/* 课程表深色 */
+[data-theme="dark"] .study-timetable { border-color: var(--border-light); }
+[data-theme="dark"] .study-timetable-header { background: var(--bg-sidebar); border-bottom-color: var(--border-light); }
+[data-theme="dark"] .study-timetable-day { border-left-color: var(--border-light); }
+[data-theme="dark"] .study-timetable-cell { border-bottom-color: var(--border-light); border-left-color: var(--border-light); }
+[data-theme="dark"] .study-timetable-cell:hover { background: rgba(232, 168, 124, 0.04); }
+[data-theme="dark"] .study-timetable-cell.today-column { background: var(--bg-sidebar); }
+[data-theme="dark"] .study-timetable-time-label { border-right-color: var(--border-light); }
+[data-theme="dark"] .study-timetable-row.is-hour .study-timetable-cell { border-bottom-color: var(--border-light); }
+
+/* 书籍/技能卡深色 */
+[data-theme="dark"] .study-book-card { background: var(--bg-card); }
+[data-theme="dark"] .study-skill-card { background: var(--bg-card); }
+[data-theme="dark"] .study-book-progress-fill { background: linear-gradient(90deg, var(--accent-orange), #C88860); }
+[data-theme="dark"] .study-skill-progress-fill { background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); }
+
+/* 学期列表深色 */
+[data-theme="dark"] .study-semester-list-item { background: var(--bg-hover); }
+[data-theme="dark"] .study-semester-list-item-del:hover { color: var(--accent-red); background: var(--accent-red-light); }
+
+/* 按钮深色 */
+[data-theme="dark"] .study-btn--confirm { background: var(--accent-orange); color: #fff; }
+[data-theme="dark"] .study-btn--danger { color: var(--accent-red); background: var(--accent-red-light); }
+[data-theme="dark"] .study-btn--danger:hover { background: var(--accent-red); color: #fff; }
+
+/* FAB 深色 */
+[data-theme="dark"] .study-fab { background: var(--accent-orange); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] .study-fab:hover { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4); }
+
+/* 空星深色 */
+[data-theme="dark"] .study-skill-stars .star-empty { color: var(--text-light); }
+
+/* modal footer 深色 */
+[data-theme="dark"] .study-modal-footer { border-top-color: var(--border-light); }
+
+/* 书籍封面深色 - 状态标签保持可读 */
+[data-theme="dark"] .study-book-status-tag.reading { background: var(--accent-blue); }
+[data-theme="dark"] .study-book-status-tag.done { background: var(--accent-green); }
+[data-theme="dark"] .study-book-status-tag.want { background: var(--accent-orange); }
+
+/* 课程色块深色 - 确保白色文字可见 */
+[data-theme="dark"] .study-color-5 { background: #5A9FAF; }
+[data-theme="dark"] .study-color-6 { background: #C49870; }
+[data-theme="dark"] .study-color-7 { background: #7EAF6E; }

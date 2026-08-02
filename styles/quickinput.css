@@ -27,7 +27,7 @@
 
 /* 暗色主题 */
 [data-theme="dark"] .qi-panel {
-  background: #2A2A3E;
+  background: #2A2420;
   box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -170,7 +170,7 @@
 }
 
 [data-theme="dark"] .qi-preview-label {
-  color: #8B8B9E;
+  color: #8B8278;
 }
 
 .qi-preview-details {

@@ -357,7 +357,7 @@ export const CalendarModule = (() => {
     if (count <= 2) return '#E8A87C';
     if (count <= 3) return '#E0C07C';
     if (count <= 4) return '#B8D47C';
-    return '#5CAF6E';
+    return '#6DBF7E';
   }
 
   // ===== 月份切换 =====

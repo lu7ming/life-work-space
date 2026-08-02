@@ -845,3 +845,72 @@
     flex-shrink: 0;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .content-input,
+[data-theme="dark"] .content-select,
+[data-theme="dark"] .content-textarea {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .content-input::placeholder,
+[data-theme="dark"] .content-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .content-tab.active,
+[data-theme="dark"] .content-filter-btn.active,
+[data-theme="dark"] .publish-sort-btn.active {
+  background: var(--text-primary);
+  color: var(--bg-main);
+}
+
+[data-theme="dark"] .content-modal-overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .content-modal-header,
+[data-theme="dark"] .content-modal-footer {
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .content-btn--confirm {
+  background: var(--text-primary);
+  color: var(--bg-main);
+}
+
+/* 状态标签深色 */
+[data-theme="dark"] .status-idea { background: var(--bg-hover); color: #B0A898; }
+[data-theme="dark"] .status-prep { background: var(--accent-blue-light); color: var(--accent-blue); }
+[data-theme="dark"] .status-shot { background: var(--accent-green-light); color: var(--accent-green); }
+[data-theme="dark"] .status-published { background: #2E2618; color: #E8C86A; }
+[data-theme="dark"] .status-abandoned { background: var(--accent-red-light); color: var(--accent-red); }
+
+/* 优先级深色 */
+[data-theme="dark"] .priority-medium { color: #E8A87C; }
+
+/* 拍摄周视图 */
+[data-theme="dark"] .shooting-day-header {
+  border-bottom-color: var(--border-light);
+}
+
+[data-theme="dark"] .shooting-add-btn {
+  border-color: var(--border-light);
+}
+
+/* select 下拉箭头深色 */
+[data-theme="dark"] .content-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23B0A898' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] .content-fab {
+  background: var(--text-primary);
+  color: var(--bg-main);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .content-fab:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}

@@ -718,12 +718,12 @@
 
 /* ===== 暗色模式覆盖 ===== */
 [data-theme="dark"] .dash-focus-card {
-  background: linear-gradient(135deg, #1A1A2E 0%, #1E2A3A 100%);
+  background: linear-gradient(135deg, #1E1A16 0%, #241F1A 100%);
   border-left-color: var(--accent-orange);
 }
 
 [data-theme="dark"] .dash-birthday-card {
-  background: linear-gradient(135deg, #1E2A3A 0%, #1A2230 100%);
+  background: linear-gradient(135deg, #241F1A 0%, #1A2230 100%);
   border-color: rgba(232, 164, 74, 0.15);
 }
 
@@ -1524,7 +1524,7 @@
 
 [data-theme="dark"] .smart-suggestion-action-btn:hover {
   background: var(--accent-orange, #E8A87C);
-  color: #1A1A2E;
+  color: #1E1A16;
   border-color: var(--accent-orange, #E8A87C);
 }
 
@@ -1925,7 +1925,7 @@
 
 /* ===== 智能聚焦 - 深色主题 ===== */
 [data-theme="dark"] .dash-smart-focus {
-  background: linear-gradient(135deg, #1A1A2E 0%, #1E2A3A 100%);
+  background: linear-gradient(135deg, #1E1A16 0%, #241F1A 100%);
   border-left-color: var(--accent-orange, #E8A87C);
 }
 

@@ -1366,3 +1366,35 @@
     min-width: 70px;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .tasks-modal-overlay { background: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .tasks-modal { background: var(--bg-card); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }
+
+/* 表单深色 */
+[data-theme="dark"] .tasks-input,
+[data-theme="dark"] .tasks-select,
+[data-theme="dark"] .tasks-textarea {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .tasks-input::placeholder,
+[data-theme="dark"] .tasks-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Tab 深色 */
+[data-theme="dark"] .tasks-tab.active { background: var(--text-primary); color: var(--bg-main); }
+
+/* 优先级深色 */
+[data-theme="dark"] .tasks-priority-high { color: #D87878; }
+[data-theme="dark"] .tasks-priority-medium { color: #E8A87C; }
+[data-theme="dark"] .tasks-priority-low { color: var(--accent-blue); }
+
+/* FAB 深色 */
+[data-theme="dark"] .tasks-fab { background: var(--text-primary); color: var(--bg-main); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); }
+
+/* 删除按钮深色 */
+[data-theme="dark"] .tasks-card-action.danger:hover { background: var(--accent-red-light); color: var(--accent-red); }

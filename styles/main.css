@@ -535,29 +535,29 @@ img {
 
 /* ===== 暗色模式变量 ===== */
 [data-theme="dark"] {
-  /* 主色调 - 深蓝夜色系 */
-  --bg-main: #1A1A2E;
-  --bg-sidebar: #16213E;
-  --bg-card: #0F3460;
-  --bg-hover: #1E2A4A;
+  /* 主色调 - 暖棕深色系（保持温暖感） */
+  --bg-main: #1E1A16;
+  --bg-sidebar: #241F1A;
+  --bg-card: #2A2420;
+  --bg-hover: #332C26;
 
   /* 文字色 */
-  --text-primary: #E0E0E0;
-  --text-secondary: #A0A0B8;
-  --text-muted: #6E6E82;
-  --text-light: #3E3E55;
+  --text-primary: #E8E0D8;
+  --text-secondary: #B0A898;
+  --text-muted: #7A7268;
+  --text-light: #4A443C;
 
   /* 强调色（暗色适配） */
-  --accent-green: #5CAF6E;
-  --accent-green-light: #1A2E1F;
+  --accent-green: #6DBF7E;
+  --accent-green-light: #1E2E22;
   --accent-orange: #E8A87C;
-  --accent-orange-light: #2E2018;
-  --accent-blue: #6A9BBE;
-  --accent-blue-light: #1A2A3A;
-  --accent-red: #D07070;
-  --accent-red-light: #2E1818;
-  --accent-purple: #9880BE;
-  --accent-purple-light: #221A2E;
+  --accent-orange-light: #2E2218;
+  --accent-blue: #7AACCE;
+  --accent-blue-light: #1E2A36;
+  --accent-red: #D87878;
+  --accent-red-light: #2E1A1A;
+  --accent-purple: #A88EC8;
+  --accent-purple-light: #261E32;
 
   /* 阴影（暗色加深） */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
@@ -565,10 +565,16 @@ img {
   --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.45);
 
   /* 边框 */
-  --border-light: #2A2A4A;
+  --border-light: #3A3530;
 
   /* 遮罩 */
   --overlay-bg: rgba(0, 0, 0, 0.5);
+
+  /* 扩展变量（多模块引用） */
+  --bg-primary: #2A2420;
+  --accent: #E8A87C;
+  --accent-hover: #D4956A;
+  --border-color: #3A3530;
 
   /* 过渡：主题切换时平滑过渡 */
   --transition-fast: 0.15s ease;
@@ -582,7 +588,7 @@ img {
 }
 
 [data-theme="dark"] .sidebar-checkin-btn:hover {
-  background: #C8C8C8;
+  background: #C8C0B8;
 }
 
 [data-theme="dark"] .sidebar-checkin-btn.checked {
@@ -602,6 +608,33 @@ img {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* 深色模式 - 全局表单元素 */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* 深色模式 - 弹窗遮罩统一 */
+[data-theme="dark"] .custom-confirm-overlay,
+[data-theme="dark"] .keyboard-help-overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* 深色模式 - kbd 键盘按键 */
+[data-theme="dark"] .kb-help-item kbd {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
 /* ===== 智能建议通知样式 ===== */
 .notif-item-suggestion {
   background: linear-gradient(135deg, #FFFDF5 0%, #FFF9E6 100%);
@@ -618,16 +651,16 @@ img {
 
 /* 暗色模式：智能建议通知 */
 [data-theme="dark"] .notif-item-suggestion {
-  background: linear-gradient(135deg, #1E2A3A 0%, #1A2230 100%);
+  background: linear-gradient(135deg, #2A2420 0%, #241F1A 100%);
   border-left-color: #E8C86A;
 }
 
 [data-theme="dark"] .notif-item-suggestion .notif-item-icon {
-  background: #2A2A4A;
+  background: var(--bg-hover);
 }
 
 [data-theme="dark"] .notif-item-suggestion:hover {
-  background: linear-gradient(135deg, #22304A 0%, #1E2840 100%);
+  background: linear-gradient(135deg, #332C26 0%, #2A2420 100%);
 }
 
 /* ===== 主题选择器 ===== */
@@ -782,6 +815,18 @@ img {
 [data-theme="dark"] .custom-confirm-dialog { background: var(--bg-card); }
 [data-theme="dark"] .keyboard-help-dialog { background: var(--bg-card); }
 [data-theme="dark"] .offline-banner { background: #8B6914; }
+
+/* 深色模式 - 按钮状态色 */
+[data-theme="dark"] .btn-success { color: #6DBF7E !important; }
+[data-theme="dark"] .btn-error { color: #D87878 !important; }
+
+/* 深色模式 - 跨模块面板 */
+[data-theme="dark"] .cross-link-item {
+  border-bottom-color: rgba(74, 68, 60, 0.3);
+}
+
+/* 深色模式 - offline banner text */
+[data-theme="dark"] .offline-banner { color: #E8E0D8; }
 
 /* 自动保存指示器 */
 #auto-save-indicator { position: fixed; bottom: 12px; right: 12px; font-size: 11px; color: var(--text-muted); opacity: 0; transition: opacity 0.3s; z-index: 100; }

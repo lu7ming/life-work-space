@@ -879,3 +879,88 @@
     align-content: start;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .knowledge-modal-overlay { background: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .knowledge-modal-card,
+[data-theme="dark"] .knowledge-stats-card { background: var(--bg-card); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); }
+
+/* 表单深色 */
+[data-theme="dark"] .knowledge-form-input,
+[data-theme="dark"] .knowledge-form-textarea {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .knowledge-form-input::placeholder,
+[data-theme="dark"] .knowledge-form-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* 标签输入深色 */
+[data-theme="dark"] .knowledge-form-tags-input-wrap { background: var(--bg-card); border-color: var(--border-light); }
+[data-theme="dark"] .knowledge-form-tag-chip { background: var(--bg-hover); color: var(--text-secondary); }
+[data-theme="dark"] .knowledge-form-tag-remove:hover { color: #D87878; }
+
+/* 类型标签深色 */
+[data-theme="dark"] .knowledge-card-type.type-article { background: var(--accent-orange-light); color: var(--accent-orange); }
+[data-theme="dark"] .knowledge-card-type.type-note { background: var(--accent-blue-light); color: var(--accent-blue); }
+[data-theme="dark"] .knowledge-card-type.type-excerpt { background: var(--accent-green-light); color: var(--accent-green); }
+
+/* 类型选择器深色 */
+[data-theme="dark"] .knowledge-form-type-btn { background: var(--bg-card); border-color: var(--border-light); }
+[data-theme="dark"] .knowledge-form-type-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+[data-theme="dark"] .knowledge-type-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* 搜索深色 */
+[data-theme="dark"] .knowledge-search { background: var(--bg-card); border-color: var(--border-light); }
+
+/* 标签计数深色 */
+[data-theme="dark"] .knowledge-tag-count { background: var(--text-light); color: var(--text-secondary); }
+[data-theme="dark"] .knowledge-tag-item.active .knowledge-tag-count { background: var(--accent); color: #fff; }
+
+/* 排序深色 */
+[data-theme="dark"] .knowledge-sort-bar { border-bottom-color: var(--border-light); }
+
+/* 统计深色 */
+[data-theme="dark"] .knowledge-stats-row { background: var(--bg-hover); }
+[data-theme="dark"] .knowledge-stats-row-value { color: var(--accent); }
+
+/* 按钮深色 */
+[data-theme="dark"] .knowledge-btn-save { background: var(--accent); color: #fff; }
+[data-theme="dark"] .knowledge-btn-save:hover { background: var(--accent-hover); }
+[data-theme="dark"] .knowledge-btn-cancel { background: var(--bg-card); border-color: var(--border-light); }
+[data-theme="dark"] .knowledge-btn-cancel:hover { background: var(--bg-hover); }
+[data-theme="dark"] .knowledge-btn-delete { border-color: #D87878; color: #D87878; }
+[data-theme="dark"] .knowledge-btn-delete:hover { background: #D87878; color: #fff; }
+
+/* 必填标记深色 */
+[data-theme="dark"] .knowledge-form-label .required { color: #D87878; }
+
+/* 标签建议深色 */
+[data-theme="dark"] .knowledge-tag-suggest-item { border-color: var(--border-light); color: var(--text-muted); }
+[data-theme="dark"] .knowledge-tag-suggest-item:hover { border-color: var(--accent); color: var(--accent); background: rgba(232, 168, 124, 0.06); }
+
+/* 卡片边框深色 */
+[data-theme="dark"] .knowledge-card:hover { border-color: var(--border-light); }
+[data-theme="dark"] .knowledge-card-tag { background: var(--bg-hover); color: var(--text-secondary); }
+
+/* FAB 深色 */
+[data-theme="dark"] .knowledge-fab { background: var(--accent); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] .knowledge-fab:hover { background: var(--accent-hover); }
+
+/* Modal 头/尾 深色 */
+[data-theme="dark"] .knowledge-modal-header { border-bottom-color: var(--border-light); }
+[data-theme="dark"] .knowledge-modal-footer { border-top-color: var(--border-light); }
+[data-theme="dark"] .knowledge-modal-close { background: var(--bg-hover); }
+[data-theme="dark"] .knowledge-modal-close:hover { background: var(--border-light); }
+
+/* 统计按钮深色 */
+[data-theme="dark"] .knowledge-stats-btn { background: var(--bg-card); border-color: var(--border-light); }
+[data-theme="dark"] .knowledge-stats-btn:hover { background: var(--bg-hover); }
+
+/* 移动端标签深色 */
+[data-theme="dark"] .knowledge-tag-item { border-color: var(--border-light); background: var(--bg-card); }
+[data-theme="dark"] .knowledge-tag-item.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+[data-theme="dark"] .knowledge-tag-item.active .knowledge-tag-count { background: rgba(255, 255, 255, 0.3); color: #fff; }

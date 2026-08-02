@@ -448,3 +448,17 @@
     padding: 12px 14px;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .svg-wrapper { background: var(--bg-card); }
+[data-theme="dark"] .panel-section { background: var(--bg-card); }
+[data-theme="dark"] .tree-bottom-info { background: var(--bg-card); border-top-color: var(--border-light); }
+
+/* 维度项深色 */
+[data-theme="dark"] .soil-item,
+[data-theme="dark"] .dim-item,
+[data-theme="dark"] .stat-card { background: var(--bg-hover); }
+
+/* 进度条深色 */
+[data-theme="dark"] .soil-item .soil-bar,
+[data-theme="dark"] .dim-item .dim-progress { background: var(--text-light); }

@@ -1188,3 +1188,83 @@
     width: 100%;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .rel-modal-overlay { background: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .rel-modal-card { background: var(--bg-card); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); }
+
+/* 表单深色 */
+[data-theme="dark"] .rel-form-input,
+[data-theme="dark"] .rel-search-input,
+[data-theme="dark"] .rel-interaction-date,
+[data-theme="dark"] .rel-interaction-note,
+[data-theme="dark"] .rel-sort-select {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .rel-form-input::placeholder,
+[data-theme="dark"] .rel-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* 类型Tab深色 */
+[data-theme="dark"] .rel-type-tab.active { background: var(--accent); color: #fff; }
+[data-theme="dark"] .rel-form-type-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* 详情Tab深色 */
+[data-theme="dark"] .rel-detail-tabs { border-bottom-color: var(--border-light); }
+
+/* 生日区域深色 */
+[data-theme="dark"] .rel-birthday-section { background: linear-gradient(135deg, var(--bg-hover) 0%, var(--bg-card) 100%); border-color: rgba(232, 168, 124, 0.15); }
+
+/* 分类标签深色 */
+[data-theme="dark"] .rel-detail-cat-a { background: rgba(212, 96, 90, 0.15); color: #E07070; }
+[data-theme="dark"] .rel-detail-cat-b { background: rgba(232, 148, 58, 0.15); color: #E8A050; }
+[data-theme="dark"] .rel-detail-cat-c { background: rgba(74, 144, 217, 0.15); color: #6AAADE; }
+[data-theme="dark"] .rel-detail-cat-d { background: rgba(158, 158, 158, 0.15); color: #B0B0B0; }
+
+/* 分类表单深色 */
+[data-theme="dark"] .rel-form-cat-btn.rel-cat-a.active { background: rgba(212, 96, 90, 0.15); }
+[data-theme="dark"] .rel-form-cat-btn.rel-cat-b.active { background: rgba(232, 148, 58, 0.15); }
+[data-theme="dark"] .rel-form-cat-btn.rel-cat-c.active { background: rgba(74, 144, 217, 0.15); }
+[data-theme="dark"] .rel-form-cat-btn.rel-cat-d.active { background: rgba(158, 158, 158, 0.15); }
+
+/* 跟进提醒深色 */
+[data-theme="dark"] .rel-card-followup { background: rgba(216, 120, 120, 0.12); color: #E07070; }
+
+/* 天数标签深色 */
+[data-theme="dark"] .rel-card-days-left.soon { background: var(--accent-orange-light); color: var(--accent-orange); }
+[data-theme="dark"] .rel-card-days-left.today { background: rgba(216, 120, 120, 0.15); color: #E07070; }
+
+/* 互动记录深色 */
+[data-theme="dark"] .rel-interaction-item { background: var(--bg-hover); }
+[data-theme="dark"] .rel-info-row { border-bottom-color: rgba(74, 68, 60, 0.3); }
+[data-theme="dark"] .rel-date-item { background: var(--bg-hover); }
+
+/* 删除按钮深色 */
+[data-theme="dark"] .rel-interaction-delete:hover { color: #D87878; }
+[data-theme="dark"] .rel-form-date-remove { background: rgba(216, 120, 120, 0.15); color: #E07070; }
+[data-theme="dark"] .rel-icon-btn--danger:hover { background: rgba(216, 120, 120, 0.15); }
+
+/* 按钮深色 */
+[data-theme="dark"] .rel-btn-primary { background: var(--accent); color: #fff; }
+[data-theme="dark"] .rel-btn-primary:hover { background: var(--accent-hover); }
+[data-theme="dark"] .rel-btn-secondary { color: var(--accent); border-color: var(--accent); }
+[data-theme="dark"] .rel-btn-secondary:hover { background: rgba(232, 168, 124, 0.06); }
+[data-theme="dark"] .rel-btn-cancel { background: var(--bg-hover); color: var(--text-secondary); }
+
+/* 必填深色 */
+[data-theme="dark"] .rel-required { color: #E07070; }
+
+/* 健康度深色 */
+[data-theme="dark"] .rel-health-bar { background: var(--bg-hover); }
+
+/* 卡片深色 */
+[data-theme="dark"] .rel-card-avatar { background: var(--bg-hover); }
+[data-theme="dark"] .rel-detail-avatar { background: var(--accent); }
+
+/* 关闭按钮深色 */
+[data-theme="dark"] .rel-modal-close { background: var(--bg-hover); }
+[data-theme="dark"] .rel-modal-close:hover { background: var(--border-light); }

@@ -376,3 +376,36 @@
     font-size: 12px;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .audit-overlay { background: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .audit-panel { box-shadow: -8px 0 30px rgba(0, 0, 0, 0.3); }
+
+/* 头部深色 */
+[data-theme="dark"] .audit-header { background: var(--bg-card); border-bottom-color: var(--border-light); }
+
+/* 筛选栏深色 */
+[data-theme="dark"] .audit-filters { background: var(--bg-card); border-bottom-color: var(--border-light); }
+[data-theme="dark"] .audit-filter-select { background: var(--bg-hover); border-color: var(--border-light); color: var(--text-primary); }
+
+/* 结果标签深色 */
+[data-theme="dark"] .audit-result-success { background: rgba(109, 191, 126, 0.15); color: #6DBF7E; }
+[data-theme="dark"] .audit-result-failed { background: rgba(216, 120, 120, 0.15); color: #D87878; }
+[data-theme="dark"] .audit-result-cancelled { background: rgba(176, 168, 152, 0.12); color: var(--text-muted); }
+[data-theme="dark"] .audit-tag-success { background: rgba(109, 191, 126, 0.15); color: #6DBF7E; }
+[data-theme="dark"] .audit-tag-failed { background: rgba(216, 120, 120, 0.15); color: #D87878; }
+[data-theme="dark"] .audit-tag-cancelled { background: rgba(176, 168, 152, 0.12); color: var(--text-muted); }
+
+/* 统计卡片深色 */
+[data-theme="dark"] .audit-stat-card { background: var(--bg-card); }
+[data-theme="dark"] .audit-stat-bar-bg { background: var(--bg-hover); }
+
+/* 时间线深色 */
+[data-theme="dark"] .audit-count { border-bottom-color: var(--border-light); }
+
+/* 返回按钮深色 */
+[data-theme="dark"] .audit-back-btn { border-color: var(--border-light); }
+[data-theme="dark"] .audit-back-btn:hover { background: var(--bg-hover); }
+
+/* 滚动条深色 */
+[data-theme="dark"] .audit-content::-webkit-scrollbar-thumb { background: var(--text-light); }

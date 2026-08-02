@@ -225,11 +225,11 @@
 
 /* 暗色模式适配指令列表 */
 [data-theme="dark"] .search-command-icon {
-  background: var(--bg-sidebar, #16213E);
+  background: var(--bg-sidebar, #241F1A);
 }
 
 [data-theme="dark"] .search-command-hint {
-  background: var(--bg-sidebar, #16213E);
+  background: var(--bg-sidebar, #241F1A);
 }
 
 /* ===== 响应式 ===== */

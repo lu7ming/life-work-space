@@ -560,3 +560,44 @@ textarea.report-input-field {
 @keyframes template-spin {
   to { transform: rotate(360deg); }
 }
+
+/* ===== 深色模式适配 ===== */
+/* 模板提醒卡片深色 */
+[data-theme="dark"] .templates-reminder-card { background: linear-gradient(135deg, #3A3530 0%, #332C26 100%); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] .dash-template-reminder { background: linear-gradient(135deg, #3A3530 0%, #332C26 100%); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+
+/* 卡片深色 */
+[data-theme="dark"] .template-card { background: var(--bg-card); border-color: var(--border-light); }
+[data-theme="dark"] .template-card:hover { border-color: var(--accent); }
+[data-theme="dark"] .template-card-badge { background: var(--bg-hover); color: var(--accent); }
+
+/* 月份选择器深色 */
+[data-theme="dark"] .templates-month-picker button { background: var(--bg-card); border-color: var(--border-light); color: var(--text-secondary); }
+[data-theme="dark"] .templates-month-picker button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* 报告详情深色 */
+[data-theme="dark"] .report-content-card { background: var(--bg-card); border-color: var(--border-light); }
+[data-theme="dark"] .report-data-item { background: var(--bg-hover); }
+[data-theme="dark"] .report-data-value.highlight { color: var(--accent); }
+
+/* 报告操作按钮深色 */
+[data-theme="dark"] .report-back-btn { border-color: var(--border-light); color: var(--text-secondary); }
+[data-theme="dark"] .report-back-btn:hover { background: var(--bg-hover); }
+[data-theme="dark"] .report-action-btn { background: var(--bg-card); border-color: var(--border-light); color: var(--text-secondary); }
+[data-theme="dark"] .report-action-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+[data-theme="dark"] .report-action-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* AI 分析深色 */
+[data-theme="dark"] .report-ai-analysis { background: var(--bg-hover); }
+[data-theme="dark"] .report-ai-analysis-content { color: var(--text-secondary); }
+
+/* 输入框深色 */
+[data-theme="dark"] .report-input-field { background: var(--bg-card); border-color: var(--border-light); color: var(--text-primary); }
+[data-theme="dark"] .report-input-field:focus { border-color: var(--accent); }
+
+/* 历史列表深色 */
+[data-theme="dark"] .report-history-item { background: var(--bg-card); border-color: var(--border-light); }
+[data-theme="dark"] .report-history-item:hover { border-color: var(--accent); }
+
+/* 加载spinner深色 */
+[data-theme="dark"] .templates-loading-spinner { border-color: var(--border-light); border-top-color: var(--accent); }

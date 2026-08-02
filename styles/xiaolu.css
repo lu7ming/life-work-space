@@ -941,3 +941,53 @@
 .xiaolu-input-area.voice-active .xiaolu-input-hint {
   color: #D44040;
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .xiaolu-overlay { background: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .xiaolu-panel { box-shadow: 8px 0 30px rgba(0, 0, 0, 0.3); }
+
+/* 消息深色 */
+[data-theme="dark"] .xiaolu-msg.ai .xiaolu-msg-bubble { background: var(--bg-card); color: var(--text-primary); }
+[data-theme="dark"] .xiaolu-msg-error .xiaolu-msg-bubble { background: var(--accent-red-light); color: var(--accent-red); border-color: rgba(216, 120, 120, 0.2); }
+
+/* 输入区深色 */
+[data-theme="dark"] .xiaolu-input { background: var(--bg-hover) !important; border-color: var(--border-light); color: var(--text-primary); }
+[data-theme="dark"] .xiaolu-input::placeholder { color: var(--text-muted); }
+[data-theme="dark"] .xiaolu-input-area { background: var(--bg-card); border-top-color: var(--border-light); }
+
+/* Token 弹窗深色 */
+[data-theme="dark"] .xiaolu-token-dialog { background: var(--bg-card); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); }
+[data-theme="dark"] .xiaolu-token-input { background: var(--bg-hover); border-color: var(--border-light); color: var(--text-primary); }
+
+/* 操作确认卡片深色 */
+[data-theme="dark"] .xiaolu-action-confirm-desc { background: var(--bg-card); border-color: var(--border-light); color: var(--text-primary); }
+[data-theme="dark"] .xiaolu-action-result { background: var(--bg-card); color: var(--text-primary); }
+[data-theme="dark"] .xiaolu-action-btn.cancel { background: var(--bg-hover); color: var(--text-secondary); border-color: var(--border-light); }
+[data-theme="dark"] .xiaolu-action-btn.cancel:hover { background: var(--border-light); }
+
+/* 快捷语音气泡深色 */
+[data-theme="dark"] .xiaolu-quick-bubble { background: var(--bg-card); border-color: var(--border-light); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] .xiaolu-quick-bubble-text { color: var(--text-primary); }
+
+/* 语音按钮深色 */
+[data-theme="dark"] .xiaolu-voice-btn { background: var(--bg-hover); }
+[data-theme="dark"] .xiaolu-voice-btn:hover { background: var(--border-light); color: #D4956B; }
+
+/* 滚动条深色 */
+[data-theme="dark"] .xiaolu-messages::-webkit-scrollbar-thumb { background: var(--text-light); }
+
+/* Loading dots 深色 */
+[data-theme="dark"] .xiaolu-loading-dot { background: var(--accent-orange); }
+
+/* 头部深色 */
+[data-theme="dark"] .xiaolu-header { background: var(--bg-card); border-bottom-color: var(--border-light); }
+
+/* 音量条深色 */
+[data-theme="dark"] .xiaolu-volume-bar { background: var(--bg-hover); }
+
+/* Token 按钮深色 */
+[data-theme="dark"] .xiaolu-token-btn.cancel { background: var(--bg-hover); color: var(--text-secondary); }
+
+/* 录音状态深色 - 输入区 */
+[data-theme="dark"] .xiaolu-input-area.voice-active { background: var(--bg-card); }
+[data-theme="dark"] .xiaolu-input-area.voice-active.speech-detected { background: var(--bg-card); }

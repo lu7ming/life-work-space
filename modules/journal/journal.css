@@ -1383,3 +1383,88 @@
     gap: 10px;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .modal-overlay { background: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .modal-card { background: var(--bg-card); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); }
+
+/* 输入框深色 */
+[data-theme="dark"] .mood-note-input,
+[data-theme="dark"] .diary-textarea,
+[data-theme="dark"] .ideas-search,
+[data-theme="dark"] .idea-textarea,
+[data-theme="dark"] .idea-tag-input,
+[data-theme="dark"] .review-field-group textarea {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .mood-note-input::placeholder,
+[data-theme="dark"] .diary-textarea::placeholder,
+[data-theme="dark"] .ideas-search::placeholder,
+[data-theme="dark"] .idea-textarea::placeholder,
+[data-theme="dark"] .review-field-group textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Tab 激活态深色 */
+[data-theme="dark"] .journal-tab.active { background: var(--bg-card); color: var(--text-primary); }
+[data-theme="dark"] .review-type-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+[data-theme="dark"] .ideas-tag-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+[data-theme="dark"] .cal-day.selected { background: var(--text-primary); color: var(--bg-main); }
+[data-theme="dark"] .cal-day.has-diary { background: var(--accent); }
+[data-theme="dark"] .cal-day.has-diary.selected { background: var(--accent-hover); }
+
+/* 日历深色 */
+[data-theme="dark"] .diary-calendar-grid { background: var(--bg-card); }
+
+/* 删除按钮深色 */
+[data-theme="dark"] .diary-card-actions .btn-delete,
+[data-theme="dark"] .review-card-actions .btn-delete { background: var(--accent-red-light); color: var(--accent-red); }
+[data-theme="dark"] .diary-card-actions .btn-delete:hover,
+[data-theme="dark"] .review-card-actions .btn-delete:hover { background: rgba(216, 120, 120, 0.2); }
+
+/* 情绪日历深色 */
+[data-theme="dark"] .mood-trends { background: var(--bg-card); }
+[data-theme="dark"] .mood-calendar-wrap { background: var(--bg-card); }
+[data-theme="dark"] .mood-day-detail { background: var(--bg-card); }
+
+/* 温暖提示深色 */
+[data-theme="dark"] .mood-warm-tip { background: #2E2618; color: #E8D8B0; border-left-color: #E8C86A; }
+
+/* 复盘 badge 深色 */
+[data-theme="dark"] .review-badge.weekly { background: #2E2618; color: #E8C86A; }
+[data-theme="dark"] .review-badge.monthly { background: var(--accent-blue-light); color: var(--accent-blue); }
+[data-theme="dark"] .review-badge.yearly { background: var(--accent-purple-light); color: var(--accent-purple); }
+
+/* 灵感卡片标签深色 */
+[data-theme="dark"] .idea-card-tag { background: var(--bg-hover); color: var(--text-secondary); }
+[data-theme="dark"] .tag-chip { background: var(--bg-hover); color: var(--text-secondary); }
+[data-theme="dark"] .tag-chip-remove:hover { color: #D87878; }
+
+/* 按钮 深色 */
+[data-theme="dark"] .btn-primary { background: var(--accent); color: #fff; }
+[data-theme="dark"] .btn-primary:hover { background: var(--accent-hover); }
+[data-theme="dark"] .btn-secondary { border-color: var(--border-light); }
+[data-theme="dark"] .btn-secondary:hover { background: var(--bg-hover); }
+[data-theme="dark"] .btn-danger { background: #D87878; color: #fff; }
+[data-theme="dark"] .btn-danger:hover { background: #C06060; }
+[data-theme="dark"] .editor-save-btn { background: var(--accent); color: #fff; }
+[data-theme="dark"] .mood-day-add-btn { background: var(--accent); color: #fff; }
+
+/* 心情按钮 深色 */
+[data-theme="dark"] .mood-btn { background: var(--bg-hover); }
+[data-theme="dark"] .mood-btn.selected { background: var(--bg-card); }
+
+/* 视图切换 深色 */
+[data-theme="dark"] .view-btn.active { background: var(--bg-card); color: var(--accent); }
+
+/* 月份统计 深色 */
+[data-theme="dark"] .mood-month-stats { border-top-color: var(--border-light); }
+[data-theme="dark"] .mood-day-diary-item { border-bottom-color: var(--border-light); }
+
+/* 滚动条深色 */
+[data-theme="dark"] .diary-list-view::-webkit-scrollbar-thumb,
+[data-theme="dark"] .review-list::-webkit-scrollbar-thumb,
+[data-theme="dark"] .ideas-masonry::-webkit-scrollbar-thumb { background: var(--text-light); }

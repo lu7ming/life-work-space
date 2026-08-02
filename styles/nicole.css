@@ -580,3 +580,55 @@
     max-width: 92%;
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .nicole-overlay { background: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .nicole-panel { box-shadow: -8px 0 30px rgba(0, 0, 0, 0.3); }
+
+/* 消息深色 */
+[data-theme="dark"] .nicole-msg.ai .nicole-msg-bubble { background: var(--bg-card); color: var(--text-primary); }
+[data-theme="dark"] .nicole-msg.user .nicole-msg-bubble { background: var(--accent-blue); color: #fff; }
+[data-theme="dark"] .nicole-msg-error .nicole-msg-bubble { background: var(--accent-red-light); color: var(--accent-red); border-color: rgba(216, 120, 120, 0.2); }
+
+/* 输入区深色 */
+[data-theme="dark"] .nicole-input { background: var(--bg-hover); border-color: var(--border-light); color: var(--text-primary); }
+[data-theme="dark"] .nicole-input::placeholder { color: var(--text-muted); }
+
+/* Token 弹窗深色 */
+[data-theme="dark"] .nicole-token-dialog { background: var(--bg-card); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); }
+[data-theme="dark"] .nicole-token-input { background: var(--bg-hover); border-color: var(--border-light); color: var(--text-primary); }
+
+/* 洞察卡片深色 */
+[data-theme="dark"] .nicole-insight-card { border-color: var(--border-light); background: var(--bg-card); }
+[data-theme="dark"] .nicole-insight-card.nicole-insight-alert { border-color: rgba(232, 168, 124, 0.3); background: var(--bg-card); }
+[data-theme="dark"] .nicole-insight-card.nicole-insight-good { border-color: rgba(109, 191, 126, 0.3); background: var(--bg-card); }
+[data-theme="dark"] .nicole-insight-title { color: var(--text-primary); }
+[data-theme="dark"] .nicole-insight-time { color: var(--text-muted); }
+[data-theme="dark"] .nicole-insight-body { color: var(--text-secondary); }
+
+/* 洞察标签深色 */
+[data-theme="dark"] .nicole-tag-high { background: rgba(232, 168, 124, 0.15); border-color: rgba(232, 168, 124, 0.3); color: var(--accent-orange); }
+[data-theme="dark"] .nicole-tag-medium { background: rgba(176, 168, 152, 0.12); border-color: rgba(176, 168, 152, 0.25); color: var(--text-secondary); }
+[data-theme="dark"] .nicole-tag-low { background: rgba(109, 191, 126, 0.12); border-color: rgba(109, 191, 126, 0.25); color: var(--accent-green); }
+
+/* Dashboard 洞察深色 */
+[data-theme="dark"] .dashboard-nicole-insight { background: var(--bg-card); border-color: var(--border-light); }
+
+/* 快捷功能深色 */
+[data-theme="dark"] .nicole-shortcut-btn { border-color: var(--border-light); }
+[data-theme="dark"] .nicole-shortcut-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+/* 滚动条深色 */
+[data-theme="dark"] .nicole-messages::-webkit-scrollbar-thumb { background: var(--text-light); }
+
+/* Loading dots 深色 */
+[data-theme="dark"] .nicole-loading-dot { background: var(--text-muted); }
+
+/* 头部深色 */
+[data-theme="dark"] .nicole-header { background: var(--bg-card); border-bottom-color: var(--border-light); }
+[data-theme="dark"] .nicole-shortcuts { background: var(--bg-card); border-top-color: var(--border-light); }
+[data-theme="dark"] .nicole-input-area { background: var(--bg-card); border-top-color: var(--border-light); }
+
+/* Token 按钮深色 */
+[data-theme="dark"] .nicole-token-btn.cancel { background: var(--bg-hover); color: var(--text-secondary); }
+[data-theme="dark"] .nicole-token-btn.confirm { background: var(--accent-blue); color: #fff; }

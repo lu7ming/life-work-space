@@ -890,12 +890,12 @@
 }
 
 .habits-retroactive-info.no-quota {
-  background: var(--accent-red-light, #2E1818);
-  color: var(--accent-red, #D07070);
+  background: var(--accent-red-light, #2E1A1A);
+  color: var(--accent-red, #D87878);
 }
 
 .habits-retroactive-info.no-quota strong {
-  color: var(--accent-red, #D07070);
+  color: var(--accent-red, #D87878);
 }
 
 /* 补签日历内部 */

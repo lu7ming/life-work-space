@@ -719,3 +719,56 @@
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .goals-modal-overlay { background: rgba(0, 0, 0, 0.6); }
+[data-theme="dark"] .goals-modal { background: var(--bg-card); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }
+
+[data-theme="dark"] .goals-input,
+[data-theme="dark"] .goals-textarea {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .goals-input::placeholder,
+[data-theme="dark"] .goals-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* 状态标签深色 */
+[data-theme="dark"] .goals-card-badge.badge-completed { background: rgba(109, 191, 126, 0.15); color: #6DBF7E; }
+[data-theme="dark"] .goals-card.status-completed { border-left-color: #6DBF7E; }
+
+/* 进度条深色 */
+[data-theme="dark"] .goals-progress-fill.fill-done { background: #6DBF7E; }
+
+/* 操作按钮深色 */
+[data-theme="dark"] .goals-card-action-btn { border-color: var(--border-light); }
+[data-theme="dark"] .goals-card-action-btn.danger:hover { background: var(--accent-red-light); color: var(--accent-red); border-color: var(--accent-red); }
+
+/* 逾期深色 */
+[data-theme="dark"] .goals-card-deadline.overdue { color: #D87878; }
+
+/* 看板列深色 */
+[data-theme="dark"] .goals-kanban-col { background: var(--bg-sidebar); }
+
+/* select 下拉箭头深色 */
+[data-theme="dark"] .goals-select {
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23B0A898' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* 视图切换深色 */
+[data-theme="dark"] .goals-view-btn.active,
+[data-theme="dark"] .goals-tab.active { background: var(--text-primary); color: var(--bg-main); }
+
+/* 表单分隔线深色 */
+[data-theme="dark"] .goals-form-actions { border-top-color: var(--border-light); }
+[data-theme="dark"] .goals-card-detail { border-top-color: var(--border-light); }
+
+/* 按钮深色 */
+[data-theme="dark"] .goals-btn-primary { background: var(--accent); color: #fff; }
+[data-theme="dark"] .goals-btn-primary:hover { background: var(--accent-hover); }
+[data-theme="dark"] .goals-btn-ghost { border-color: var(--border-light); }
+[data-theme="dark"] .goals-btn-danger { color: #D87878; border-color: #D87878; }
+[data-theme="dark"] .goals-btn-danger:hover { background: var(--accent-red-light); color: #D87878; }

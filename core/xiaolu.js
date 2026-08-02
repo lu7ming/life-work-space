@@ -2,7 +2,7 @@
  * xiaolu.js - 小鹿AI伙伴
  * 人生工作台 · 基于 DeepSeek API 的 AI 对话功能
  * 小鹿定位：幽默轻松的 AI 伙伴，负责日常聊天、灵感整理、按需分析
- * v4.2 - 第十三批优化：集成 PreferenceLearner 个性化 prompt 后缀 + learnFromInteraction
+ * v4.3 - 第十四批优化：集成 EmotionAnalyzer 情感识别 + 情绪响应策略
  */
 
 const XiaoluModule = (() => {
@@ -333,6 +333,19 @@ const XiaoluModule = (() => {
         personalizedPrompt += PreferenceLearner.getPersonalizedPromptSuffix();
       } catch (e) { /* 静默降级 */ }
     }
+    // 集成 EmotionAnalyzer：根据情感分析结果调整回复风格
+    if (typeof EmotionAnalyzer !== 'undefined') {
+      try {
+        const result = EmotionAnalyzer.analyze(userMessage);
+        const strategy = EmotionAnalyzer.getResponseStrategy(result);
+        // 记录情绪（异步，不阻塞）
+        if (EmotionAnalyzer.record) EmotionAnalyzer.record(result).catch(() => {});
+        if (strategy === 'celebrate') personalizedPrompt += '\n用户情绪很好，回复活泼欢快，一起开心！';
+        else if (strategy === 'encourage') personalizedPrompt += '\n用户情绪不错，鼓励继续保持！';
+        else if (strategy === 'comfort') personalizedPrompt += '\n用户情绪有些低落，语气温暖关心。';
+        else if (strategy === 'support') personalizedPrompt += '\n用户情绪很低落，回复格外温柔体贴，给予支持。';
+      } catch (e) { /* 静默降级 */ }
+    }
     const messages = [
       { role: 'system', content: personalizedPrompt }
     ];
@@ -412,8 +425,12 @@ const XiaoluModule = (() => {
     const augmentedMessage = ContextTracker.getAugmentedMessage(userMessage);
 
     // 情感分析
-    const emotionScore = EmotionAnalyzer.analyze(userMessage);
-    const emotionStrategy = EmotionAnalyzer.getResponseStrategy(emotionScore);
+    const emotionResult = EmotionAnalyzer.analyze(userMessage);
+    const emotionStrategy = EmotionAnalyzer.getResponseStrategy(emotionResult);
+    // 记录情绪到 IndexedDB（异步，不阻塞主流程）
+    if (typeof EmotionAnalyzer.record === 'function') {
+      EmotionAnalyzer.record(emotionResult).catch(() => {});
+    }
 
     // 共享知识上下文
     const sharedContext = typeof SharedKnowledge !== 'undefined' ? SharedKnowledge.getContextForPrompt('xiaolu') : '';
@@ -476,8 +493,10 @@ const XiaoluModule = (() => {
         .replace('{message}', augmentedMessage)
         .replace('{action_instruction}', actionInstruction)
         + (sharedContext ? '\n\n共享上下文：' + sharedContext : '')
-        + (emotionStrategy === 'comfort' ? '\n用户情绪低落，语气要温暖关心。' : '')
-        + (emotionStrategy === 'celebrate' ? '\n用户情绪很好，一起开心！' : '')
+        + (emotionStrategy === 'celebrate' ? '\n用户情绪很好，一起开心庆祝！回复要活泼欢快！' : '')
+        + (emotionStrategy === 'encourage' ? '\n用户情绪不错，鼓励继续保持！' : '')
+        + (emotionStrategy === 'comfort' ? '\n用户情绪有些低落，语气要温暖关心。"怎么啦？聊聊？"' : '')
+        + (emotionStrategy === 'support' ? '\n用户情绪很低落，回复要格外温柔体贴。"我在这，有什么能帮你的吗？"语气柔和，给予支持。' : '')
         // 集成 PreferenceLearner：追加个性化偏好后缀
         + (typeof PreferenceLearner !== 'undefined' && PreferenceLearner.getPersonalizedPromptSuffix ? PreferenceLearner.getPersonalizedPromptSuffix() : '');
 

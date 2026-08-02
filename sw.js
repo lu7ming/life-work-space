@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v44 - 偏好学习引擎与预测性操作
+ * v45 - 情感识别系统
  */
 
-const CACHE_NAME = 'life-work-space-v44';
+const CACHE_NAME = 'life-work-space-v45';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -32,6 +32,7 @@ const CACHE_ASSETS = [
   './styles/nicole.css',
   './core/xiaolu.js',
   './core/voice-processor.js',
+  './core/emotion-analyzer.js',
   './styles/xiaolu.css',
   './core/quickinput.js',
   './styles/quickinput.css',

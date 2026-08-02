@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v42 - 语音交互系统升级
+ * v43 - 智能建议系统与多模型路由
  */
 
-const CACHE_NAME = 'life-work-space-v42';
+const CACHE_NAME = 'life-work-space-v43';
 
 // 需要缓存的资源列表
 const CACHE_ASSETS = [
@@ -22,6 +22,8 @@ const CACHE_ASSETS = [
   './core/secure-storage.js',
   './core/notifications.js',
   './core/smart-reminder.js',
+  './core/model-router.js',
+  './core/smart-suggestion.js',
   './core/export.js',
   './core/search.js',
   './core/nicole.js',

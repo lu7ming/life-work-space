@@ -260,14 +260,27 @@ const XiaoluModule = (() => {
 
   /**
    * 通用 DeepSeek API 调用（支持自定义 temperature 和 max_tokens）
+   * 集成 ModelRouter：根据 taskType 选择最优模型，记录调用成本
    * @param {string} token - API Key
    * @param {Array} messages - 消息列表
-   * @param {Object} options - { temperature, max_tokens }
+   * @param {Object} options - { temperature, max_tokens, timeout, taskType }
    * @returns {Promise<string>} 回复内容
    */
   async function callDeepSeekStep(token, messages, options = {}) {
-    const { temperature = 0.7, max_tokens = 500, timeout = 15000 } = options;
+    const { temperature = 0.7, max_tokens = 500, timeout = 15000, taskType } = options;
 
+    // 优先使用 ModelRouter 路由调用
+    if (typeof ModelRouter !== 'undefined' && ModelRouter.isEnabled() && taskType) {
+      try {
+        const result = await ModelRouter.callModel(taskType, token, messages, { temperature, max_tokens, timeout });
+        return result.content;
+      } catch (err) {
+        console.warn('[Xiaolu] ModelRouter 调用失败，降级到直接调用:', err.message);
+        // 降级到直接调用
+      }
+    }
+
+    // 降级：直接调用 DeepSeek API（保持向后兼容）
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
 
@@ -406,7 +419,7 @@ const XiaoluModule = (() => {
         { role: 'system', content: '你是意图分类器，只输出JSON，不输出其他内容。' },
         { role: 'user', content: classifyPrompt }
       ];
-      const step1Result = await callDeepSeekStep(token, step1Messages, { temperature: 0, max_tokens: 50 });
+      const step1Result = await callDeepSeekStep(token, step1Messages, { temperature: 0, max_tokens: 50, taskType: 'intent_classify' });
       const parsed = safeParseJSON(step1Result);
       if (parsed && parsed.intent) {
         const validIntents = new Set(['finance_record', 'task_create', 'chat', 'habit_log', 'unknown']);
@@ -432,7 +445,7 @@ const XiaoluModule = (() => {
         { role: 'system', content: '你是参数提取器，只输出JSON，不输出其他内容。' },
         { role: 'user', content: extractPrompt }
       ];
-      const step2Result = await callDeepSeekStep(token, step2Messages, { temperature: 0, max_tokens: 100 });
+      const step2Result = await callDeepSeekStep(token, step2Messages, { temperature: 0, max_tokens: 100, taskType: 'param_extract' });
       extractedParams = safeParseJSON(step2Result);
       console.log('[Xiaolu] 第二跳参数提取:', extractedParams);
     } catch (err) {
@@ -463,7 +476,7 @@ const XiaoluModule = (() => {
         { role: 'system', content: '你是小鹿，幽默轻松的AI伙伴。' },
         { role: 'user', content: replyPrompt }
       ];
-      const reply = await callDeepSeekStep(token, step3Messages, { temperature: 0.8, max_tokens: 300 });
+      const reply = await callDeepSeekStep(token, step3Messages, { temperature: 0.8, max_tokens: 300, taskType: 'chat' });
       console.log('[Xiaolu] 第三跳回复生成完成');
       return reply;
     } catch (err) {

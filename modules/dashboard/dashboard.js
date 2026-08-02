@@ -96,6 +96,7 @@ const DashboardModule = (() => {
         renderFeed(),
         renderFocusCard(),
         renderTemplateReminder(),
+        renderSmartSuggestions(),
         initWidgetSystem()
       ]);
       bindFocusEvents();
@@ -104,6 +105,26 @@ const DashboardModule = (() => {
     } catch (err) {
       console.error('[Dashboard] 初始化失败:', err);
       if (typeof App !== 'undefined') App.showToast('总览加载失败，请刷新重试');
+    }
+  }
+
+  /**
+   * 渲染智能建议卡片
+   */
+  async function renderSmartSuggestions() {
+    const container = document.getElementById('dash-smart-suggestions');
+    if (!container) return;
+
+    // 确保 SmartSuggestion 已初始化
+    if (typeof SmartSuggestion !== 'undefined' && SmartSuggestion.renderSuggestions) {
+      try {
+        await SmartSuggestion.renderSuggestions(container);
+      } catch (e) {
+        console.warn('[Dashboard] 智能建议渲染失败:', e);
+        container.style.display = 'none';
+      }
+    } else {
+      container.style.display = 'none';
     }
   }
 

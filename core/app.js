@@ -147,6 +147,16 @@ const App = (() => {
       AIOrchestrator.init();
     }
 
+    // 16.6 初始化多模型路由
+    if (typeof ModelRouter !== 'undefined' && ModelRouter.init) {
+      ModelRouter.init();
+    }
+
+    // 16.7 初始化智能建议系统
+    if (typeof SmartSuggestion !== 'undefined' && SmartSuggestion.init) {
+      SmartSuggestion.init();
+    }
+
     // 17. 初始化用户画像
     if (typeof UserProfile !== 'undefined') {
       await UserProfile.init();

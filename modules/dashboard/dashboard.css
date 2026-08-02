@@ -1371,3 +1371,146 @@
 [data-theme="dark"] .dash-widget-type-item:hover {
   background: rgba(232, 168, 124, 0.12);
 }
+
+/* ===== 智能建议卡片 ===== */
+
+.dash-smart-suggestions {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.smart-suggestion-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.smart-suggestion-icon {
+  font-size: 18px;
+}
+
+.smart-suggestion-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #3D3027);
+}
+
+.smart-suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.smart-suggestion-item {
+  background: var(--bg-main, #F5EDE4);
+  border-radius: 10px;
+  padding: 12px;
+  border-left: 3px solid var(--accent-orange, #E8A87C);
+  transition: all 0.2s ease;
+}
+
+.smart-suggestion-item:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.smart-suggestion-item.smart-suggestion-dismissing {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 0.3s ease;
+}
+
+.smart-suggestion-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.smart-suggestion-item-icon {
+  font-size: 16px;
+}
+
+.smart-suggestion-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #3D3027);
+  flex: 1;
+}
+
+.smart-suggestion-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted, #8A7D71);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.smart-suggestion-item:hover .smart-suggestion-dismiss {
+  opacity: 1;
+}
+
+.smart-suggestion-dismiss:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+.smart-suggestion-item-message {
+  font-size: 13px;
+  color: var(--text-secondary, #6B5E52);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.smart-suggestion-item-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.smart-suggestion-action-btn {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light, #C8AD94);
+  background: transparent;
+  color: var(--accent-orange, #E8A87C);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.smart-suggestion-action-btn:hover {
+  background: var(--accent-orange, #E8A87C);
+  color: #fff;
+  border-color: var(--accent-orange, #E8A87C);
+}
+
+.smart-suggestion-action-btn:active {
+  transform: scale(0.96);
+}
+
+/* 暗色主题 */
+[data-theme="dark"] .smart-suggestion-item {
+  background: rgba(30, 30, 60, 0.5);
+  border-left-color: var(--accent-orange, #E8A87C);
+}
+
+[data-theme="dark"] .smart-suggestion-action-btn {
+  color: var(--accent-orange, #E8A87C);
+  border-color: rgba(232, 168, 124, 0.3);
+}
+
+[data-theme="dark"] .smart-suggestion-action-btn:hover {
+  background: var(--accent-orange, #E8A87C);
+  color: #1A1A2E;
+  border-color: var(--accent-orange, #E8A87C);
+}
+
+[data-theme="dark"] .smart-suggestion-dismiss:hover {
+  background: rgba(255,255,255,0.08);
+}

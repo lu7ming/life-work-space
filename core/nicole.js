@@ -314,6 +314,56 @@ const NicoleModule = (() => {
     }
   }
 
+  // ===== DeepSeek 推理模型调用（分析任务使用推理模型） =====
+
+  /**
+   * 通过 ModelRouter 调用 DeepSeek 推理模型进行复杂分析
+   * ModelRouter 不可用时降级到 Coze API
+   * @param {string} taskType - 任务类型（weekly_analysis / goal_planning / complex_reasoning）
+   * @param {string} prompt - 提示词
+   * @param {Object} options - 调用选项
+   * @returns {Promise<string>} AI 回复
+   */
+  async function callReasoningModel(taskType, prompt, options = {}) {
+    const { temperature = 0.7, max_tokens = 800, timeout = 30000 } = options;
+
+    // 尝试使用 ModelRouter + DeepSeek 推理模型
+    if (typeof ModelRouter !== 'undefined' && ModelRouter.isEnabled()) {
+      try {
+        // 获取 DeepSeek token
+        let dsToken = null;
+        if (typeof SecureStorage !== 'undefined' && SecureStorage.getAPIKey) {
+          dsToken = await SecureStorage.getAPIKey('deepseek_api_key');
+        }
+        if (!dsToken && typeof SecureStorage !== 'undefined' && SecureStorage.loadSecure) {
+          dsToken = await SecureStorage.loadSecure('deepseek_token');
+        }
+        if (!dsToken) {
+          const setting = await Storage.get('settings', 'deepseek_token');
+          dsToken = setting ? setting.value : null;
+        }
+
+        if (dsToken) {
+          const result = await ModelRouter.callModel(taskType, dsToken, [
+            { role: 'user', content: prompt }
+          ], { temperature, max_tokens, timeout });
+          console.log(`[Nicole] ModelRouter 推理模型调用成功 (${taskType})，耗时 ${result.duration}ms`);
+          return result.content;
+        }
+      } catch (err) {
+        console.warn('[Nicole] ModelRouter 推理模型调用失败，降级到 Coze:', err.message);
+      }
+    }
+
+    // 降级：使用 Coze API
+    const token = await getCozeToken();
+    if (token) {
+      return await callCozeAPI(token, prompt);
+    }
+
+    throw new Error('无可用的 AI 服务');
+  }
+
   // ===============================================
   // ===== 五阶段信息处理流水线 (Daily Pipeline) =====
   // ===============================================
@@ -572,12 +622,10 @@ const NicoleModule = (() => {
       annotated.items.push({ category: 'journal', label: '需要关注', severity: 'low', text: '本周还没有写日记，建议记录一下本周反思' });
     }
 
-    // 尝试用 AI 增强标注
+    // 尝试用 AI 增强标注（使用推理模型）
     try {
-      const token = await getCozeToken();
-      if (token) {
-        const dataSummary = formatPipelineDataForAI(collectedData);
-        const prompt = `你是妮可，人生工作台的系统管家。请对以下用户今日数据做简要标注分析。
+      const dataSummary = formatPipelineDataForAI(collectedData);
+      const prompt = `你是妮可，人生工作台的系统管家。请对以下用户今日数据做简要标注分析。
 对每个维度用一句话给出评价，标签从以下选择：「完成得好」「需要关注」「异常」「趋势下滑」。
 只输出JSON数组格式，不要其他内容。每个元素包含 category, label, text 三个字段。
 如果某维度数据正常无需关注，可以跳过。最多返回5条最重要的。
@@ -585,19 +633,18 @@ const NicoleModule = (() => {
 数据：
 ${dataSummary}`;
 
-        const reply = await callCozeAPI(token, prompt);
-        // 尝试解析 AI 返回的 JSON
-        const jsonMatch = reply.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-          const aiItems = JSON.parse(jsonMatch[0]);
-          if (Array.isArray(aiItems) && aiItems.length > 0) {
-            // 用 AI 结果替换对应 category 的代码标注
-            const aiCategories = new Set(aiItems.map(i => i.category));
-            annotated.items = annotated.items.filter(i => !aiCategories.has(i.category));
-            annotated.items = annotated.items.concat(aiItems);
-            annotated.aiAvailable = true;
-            console.log('[Pipeline][Stage2] AI 标注成功，替换了', aiCategories.size, '个分类');
-          }
+      const reply = await callReasoningModel('weekly_analysis', prompt, { temperature: 0.3, max_tokens: 600 });
+      // 尝试解析 AI 返回的 JSON
+      const jsonMatch = reply.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const aiItems = JSON.parse(jsonMatch[0]);
+        if (Array.isArray(aiItems) && aiItems.length > 0) {
+          // 用 AI 结果替换对应 category 的代码标注
+          const aiCategories = new Set(aiItems.map(i => i.category));
+          annotated.items = annotated.items.filter(i => !aiCategories.has(i.category));
+          annotated.items = annotated.items.concat(aiItems);
+          annotated.aiAvailable = true;
+          console.log('[Pipeline][Stage2] AI 标注成功，替换了', aiCategories.size, '个分类');
         }
       }
     } catch (e) {
@@ -757,15 +804,13 @@ ${dataSummary}`;
 
     let refined = '';
 
-    // 尝试 AI 精炼
+    // 尝试 AI 精炼（使用推理模型）
     try {
-      const token = await getCozeToken();
-      if (token) {
-        const clusterText = clusters.map(c =>
-          `${c.emoji} ${c.theme}（${c.severity}）：${c.summary}`
-        ).join('\n');
+      const clusterText = clusters.map(c =>
+        `${c.emoji} ${c.theme}（${c.severity}）：${c.summary}`
+      ).join('\n');
 
-        const prompt = `你是妮可，一个严谨但关心用户的系统管家。请根据以下洞察，写一段200字以内的每日洞察总结。
+      const prompt = `你是妮可，一个严谨但关心用户的系统管家。请根据以下洞察，写一段200字以内的每日洞察总结。
 语气：温暖、真诚、有建设性。不要说空话套话，要有具体的观察和建议。
 开头用一句话概括今天的状态，然后挑2-3个最重要的点展开。
 结尾给一句鼓励或具体行动建议。
@@ -773,11 +818,10 @@ ${dataSummary}`;
 洞察数据：
 ${clusterText}`;
 
-        const reply = await callCozeAPI(token, prompt);
-        if (reply && reply.length > 10 && reply.length < 600) {
-          refined = reply;
-          console.log('[Pipeline][Stage4] AI 精炼成功');
-        }
+      const reply = await callReasoningModel('weekly_analysis', prompt, { temperature: 0.7, max_tokens: 400 });
+      if (reply && reply.length > 10 && reply.length < 600) {
+        refined = reply;
+        console.log('[Pipeline][Stage4] AI 精炼成功（推理模型）');
       }
     } catch (e) {
       console.log('[Pipeline][Stage4] AI 精炼不可用，使用代码降级:', e.message);
@@ -885,6 +929,16 @@ ${clusterText}`;
     // 4. 通知 AIOrchestrator
     if (typeof AIOrchestrator !== 'undefined' && AIOrchestrator.notifyAnalysis) {
       AIOrchestrator.notifyAnalysis('daily_pipeline', { date: today, clusterCount: clusters.length });
+    }
+
+    // 5. 触发 SmartSuggestion 重新生成建议（妮可分析完成后调用）
+    if (typeof SmartSuggestion !== 'undefined' && SmartSuggestion.generate) {
+      try {
+        await SmartSuggestion.generate(true); // forceRefresh = true
+        console.log('[Pipeline][Stage5] 已触发 SmartSuggestion 重新生成');
+      } catch (e) {
+        console.warn('[Pipeline][Stage5] SmartSuggestion 生成失败:', e);
+      }
     }
 
     console.log('[Pipeline][Stage5] ✅ 动作触发完成');

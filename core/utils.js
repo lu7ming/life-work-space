@@ -725,7 +725,7 @@ const EmotionAnalyzer = (() => {
  * ContextTracker - 多轮对话上下文追踪
  * 支持：修改/追加意图识别、5分钟超时清除、模块切换清除
  */
-const ContextTracker = (() => {
+export const ContextTracker = (() => {
   let _slots = {};
   let _lastIntent = null;
   let _lastParams = {};   // 上一轮操作的完整参数

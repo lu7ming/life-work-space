@@ -14,7 +14,7 @@ import { KnowledgeExtractor } from './knowledge-extractor.js';
 import { DataMinimizer } from './data-minimizer.js';
 import { EventBus } from './event-bus.js';
 import { CrossLinker } from './cross-linker.js';
-import { AppUtils } from './utils.js';
+import { AppUtils, ContextTracker } from './utils.js';
 import { AuditLog } from './audit-log.js';
 
 

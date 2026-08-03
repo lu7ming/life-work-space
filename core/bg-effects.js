@@ -4,7 +4,7 @@
  *
  * 主题：魁北克 / 爱丁堡 / 罗佛敦 / 箭镇 / 伦敦 / 赫尔辛基 / 卑尔根 / 斯德哥尔摩 / 北海道
  * 每个主题组合多个独立粒子层，营造地域氛围感
- * 独立于明暗主题，可与任意主题搭配使用
+ * 支持浅色/深色双模式配色
  */
 export const BgEffects = (() => {
   let canvas = null;
@@ -13,8 +13,51 @@ export const BgEffects = (() => {
   let H = 0;
   let particles = [];
   let currentMode = null;
+  let currentTheme = 'dark';   // 'light' | 'dark'
   let animationId = null;
   let resizeHandler = null;
+
+  // ========== 颜色调色板 ==========
+  // 深色模式和浅色模式各有独立的颜色方案
+  const DARK_PALETTE = {
+    snow:         '200, 215, 235',
+    snowSparse:   '210, 225, 240',
+    rain:         '160, 180, 210',
+    fog:          '150, 170, 200',
+    star:         '220, 230, 255',
+    leaf:         ['180, 120, 50', '200, 150, 60', '160, 90, 40', '220, 170, 80', '140, 70, 30'],
+    mist:         '160, 180, 200',
+    iceCrystal:   '200, 230, 255',
+    iceGlow:      '180, 220, 255',
+    waterSparkle: '180, 210, 240',
+    steamFog:     '220, 230, 240',
+    lightWarm:    '255, 200, 100',
+    lightWarm2:   '255, 190, 90',
+    lightWarm3:   '255, 160, 80',
+    lightGreen:   '100, 180, 120',
+    core:         '255, 250, 230'
+  };
+
+  const LIGHT_PALETTE = {
+    snow:         '120, 140, 170',
+    snowSparse:   '130, 150, 175',
+    rain:         '100, 120, 150',
+    fog:          '120, 135, 155',
+    star:         '140, 155, 185',
+    leaf:         ['160, 100, 40', '180, 130, 50', '140, 80, 30', '200, 150, 70', '120, 60, 20'],
+    mist:         '120, 135, 155',
+    iceCrystal:   '120, 160, 200',
+    iceGlow:      '100, 150, 200',
+    waterSparkle: '100, 130, 170',
+    steamFog:     '180, 195, 215',
+    lightWarm:    '200, 150, 70',
+    lightWarm2:   '190, 140, 60',
+    lightWarm3:   '180, 120, 50',
+    lightGreen:   '80, 140, 100',
+    core:         '255, 240, 200'
+  };
+
+  function pal() { return currentTheme === 'light' ? LIGHT_PALETTE : DARK_PALETTE; }
 
   // ========== 雪花 ==========
   class Snowflake {
@@ -33,7 +76,6 @@ export const BgEffects = (() => {
       this.speed = Math.random() * (sMax - sMin) + sMin;
       this.wind = Math.random() * 0.3 - 0.15;
       this.opacity = Math.random() * 0.4 + 0.1;
-      this.color = this.density === 'sparse' ? '210, 225, 240' : '200, 215, 235';
     }
     update() {
       this.y += this.speed;
@@ -41,9 +83,10 @@ export const BgEffects = (() => {
       if (this.y > H + 10 || this.x < -10 || this.x > W + 10) this.reset(false);
     }
     draw() {
+      const color = this.density === 'sparse' ? pal().snowSparse : pal().snow;
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${this.color}, ${this.opacity})`;
+      ctx.fillStyle = `rgba(${color}, ${this.opacity})`;
       ctx.fill();
     }
   }
@@ -70,7 +113,7 @@ export const BgEffects = (() => {
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
       ctx.lineTo(this.x + 0.5, this.y - this.len);
-      ctx.strokeStyle = `rgba(160, 180, 210, ${this.opacity})`;
+      ctx.strokeStyle = `rgba(${pal().rain}, ${this.opacity})`;
       ctx.lineWidth = this.fine ? 0.5 : 0.8;
       ctx.stroke();
     }
@@ -96,8 +139,8 @@ export const BgEffects = (() => {
     }
     draw() {
       const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
-      grad.addColorStop(0, `rgba(150, 170, 200, ${this.opacity})`);
-      grad.addColorStop(1, 'rgba(150, 170, 200, 0)');
+      grad.addColorStop(0, `rgba(${pal().fog}, ${this.opacity})`);
+      grad.addColorStop(1, `rgba(${pal().fog}, 0)`);
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
       ctx.fillStyle = grad;
@@ -117,9 +160,12 @@ export const BgEffects = (() => {
       this.phase = Math.random() * Math.PI * 2;
       this.hue = 130 + this.index * 18;
       this.opacity = 0.035 + Math.random() * 0.02;
+      // 浅色模式下极光更柔和
+      this.lightOpacity = 0.06 + Math.random() * 0.03;
     }
     update() { this.phase += this.speed; }
     draw() {
+      const op = currentTheme === 'light' ? this.lightOpacity : this.opacity;
       ctx.beginPath();
       for (let x = 0; x <= W; x += 4) {
         const y = this.baseY + Math.sin(x * this.frequency + this.phase) * this.amplitude
@@ -132,7 +178,7 @@ export const BgEffects = (() => {
       ctx.closePath();
       const grad = ctx.createLinearGradient(0, this.baseY - this.amplitude, 0, this.baseY + this.amplitude + 150);
       grad.addColorStop(0, `hsla(${this.hue}, 70%, 55%, 0)`);
-      grad.addColorStop(0.4, `hsla(${this.hue}, 70%, 55%, ${this.opacity})`);
+      grad.addColorStop(0.4, `hsla(${this.hue}, 70%, 55%, ${op})`);
       grad.addColorStop(1, `hsla(${this.hue}, 70%, 55%, 0)`);
       ctx.fillStyle = grad;
       ctx.fill();
@@ -158,7 +204,7 @@ export const BgEffects = (() => {
       const opacity = this.baseOpacity * (0.5 + 0.5 * Math.sin(this.twinklePhase));
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(220, 230, 255, ${opacity})`;
+      ctx.fillStyle = `rgba(${pal().star}, ${opacity})`;
       ctx.fill();
       if (this.r > 1.2) {
         ctx.beginPath();
@@ -166,7 +212,7 @@ export const BgEffects = (() => {
         ctx.lineTo(this.x + this.r * 2, this.y);
         ctx.moveTo(this.x, this.y - this.r * 2);
         ctx.lineTo(this.x, this.y + this.r * 2);
-        ctx.strokeStyle = `rgba(220, 230, 255, ${opacity * 0.3})`;
+        ctx.strokeStyle = `rgba(${pal().star}, ${opacity * 0.3})`;
         ctx.lineWidth = 0.5;
         ctx.stroke();
       }
@@ -188,8 +234,7 @@ export const BgEffects = (() => {
       this.swayFreq = Math.random() * 0.02 + 0.01;
       this.swayPhase = Math.random() * Math.PI * 2;
       this.opacity = Math.random() * 0.4 + 0.2;
-      const colors = ['180, 120, 50', '200, 150, 60', '160, 90, 40', '220, 170, 80', '140, 70, 30'];
-      this.color = colors[Math.floor(Math.random() * colors.length)];
+      this.colorIdx = Math.floor(Math.random() * 5);
     }
     update() {
       this.y += this.speedY;
@@ -199,17 +244,19 @@ export const BgEffects = (() => {
       if (this.y > H + 20) this.reset(false);
     }
     draw() {
+      const colors = pal().leaf;
+      const color = colors[this.colorIdx];
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.rotation);
       ctx.beginPath();
       ctx.ellipse(0, 0, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${this.color}, ${this.opacity})`;
+      ctx.fillStyle = `rgba(${color}, ${this.opacity})`;
       ctx.fill();
       ctx.beginPath();
       ctx.moveTo(-this.size, 0);
       ctx.lineTo(this.size, 0);
-      ctx.strokeStyle = `rgba(${this.color}, ${this.opacity * 0.5})`;
+      ctx.strokeStyle = `rgba(${color}, ${this.opacity * 0.5})`;
       ctx.lineWidth = 0.5;
       ctx.stroke();
       ctx.restore();
@@ -219,7 +266,7 @@ export const BgEffects = (() => {
   // ========== 暖色光点（路灯/篝火等氛围光源） ==========
   class LightGlow {
     constructor(opts = {}) {
-      this.color = opts.color || '255, 200, 100';
+      this.colorKey = opts.colorKey || 'lightWarm';
       this.flicker = opts.flicker !== false;
       this.reset(true);
     }
@@ -240,20 +287,21 @@ export const BgEffects = (() => {
       if (this.y < -20 || this.x < -20 || this.x > W + 20) this.reset(false);
     }
     draw() {
+      const color = pal()[this.colorKey] || pal().lightWarm;
       const opacity = this.flicker
         ? this.maxOpacity * (0.3 + 0.7 * Math.abs(Math.sin(this.glowPhase)))
         : this.maxOpacity;
       const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r * 4);
-      grad.addColorStop(0, `rgba(${this.color}, ${opacity})`);
-      grad.addColorStop(0.5, `rgba(${this.color}, ${opacity * 0.3})`);
-      grad.addColorStop(1, `rgba(${this.color}, 0)`);
+      grad.addColorStop(0, `rgba(${color}, ${opacity})`);
+      grad.addColorStop(0.5, `rgba(${color}, ${opacity * 0.3})`);
+      grad.addColorStop(1, `rgba(${color}, 0)`);
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r * 4, 0, Math.PI * 2);
       ctx.fillStyle = grad;
       ctx.fill();
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r * 0.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 250, 230, ${opacity})`;
+      ctx.fillStyle = `rgba(${pal().core}, ${opacity})`;
       ctx.fill();
     }
   }
@@ -280,19 +328,17 @@ export const BgEffects = (() => {
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.rotation);
-      // 菱形冰晶
       ctx.beginPath();
       ctx.moveTo(0, -this.r * 2);
       ctx.lineTo(this.r, 0);
       ctx.lineTo(0, this.r * 2);
       ctx.lineTo(-this.r, 0);
       ctx.closePath();
-      ctx.fillStyle = `rgba(200, 230, 255, ${opacity})`;
+      ctx.fillStyle = `rgba(${pal().iceCrystal}, ${opacity})`;
       ctx.fill();
-      // 柔和光晕
       const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.r * 3);
-      grad.addColorStop(0, `rgba(180, 220, 255, ${opacity * 0.3})`);
-      grad.addColorStop(1, 'rgba(180, 220, 255, 0)');
+      grad.addColorStop(0, `rgba(${pal().iceGlow}, ${opacity * 0.3})`);
+      grad.addColorStop(1, `rgba(${pal().iceGlow}, 0)`);
       ctx.beginPath();
       ctx.arc(0, 0, this.r * 3, 0, Math.PI * 2);
       ctx.fillStyle = grad;
@@ -322,7 +368,7 @@ export const BgEffects = (() => {
       ctx.scale(this.hStretch, 1);
       ctx.beginPath();
       ctx.arc(0, 0, this.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(180, 210, 240, ${opacity})`;
+      ctx.fillStyle = `rgba(${pal().waterSparkle}, ${opacity})`;
       ctx.fill();
       ctx.restore();
     }
@@ -352,8 +398,8 @@ export const BgEffects = (() => {
       const lifeRatio = this.life / this.maxLife;
       const fadeOpacity = this.opacity * Math.sin(lifeRatio * Math.PI);
       const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
-      grad.addColorStop(0, `rgba(220, 230, 240, ${fadeOpacity})`);
-      grad.addColorStop(1, 'rgba(220, 230, 240, 0)');
+      grad.addColorStop(0, `rgba(${pal().steamFog}, ${fadeOpacity})`);
+      grad.addColorStop(1, `rgba(${pal().steamFog}, 0)`);
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
       ctx.fillStyle = grad;
@@ -383,7 +429,7 @@ export const BgEffects = (() => {
     draw() {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(160, 180, 200, ${this.opacity})`;
+      ctx.fillStyle = `rgba(${pal().mist}, ${this.opacity})`;
       ctx.fill();
     }
   }
@@ -394,7 +440,7 @@ export const BgEffects = (() => {
     quebec: {
       layers: [
         { type: 'snow',      count: 80,  opts: { density: 'normal' } },
-        { type: 'lightGlow', count: 12,  opts: { color: '255, 200, 100', flicker: true } }
+        { type: 'lightGlow', count: 12,  opts: { colorKey: 'lightWarm', flicker: true } }
       ]
     },
     // 2. 爱丁堡 — 细雨 + 浓雾 + 暖色光点（路灯）
@@ -402,7 +448,7 @@ export const BgEffects = (() => {
       layers: [
         { type: 'fog',       count: 20,  opts: {} },
         { type: 'rain',      count: 120, opts: {} },
-        { type: 'lightGlow', count: 10,  opts: { color: '255, 190, 90', flicker: true } }
+        { type: 'lightGlow', count: 10,  opts: { colorKey: 'lightWarm2', flicker: true } }
       ]
     },
     // 3. 罗佛敦 — 稀疏雪花 + 极光波纹 + 微弱星光
@@ -417,7 +463,7 @@ export const BgEffects = (() => {
     arrowtown: {
       layers: [
         { type: 'leaf',      count: 50,  opts: {} },
-        { type: 'lightGlow', count: 12,  opts: { color: '255, 160, 80', flicker: true } }
+        { type: 'lightGlow', count: 12,  opts: { colorKey: 'lightWarm3', flicker: true } }
       ]
     },
     // 5. 伦敦 — 极细密雨丝 + 浓雾 + 偶尔闪烁暖色光点
@@ -425,7 +471,7 @@ export const BgEffects = (() => {
       layers: [
         { type: 'fog',       count: 25,  opts: {} },
         { type: 'rain',      count: 150, opts: { fine: true } },
-        { type: 'lightGlow', count: 8,   opts: { color: '255, 190, 90', flicker: true } }
+        { type: 'lightGlow', count: 8,   opts: { colorKey: 'lightWarm2', flicker: true } }
       ]
     },
     // 6. 赫尔辛基 — 缓慢飘雪 + 冰晶闪烁 + 水面微光（湖面反光）
@@ -441,7 +487,7 @@ export const BgEffects = (() => {
       layers: [
         { type: 'fog',       count: 30, opts: { large: true } },
         { type: 'mist',      count: 80, opts: {} },
-        { type: 'lightGlow', count: 10, opts: { color: '100, 180, 120', flicker: true } }
+        { type: 'lightGlow', count: 10, opts: { colorKey: 'lightGreen', flicker: true } }
       ]
     },
     // 8. 斯德哥尔摩 — 极稀疏雪花 + 水面微光 + 薄雾
@@ -457,7 +503,7 @@ export const BgEffects = (() => {
       layers: [
         { type: 'steamFog',  count: 20,  opts: {} },
         { type: 'snow',      count: 150, opts: { density: 'dense' } },
-        { type: 'lightGlow', count: 12,  opts: { color: '255, 200, 100', flicker: true } }
+        { type: 'lightGlow', count: 12,  opts: { colorKey: 'lightWarm', flicker: true } }
       ]
     }
   };
@@ -502,7 +548,6 @@ export const BgEffects = (() => {
     for (const layer of config.layers) {
       for (let i = 0; i < layer.count; i++) {
         const opts = Object.assign({}, layer.opts);
-        // 传递索引信息给需要层序的粒子（如极光）
         if (layer.type === 'aurora') {
           opts.index = i;
         }
@@ -511,7 +556,7 @@ export const BgEffects = (() => {
       }
     }
 
-    console.log(`[BgEffects] ${mode}: ${particles.length} particles`);
+    console.log(`[BgEffects] ${mode} (${currentTheme}): ${particles.length} particles`);
   }
 
   // ========== 动画循环 ==========
@@ -573,7 +618,23 @@ export const BgEffects = (() => {
       animate();
     }
 
-    console.log('[BgEffects] 已切换至:', mode);
+    console.log('[BgEffects] 已切换至:', mode, '| theme:', currentTheme);
+  }
+
+  /**
+   * 设置明暗主题（浅色/深色模式切换时调用）
+   * 会重新初始化粒子以应用新配色
+   * @param {string} theme - 'light' | 'dark'
+   */
+  function setTheme(theme) {
+    if (theme !== 'light' && theme !== 'dark') return;
+    if (theme === currentTheme) return;
+    currentTheme = theme;
+    // 如果当前有活跃的背景模式，重新初始化粒子以应用新配色
+    if (currentMode && currentMode !== 'none') {
+      initParticles(currentMode);
+    }
+    console.log('[BgEffects] 主题已切换至:', currentTheme);
   }
 
   /**
@@ -600,5 +661,5 @@ export const BgEffects = (() => {
     ctx = null;
   }
 
-  return { init, switchMode, getMode, destroy };
+  return { init, switchMode, setTheme, getMode, destroy };
 })();

@@ -207,6 +207,11 @@ export const ThemeManager = (() => {
     if (appleStyle) {
       appleStyle.setAttribute('content', effectiveTheme === THEMES.DARK ? 'dark' : 'default');
     }
+
+    // 通知 BgEffects 更新粒子配色
+    if (window.BgEffects && typeof window.BgEffects.setTheme === 'function') {
+      window.BgEffects.setTheme(effectiveTheme);
+    }
   }
 
   /**

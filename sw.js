@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v74 - 9种地域氛围背景主题
+ * v75 - 修复浅色模式背景显示
  */
 
-const CACHE_NAME = 'life-work-space-v74';
+const CACHE_NAME = 'life-work-space-v75';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

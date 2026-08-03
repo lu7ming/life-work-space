@@ -86,7 +86,8 @@ export const PreferenceLearner = (() => {
    * @returns {Object} 合并后的偏好
    */
   function _mergeWithDefaults(loaded) {
-    const result = JSON.parse(JSON.stringify(DEFAULT_PREFERENCES));
+    let result;
+    try { result = JSON.parse(JSON.stringify(DEFAULT_PREFERENCES)); } catch { result = {}; }
     // 合并顶层字段
     for (const key of Object.keys(DEFAULT_PREFERENCES)) {
       if (key === '_stats') continue;
@@ -344,7 +345,7 @@ export const PreferenceLearner = (() => {
    * @returns {Object} 偏好对象
    */
   function getPreferences() {
-    if (!_preferences) return JSON.parse(JSON.stringify(DEFAULT_PREFERENCES));
+    if (!_preferences) { try { return JSON.parse(JSON.stringify(DEFAULT_PREFERENCES)); } catch { return {}; } }
     // 返回不含 _stats 的副本
     const result = {};
     for (const key of Object.keys(DEFAULT_PREFERENCES)) {

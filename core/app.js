@@ -17,23 +17,23 @@ import { Router } from './router.js';
 // ===== 动态导入：模块注册表 =====
 // 路由名 → { jsPath, cssPath?, htmlPath? }
 const MODULE_REGISTRY = {
-  dashboard:   { js: '../modules/dashboard/dashboard.js?v=81',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
-  habits:      { js: '../modules/habits/habits.js?v=81',         html: 'habits/habits.html',         css: 'habits/habits.css' },
-  tasks:       { js: '../modules/tasks/tasks.js?v=81',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
-  study:       { js: '../modules/study/study.js?v=81',           html: 'study/study.html',           css: 'study/study.css' },
-  health:      { js: '../modules/health/health.js?v=81',         html: 'health/health.html',         css: 'health/health.css' },
-  finance:     { js: '../modules/finance/finance.js?v=81',       html: 'finance/finance.html',       css: 'finance/finance.css' },
-  journal:     { js: '../modules/journal/journal.js?v=81',       html: 'journal/journal.html',       css: 'journal/journal.css' },
-  relations:   { js: '../modules/relations/relations.js?v=81',   html: 'relations/relations.html',   css: 'relations/relations.css' },
-  knowledge:   { js: '../modules/knowledge/knowledge.js?v=81',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
-  goals:       { js: '../modules/goals/goals.js?v=81',           html: 'goals/goals.html',           css: 'goals/goals.css' },
-  lifetree:    { js: '../modules/lifetree/lifetree.js?v=81',     html: 'lifetree/lifetree.html',     css: 'lifetree/lifetree.css' },
-  content:     { js: '../modules/content/content.js?v=81',       html: 'content/content.html',       css: 'content/content.css' },
-  achievements:{ js: '../modules/achievements/achievements.js?v=81', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
-  timetracker: { js: '../modules/timetracker/timetracker.js?v=81', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
-  templates:   { js: '../modules/templates/templates_module.js?v=81', html: 'templates/templates.html' },
-  calendar:    { js: '../modules/calendar/calendar.js?v=81',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
-  toolbox:     { js: '../modules/toolbox/toolbox.js?v=81',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
+  dashboard:   { js: '../modules/dashboard/dashboard.js?v=82',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
+  habits:      { js: '../modules/habits/habits.js?v=82',         html: 'habits/habits.html',         css: 'habits/habits.css' },
+  tasks:       { js: '../modules/tasks/tasks.js?v=82',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
+  study:       { js: '../modules/study/study.js?v=82',           html: 'study/study.html',           css: 'study/study.css' },
+  health:      { js: '../modules/health/health.js?v=82',         html: 'health/health.html',         css: 'health/health.css' },
+  finance:     { js: '../modules/finance/finance.js?v=82',       html: 'finance/finance.html',       css: 'finance/finance.css' },
+  journal:     { js: '../modules/journal/journal.js?v=82',       html: 'journal/journal.html',       css: 'journal/journal.css' },
+  relations:   { js: '../modules/relations/relations.js?v=82',   html: 'relations/relations.html',   css: 'relations/relations.css' },
+  knowledge:   { js: '../modules/knowledge/knowledge.js?v=82',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
+  goals:       { js: '../modules/goals/goals.js?v=82',           html: 'goals/goals.html',           css: 'goals/goals.css' },
+  lifetree:    { js: '../modules/lifetree/lifetree.js?v=82',     html: 'lifetree/lifetree.html',     css: 'lifetree/lifetree.css' },
+  content:     { js: '../modules/content/content.js?v=82',       html: 'content/content.html',       css: 'content/content.css' },
+  achievements:{ js: '../modules/achievements/achievements.js?v=82', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
+  timetracker: { js: '../modules/timetracker/timetracker.js?v=82', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
+  templates:   { js: '../modules/templates/templates_module.js?v=82', html: 'templates/templates.html' },
+  calendar:    { js: '../modules/calendar/calendar.js?v=82',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
+  toolbox:     { js: '../modules/toolbox/toolbox.js?v=82',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
 };
 
 // 模块名映射：路由名 → 导出的模块对象名
@@ -66,35 +66,35 @@ let _lazyModules = {};
 async function lazyImport(name) {
   if (_lazyModules[name]) return _lazyModules[name];
   const pathMap = {
-    secureStorage: './secure-storage.js?v=81',
-    theme: './theme.js?v=81',
-    bgEffects: './bg-effects.js?v=81',
-    notifications: './notifications.js?v=81',
-    smartReminder: './smart-reminder.js?v=81',
-    templates: './templates.js?v=81',
-    userProfile: './user-profile.js?v=81',
-    preferenceLearner: './preference-learner.js?v=81',
-    predictiveEngine: './predictive-engine.js?v=81',
-    auditLog: './audit-log.js?v=81',
-    localAI: './local-ai.js?v=81',
-    quickinput: './quickinput.js?v=81',
-    sharedKnowledge: './shared-knowledge.js?v=81',
-    orchestrator: './orchestrator.js?v=81',
-    modelRouter: './model-router.js?v=81',
-    smartSuggestion: './smart-suggestion.js?v=81',
-    crossLinker: './cross-linker.js?v=81',
-    sync: './sync.js?v=81',
-    search: './search.js?v=81',
-    export: './export.js?v=81',
-    emotionAnalyzer: './emotion-analyzer.js?v=81',
-    dataMinimizer: './data-minimizer.js?v=81',
-    knowledgeExtractor: './knowledge-extractor.js?v=81',
-    nicole: './nicole.js?v=81',
-    xiaolu: './xiaolu.js?v=81',
-    music: '../modules/music/music.js?v=81',
-    report: '../modules/report/report.js?v=81',
-    rest: '../modules/rest/rest.js?v=81',
-    achievements: './achievements.js?v=81',
+    secureStorage: './secure-storage.js?v=82',
+    theme: './theme.js?v=82',
+    bgEffects: './bg-effects.js?v=82',
+    notifications: './notifications.js?v=82',
+    smartReminder: './smart-reminder.js?v=82',
+    templates: './templates.js?v=82',
+    userProfile: './user-profile.js?v=82',
+    preferenceLearner: './preference-learner.js?v=82',
+    predictiveEngine: './predictive-engine.js?v=82',
+    auditLog: './audit-log.js?v=82',
+    localAI: './local-ai.js?v=82',
+    quickinput: './quickinput.js?v=82',
+    sharedKnowledge: './shared-knowledge.js?v=82',
+    orchestrator: './orchestrator.js?v=82',
+    modelRouter: './model-router.js?v=82',
+    smartSuggestion: './smart-suggestion.js?v=82',
+    crossLinker: './cross-linker.js?v=82',
+    sync: './sync.js?v=82',
+    search: './search.js?v=82',
+    export: './export.js?v=82',
+    emotionAnalyzer: './emotion-analyzer.js?v=82',
+    dataMinimizer: './data-minimizer.js?v=82',
+    knowledgeExtractor: './knowledge-extractor.js?v=82',
+    nicole: './nicole.js?v=82',
+    xiaolu: './xiaolu.js?v=82',
+    music: '../modules/music/music.js?v=82',
+    report: '../modules/report/report.js?v=82',
+    rest: '../modules/rest/rest.js?v=82',
+    achievements: './achievements.js?v=82',
   };
   const path = pathMap[name];
   if (!path) throw new Error(`Unknown lazy module: ${name}`);
@@ -176,7 +176,7 @@ export const App = (() => {
     initBackgroundModules();
 
     // 18. 自动保存定时器（30秒）
-    setInterval(() => {
+    this._autoSaveTimer = setInterval(() => {
       const saveIndicator = document.getElementById('auto-save-indicator');
       if (saveIndicator) {
         saveIndicator.textContent = '已保存';
@@ -481,7 +481,12 @@ export const App = (() => {
    * 获取模块 HTML 模板
    */
   async function fetchModule(path) {
-    const resp = await fetch(`modules/${path}`);
+    let resp;
+    try {
+      resp = await fetch(`modules/${path}`);
+    } catch (e) {
+      throw new Error(`网络请求失败: ${e.message}`);
+    }
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     return await resp.text();
   }
@@ -926,7 +931,7 @@ export const App = (() => {
 
     document.body.appendChild(overlay);
 
-    overlay.querySelector('.theme-picker-backdrop').addEventListener('click', () => overlay.remove());
+    overlay.querySelector('.theme-picker-backdrop')?.addEventListener('click', () => overlay.remove());
 
     // 明暗主题切换
     overlay.querySelectorAll('.theme-picker-option').forEach(btn => {
@@ -1003,4 +1008,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // EventBus: 网络状态事件
   window.addEventListener('online', () => EventBus.emit('app:online'));
   window.addEventListener('offline', () => EventBus.emit('app:offline'));
+  // v82: 预留事件监听（未来扩展使用）
+  EventBus.on('app:online', () => {});
+  EventBus.on('app:offline', () => {});
 });

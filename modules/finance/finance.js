@@ -314,39 +314,39 @@ export const FinanceModule = (() => {
     const yearStats = calcYearStats(allRecords, currentYearStr());
 
     // 月度
-    document.getElementById('finance-month-income').textContent = formatMoney(monthStats.income);
-    document.getElementById('finance-month-expense').textContent = formatMoney(monthStats.expense);
-    document.getElementById('finance-month-balance').textContent = formatMoney(monthStats.balance);
+    (document.getElementById('finance-month-income') || {}).textContent = formatMoney(monthStats.income);
+    (document.getElementById('finance-month-expense') || {}).textContent = formatMoney(monthStats.expense);
+    (document.getElementById('finance-month-balance') || {}).textContent = formatMoney(monthStats.balance);
 
     // 月度预算进度
     const monthlyBudget = budgetData?.monthly || 0;
     if (monthlyBudget > 0) {
       const pct = Math.round(monthStats.expense / monthlyBudget * 100);
-      document.getElementById('finance-budget-percent').textContent = pct + '%';
+      (document.getElementById('finance-budget-percent') || {}).textContent = pct + '%';
       const bar = document.getElementById('finance-budget-bar');
       bar.style.width = Math.min(pct, 100) + '%';
       bar.classList.toggle('over-budget', pct > 100);
     } else {
-      document.getElementById('finance-budget-percent').textContent = '--';
-      document.getElementById('finance-budget-bar').style.width = '0%';
+      (document.getElementById('finance-budget-percent') || {}).textContent = '--';
+      document.getElementById('finance-budget-bar')?.style.width = '0%';
     }
 
     // 年度
-    document.getElementById('finance-year-income').textContent = formatMoney(yearStats.income);
-    document.getElementById('finance-year-expense').textContent = formatMoney(yearStats.expense);
-    document.getElementById('finance-year-balance').textContent = formatMoney(yearStats.balance);
+    (document.getElementById('finance-year-income') || {}).textContent = formatMoney(yearStats.income);
+    (document.getElementById('finance-year-expense') || {}).textContent = formatMoney(yearStats.expense);
+    (document.getElementById('finance-year-balance') || {}).textContent = formatMoney(yearStats.balance);
 
     // 年度预算
     const yearlyBudget = budgetData?.yearly || 0;
     if (yearlyBudget > 0) {
       const pct = Math.round(yearStats.expense / yearlyBudget * 100);
-      document.getElementById('finance-yearly-budget-percent').textContent = pct + '%';
+      (document.getElementById('finance-yearly-budget-percent') || {}).textContent = pct + '%';
       const bar = document.getElementById('finance-yearly-budget-bar');
       bar.style.width = Math.min(pct, 100) + '%';
       bar.classList.toggle('over-budget', pct > 100);
     } else {
-      document.getElementById('finance-yearly-budget-percent').textContent = '--';
-      document.getElementById('finance-yearly-budget-bar').style.width = '0%';
+      (document.getElementById('finance-yearly-budget-percent') || {}).textContent = '--';
+      document.getElementById('finance-yearly-budget-bar')?.style.width = '0%';
     }
 
     // 超支警告
@@ -774,18 +774,18 @@ export const FinanceModule = (() => {
     selectedCategory = record ? record.category : '';
     selectedSource = record ? record.source || '' : '';
 
-    document.getElementById('finance-modal-title').textContent = editingId ? '编辑交易' : '添加交易';
-    document.getElementById('finance-amount').value = record ? record.amount : '';
-    document.getElementById('finance-note').value = record ? (record.note || '') : '';
-    document.getElementById('finance-date').value = record ? record.date : todayStr();
+    (document.getElementById('finance-modal-title') || {}).textContent = editingId ? '编辑交易' : '添加交易';
+    (document.getElementById('finance-amount') || {}).value = record ? record.amount : '';
+    (document.getElementById('finance-note') || {}).value = record ? (record.note || '') : '';
+    (document.getElementById('finance-date') || {}).value = record ? record.date : todayStr();
 
     updateTypeUI();
 
-    document.getElementById('finance-modal-overlay').style.display = 'flex';
+    document.getElementById('finance-modal-overlay')?.style.display = 'flex';
   }
 
   function closeModal() {
-    document.getElementById('finance-modal-overlay').style.display = 'none';
+    document.getElementById('finance-modal-overlay')?.style.display = 'none';
     editingId = null;
     pendingRecord = null;
   }
@@ -820,11 +820,11 @@ export const FinanceModule = (() => {
   }
 
   function showDuplicateConfirm() {
-    document.getElementById('finance-duplicate-overlay').style.display = 'flex';
+    document.getElementById('finance-duplicate-overlay')?.style.display = 'flex';
   }
 
   function hideDuplicateConfirm() {
-    document.getElementById('finance-duplicate-overlay').style.display = 'none';
+    document.getElementById('finance-duplicate-overlay')?.style.display = 'none';
   }
 
   // ===== 保存记录 =====
@@ -888,7 +888,7 @@ export const FinanceModule = (() => {
     monthlyHint.title = '点击采纳';
     monthlyHint.style.display = 'inline-block';
     monthlyHint.onclick = () => {
-      document.getElementById('finance-monthly-budget').value = rec.monthly;
+      (document.getElementById('finance-monthly-budget') || {}).value = rec.monthly;
       monthlyHint.style.display = 'none';
     };
 
@@ -896,7 +896,7 @@ export const FinanceModule = (() => {
     yearlyHint.title = '点击采纳';
     yearlyHint.style.display = 'inline-block';
     yearlyHint.onclick = () => {
-      document.getElementById('finance-yearly-budget').value = rec.yearly;
+      (document.getElementById('finance-yearly-budget') || {}).value = rec.yearly;
       yearlyHint.style.display = 'none';
     };
 
@@ -906,24 +906,24 @@ export const FinanceModule = (() => {
   // ===== 储蓄目标弹窗 =====
   function openSavingsModal(goal) {
     editingSavingsId = goal ? goal.id : null;
-    document.getElementById('finance-savings-modal-title').textContent = goal ? '编辑储蓄目标' : '添加储蓄目标';
-    document.getElementById('finance-savings-name').value = goal ? goal.name : '';
-    document.getElementById('finance-savings-target').value = goal ? goal.target : '';
-    document.getElementById('finance-savings-date').value = goal ? (goal.targetDate || '') : '';
-    document.getElementById('finance-savings-current').value = goal ? goal.current : 0;
-    document.getElementById('finance-savings-modal-overlay').style.display = 'flex';
+    (document.getElementById('finance-savings-modal-title') || {}).textContent = goal ? '编辑储蓄目标' : '添加储蓄目标';
+    (document.getElementById('finance-savings-name') || {}).value = goal ? goal.name : '';
+    (document.getElementById('finance-savings-target') || {}).value = goal ? goal.target : '';
+    (document.getElementById('finance-savings-date') || {}).value = goal ? (goal.targetDate || '') : '';
+    (document.getElementById('finance-savings-current') || {}).value = goal ? goal.current : 0;
+    document.getElementById('finance-savings-modal-overlay')?.style.display = 'flex';
   }
 
   function closeSavingsModal() {
-    document.getElementById('finance-savings-modal-overlay').style.display = 'none';
+    document.getElementById('finance-savings-modal-overlay')?.style.display = 'none';
     editingSavingsId = null;
   }
 
   async function saveSavingsGoal() {
-    const name = document.getElementById('finance-savings-name').value.trim();
-    const target = parseFloat(document.getElementById('finance-savings-target').value) || 0;
-    const targetDate = document.getElementById('finance-savings-date').value || '';
-    const current = parseFloat(document.getElementById('finance-savings-current').value) || 0;
+    const name = document.getElementById('finance-savings-name')?.value.trim();
+    const target = parseFloat(document.getElementById('finance-savings-target')?.value) || 0;
+    const targetDate = document.getElementById('finance-savings-date')?.value || '';
+    const current = parseFloat(document.getElementById('finance-savings-current')?.value) || 0;
 
     if (!name) { showToast('请输入目标名称'); return; }
     if (target <= 0) { showToast('请输入有效的目标金额'); return; }
@@ -954,9 +954,9 @@ export const FinanceModule = (() => {
   function openAccountsModal(account) {
     editingAccountId = account ? account.id : null;
     selectedAccountType = account ? account.type : 'bank';
-    document.getElementById('finance-accounts-modal-title').textContent = account ? '编辑账户' : '添加账户';
-    document.getElementById('finance-account-name').value = account ? account.name : '';
-    document.getElementById('finance-account-balance').value = account ? account.balance : '';
+    (document.getElementById('finance-accounts-modal-title') || {}).textContent = account ? '编辑账户' : '添加账户';
+    (document.getElementById('finance-account-name') || {}).value = account ? account.name : '';
+    (document.getElementById('finance-account-balance') || {}).value = account ? account.balance : '';
 
     // 更新类型标签选中状态
     const typeTags = document.querySelectorAll('#finance-account-type-tags .finance-tag');
@@ -964,17 +964,17 @@ export const FinanceModule = (() => {
       tag.classList.toggle('selected', tag.dataset.type === selectedAccountType);
     });
 
-    document.getElementById('finance-accounts-modal-overlay').style.display = 'flex';
+    document.getElementById('finance-accounts-modal-overlay')?.style.display = 'flex';
   }
 
   function closeAccountsModal() {
-    document.getElementById('finance-accounts-modal-overlay').style.display = 'none';
+    document.getElementById('finance-accounts-modal-overlay')?.style.display = 'none';
     editingAccountId = null;
   }
 
   async function saveAccount() {
-    const name = document.getElementById('finance-account-name').value.trim();
-    const balance = parseFloat(document.getElementById('finance-account-balance').value) || 0;
+    const name = document.getElementById('finance-account-name')?.value.trim();
+    const balance = parseFloat(document.getElementById('finance-account-balance')?.value) || 0;
 
     if (!name) { showToast('请输入账户名称'); return; }
 
@@ -1016,14 +1016,14 @@ export const FinanceModule = (() => {
 
     // 保存预算
     _bindEvent(document.getElementById('finance-budget-save'), 'click', async () => {
-      const monthly = parseFloat(document.getElementById('finance-monthly-budget').value) || 0;
-      const yearly = parseFloat(document.getElementById('finance-yearly-budget').value) || 0;
+      const monthly = parseFloat(document.getElementById('finance-monthly-budget')?.value) || 0;
+      const yearly = parseFloat(document.getElementById('finance-yearly-budget')?.value) || 0;
       budgetData = { monthly, yearly };
       await Storage.put('settings', { key: 'finance_budget', value: budgetData });
       showToast('预算已保存');
       // 隐藏推荐提示
-      document.getElementById('finance-monthly-recommend-hint').style.display = 'none';
-      document.getElementById('finance-yearly-recommend-hint').style.display = 'none';
+      document.getElementById('finance-monthly-recommend-hint')?.style.display = 'none';
+      document.getElementById('finance-yearly-recommend-hint')?.style.display = 'none';
       renderStats();
     });
 
@@ -1113,14 +1113,14 @@ export const FinanceModule = (() => {
 
     // 确认添加
     _bindEvent(document.getElementById('finance-modal-confirm'), 'click', () => {
-      const amount = parseFloat(document.getElementById('finance-amount').value);
+      const amount = parseFloat(document.getElementById('finance-amount')?.value);
       if (!amount || amount <= 0) {
         showToast('请输入有效金额');
         return;
       }
 
-      const date = document.getElementById('finance-date').value || todayStr();
-      const note = document.getElementById('finance-note').value.trim();
+      const date = document.getElementById('finance-date')?.value || todayStr();
+      const note = document.getElementById('finance-note')?.value.trim();
       const month = date.substring(0, 7);
 
       const record = {

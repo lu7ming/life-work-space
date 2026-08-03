@@ -1080,5 +1080,8 @@ export const TasksModule = (() => {
     console.log('[Tasks] 模块已销毁');
   }
 
+  // v82: 预留事件监听（未来扩展使用）
+  EventBus.on('task:created', () => {});
+
   return { init, destroy };
 })();

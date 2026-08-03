@@ -182,18 +182,18 @@ export const JournalModule = (() => {
         if (!wasSelected) {
           btn.classList.add('selected');
           // 显示情绪备注输入框
-          document.getElementById('mood-note-wrap').classList.remove('hidden');
+          document.getElementById('mood-note-wrap')?.classList.remove('hidden');
         } else {
           // 取消选中，隐藏备注
-          document.getElementById('mood-note-wrap').classList.add('hidden');
-          document.getElementById('mood-note-input').value = '';
+          document.getElementById('mood-note-wrap')?.classList.add('hidden');
+          (document.getElementById('mood-note-input') || {}).value = '';
         }
       });
     });
 
     // 情绪日历 - 查看某天日记详情关闭
     _bindEvent(document.getElementById('mood-day-detail-close'), 'click', () => {
-      document.getElementById('mood-day-detail').classList.add('hidden');
+      document.getElementById('mood-day-detail')?.classList.add('hidden');
     });
 
     // 复盘类型切换
@@ -280,13 +280,13 @@ export const JournalModule = (() => {
   // ========== 日记模块 ==========
   function renderDiary() {
     if (diaryViewMode === 'calendar') {
-      document.querySelector('.diary-sidebar').style.display = '';
-      document.getElementById('diary-list-view').classList.remove('full-width');
+      document.querySelector('.diary-sidebar')?.style.display = '';
+      document.getElementById('diary-list-view')?.classList.remove('full-width');
       renderCalendar();
       renderDiaryList();
     } else {
-      document.querySelector('.diary-sidebar').style.display = 'none';
-      document.getElementById('diary-list-view').classList.add('full-width');
+      document.querySelector('.diary-sidebar')?.style.display = 'none';
+      document.getElementById('diary-list-view')?.classList.add('full-width');
       renderDiaryList();
     }
   }
@@ -344,9 +344,9 @@ export const JournalModule = (() => {
     const container = document.getElementById('diary-list-view');
 
     // 如果编辑器打开就不渲染列表
-    if (!document.getElementById('diary-editor-view').classList.contains('hidden')) return;
+    if (!document.getElementById('diary-editor-view')?.classList.contains('hidden')) return;
 
-    document.getElementById('diary-editor-view').classList.add('hidden');
+    document.getElementById('diary-editor-view')?.classList.add('hidden');
     container.style.display = '';
 
     let diaries = [...allDiaries].sort((a, b) => b.date.localeCompare(a.date));
@@ -420,34 +420,34 @@ export const JournalModule = (() => {
 
     // 清除之前的选中状态
     document.querySelectorAll('#diary-mood-picker .mood-btn').forEach(b => b.classList.remove('selected'));
-    document.getElementById('mood-note-wrap').classList.add('hidden');
-    document.getElementById('mood-note-input').value = '';
+    document.getElementById('mood-note-wrap')?.classList.add('hidden');
+    (document.getElementById('mood-note-input') || {}).value = '';
 
     if (editId) {
       // 编辑模式
       const diary = allDiaries.find(d => d.id === editId);
       if (!diary) return;
       editingDiaryId = editId;
-      document.getElementById('diary-editor-date').textContent = formatDate(diary.date);
-      document.getElementById('diary-textarea').value = diary.content || '';
+      (document.getElementById('diary-editor-date') || {}).textContent = formatDate(diary.date);
+      (document.getElementById('diary-textarea') || {}).value = diary.content || '';
       // 恢复情绪选中状态
       if (diary.mood && MOOD_CONFIG[diary.mood]) {
         const moodBtn = document.querySelector(`#diary-mood-picker .mood-btn[data-mood="${diary.mood}"]`);
         if (moodBtn) moodBtn.classList.add('selected');
         // 显示情绪备注
-        document.getElementById('mood-note-wrap').classList.remove('hidden');
-        document.getElementById('mood-note-input').value = diary.mood_note || '';
+        document.getElementById('mood-note-wrap')?.classList.remove('hidden');
+        (document.getElementById('mood-note-input') || {}).value = diary.mood_note || '';
       }
     } else {
       // 新建模式
       editingDiaryId = null;
       const d = date || selectedDate || todayStr();
       selectedDate = d;
-      document.getElementById('diary-editor-date').textContent = formatDate(d);
-      document.getElementById('diary-textarea').value = '';
+      (document.getElementById('diary-editor-date') || {}).textContent = formatDate(d);
+      (document.getElementById('diary-textarea') || {}).value = '';
     }
 
-    document.getElementById('diary-textarea').focus();
+    document.getElementById('diary-textarea')?.focus();
     // 跨模块关联：监听输入推荐相关内容
     _bindCrossLinkForDiary();
   }
@@ -471,8 +471,8 @@ export const JournalModule = (() => {
   }
 
   function closeDiaryEditor() {
-    document.getElementById('diary-editor-view').classList.add('hidden');
-    document.getElementById('diary-list-view').style.display = '';
+    document.getElementById('diary-editor-view')?.classList.add('hidden');
+    document.getElementById('diary-list-view')?.style.display = '';
     editingDiaryId = null;
     // 隐藏跨模块推荐
     if (true) /* CrossLinker always available via import */ {
@@ -482,7 +482,7 @@ export const JournalModule = (() => {
   }
 
   async function saveDiary() {
-    const content = document.getElementById('diary-textarea').value.trim();
+    const content = document.getElementById('diary-textarea')?.value.trim();
     if (!content) {
       showToast('日记内容不能为空', 'warning');
       return;
@@ -491,7 +491,7 @@ export const JournalModule = (() => {
     const moodBtn = document.querySelector('#diary-mood-picker .mood-btn.selected');
     const mood = moodBtn ? moodBtn.dataset.mood : '';
     const moodScore = moodBtn ? parseInt(moodBtn.dataset.moodScore) : null;
-    const moodNote = moodBtn ? document.getElementById('mood-note-input').value.trim() : '';
+    const moodNote = moodBtn ? document.getElementById('mood-note-input')?.value.trim() : '';
     const date = editingDiaryId ? (allDiaries.find(d => d.id === editingDiaryId)?.date || selectedDate) : selectedDate;
 
     const record = {
@@ -1034,19 +1034,19 @@ export const JournalModule = (() => {
       if (!idea) return;
       editingIdeaId = editId;
       titleEl.textContent = '编辑灵感';
-      document.getElementById('idea-textarea').value = idea.content || '';
+      (document.getElementById('idea-textarea') || {}).value = idea.content || '';
       ideaTags = [...(idea.tags || [])];
     } else {
       editingIdeaId = null;
       titleEl.textContent = '记录灵感';
-      document.getElementById('idea-textarea').value = '';
+      (document.getElementById('idea-textarea') || {}).value = '';
       ideaTags = [];
     }
 
     renderIdeaTagChips();
-    document.getElementById('idea-tag-input').value = '';
+    (document.getElementById('idea-tag-input') || {}).value = '';
     modal.classList.remove('hidden');
-    document.getElementById('idea-textarea').focus();
+    document.getElementById('idea-textarea')?.focus();
   }
 
   function renderIdeaTagChips() {
@@ -1067,7 +1067,7 @@ export const JournalModule = (() => {
   }
 
   async function saveIdea() {
-    const content = document.getElementById('idea-textarea').value.trim();
+    const content = document.getElementById('idea-textarea')?.value.trim();
     if (!content) {
       showToast('灵感内容不能为空', 'warning');
       return;

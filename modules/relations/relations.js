@@ -363,19 +363,19 @@ export const RelationsModule = (() => {
     const emailRow = document.getElementById('rel-info-email-row');
     const notesRow = document.getElementById('rel-info-notes-row');
 
-    document.getElementById('rel-info-birthday').textContent = contact.birthday || '未设置';
+    (document.getElementById('rel-info-birthday') || {}).textContent = contact.birthday || '未设置';
     birthdayRow.style.display = contact.birthday ? '' : 'none';
 
-    document.getElementById('rel-info-phone').textContent = contact.phone || '未设置';
+    (document.getElementById('rel-info-phone') || {}).textContent = contact.phone || '未设置';
     phoneRow.style.display = contact.phone ? '' : 'none';
 
-    document.getElementById('rel-info-wechat').textContent = contact.wechat || '未设置';
+    (document.getElementById('rel-info-wechat') || {}).textContent = contact.wechat || '未设置';
     wechatRow.style.display = contact.wechat ? '' : 'none';
 
-    document.getElementById('rel-info-email').textContent = contact.email || '未设置';
+    (document.getElementById('rel-info-email') || {}).textContent = contact.email || '未设置';
     emailRow.style.display = contact.email ? '' : 'none';
 
-    document.getElementById('rel-info-notes').textContent = contact.notes || '无';
+    (document.getElementById('rel-info-notes') || {}).textContent = contact.notes || '无';
     notesRow.style.display = contact.notes ? '' : 'none';
 
     // 重要日期
@@ -408,14 +408,14 @@ export const RelationsModule = (() => {
     switchDetailTab('info');
 
     // 设置互动记录默认日期为今天
-    document.getElementById('rel-interaction-date').value = getToday();
-    document.getElementById('rel-interaction-note').value = '';
+    (document.getElementById('rel-interaction-date') || {}).value = getToday();
+    (document.getElementById('rel-interaction-note') || {}).value = '';
 
     modal.style.display = 'flex';
   }
 
   function closeDetail() {
-    document.getElementById('rel-detail-modal').style.display = 'none';
+    document.getElementById('rel-detail-modal')?.style.display = 'none';
     selectedContact = null;
   }
 
@@ -423,8 +423,8 @@ export const RelationsModule = (() => {
     document.querySelectorAll('.rel-detail-tab').forEach(t => {
       t.classList.toggle('active', t.dataset.tab === tab);
     });
-    document.getElementById('rel-panel-info').style.display = tab === 'info' ? '' : 'none';
-    document.getElementById('rel-panel-interactions').style.display = tab === 'interactions' ? '' : 'none';
+    document.getElementById('rel-panel-info')?.style.display = tab === 'info' ? '' : 'none';
+    document.getElementById('rel-panel-interactions')?.style.display = tab === 'interactions' ? '' : 'none';
   }
 
   // ===== 互动记录 =====
@@ -537,12 +537,12 @@ export const RelationsModule = (() => {
 
     if (editingContact) {
       title.textContent = '编辑联系人';
-      document.getElementById('rel-form-name').value = editingContact.name || '';
-      document.getElementById('rel-form-birthday').value = editingContact.birthday || '';
-      document.getElementById('rel-form-phone').value = editingContact.phone || '';
-      document.getElementById('rel-form-wechat').value = editingContact.wechat || '';
-      document.getElementById('rel-form-email').value = editingContact.email || '';
-      document.getElementById('rel-form-notes').value = editingContact.notes || '';
+      (document.getElementById('rel-form-name') || {}).value = editingContact.name || '';
+      (document.getElementById('rel-form-birthday') || {}).value = editingContact.birthday || '';
+      (document.getElementById('rel-form-phone') || {}).value = editingContact.phone || '';
+      (document.getElementById('rel-form-wechat') || {}).value = editingContact.wechat || '';
+      (document.getElementById('rel-form-email') || {}).value = editingContact.email || '';
+      (document.getElementById('rel-form-notes') || {}).value = editingContact.notes || '';
 
       // 设置类型
       const presetTypes = ['家人', '朋友', '老师', '同学', '同事'];
@@ -569,10 +569,10 @@ export const RelationsModule = (() => {
       }
     } else {
       title.textContent = '添加联系人';
-      document.getElementById('rel-form').reset();
+      document.getElementById('rel-form')?.reset();
       formType = '家人';
       formCategory = 'A'; // 新增联系人默认为核心圈
-      document.getElementById('rel-form-custom-type').style.display = 'none';
+      document.getElementById('rel-form-custom-type')?.style.display = 'none';
       updateTypeButtons();
       updateCategoryButtons();
       datesList.innerHTML = '';
@@ -582,7 +582,7 @@ export const RelationsModule = (() => {
   }
 
   function closeForm() {
-    document.getElementById('rel-form-modal').style.display = 'none';
+    document.getElementById('rel-form-modal')?.style.display = 'none';
     editingContact = null;
   }
 
@@ -612,8 +612,8 @@ export const RelationsModule = (() => {
 
   async function saveForm(e) {
     e.preventDefault();
-    const name = document.getElementById('rel-form-name').value.trim();
-    const birthday = document.getElementById('rel-form-birthday').value.trim();
+    const name = document.getElementById('rel-form-name')?.value.trim();
+    const birthday = document.getElementById('rel-form-birthday')?.value.trim();
     const customTypeInput = document.getElementById('rel-form-custom-type');
 
     if (!name) {
@@ -637,8 +637,8 @@ export const RelationsModule = (() => {
     // 收集重要日期
     const importantDates = [];
     document.querySelectorAll('.rel-form-date-row').forEach(row => {
-      const d = row.querySelector('.rel-date-input').value.trim();
-      const l = row.querySelector('.rel-date-label-input').value.trim();
+      const d = row.querySelector('.rel-date-input')?.value.trim();
+      const l = row.querySelector('.rel-date-label-input')?.value.trim();
       if (d) importantDates.push({ date: d, label: l || '重要日期' });
     });
 
@@ -648,10 +648,10 @@ export const RelationsModule = (() => {
       type,
       category: formCategory,
       birthday,
-      phone: document.getElementById('rel-form-phone').value.trim(),
-      wechat: document.getElementById('rel-form-wechat').value.trim(),
-      email: document.getElementById('rel-form-email').value.trim(),
-      notes: document.getElementById('rel-form-notes').value.trim(),
+      phone: document.getElementById('rel-form-phone')?.value.trim(),
+      wechat: document.getElementById('rel-form-wechat')?.value.trim(),
+      email: document.getElementById('rel-form-email')?.value.trim(),
+      notes: document.getElementById('rel-form-notes')?.value.trim(),
       importantDates,
       updatedAt: now
     };
@@ -822,7 +822,7 @@ export const RelationsModule = (() => {
       const btn = e.target.closest('.rel-form-type-btn');
       if (!btn) return;
       formType = btn.dataset.type;
-      document.getElementById('rel-form-custom-type').style.display = 'none';
+      document.getElementById('rel-form-custom-type')?.style.display = 'none';
       updateTypeButtons();
     });
 
@@ -832,8 +832,8 @@ export const RelationsModule = (() => {
       if (!btn) return;
       formType = '__custom__';
       document.querySelectorAll('.rel-form-type-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('rel-form-custom-type').style.display = '';
-      document.getElementById('rel-form-custom-type').focus();
+      document.getElementById('rel-form-custom-type')?.style.display = '';
+      document.getElementById('rel-form-custom-type')?.focus();
     });
 
     // ABCD 分类选择

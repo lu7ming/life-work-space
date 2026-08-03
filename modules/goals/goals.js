@@ -139,11 +139,11 @@ export const GoalsModule = (() => {
 
     if (filtered.length === 0) {
       container.innerHTML = '';
-      document.getElementById('goalsEmpty').style.display = '';
+      document.getElementById('goalsEmpty')?.style.display = '';
       return;
     }
 
-    document.getElementById('goalsEmpty').style.display = 'none';
+    document.getElementById('goalsEmpty')?.style.display = 'none';
 
     // 按层级分组
     const groups = {};
@@ -305,9 +305,9 @@ export const GoalsModule = (() => {
     // 空状态逻辑
     const filtered = getFilteredGoals();
     if (filtered.length === 0) {
-      document.getElementById('goalsEmpty').style.display = '';
+      document.getElementById('goalsEmpty')?.style.display = '';
     } else {
-      document.getElementById('goalsEmpty').style.display = 'none';
+      document.getElementById('goalsEmpty')?.style.display = 'none';
     }
   }
 
@@ -320,22 +320,22 @@ export const GoalsModule = (() => {
 
     // 重置
     form.reset();
-    document.getElementById('goalEditId').value = '';
-    document.getElementById('goalManualProgress').checked = false;
+    (document.getElementById('goalEditId') || {}).value = '';
+    (document.getElementById('goalManualProgress') || {}).checked = false;
 
     if (goal) {
       // 编辑模式
       title.textContent = '编辑目标';
       deleteBtn.style.display = '';
-      document.getElementById('goalEditId').value = goal.id;
-      document.getElementById('goalTitle').value = goal.title || '';
-      document.getElementById('goalDesc').value = goal.description || '';
-      document.getElementById('goalLevel').value = goal.level || 'monthly';
-      document.getElementById('goalDeadline').value = goal.deadline || '';
-      document.getElementById('goalStatus').value = goal.status || 'active';
-      document.getElementById('goalProgress').value = goal.progress || 0;
-      document.getElementById('goalManualProgress').checked = !!goal.manualProgress;
-      document.getElementById('goalRelatedTasks').value = (goal.relatedTaskIds || []).join(',');
+      (document.getElementById('goalEditId') || {}).value = goal.id;
+      (document.getElementById('goalTitle') || {}).value = goal.title || '';
+      (document.getElementById('goalDesc') || {}).value = goal.description || '';
+      (document.getElementById('goalLevel') || {}).value = goal.level || 'monthly';
+      (document.getElementById('goalDeadline') || {}).value = goal.deadline || '';
+      (document.getElementById('goalStatus') || {}).value = goal.status || 'active';
+      (document.getElementById('goalProgress') || {}).value = goal.progress || 0;
+      (document.getElementById('goalManualProgress') || {}).checked = !!goal.manualProgress;
+      (document.getElementById('goalRelatedTasks') || {}).value = (goal.relatedTaskIds || []).join(',');
     } else {
       // 新建模式
       title.textContent = '新建目标';
@@ -343,19 +343,19 @@ export const GoalsModule = (() => {
       // 默认截止月末
       const now = new Date();
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      document.getElementById('goalDeadline').value = formatDate(lastDay);
+      (document.getElementById('goalDeadline') || {}).value = formatDate(lastDay);
     }
 
     overlay.style.display = '';
   }
 
   function closeModal() {
-    document.getElementById('goalsModalOverlay').style.display = 'none';
+    document.getElementById('goalsModalOverlay')?.style.display = 'none';
   }
 
   // ===== CRUD =====
   async function saveGoal() {
-    const editId = document.getElementById('goalEditId').value;
+    const editId = document.getElementById('goalEditId')?.value;
     const titleEl = document.getElementById('goalTitle');
     const title = titleEl.value.trim();
 
@@ -365,30 +365,30 @@ export const GoalsModule = (() => {
       return;
     }
 
-    const deadline = document.getElementById('goalDeadline').value;
+    const deadline = document.getElementById('goalDeadline')?.value;
     if (!deadline) {
       showToast('请选择截止日期');
       return;
     }
 
-    const relatedRaw = document.getElementById('goalRelatedTasks').value.trim();
+    const relatedRaw = document.getElementById('goalRelatedTasks')?.value.trim();
     const relatedTaskIds = relatedRaw
       ? relatedRaw.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))
       : [];
 
-    const manualProgress = document.getElementById('goalManualProgress').checked;
-    const progressVal = parseInt(document.getElementById('goalProgress').value) || 0;
+    const manualProgress = document.getElementById('goalManualProgress')?.checked;
+    const progressVal = parseInt(document.getElementById('goalProgress')?.value) || 0;
 
     const now = Date.now();
     const data = {
       title,
-      description: document.getElementById('goalDesc').value.trim(),
-      level: document.getElementById('goalLevel').value,
+      description: document.getElementById('goalDesc')?.value.trim(),
+      level: document.getElementById('goalLevel')?.value,
       deadline,
       progress: manualProgress ? Math.min(100, Math.max(0, progressVal)) : progressVal,
       manualProgress,
       relatedTaskIds,
-      status: document.getElementById('goalStatus').value,
+      status: document.getElementById('goalStatus')?.value,
       updatedAt: now,
     };
 
@@ -470,7 +470,7 @@ export const GoalsModule = (() => {
 
     // 删除按钮
     _bindEvent(document.getElementById('goalsBtnDelete'), 'click', () => {
-      const editId = document.getElementById('goalEditId').value;
+      const editId = document.getElementById('goalEditId')?.value;
       if (editId) deleteGoal(parseInt(editId));
     });
 

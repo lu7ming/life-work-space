@@ -2155,7 +2155,8 @@ ${context}
       // 解析 JSON
       const jsonMatch = reply.match(/\{[\s\S]*\}/);
       if (!jsonMatch) return null;
-      const result = JSON.parse(jsonMatch[0]);
+      let result;
+      try { result = JSON.parse(jsonMatch[0]); } catch { return null; }
 
       // 缓存结果
       try {
@@ -2409,7 +2410,7 @@ ${context}
     const closeBtn = document.getElementById('dash-custom-focus-close');
     if (closeBtn) {
       _bindEvent(closeBtn, 'click', () => {
-        document.getElementById('dash-custom-focus-overlay').style.display = 'none';
+        document.getElementById('dash-custom-focus-overlay')?.style.display = 'none';
       });
     }
 
@@ -2421,7 +2422,7 @@ ${context}
         customFocusIds = Array.from(checked).slice(0, 3).map(cb => parseInt(cb.dataset.taskId));
         focusTasks = [];
         focusOffset = 0;
-        document.getElementById('dash-custom-focus-overlay').style.display = 'none';
+        document.getElementById('dash-custom-focus-overlay')?.style.display = 'none';
         renderFocusCard();
       });
     }

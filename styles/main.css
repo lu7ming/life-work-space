@@ -1055,47 +1055,78 @@ html[data-bg-mode] #bg-effects-layer::after {
   opacity: 1;
 }
 
-/* ----- 各模式渐变背景 ----- */
-html[data-bg-mode="snow"] #bg-effects-layer,      /* 飘雪（默认） */
-html[data-bg-mode="rain"] #bg-effects-layer,      /* 细雨 */
-html[data-bg-mode="fog"] #bg-effects-layer {      /* 薄雾 */
-  background: linear-gradient(160deg, #0d1117 0%, #161b2e 30%, #1a2332 60%, #121a24 100%);
+/* ----- 各地域主题渐变背景 ----- */
+
+/* 1. 魁北克 — 深灰蓝→暖灰（老城雪夜） */
+html[data-bg-mode="quebec"] #bg-effects-layer {
+  background: linear-gradient(160deg, #1a1f2e 0%, #232028 40%, #2a2520 70%, #1e1b18 100%);
+}
+html[data-bg-mode="quebec"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(255, 200, 100, 0.08) 0%, transparent 70%);
 }
 
-html[data-bg-mode="aurora"] #bg-effects-layer {   /* 极光 */
-  background: linear-gradient(180deg, #0a0e1a 0%, #0f1a2e 40%, #15253d 70%, #0d1520 100%);
+/* 2. 爱丁堡 — 灰蓝→深灰（雨夜古堡） */
+html[data-bg-mode="edinburgh"] #bg-effects-layer {
+  background: linear-gradient(180deg, #1e2530 0%, #252830 40%, #1c1e24 70%, #141518 100%);
 }
-html[data-bg-mode="aurora"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(80, 200, 150, 0.08) 0%, transparent 70%);
-}
-
-html[data-bg-mode="starry"] #bg-effects-layer {   /* 星空 */
-  background: linear-gradient(180deg, #050810 0%, #0a0f1a 50%, #080c14 100%);
+html[data-bg-mode="edinburgh"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(255, 190, 90, 0.06) 0%, transparent 70%);
 }
 
-html[data-bg-mode="autumn"] #bg-effects-layer {   /* 落叶 */
-  background: linear-gradient(160deg, #1a1510 0%, #241d14 30%, #2a2018 60%, #1a1510 100%);
+/* 3. 罗佛敦 — 深蓝→极夜黑（极光峡湾） */
+html[data-bg-mode="lofoten"] #bg-effects-layer {
+  background: linear-gradient(180deg, #0a1020 0%, #060a14 50%, #030608 100%);
 }
-html[data-bg-mode="autumn"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(180, 120, 60, 0.08) 0%, transparent 70%);
-}
-
-html[data-bg-mode="firefly"] #bg-effects-layer {  /* 萤火 */
-  background: linear-gradient(160deg, #0a1410 0%, #0f1d16 30%, #14251c 60%, #0a1410 100%);
-}
-html[data-bg-mode="firefly"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(100, 180, 80, 0.06) 0%, transparent 70%);
+html[data-bg-mode="lofoten"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(80, 200, 150, 0.05) 0%, transparent 70%);
 }
 
-html[data-bg-mode="wave"] #bg-effects-layer {     /* 海浪 */
-  background: linear-gradient(180deg, #0a1520 0%, #0f2030 40%, #142a3d 70%, #0a1520 100%);
+/* 4. 箭镇 — 暖棕→深橙褐（秋日小镇） */
+html[data-bg-mode="arrowtown"] #bg-effects-layer {
+  background: linear-gradient(160deg, #241a10 0%, #2e2218 30%, #2a1c12 60%, #1e1408 100%);
 }
-html[data-bg-mode="wave"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(60, 140, 180, 0.08) 0%, transparent 70%);
+html[data-bg-mode="arrowtown"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(220, 140, 60, 0.08) 0%, transparent 70%);
 }
 
-html[data-bg-mode="darknight"] #bg-effects-layer { /* 暗夜 */
-  background: linear-gradient(180deg, #050508 0%, #0a0a10 50%, #050508 100%);
+/* 5. 伦敦 — 冷灰→中灰（雾都雨夜） */
+html[data-bg-mode="london"] #bg-effects-layer {
+  background: linear-gradient(180deg, #1a1d22 0%, #23262c 40%, #1e2126 70%, #16181c 100%);
+}
+html[data-bg-mode="london"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(255, 190, 90, 0.05) 0%, transparent 70%);
+}
+
+/* 6. 赫尔辛基 — 低饱和蓝灰→深蓝（冰雪湖畔） */
+html[data-bg-mode="helsinki"] #bg-effects-layer {
+  background: linear-gradient(180deg, #1a2030 0%, #1e2438 40%, #161c2e 70%, #101622 100%);
+}
+html[data-bg-mode="helsinki"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(120, 170, 220, 0.06) 0%, transparent 70%);
+}
+
+/* 7. 卑尔根 — 深墨绿→暗灰蓝（浓雾海港） */
+html[data-bg-mode="bergen"] #bg-effects-layer {
+  background: linear-gradient(180deg, #0e1814 0%, #121c20 40%, #0e1418 70%, #0a0e12 100%);
+}
+html[data-bg-mode="bergen"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(60, 120, 80, 0.05) 0%, transparent 70%);
+}
+
+/* 8. 斯德哥尔摩 — 冷灰蓝→深灰蓝（水城雪夜） */
+html[data-bg-mode="stockholm"] #bg-effects-layer {
+  background: linear-gradient(180deg, #1a1e2a 0%, #1e2434 40%, #161a26 70%, #101420 100%);
+}
+html[data-bg-mode="stockholm"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(120, 150, 190, 0.06) 0%, transparent 70%);
+}
+
+/* 9. 北海道 — 冷白灰→深蓝（暴雪温泉） */
+html[data-bg-mode="hokkaido"] #bg-effects-layer {
+  background: linear-gradient(180deg, #1a1e26 0%, #1e2230 30%, #161a28 60%, #0e1420 100%);
+}
+html[data-bg-mode="hokkaido"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(255, 200, 100, 0.08) 0%, transparent 70%);
 }
 
 /* ----- 背景模式激活时的布局调整 ----- */

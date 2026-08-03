@@ -1,8 +1,9 @@
 /**
  * bg-effects.js - 背景动效模块
- * 人生工作台 · 9 种 Canvas 背景动画
+ * 人生工作台 · 9 种地域氛围背景（多粒子系统叠加）
  *
- * 模式：飘雪 / 细雨 / 薄雾 / 极光 / 星空 / 落叶 / 萤火 / 海浪 / 暗夜
+ * 主题：魁北克 / 爱丁堡 / 罗佛敦 / 箭镇 / 伦敦 / 赫尔辛基 / 卑尔根 / 斯德哥尔摩 / 北海道
+ * 每个主题组合多个独立粒子层，营造地域氛围感
  * 独立于明暗主题，可与任意主题搭配使用
  */
 export const BgEffects = (() => {
@@ -17,14 +18,22 @@ export const BgEffects = (() => {
 
   // ========== 雪花 ==========
   class Snowflake {
-    constructor() { this.reset(true); }
+    constructor(opts = {}) {
+      this.density = opts.density || 'normal';
+      this.reset(true);
+    }
     reset(init) {
       this.x = Math.random() * W;
       this.y = init ? Math.random() * H : -10;
-      this.r = Math.random() * 2.5 + 0.5;
-      this.speed = Math.random() * 0.6 + 0.2;
+      let rMin, rMax, sMin, sMax;
+      if (this.density === 'dense')        { rMin = 0.5; rMax = 3;   sMin = 0.4; sMax = 1.5; }
+      else if (this.density === 'sparse')  { rMin = 0.3; rMax = 1.5; sMin = 0.1; sMax = 0.4; }
+      else                                  { rMin = 0.5; rMax = 2.5; sMin = 0.2; sMax = 0.8; }
+      this.r = Math.random() * (rMax - rMin) + rMin;
+      this.speed = Math.random() * (sMax - sMin) + sMin;
       this.wind = Math.random() * 0.3 - 0.15;
       this.opacity = Math.random() * 0.4 + 0.1;
+      this.color = this.density === 'sparse' ? '210, 225, 240' : '200, 215, 235';
     }
     update() {
       this.y += this.speed;
@@ -34,20 +43,23 @@ export const BgEffects = (() => {
     draw() {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200, 215, 235, ${this.opacity})`;
+      ctx.fillStyle = `rgba(${this.color}, ${this.opacity})`;
       ctx.fill();
     }
   }
 
   // ========== 雨滴 ==========
   class Raindrop {
-    constructor() { this.reset(true); }
+    constructor(opts = {}) {
+      this.fine = opts.fine || false;
+      this.reset(true);
+    }
     reset(init) {
       this.x = Math.random() * W;
       this.y = init ? Math.random() * H : -20;
-      this.len = Math.random() * 18 + 8;
-      this.speed = Math.random() * 4 + 6;
-      this.opacity = Math.random() * 0.15 + 0.05;
+      this.len = this.fine ? Math.random() * 12 + 4 : Math.random() * 18 + 8;
+      this.speed = this.fine ? Math.random() * 3 + 5 : Math.random() * 4 + 6;
+      this.opacity = this.fine ? Math.random() * 0.1 + 0.03 : Math.random() * 0.15 + 0.05;
     }
     update() {
       this.y += this.speed;
@@ -59,21 +71,24 @@ export const BgEffects = (() => {
       ctx.moveTo(this.x, this.y);
       ctx.lineTo(this.x + 0.5, this.y - this.len);
       ctx.strokeStyle = `rgba(160, 180, 210, ${this.opacity})`;
-      ctx.lineWidth = 0.8;
+      ctx.lineWidth = this.fine ? 0.5 : 0.8;
       ctx.stroke();
     }
   }
 
   // ========== 雾气 ==========
   class FogParticle {
-    constructor() { this.reset(true); }
+    constructor(opts = {}) {
+      this.large = opts.large || false;
+      this.reset(true);
+    }
     reset(init) {
       this.x = init ? Math.random() * W : (Math.random() > 0.5 ? -200 : W + 200);
       this.y = Math.random() * H;
-      this.r = Math.random() * 150 + 80;
+      this.r = this.large ? Math.random() * 200 + 120 : Math.random() * 150 + 80;
       this.speed = Math.random() * 0.3 + 0.1;
       this.dir = this.x < W / 2 ? 1 : -1;
-      this.opacity = Math.random() * 0.03 + 0.01;
+      this.opacity = this.large ? Math.random() * 0.04 + 0.02 : Math.random() * 0.03 + 0.01;
     }
     update() {
       this.x += this.speed * this.dir;
@@ -92,19 +107,18 @@ export const BgEffects = (() => {
 
   // ========== 极光 ==========
   class AuroraWave {
-    constructor(i, total) {
-      this.index = i;
-      this.baseY = H * 0.15 + (H * 0.35 * i / total);
+    constructor(opts = {}) {
+      this.index = opts.index || 0;
+      this.total = opts.total || 5;
+      this.baseY = H * 0.15 + (H * 0.35 * this.index / this.total);
       this.amplitude = 35 + Math.random() * 45;
       this.frequency = 0.002 + Math.random() * 0.002;
       this.speed = 0.004 + Math.random() * 0.004;
       this.phase = Math.random() * Math.PI * 2;
-      this.hue = 130 + i * 18;
+      this.hue = 130 + this.index * 18;
       this.opacity = 0.035 + Math.random() * 0.02;
     }
-    update() {
-      this.phase += this.speed;
-    }
+    update() { this.phase += this.speed; }
     draw() {
       ctx.beginPath();
       for (let x = 0; x <= W; x += 4) {
@@ -127,18 +141,19 @@ export const BgEffects = (() => {
 
   // ========== 星星 ==========
   class Star {
-    constructor() { this.reset(true); }
+    constructor(opts = {}) {
+      this.dim = opts.dim || false;
+      this.reset(true);
+    }
     reset(init) {
       this.x = Math.random() * W;
       this.y = Math.random() * H;
       this.r = Math.random() * 1.5 + 0.3;
-      this.baseOpacity = Math.random() * 0.5 + 0.2;
+      this.baseOpacity = this.dim ? Math.random() * 0.25 + 0.1 : Math.random() * 0.5 + 0.2;
       this.twinkleSpeed = Math.random() * 0.02 + 0.005;
       this.twinklePhase = Math.random() * Math.PI * 2;
     }
-    update() {
-      this.twinklePhase += this.twinkleSpeed;
-    }
+    update() { this.twinklePhase += this.twinkleSpeed; }
     draw() {
       const opacity = this.baseOpacity * (0.5 + 0.5 * Math.sin(this.twinklePhase));
       ctx.beginPath();
@@ -160,7 +175,7 @@ export const BgEffects = (() => {
 
   // ========== 落叶 ==========
   class Leaf {
-    constructor() { this.reset(true); }
+    constructor(opts = {}) { this.reset(true); }
     reset(init) {
       this.x = Math.random() * W;
       this.y = init ? Math.random() * H : -20;
@@ -201,88 +216,165 @@ export const BgEffects = (() => {
     }
   }
 
-  // ========== 萤火虫 ==========
-  class Firefly {
-    constructor() { this.reset(true); }
+  // ========== 暖色光点（路灯/篝火等氛围光源） ==========
+  class LightGlow {
+    constructor(opts = {}) {
+      this.color = opts.color || '255, 200, 100';
+      this.flicker = opts.flicker !== false;
+      this.reset(true);
+    }
     reset(init) {
       this.x = Math.random() * W;
-      this.y = Math.random() * H;
-      this.r = Math.random() * 3 + 2;
-      this.speedX = (Math.random() - 0.5) * 0.3;
-      this.speedY = (Math.random() - 0.5) * 0.3;
+      this.y = init ? Math.random() * H : H + 20;
+      this.r = Math.random() * 2 + 1.5;
+      this.speedX = (Math.random() - 0.5) * 0.15;
+      this.speedY = -(Math.random() * 0.1 + 0.02);
       this.glowPhase = Math.random() * Math.PI * 2;
-      this.glowSpeed = Math.random() * 0.03 + 0.01;
-      this.maxOpacity = Math.random() * 0.6 + 0.3;
+      this.glowSpeed = Math.random() * 0.02 + 0.008;
+      this.maxOpacity = Math.random() * 0.5 + 0.2;
     }
     update() {
-      this.x += this.speedX + (Math.random() - 0.5) * 0.1;
-      this.y += this.speedY + (Math.random() - 0.5) * 0.1;
+      this.x += this.speedX;
+      this.y += this.speedY;
       this.glowPhase += this.glowSpeed;
-      if (this.x < 0 || this.x > W) this.speedX *= -1;
-      if (this.y < 0 || this.y > H) this.speedY *= -1;
+      if (this.y < -20 || this.x < -20 || this.x > W + 20) this.reset(false);
     }
     draw() {
-      const opacity = this.maxOpacity * (0.3 + 0.7 * Math.abs(Math.sin(this.glowPhase)));
+      const opacity = this.flicker
+        ? this.maxOpacity * (0.3 + 0.7 * Math.abs(Math.sin(this.glowPhase)))
+        : this.maxOpacity;
       const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r * 4);
-      grad.addColorStop(0, `rgba(180, 220, 100, ${opacity})`);
-      grad.addColorStop(0.5, `rgba(140, 200, 80, ${opacity * 0.3})`);
-      grad.addColorStop(1, 'rgba(140, 200, 80, 0)');
+      grad.addColorStop(0, `rgba(${this.color}, ${opacity})`);
+      grad.addColorStop(0.5, `rgba(${this.color}, ${opacity * 0.3})`);
+      grad.addColorStop(1, `rgba(${this.color}, 0)`);
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r * 4, 0, Math.PI * 2);
       ctx.fillStyle = grad;
       ctx.fill();
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r * 0.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(220, 255, 150, ${opacity})`;
+      ctx.fillStyle = `rgba(255, 250, 230, ${opacity})`;
       ctx.fill();
     }
   }
 
-  // ========== 海浪 ==========
-  class Wave {
-    constructor(i, total) {
-      this.index = i;
-      this.baseY = H * 0.45 + (H * 0.45 * i / total);
-      this.amplitude = 15 + Math.random() * 20;
-      this.frequency = 0.003 + Math.random() * 0.002;
-      this.speed = 0.008 + Math.random() * 0.008;
-      this.phase = Math.random() * Math.PI * 2;
-      this.opacity = 0.02 + (i / total) * 0.03;
-    }
-    update() {
-      this.phase += this.speed;
-    }
-    draw() {
-      ctx.beginPath();
-      for (let x = 0; x <= W; x += 3) {
-        const y = this.baseY + Math.sin(x * this.frequency + this.phase) * this.amplitude
-                  + Math.sin(x * this.frequency * 1.5 + this.phase * 0.8) * this.amplitude * 0.3;
-        if (x === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.lineTo(W, H);
-      ctx.lineTo(0, H);
-      ctx.closePath();
-      ctx.fillStyle = `rgba(80, 140, 180, ${this.opacity})`;
-      ctx.fill();
-    }
-  }
-
-  // ========== 暗夜粒子 ==========
-  class DarkParticle {
-    constructor() { this.reset(true); }
+  // ========== 冰晶闪烁 ==========
+  class IceCrystal {
+    constructor(opts = {}) { this.reset(true); }
     reset(init) {
       this.x = Math.random() * W;
       this.y = Math.random() * H;
-      this.r = Math.random() * 1 + 0.5;
-      this.speed = Math.random() * 0.2 + 0.05;
-      this.opacity = Math.random() * 0.12 + 0.04;
-      this.angle = Math.random() * Math.PI * 2;
+      this.r = Math.random() * 1.5 + 0.5;
+      this.twinkleSpeed = Math.random() * 0.03 + 0.01;
+      this.twinklePhase = Math.random() * Math.PI * 2;
+      this.maxOpacity = Math.random() * 0.6 + 0.2;
+      this.rotation = Math.random() * Math.PI;
     }
     update() {
-      this.x += Math.cos(this.angle) * this.speed;
-      this.y += Math.sin(this.angle) * this.speed;
-      this.angle += (Math.random() - 0.5) * 0.1;
+      this.twinklePhase += this.twinkleSpeed;
+      this.rotation += 0.002;
+    }
+    draw() {
+      const opacity = this.maxOpacity * (0.2 + 0.8 * Math.abs(Math.sin(this.twinklePhase)));
+      if (opacity < 0.02) return;
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rotation);
+      // 菱形冰晶
+      ctx.beginPath();
+      ctx.moveTo(0, -this.r * 2);
+      ctx.lineTo(this.r, 0);
+      ctx.lineTo(0, this.r * 2);
+      ctx.lineTo(-this.r, 0);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(200, 230, 255, ${opacity})`;
+      ctx.fill();
+      // 柔和光晕
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.r * 3);
+      grad.addColorStop(0, `rgba(180, 220, 255, ${opacity * 0.3})`);
+      grad.addColorStop(1, 'rgba(180, 220, 255, 0)');
+      ctx.beginPath();
+      ctx.arc(0, 0, this.r * 3, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // ========== 水面微光闪烁（湖面/海面反光） ==========
+  class WaterSparkle {
+    constructor(opts = {}) { this.reset(true); }
+    reset(init) {
+      this.x = Math.random() * W;
+      this.y = H * 0.55 + Math.random() * H * 0.4;
+      this.r = Math.random() * 1.5 + 0.3;
+      this.twinkleSpeed = Math.random() * 0.05 + 0.02;
+      this.twinklePhase = Math.random() * Math.PI * 2;
+      this.maxOpacity = Math.random() * 0.5 + 0.15;
+      this.hStretch = Math.random() * 3 + 2;
+    }
+    update() { this.twinklePhase += this.twinkleSpeed; }
+    draw() {
+      const opacity = this.maxOpacity * Math.abs(Math.sin(this.twinklePhase));
+      if (opacity < 0.01) return;
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.scale(this.hStretch, 1);
+      ctx.beginPath();
+      ctx.arc(0, 0, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(180, 210, 240, ${opacity})`;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // ========== 温泉雾气（底部上升的白色蒸汽） ==========
+  class SteamFog {
+    constructor(opts = {}) { this.reset(true); }
+    reset(init) {
+      this.x = Math.random() * W;
+      this.y = init ? Math.random() * H : H + Math.random() * 50;
+      this.r = Math.random() * 60 + 30;
+      this.speed = Math.random() * 0.4 + 0.15;
+      this.opacity = Math.random() * 0.04 + 0.015;
+      this.maxLife = Math.random() * 300 + 200;
+      this.life = init ? Math.random() * this.maxLife : 0;
+      this.driftX = (Math.random() - 0.5) * 0.1;
+    }
+    update() {
+      this.y -= this.speed;
+      this.x += this.driftX;
+      this.life++;
+      this.r += 0.15;
+      if (this.life > this.maxLife || this.y < -100) this.reset(false);
+    }
+    draw() {
+      const lifeRatio = this.life / this.maxLife;
+      const fadeOpacity = this.opacity * Math.sin(lifeRatio * Math.PI);
+      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+      grad.addColorStop(0, `rgba(220, 230, 240, ${fadeOpacity})`);
+      grad.addColorStop(1, 'rgba(220, 230, 240, 0)');
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+  }
+
+  // ========== 极细水雾粒子 ==========
+  class MistParticle {
+    constructor(opts = {}) { this.reset(true); }
+    reset(init) {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.r = Math.random() * 1 + 0.3;
+      this.speedX = (Math.random() - 0.5) * 0.3;
+      this.speedY = (Math.random() - 0.5) * 0.15;
+      this.opacity = Math.random() * 0.08 + 0.02;
+    }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
       if (this.x < 0) this.x = W;
       if (this.x > W) this.x = 0;
       if (this.y < 0) this.y = H;
@@ -291,8 +383,100 @@ export const BgEffects = (() => {
     draw() {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(100, 120, 150, ${this.opacity})`;
+      ctx.fillStyle = `rgba(160, 180, 200, ${this.opacity})`;
       ctx.fill();
+    }
+  }
+
+  // ========== 主题配置：每个主题的粒子层组合 ==========
+  const THEME_CONFIG = {
+    // 1. 魁北克 — 飘雪 + 暖黄光点（老城路灯）
+    quebec: {
+      layers: [
+        { type: 'snow',      count: 80,  opts: { density: 'normal' } },
+        { type: 'lightGlow', count: 12,  opts: { color: '255, 200, 100', flicker: true } }
+      ]
+    },
+    // 2. 爱丁堡 — 细雨 + 浓雾 + 暖色光点（路灯）
+    edinburgh: {
+      layers: [
+        { type: 'fog',       count: 20,  opts: {} },
+        { type: 'rain',      count: 120, opts: {} },
+        { type: 'lightGlow', count: 10,  opts: { color: '255, 190, 90', flicker: true } }
+      ]
+    },
+    // 3. 罗佛敦 — 稀疏雪花 + 极光波纹 + 微弱星光
+    lofoten: {
+      layers: [
+        { type: 'star',      count: 50,  opts: { dim: true } },
+        { type: 'aurora',    count: 4,   opts: { total: 4 } },
+        { type: 'snow',      count: 40,  opts: { density: 'sparse' } }
+      ]
+    },
+    // 4. 箭镇 — 金色落叶旋转飘落 + 稀疏暖色光粒子
+    arrowtown: {
+      layers: [
+        { type: 'leaf',      count: 50,  opts: {} },
+        { type: 'lightGlow', count: 12,  opts: { color: '255, 160, 80', flicker: true } }
+      ]
+    },
+    // 5. 伦敦 — 极细密雨丝 + 浓雾 + 偶尔闪烁暖色光点
+    london: {
+      layers: [
+        { type: 'fog',       count: 25,  opts: {} },
+        { type: 'rain',      count: 150, opts: { fine: true } },
+        { type: 'lightGlow', count: 8,   opts: { color: '255, 190, 90', flicker: true } }
+      ]
+    },
+    // 6. 赫尔辛基 — 缓慢飘雪 + 冰晶闪烁 + 水面微光（湖面反光）
+    helsinki: {
+      layers: [
+        { type: 'snow',         count: 60, opts: { density: 'sparse' } },
+        { type: 'iceCrystal',   count: 40, opts: {} },
+        { type: 'waterSparkle', count: 30, opts: {} }
+      ]
+    },
+    // 7. 卑尔根 — 浓雾层 + 极细水雾粒子 + 深绿色微光
+    bergen: {
+      layers: [
+        { type: 'fog',       count: 30, opts: { large: true } },
+        { type: 'mist',      count: 80, opts: {} },
+        { type: 'lightGlow', count: 10, opts: { color: '100, 180, 120', flicker: true } }
+      ]
+    },
+    // 8. 斯德哥尔摩 — 极稀疏雪花 + 水面微光 + 薄雾
+    stockholm: {
+      layers: [
+        { type: 'fog',          count: 15, opts: {} },
+        { type: 'waterSparkle', count: 50, opts: {} },
+        { type: 'snow',         count: 25, opts: { density: 'sparse' } }
+      ]
+    },
+    // 9. 北海道 — 密集暴雪 + 温泉雾气 + 暖黄光点
+    hokkaido: {
+      layers: [
+        { type: 'steamFog',  count: 20,  opts: {} },
+        { type: 'snow',      count: 150, opts: { density: 'dense' } },
+        { type: 'lightGlow', count: 12,  opts: { color: '255, 200, 100', flicker: true } }
+      ]
+    }
+  };
+
+  // ========== 粒子工厂 ==========
+  function createParticle(type, opts) {
+    switch (type) {
+      case 'snow':         return new Snowflake(opts);
+      case 'rain':         return new Raindrop(opts);
+      case 'fog':          return new FogParticle(opts);
+      case 'aurora':       return new AuroraWave(opts);
+      case 'star':         return new Star(opts);
+      case 'leaf':         return new Leaf(opts);
+      case 'lightGlow':    return new LightGlow(opts);
+      case 'iceCrystal':   return new IceCrystal(opts);
+      case 'waterSparkle': return new WaterSparkle(opts);
+      case 'steamFog':     return new SteamFog(opts);
+      case 'mist':         return new MistParticle(opts);
+      default:             return null;
     }
   }
 
@@ -312,27 +496,22 @@ export const BgEffects = (() => {
   // ========== 初始化粒子 ==========
   function initParticles(mode) {
     particles = [];
+    const config = THEME_CONFIG[mode];
+    if (!config) return;
 
-    if (mode === 'snow') {
-      for (let i = 0; i < 120; i++) particles.push(new Snowflake());
-    } else if (mode === 'rain') {
-      for (let i = 0; i < 200; i++) particles.push(new Raindrop());
-    } else if (mode === 'fog') {
-      for (let i = 0; i < 25; i++) particles.push(new FogParticle());
-    } else if (mode === 'aurora') {
-      for (let i = 0; i < 5; i++) particles.push(new AuroraWave(i, 5));
-      for (let i = 0; i < 60; i++) particles.push(new Star());
-    } else if (mode === 'starry') {
-      for (let i = 0; i < 250; i++) particles.push(new Star());
-    } else if (mode === 'autumn') {
-      for (let i = 0; i < 60; i++) particles.push(new Leaf());
-    } else if (mode === 'firefly') {
-      for (let i = 0; i < 40; i++) particles.push(new Firefly());
-    } else if (mode === 'wave') {
-      for (let i = 0; i < 8; i++) particles.push(new Wave(i, 8));
-    } else if (mode === 'darknight') {
-      for (let i = 0; i < 80; i++) particles.push(new DarkParticle());
+    for (const layer of config.layers) {
+      for (let i = 0; i < layer.count; i++) {
+        const opts = Object.assign({}, layer.opts);
+        // 传递索引信息给需要层序的粒子（如极光）
+        if (layer.type === 'aurora') {
+          opts.index = i;
+        }
+        const p = createParticle(layer.type, opts);
+        if (p) particles.push(p);
+      }
     }
+
+    console.log(`[BgEffects] ${mode}: ${particles.length} particles`);
   }
 
   // ========== 动画循环 ==========
@@ -367,7 +546,7 @@ export const BgEffects = (() => {
 
   /**
    * 切换背景模式
-   * @param {string} mode - none/snow/rain/fog/aurora/starry/autumn/firefly/wave/darknight
+   * @param {string} mode - none/quebec/edinburgh/lofoten/arrowtown/london/helsinki/bergen/stockholm/hokkaido
    */
   function switchMode(mode) {
     if (!canvas || !ctx) {

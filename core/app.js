@@ -17,23 +17,23 @@ import { Router } from './router.js';
 // ===== 动态导入：模块注册表 =====
 // 路由名 → { jsPath, cssPath?, htmlPath? }
 const MODULE_REGISTRY = {
-  dashboard:   { js: '../modules/dashboard/dashboard.js?v=73',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
-  habits:      { js: '../modules/habits/habits.js?v=73',         html: 'habits/habits.html',         css: 'habits/habits.css' },
-  tasks:       { js: '../modules/tasks/tasks.js?v=73',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
-  study:       { js: '../modules/study/study.js?v=73',           html: 'study/study.html',           css: 'study/study.css' },
-  health:      { js: '../modules/health/health.js?v=73',         html: 'health/health.html',         css: 'health/health.css' },
-  finance:     { js: '../modules/finance/finance.js?v=73',       html: 'finance/finance.html',       css: 'finance/finance.css' },
-  journal:     { js: '../modules/journal/journal.js?v=73',       html: 'journal/journal.html',       css: 'journal/journal.css' },
-  relations:   { js: '../modules/relations/relations.js?v=73',   html: 'relations/relations.html',   css: 'relations/relations.css' },
-  knowledge:   { js: '../modules/knowledge/knowledge.js?v=73',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
-  goals:       { js: '../modules/goals/goals.js?v=73',           html: 'goals/goals.html',           css: 'goals/goals.css' },
-  lifetree:    { js: '../modules/lifetree/lifetree.js?v=73',     html: 'lifetree/lifetree.html',     css: 'lifetree/lifetree.css' },
-  content:     { js: '../modules/content/content.js?v=73',       html: 'content/content.html',       css: 'content/content.css' },
-  achievements:{ js: '../modules/achievements/achievements.js?v=73', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
-  timetracker: { js: '../modules/timetracker/timetracker.js?v=73', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
-  templates:   { js: '../modules/templates/templates_module.js?v=73', html: 'templates/templates.html' },
-  calendar:    { js: '../modules/calendar/calendar.js?v=73',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
-  toolbox:     { js: '../modules/toolbox/toolbox.js?v=73',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
+  dashboard:   { js: '../modules/dashboard/dashboard.js?v=74',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
+  habits:      { js: '../modules/habits/habits.js?v=74',         html: 'habits/habits.html',         css: 'habits/habits.css' },
+  tasks:       { js: '../modules/tasks/tasks.js?v=74',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
+  study:       { js: '../modules/study/study.js?v=74',           html: 'study/study.html',           css: 'study/study.css' },
+  health:      { js: '../modules/health/health.js?v=74',         html: 'health/health.html',         css: 'health/health.css' },
+  finance:     { js: '../modules/finance/finance.js?v=74',       html: 'finance/finance.html',       css: 'finance/finance.css' },
+  journal:     { js: '../modules/journal/journal.js?v=74',       html: 'journal/journal.html',       css: 'journal/journal.css' },
+  relations:   { js: '../modules/relations/relations.js?v=74',   html: 'relations/relations.html',   css: 'relations/relations.css' },
+  knowledge:   { js: '../modules/knowledge/knowledge.js?v=74',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
+  goals:       { js: '../modules/goals/goals.js?v=74',           html: 'goals/goals.html',           css: 'goals/goals.css' },
+  lifetree:    { js: '../modules/lifetree/lifetree.js?v=74',     html: 'lifetree/lifetree.html',     css: 'lifetree/lifetree.css' },
+  content:     { js: '../modules/content/content.js?v=74',       html: 'content/content.html',       css: 'content/content.css' },
+  achievements:{ js: '../modules/achievements/achievements.js?v=74', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
+  timetracker: { js: '../modules/timetracker/timetracker.js?v=74', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
+  templates:   { js: '../modules/templates/templates_module.js?v=74', html: 'templates/templates.html' },
+  calendar:    { js: '../modules/calendar/calendar.js?v=74',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
+  toolbox:     { js: '../modules/toolbox/toolbox.js?v=74',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
 };
 
 // 模块名映射：路由名 → 导出的模块对象名
@@ -66,35 +66,35 @@ let _lazyModules = {};
 async function lazyImport(name) {
   if (_lazyModules[name]) return _lazyModules[name];
   const pathMap = {
-    secureStorage: './secure-storage.js?v=73',
-    theme: './theme.js?v=73',
-    bgEffects: './bg-effects.js?v=73',
-    notifications: './notifications.js?v=73',
-    smartReminder: './smart-reminder.js?v=73',
-    templates: './templates.js?v=73',
-    userProfile: './user-profile.js?v=73',
-    preferenceLearner: './preference-learner.js?v=73',
-    predictiveEngine: './predictive-engine.js?v=73',
-    auditLog: './audit-log.js?v=73',
-    localAI: './local-ai.js?v=73',
-    quickinput: './quickinput.js?v=73',
-    sharedKnowledge: './shared-knowledge.js?v=73',
-    orchestrator: './orchestrator.js?v=73',
-    modelRouter: './model-router.js?v=73',
-    smartSuggestion: './smart-suggestion.js?v=73',
-    crossLinker: './cross-linker.js?v=73',
-    sync: './sync.js?v=73',
-    search: './search.js?v=73',
-    export: './export.js?v=73',
-    emotionAnalyzer: './emotion-analyzer.js?v=73',
-    dataMinimizer: './data-minimizer.js?v=73',
-    knowledgeExtractor: './knowledge-extractor.js?v=73',
-    nicole: './nicole.js?v=73',
-    xiaolu: './xiaolu.js?v=73',
-    music: '../modules/music/music.js?v=73',
-    report: '../modules/report/report.js?v=73',
-    rest: '../modules/rest/rest.js?v=73',
-    achievements: './achievements.js?v=73',
+    secureStorage: './secure-storage.js?v=74',
+    theme: './theme.js?v=74',
+    bgEffects: './bg-effects.js?v=74',
+    notifications: './notifications.js?v=74',
+    smartReminder: './smart-reminder.js?v=74',
+    templates: './templates.js?v=74',
+    userProfile: './user-profile.js?v=74',
+    preferenceLearner: './preference-learner.js?v=74',
+    predictiveEngine: './predictive-engine.js?v=74',
+    auditLog: './audit-log.js?v=74',
+    localAI: './local-ai.js?v=74',
+    quickinput: './quickinput.js?v=74',
+    sharedKnowledge: './shared-knowledge.js?v=74',
+    orchestrator: './orchestrator.js?v=74',
+    modelRouter: './model-router.js?v=74',
+    smartSuggestion: './smart-suggestion.js?v=74',
+    crossLinker: './cross-linker.js?v=74',
+    sync: './sync.js?v=74',
+    search: './search.js?v=74',
+    export: './export.js?v=74',
+    emotionAnalyzer: './emotion-analyzer.js?v=74',
+    dataMinimizer: './data-minimizer.js?v=74',
+    knowledgeExtractor: './knowledge-extractor.js?v=74',
+    nicole: './nicole.js?v=74',
+    xiaolu: './xiaolu.js?v=74',
+    music: '../modules/music/music.js?v=74',
+    report: '../modules/report/report.js?v=74',
+    rest: '../modules/rest/rest.js?v=74',
+    achievements: './achievements.js?v=74',
   };
   const path = pathMap[name];
   if (!path) throw new Error(`Unknown lazy module: ${name}`);
@@ -858,16 +858,16 @@ export const App = (() => {
     const BG_MODES_LIST = window.ThemeManager && window.ThemeManager.BG_MODE_META
       ? window.ThemeManager.BG_MODE_META
       : [
-          { value: 'none',      label: '无背景',  icon: '🚫' },
-          { value: 'snow',      label: '飘雪',    icon: '❄️' },
-          { value: 'rain',      label: '细雨',    icon: '🌧' },
-          { value: 'fog',       label: '薄雾',    icon: '🌫' },
-          { value: 'aurora',    label: '极光',    icon: '🌌' },
-          { value: 'starry',    label: '星空',    icon: '✨' },
-          { value: 'autumn',    label: '落叶',    icon: '🍂' },
-          { value: 'firefly',   label: '萤火',    icon: '🌿' },
-          { value: 'wave',      label: '海浪',    icon: '🌊' },
-          { value: 'darknight', label: '暗夜',    icon: '🌑' }
+          { value: 'none',      label: '无背景',     icon: '🚫' },
+          { value: 'quebec',    label: '魁北克',     icon: '🏔️' },
+          { value: 'edinburgh', label: '爱丁堡',     icon: '🏰' },
+          { value: 'lofoten',   label: '罗佛敦',     icon: '🌌' },
+          { value: 'arrowtown', label: '箭镇',       icon: '🍂' },
+          { value: 'london',    label: '伦敦',       icon: '🌧️' },
+          { value: 'helsinki',  label: '赫尔辛基',   icon: '🧊' },
+          { value: 'bergen',    label: '卑尔根',     icon: '🌫️' },
+          { value: 'stockholm', label: '斯德哥尔摩', icon: '🌉' },
+          { value: 'hokkaido',  label: '北海道',     icon: '⛄' }
         ];
 
     // 生成背景模式按钮 HTML
@@ -903,7 +903,7 @@ export const App = (() => {
             ${currentTheme === 'auto' ? '<span class="theme-check">✓</span>' : ''}
           </button>
         </div>
-        <div class="theme-picker-section-label">背景模式</div>
+        <div class="theme-picker-section-label">地域氛围</div>
         <div class="bg-mode-grid">
           ${bgModeButtonsHtml}
         </div>

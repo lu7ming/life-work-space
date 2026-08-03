@@ -7,29 +7,29 @@ import { Storage } from './storage.js';
 /** 背景模式常量 */
 export const BG_MODES = {
   NONE:       'none',
-  SNOW:       'snow',
-  RAIN:       'rain',
-  FOG:        'fog',
-  AURORA:     'aurora',
-  STARRY:     'starry',
-  AUTUMN:     'autumn',
-  FIREFLY:    'firefly',
-  WAVE:       'wave',
-  DARKNIGHT:  'darknight'
+  QUEBEC:     'quebec',
+  EDINBURGH:  'edinburgh',
+  LOFOTEN:    'lofoten',
+  ARROWTOWN:  'arrowtown',
+  LONDON:     'london',
+  HELSINKI:   'helsinki',
+  BERGEN:     'bergen',
+  STOCKHOLM:  'stockholm',
+  HOKKAIDO:   'hokkaido'
 };
 
 /** 背景模式元数据（供 UI 渲染） */
 export const BG_MODE_META = [
-  { value: BG_MODES.NONE,      label: '无背景',  icon: '🚫' },
-  { value: BG_MODES.SNOW,      label: '飘雪',    icon: '❄️' },
-  { value: BG_MODES.RAIN,      label: '细雨',    icon: '🌧' },
-  { value: BG_MODES.FOG,       label: '薄雾',    icon: '🌫' },
-  { value: BG_MODES.AURORA,    label: '极光',    icon: '🌌' },
-  { value: BG_MODES.STARRY,    label: '星空',    icon: '✨' },
-  { value: BG_MODES.AUTUMN,    label: '落叶',    icon: '🍂' },
-  { value: BG_MODES.FIREFLY,   label: '萤火',    icon: '🌿' },
-  { value: BG_MODES.WAVE,      label: '海浪',    icon: '🌊' },
-  { value: BG_MODES.DARKNIGHT, label: '暗夜',    icon: '🌑' }
+  { value: BG_MODES.NONE,      label: '无背景',     icon: '🚫' },
+  { value: BG_MODES.QUEBEC,    label: '魁北克',     icon: '🏔️' },
+  { value: BG_MODES.EDINBURGH, label: '爱丁堡',     icon: '🏰' },
+  { value: BG_MODES.LOFOTEN,   label: '罗佛敦',     icon: '🌌' },
+  { value: BG_MODES.ARROWTOWN, label: '箭镇',       icon: '🍂' },
+  { value: BG_MODES.LONDON,    label: '伦敦',       icon: '🌧️' },
+  { value: BG_MODES.HELSINKI,  label: '赫尔辛基',   icon: '🧊' },
+  { value: BG_MODES.BERGEN,    label: '卑尔根',     icon: '🌫️' },
+  { value: BG_MODES.STOCKHOLM, label: '斯德哥尔摩', icon: '🌉' },
+  { value: BG_MODES.HOKKAIDO,  label: '北海道',     icon: '⛄' }
 ];
 
 export const ThemeManager = (() => {

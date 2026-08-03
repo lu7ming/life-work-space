@@ -3,7 +3,7 @@
  * v76 - 修复浅色模式地域氛围背景
  */
 
-const CACHE_NAME = 'life-work-space-v79';
+const CACHE_NAME = 'life-work-space-v80';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -45,6 +45,7 @@ const CACHE_ASSETS = [
   './core/export.js',
   './core/search.js',
   './core/theme.js',
+  './core/bg-effects.js',
   './core/sync.js',
   './core/quickinput.js',
   './core/user-profile.js',
@@ -108,6 +109,9 @@ const CACHE_ASSETS = [
   './modules/calendar/calendar.html',
   './modules/calendar/calendar.css',
   './modules/calendar/calendar.js',
+  './modules/toolbox/toolbox.html',
+  './modules/toolbox/toolbox.css',
+  './modules/toolbox/toolbox.js',
   // PWA
   './manifest.json'
 ];

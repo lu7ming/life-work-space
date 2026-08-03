@@ -30,6 +30,11 @@
   --accent-purple: #B8A0D4;
   --accent-purple-light: #F0E8FA;
 
+  /* 通用强调色（浅色/深色模式共用） */
+  --accent: #E8A87C;
+  --accent-hover: #D4956A;
+  --border-color: #C8AD94;
+
   /* 阴影 */
   --shadow-sm: 0 1px 3px rgba(61, 48, 39, 0.06);
   --shadow-md: 0 2px 8px rgba(61, 48, 39, 0.08);

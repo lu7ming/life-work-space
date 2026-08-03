@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v76 - 修复浅色模式地域氛围背景
+ * v81 - 修复缓存缺失与CSS变量浅色模式
  */
 
-const CACHE_NAME = 'life-work-space-v80';
+const CACHE_NAME = 'life-work-space-v81';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -100,6 +100,7 @@ const CACHE_ASSETS = [
   './modules/rest/rest.js',
   './modules/music/music.css',
   './modules/music/music.js',
+  './modules/music/music.html',
   './modules/templates/templates.html',
   './modules/templates/templates_module.js',
   './modules/timetracker/timetracker.html',

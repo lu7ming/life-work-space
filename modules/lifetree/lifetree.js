@@ -740,7 +740,6 @@ export const LifeTreeModule = (() => {
     return {
       x: mt * mt * x0 + 2 * mt * t * cx + t * t * x1,
       y: mt * mt * y0 + 2 * mt * t * cy + t * t * y1,
-    destroy
   };
   }
 

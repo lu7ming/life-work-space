@@ -1,14 +1,43 @@
 /**
  * theme.js - 主题管理模块
- * 人生工作台 · 明暗模式切换
+ * 人生工作台 · 明暗模式切换 + 背景动效管理
  */
 import { Storage } from './storage.js';
 
+/** 背景模式常量 */
+export const BG_MODES = {
+  NONE:       'none',
+  SNOW:       'snow',
+  RAIN:       'rain',
+  FOG:        'fog',
+  AURORA:     'aurora',
+  STARRY:     'starry',
+  AUTUMN:     'autumn',
+  FIREFLY:    'firefly',
+  WAVE:       'wave',
+  DARKNIGHT:  'darknight'
+};
+
+/** 背景模式元数据（供 UI 渲染） */
+export const BG_MODE_META = [
+  { value: BG_MODES.NONE,      label: '无背景',  icon: '🚫' },
+  { value: BG_MODES.SNOW,      label: '飘雪',    icon: '❄️' },
+  { value: BG_MODES.RAIN,      label: '细雨',    icon: '🌧' },
+  { value: BG_MODES.FOG,       label: '薄雾',    icon: '🌫' },
+  { value: BG_MODES.AURORA,    label: '极光',    icon: '🌌' },
+  { value: BG_MODES.STARRY,    label: '星空',    icon: '✨' },
+  { value: BG_MODES.AUTUMN,    label: '落叶',    icon: '🍂' },
+  { value: BG_MODES.FIREFLY,   label: '萤火',    icon: '🌿' },
+  { value: BG_MODES.WAVE,      label: '海浪',    icon: '🌊' },
+  { value: BG_MODES.DARKNIGHT, label: '暗夜',    icon: '🌑' }
+];
 
 export const ThemeManager = (() => {
   const STORAGE_KEY = 'theme';
+  const BG_STORAGE_KEY = 'bgMode';
   const THEMES = { LIGHT: 'light', DARK: 'dark', AUTO: 'auto' };
   let currentTheme = THEMES.LIGHT;
+  let currentBgMode = BG_MODES.NONE;
   let mediaQuery = null;
 
   /**
@@ -60,7 +89,57 @@ export const ThemeManager = (() => {
       localStorage.setItem('life-workspace-theme', JSON.stringify({ id: 'theme', value: currentTheme }));
     } catch (e) {}
 
-    console.log('[Theme] 主题已初始化:', currentTheme);
+    // ===== 初始化背景模式 =====
+    try {
+      const storedBg = await Storage.get('settings', BG_STORAGE_KEY);
+      if (storedBg && storedBg.value) {
+        currentBgMode = storedBg.value;
+      }
+    } catch (e) {
+      console.warn('[Theme] 读取背景模式失败:', e);
+    }
+    applyBgMode();
+
+    console.log('[Theme] 主题已初始化:', currentTheme, '| 背景模式:', currentBgMode);
+  }
+
+  /**
+   * 设置背景模式
+   * @param {string} mode - BG_MODES 中的值
+   */
+  async function setBgMode(mode) {
+    if (!Object.values(BG_MODES).includes(mode)) {
+      console.warn('[Theme] 未知的背景模式:', mode);
+      return;
+    }
+    currentBgMode = mode;
+
+    try {
+      await Storage.put('settings', { key: BG_STORAGE_KEY, value: mode });
+    } catch (e) {
+      console.warn('[Theme] 存储背景模式失败:', e);
+    }
+
+    applyBgMode();
+  }
+
+  /**
+   * 获取当前背景模式
+   */
+  function getBgMode() {
+    return currentBgMode;
+  }
+
+  /**
+   * 应用背景模式到 DOM
+   * 在 <html> 上设置 data-bg-mode 属性，CSS 据此控制渐变背景和半透明效果
+   */
+  function applyBgMode() {
+    if (currentBgMode === BG_MODES.NONE) {
+      document.documentElement.removeAttribute('data-bg-mode');
+    } else {
+      document.documentElement.setAttribute('data-bg-mode', currentBgMode);
+    }
   }
 
   /**
@@ -148,6 +227,10 @@ export const ThemeManager = (() => {
     getTheme,
     toggleTheme,
     getThemeLabel,
-    THEMES
+    setBgMode,
+    getBgMode,
+    THEMES,
+    BG_MODES,
+    BG_MODE_META
   };
 })();

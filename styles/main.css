@@ -997,3 +997,222 @@ img {
     font-size: 14px;
   }
 }
+
+/* ===================================================================
+   背景动效系统 — 9 种 Canvas 背景模式
+   独立于明暗主题，通过 html[data-bg-mode] 属性控制
+   =================================================================== */
+
+/* ----- 背景层基础 ----- */
+#bg-effects-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: transparent;
+  transition: background 1.5s ease;
+  overflow: hidden;
+}
+
+#bg-effects-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  display: block;
+}
+
+/* 噪点纹理层（增加质感） */
+#bg-effects-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0;
+  transition: opacity 1.5s ease;
+  pointer-events: none;
+}
+
+/* 底部微弱光晕 */
+#bg-effects-layer::after {
+  content: '';
+  position: absolute;
+  bottom: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 300px;
+  background: radial-gradient(ellipse, rgba(60, 80, 120, 0.12) 0%, transparent 70%);
+  opacity: 0;
+  transition: all 1.5s ease;
+  pointer-events: none;
+}
+
+/* 激活背景模式时显示纹理和光晕 */
+html[data-bg-mode] #bg-effects-layer::before {
+  opacity: 1;
+}
+html[data-bg-mode] #bg-effects-layer::after {
+  opacity: 1;
+}
+
+/* ----- 各模式渐变背景 ----- */
+html[data-bg-mode="snow"] #bg-effects-layer,      /* 飘雪（默认） */
+html[data-bg-mode="rain"] #bg-effects-layer,      /* 细雨 */
+html[data-bg-mode="fog"] #bg-effects-layer {      /* 薄雾 */
+  background: linear-gradient(160deg, #0d1117 0%, #161b2e 30%, #1a2332 60%, #121a24 100%);
+}
+
+html[data-bg-mode="aurora"] #bg-effects-layer {   /* 极光 */
+  background: linear-gradient(180deg, #0a0e1a 0%, #0f1a2e 40%, #15253d 70%, #0d1520 100%);
+}
+html[data-bg-mode="aurora"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(80, 200, 150, 0.08) 0%, transparent 70%);
+}
+
+html[data-bg-mode="starry"] #bg-effects-layer {   /* 星空 */
+  background: linear-gradient(180deg, #050810 0%, #0a0f1a 50%, #080c14 100%);
+}
+
+html[data-bg-mode="autumn"] #bg-effects-layer {   /* 落叶 */
+  background: linear-gradient(160deg, #1a1510 0%, #241d14 30%, #2a2018 60%, #1a1510 100%);
+}
+html[data-bg-mode="autumn"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(180, 120, 60, 0.08) 0%, transparent 70%);
+}
+
+html[data-bg-mode="firefly"] #bg-effects-layer {  /* 萤火 */
+  background: linear-gradient(160deg, #0a1410 0%, #0f1d16 30%, #14251c 60%, #0a1410 100%);
+}
+html[data-bg-mode="firefly"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(100, 180, 80, 0.06) 0%, transparent 70%);
+}
+
+html[data-bg-mode="wave"] #bg-effects-layer {     /* 海浪 */
+  background: linear-gradient(180deg, #0a1520 0%, #0f2030 40%, #142a3d 70%, #0a1520 100%);
+}
+html[data-bg-mode="wave"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(60, 140, 180, 0.08) 0%, transparent 70%);
+}
+
+html[data-bg-mode="darknight"] #bg-effects-layer { /* 暗夜 */
+  background: linear-gradient(180deg, #050508 0%, #0a0a10 50%, #050508 100%);
+}
+
+/* ----- 背景模式激活时的布局调整 ----- */
+/* html/body 背景透明，让背景层透出 */
+html[data-bg-mode] {
+  background-color: transparent;
+}
+html[data-bg-mode] body {
+  background-color: transparent;
+}
+
+/* app-container 提升到背景层之上 */
+html[data-bg-mode] .app-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* 侧边栏和顶栏使用半透明 + 毛玻璃 */
+html[data-bg-mode] .sidebar {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+html[data-bg-mode] .topbar {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ----- 深色主题 + 背景模式：半透明变量 ----- */
+[data-bg-mode][data-theme="dark"] {
+  --bg-main: rgba(30, 26, 22, 0.72);
+  --bg-sidebar: rgba(36, 31, 26, 0.72);
+  --bg-card: rgba(42, 36, 32, 0.50);
+  --bg-hover: rgba(51, 44, 38, 0.60);
+}
+
+/* ----- 浅色主题 + 背景模式：半透明变量 ----- */
+[data-bg-mode][data-theme="light"] {
+  --bg-main: rgba(212, 186, 159, 0.72);
+  --bg-sidebar: rgba(200, 173, 148, 0.72);
+  --bg-card: rgba(238, 233, 227, 0.50);
+  --bg-hover: rgba(220, 197, 173, 0.60);
+}
+
+/* ----- 主题选择器：背景模式区域 ----- */
+.theme-picker-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+.theme-picker-section-label:first-of-type {
+  margin-top: 0;
+}
+
+/* 背景模式网格 */
+.bg-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.bg-mode-grid::-webkit-scrollbar {
+  width: 4px;
+}
+.bg-mode-grid::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 2px;
+}
+
+/* 背景模式按钮 */
+.bg-mode-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  border: 2px solid transparent;
+  background: var(--bg-hover);
+}
+
+.bg-mode-option:hover {
+  filter: brightness(1.05);
+}
+
+.bg-mode-option.active {
+  border-color: var(--accent-blue);
+  background: var(--accent-blue-light);
+}
+
+.bg-mode-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.bg-mode-label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.bg-mode-check {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-blue);
+}
+
+/* 主题选择器容器在包含背景模式时加宽 */
+.theme-picker-container:has(.bg-mode-grid) {
+  min-width: 320px;
+  max-width: 90vw;
+}

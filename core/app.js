@@ -68,6 +68,7 @@ async function lazyImport(name) {
   const pathMap = {
     secureStorage: './secure-storage.js?v=72',
     theme: './theme.js?v=72',
+    bgEffects: './bg-effects.js?v=72',
     notifications: './notifications.js?v=72',
     smartReminder: './smart-reminder.js?v=72',
     templates: './templates.js?v=72',
@@ -194,6 +195,7 @@ export const App = (() => {
     // 并行加载轻量核心模块
     const [
       themeMod,
+      bgEffectsMod,
       notifMod,
       reminderMod,
       tplMod,
@@ -216,6 +218,7 @@ export const App = (() => {
       achievementsMod,
     ] = await Promise.all([
       lazyImport('theme').catch(e => (console.warn('[App] theme 加载失败:', e), {})),
+      lazyImport('bgEffects').catch(e => (console.warn('[App] bgEffects 加载失败:', e), {})),
       lazyImport('notifications').catch(e => (console.warn('[App] notifications 加载失败:', e), {})),
       lazyImport('smartReminder').catch(e => (console.warn('[App] smartReminder 加载失败:', e), {})),
       lazyImport('templates').catch(e => (console.warn('[App] templates 加载失败:', e), {})),
@@ -242,6 +245,20 @@ export const App = (() => {
     if (themeMod.ThemeManager) {
       await themeMod.ThemeManager.init();
       window.ThemeManager = themeMod.ThemeManager;
+    }
+
+    // 初始化背景动效
+    if (bgEffectsMod.BgEffects) {
+      const bgCanvas = document.getElementById('bg-effects-canvas');
+      if (bgCanvas) {
+        bgEffectsMod.BgEffects.init(bgCanvas);
+        window.BgEffects = bgEffectsMod.BgEffects;
+        // 应用已存储的背景模式
+        const storedMode = themeMod.ThemeManager ? themeMod.ThemeManager.getBgMode() : 'none';
+        if (storedMode && storedMode !== 'none') {
+          bgEffectsMod.BgEffects.switchMode(storedMode);
+        }
+      }
     }
 
     // 初始化通知引擎
@@ -829,18 +846,46 @@ export const App = (() => {
   }
 
   /**
-   * 显示主题选择器
+   * 显示主题选择器（含背景模式）
    */
   function showThemePicker() {
     document.querySelectorAll('.theme-picker-overlay').forEach(el => el.remove());
 
     const currentTheme = window.ThemeManager ? window.ThemeManager.getTheme() : 'light';
+    const currentBgMode = window.ThemeManager ? window.ThemeManager.getBgMode() : 'none';
+
+    // 背景模式列表
+    const BG_MODES_LIST = window.ThemeManager && window.ThemeManager.BG_MODE_META
+      ? window.ThemeManager.BG_MODE_META
+      : [
+          { value: 'none',      label: '无背景',  icon: '🚫' },
+          { value: 'snow',      label: '飘雪',    icon: '❄️' },
+          { value: 'rain',      label: '细雨',    icon: '🌧' },
+          { value: 'fog',       label: '薄雾',    icon: '🌫' },
+          { value: 'aurora',    label: '极光',    icon: '🌌' },
+          { value: 'starry',    label: '星空',    icon: '✨' },
+          { value: 'autumn',    label: '落叶',    icon: '🍂' },
+          { value: 'firefly',   label: '萤火',    icon: '🌿' },
+          { value: 'wave',      label: '海浪',    icon: '🌊' },
+          { value: 'darknight', label: '暗夜',    icon: '🌑' }
+        ];
+
+    // 生成背景模式按钮 HTML
+    const bgModeButtonsHtml = BG_MODES_LIST.map(m => `
+      <button class="bg-mode-option ${currentBgMode === m.value ? 'active' : ''}" data-bg-mode="${m.value}">
+        <span class="bg-mode-icon">${m.icon}</span>
+        <span class="bg-mode-label">${m.label}</span>
+        ${currentBgMode === m.value ? '<span class="bg-mode-check">✓</span>' : ''}
+      </button>
+    `).join('');
+
     const overlay = document.createElement('div');
     overlay.className = 'theme-picker-overlay';
     overlay.innerHTML = `
       <div class="theme-picker-backdrop"></div>
       <div class="theme-picker-container">
         <div class="theme-picker-title">🎨 选择主题</div>
+        <div class="theme-picker-section-label">明暗模式</div>
         <div class="theme-picker-options">
           <button class="theme-picker-option ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">
             <span class="theme-icon">☀️</span>
@@ -858,6 +903,10 @@ export const App = (() => {
             ${currentTheme === 'auto' ? '<span class="theme-check">✓</span>' : ''}
           </button>
         </div>
+        <div class="theme-picker-section-label">背景模式</div>
+        <div class="bg-mode-grid">
+          ${bgModeButtonsHtml}
+        </div>
       </div>
     `;
 
@@ -865,6 +914,7 @@ export const App = (() => {
 
     overlay.querySelector('.theme-picker-backdrop').addEventListener('click', () => overlay.remove());
 
+    // 明暗主题切换
     overlay.querySelectorAll('.theme-picker-option').forEach(btn => {
       btn.addEventListener('click', async () => {
         const theme = btn.dataset.theme;
@@ -881,8 +931,29 @@ export const App = (() => {
         checkSpan.className = 'theme-check';
         checkSpan.textContent = '✓';
         btn.appendChild(checkSpan);
+      });
+    });
 
-        setTimeout(() => overlay.remove(), 300);
+    // 背景模式切换
+    overlay.querySelectorAll('.bg-mode-option').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const mode = btn.dataset.bgMode;
+        if (window.ThemeManager) {
+          await window.ThemeManager.setBgMode(mode);
+        }
+        if (window.BgEffects) {
+          window.BgEffects.switchMode(mode);
+        }
+        overlay.querySelectorAll('.bg-mode-option').forEach(b => {
+          b.classList.remove('active');
+          const check = b.querySelector('.bg-mode-check');
+          if (check) check.remove();
+        });
+        btn.classList.add('active');
+        const checkSpan = document.createElement('span');
+        checkSpan.className = 'bg-mode-check';
+        checkSpan.textContent = '✓';
+        btn.appendChild(checkSpan);
       });
     });
 

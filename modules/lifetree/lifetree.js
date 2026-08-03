@@ -845,10 +845,12 @@ export const LifeTreeModule = (() => {
 
   // ----- 维度emoji标记 -----
   function addDimMarker(parent, x, y, emoji, index) {
-    const g = svgAdd(parent, 'g', {
-      class: 'dim-marker',
+    // 外层 <g> 仅负责定位，不参与动画（避免 CSS transform 覆盖 SVG transform）
+    const outer = svgAdd(parent, 'g', {
       transform: `translate(${x.toFixed(0)},${(y - 28).toFixed(0)})`
     });
+    // 内层 <g> 承载浮动动画
+    const g = svgAdd(outer, 'g', { class: 'dim-marker' });
     g.style.animationDelay = `${index * 0.5}s`;
 
     // 背景圆

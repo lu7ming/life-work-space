@@ -1130,78 +1130,78 @@ html[data-bg-mode="hokkaido"] #bg-effects-layer::after {
 }
 
 /* ----- 浅色主题 + 地域氛围：使用浅色渐变背景 ----- */
-/* 浅色模式下，深色渐变会透过半透明 --bg-main 显得灰暗，此处覆盖为浅色系渐变 */
+/* 浅色模式下覆盖深色渐变，使用 !important 确保优先级 */
 
 /* 1. 魁北克 — 浅灰蓝→暖白（老城雪日） */
-[data-bg-mode="quebec"][data-theme="light"] #bg-effects-layer {
-  background: linear-gradient(160deg, #e8eef5 0%, #f0ede8 40%, #f5f0ea 70%, #eee8e0 100%);
+html[data-bg-mode="quebec"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(160deg, #e8eef5 0%, #f0ede8 40%, #f5f0ea 70%, #eee8e0 100%) !important;
 }
-[data-bg-mode="quebec"][data-theme="light"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(255, 220, 150, 0.12) 0%, transparent 70%);
+html[data-bg-mode="quebec"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(255, 220, 150, 0.12) 0%, transparent 70%) !important;
 }
 
 /* 2. 爱丁堡 — 浅蓝灰→浅灰（雨日古堡） */
-[data-bg-mode="edinburgh"][data-theme="light"] #bg-effects-layer {
-  background: linear-gradient(180deg, #dde4ec 0%, #e2e5ea 40%, #d8dbe0 70%, #d0d3d8 100%);
+html[data-bg-mode="edinburgh"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #dde4ec 0%, #e2e5ea 40%, #d8dbe0 70%, #d0d3d8 100%) !important;
 }
-[data-bg-mode="edinburgh"][data-theme="light"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(255, 200, 120, 0.10) 0%, transparent 70%);
+html[data-bg-mode="edinburgh"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(255, 200, 120, 0.10) 0%, transparent 70%) !important;
 }
 
 /* 3. 罗佛敦 — 浅蓝白→柔白（极光峡湾白昼） */
-[data-bg-mode="lofoten"][data-theme="light"] #bg-effects-layer {
-  background: linear-gradient(180deg, #e0eaf5 0%, #eaeef5 50%, #f0f2f8 100%);
+html[data-bg-mode="lofoten"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #e0eaf5 0%, #eaeef5 50%, #f0f2f8 100%) !important;
 }
-[data-bg-mode="lofoten"][data-theme="light"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(120, 200, 170, 0.10) 0%, transparent 70%);
+html[data-bg-mode="lofoten"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(120, 200, 170, 0.10) 0%, transparent 70%) !important;
 }
 
 /* 4. 箭镇 — 浅暖米→柔桃色（秋日暖阳） */
-[data-bg-mode="arrowtown"][data-theme="light"] #bg-effects-layer {
-  background: linear-gradient(160deg, #f5ebe0 0%, #f0e2d4 30%, #ece0d0 60%, #e8dccc 100%);
+html[data-bg-mode="arrowtown"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(160deg, #f5ebe0 0%, #f0e2d4 30%, #ece0d0 60%, #e8dccc 100%) !important;
 }
-[data-bg-mode="arrowtown"][data-theme="light"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(230, 160, 80, 0.10) 0%, transparent 70%);
+html[data-bg-mode="arrowtown"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(230, 160, 80, 0.10) 0%, transparent 70%) !important;
 }
 
 /* 5. 伦敦 — 浅冷灰→柔灰（雾都白昼） */
-[data-bg-mode="london"][data-theme="light"] #bg-effects-layer {
-  background: linear-gradient(180deg, #dde0e5 0%, #e4e7ec 40%, #dfe2e7 70%, #d6d9de 100%);
+html[data-bg-mode="london"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #dde0e5 0%, #e4e7ec 40%, #dfe2e7 70%, #d6d9de 100%) !important;
 }
-[data-bg-mode="london"][data-theme="light"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(255, 200, 120, 0.08) 0%, transparent 70%);
+html[data-bg-mode="london"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(255, 200, 120, 0.08) 0%, transparent 70%) !important;
 }
 
 /* 6. 赫尔辛基 — 浅蓝灰→柔蓝白（冰雪湖畔白昼） */
-[data-bg-mode="helsinki"][data-theme="light"] #bg-effects-layer {
-  background: linear-gradient(180deg, #dee8f0 0%, #e4ecf4 40%, #dae4ee 70%, #d2dce8 100%);
+html[data-bg-mode="helsinki"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #dee8f0 0%, #e4ecf4 40%, #dae4ee 70%, #d2dce8 100%) !important;
 }
-[data-bg-mode="helsinki"][data-theme="light"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(150, 190, 230, 0.10) 0%, transparent 70%);
+html[data-bg-mode="helsinki"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(150, 190, 230, 0.10) 0%, transparent 70%) !important;
 }
 
 /* 7. 卑尔根 — 浅灰绿→柔白绿（浓雾海港白昼） */
-[data-bg-mode="bergen"][data-theme="light"] #bg-effects-layer {
-  background: linear-gradient(180deg, #dfe8e2 0%, #e4ece8 40%, #dde6e0 70%, #d6e0da 100%);
+html[data-bg-mode="bergen"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #dfe8e2 0%, #e4ece8 40%, #dde6e0 70%, #d6e0da 100%) !important;
 }
-[data-bg-mode="bergen"][data-theme="light"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(100, 160, 120, 0.08) 0%, transparent 70%);
+html[data-bg-mode="bergen"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(100, 160, 120, 0.08) 0%, transparent 70%) !important;
 }
 
 /* 8. 斯德哥尔摩 — 浅灰蓝→柔白蓝（水城白昼） */
-[data-bg-mode="stockholm"][data-theme="light"] #bg-effects-layer {
-  background: linear-gradient(180deg, #e0e6ee 0%, #e6ecf2 40%, #dfe5ed 70%, #d8dee8 100%);
+html[data-bg-mode="stockholm"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #e0e6ee 0%, #e6ecf2 40%, #dfe5ed 70%, #d8dee8 100%) !important;
 }
-[data-bg-mode="stockholm"][data-theme="light"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(130, 160, 200, 0.10) 0%, transparent 70%);
+html[data-bg-mode="stockholm"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(130, 160, 200, 0.10) 0%, transparent 70%) !important;
 }
 
 /* 9. 北海道 — 浅冷白→柔蓝白（暴雪温泉白昼） */
-[data-bg-mode="hokkaido"][data-theme="light"] #bg-effects-layer {
-  background: linear-gradient(180deg, #eaeef4 0%, #e4eaf2 30%, #dde4ee 60%, #d6deea 100%);
+html[data-bg-mode="hokkaido"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #eaeef4 0%, #e4eaf2 30%, #dde4ee 60%, #d6deea 100%) !important;
 }
-[data-bg-mode="hokkaido"][data-theme="light"] #bg-effects-layer::after {
-  background: radial-gradient(ellipse, rgba(255, 210, 130, 0.10) 0%, transparent 70%);
+html[data-bg-mode="hokkaido"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse, rgba(255, 210, 130, 0.10) 0%, transparent 70%) !important;
 }
 
 /* ----- 背景模式激活时的布局调整 ----- */

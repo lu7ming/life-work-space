@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v72 - 修复 rest 模块加载
+ * v73 - 恢复9种背景主题模式
  */
 
-const CACHE_NAME = 'life-work-space-v72';
+const CACHE_NAME = 'life-work-space-v73';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

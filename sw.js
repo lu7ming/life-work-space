@@ -3,7 +3,7 @@
  * v76 - 修复浅色模式地域氛围背景
  */
 
-const CACHE_NAME = 'life-work-space-v76';
+const CACHE_NAME = 'life-work-space-v78';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

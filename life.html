@@ -10,7 +10,7 @@
   <title>人生工作台</title>
 
   <!-- 应用版本号（集中管理，升级时只需修改此处和 sw.js） -->
-  <script>window.__APP_VERSION__ = 'v76';</script>
+  <script>window.__APP_VERSION__ = 'v78';</script>
   <!-- PWA -->
   <link rel="icon" href="assets/icons/icon-192.png" type="image/png">
   <link rel="manifest" href="manifest.json">
@@ -58,7 +58,7 @@
   <!-- 版本号同步：将所有 stylesheet 的版本号参数同步为 __APP_VERSION__ -->
   <script>
     (function() {
-      var v = window.__APP_VERSION__ || 'v76';
+      var v = window.__APP_VERSION__ || 'v78';
       document.querySelectorAll('link[rel="stylesheet"]').forEach(function(l) {
         l.href = l.href.replace(/\?v=\w+/, '') + '?v=' + v;
       });
@@ -179,6 +179,7 @@
             🔔
             <span class="topbar-notif-badge" id="notif-badge" style="display:none;">0</span>
           </button>
+          <button class="topbar-icon-btn" id="topbar-refresh-btn" title="刷新页面">🔄</button>
           <button class="topbar-rest-btn" id="rest-mode-btn" title="休息模式 - 魁北克雪夜">❄️</button>
           <button class="topbar-icon-btn" data-tip="🌳 生命树">🌳</button>
           <button class="topbar-icon-btn" id="topbar-audit-btn" title="📜 AI 操作历史">📜</button>
@@ -191,7 +192,6 @@
               <button data-action="sync">☁️ 同步</button>
               <button data-action="export">📤 导出数据</button>
               <button data-action="import">📥 导入数据</button>
-              <button data-action="refresh">🔄 刷新</button>
               <button data-action="theme">🎨 主题</button>
             </div>
           </div>

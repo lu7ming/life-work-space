@@ -459,8 +459,8 @@ export const QuickInput = (() => {
     if (!panelEl) createPanel();
     _isOpen = true;
     panelEl.classList.add('qi-open');
-    (document.getElementById('qi-input') || {}).value = '';
-    document.getElementById('qi-input')?.focus();
+    document.getElementById('qi-input').value = '';
+    document.getElementById('qi-input').focus();
     resetPreview();
   }
 
@@ -481,7 +481,7 @@ export const QuickInput = (() => {
     const preview = document.getElementById('qi-preview');
     if (preview) {
       preview.style.display = 'none';
-      (document.getElementById('qi-preview-content') || {}).innerHTML = '';
+      document.getElementById('qi-preview-content').innerHTML = '';
     }
     _currentParsed = null;
   }
@@ -490,9 +490,9 @@ export const QuickInput = (() => {
    * 重置面板到初始状态
    */
   function resetPanel() {
-    (document.getElementById('qi-input') || {}).value = '';
+    document.getElementById('qi-input').value = '';
     resetPreview();
-    document.getElementById('qi-input')?.focus();
+    document.getElementById('qi-input').focus();
   }
 
   /**

@@ -226,8 +226,8 @@ export const AppUtils = (() => {
         resolve(result);
       };
 
-      overlay.querySelector('.cancel')?.addEventListener('click', () => close(false));
-      overlay.querySelector('.confirm')?.addEventListener('click', () => close(true));
+      overlay.querySelector('.cancel').addEventListener('click', () => close(false));
+      overlay.querySelector('.confirm').addEventListener('click', () => close(true));
       overlay.addEventListener('click', (e) => { if (e.target === overlay) close(false); });
     });
   }
@@ -447,8 +447,7 @@ const SecureStorage = (() => {
     const setting = await Storage.get('settings', 'secure_' + key);
     if (!setting || !setting.value) return null;
     const decrypted = await decrypt(setting.value);
-    if (!decrypted) return null;
-    try { return JSON.parse(decrypted); } catch { return null; }
+    return decrypted ? JSON.parse(decrypted) : null;
   }
 
   return { encrypt, decrypt, saveSecure, loadSecure };

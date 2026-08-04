@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v82 - 防御性修复：try/catch、空值检查、CSS变量补全
+ * v84 - 回滚到v81稳定版本（撤销v82/v83所有改动）
  */
 
-const CACHE_NAME = 'life-work-space-v83';
+const CACHE_NAME = 'life-work-space-v84';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -114,8 +114,6 @@ const CACHE_ASSETS = [
   './modules/toolbox/toolbox.css',
   './modules/toolbox/toolbox.js',
   // PWA
-  './assets/avatar.jpg',
-  './assets/icons/icon-192.png',
   './manifest.json'
 ];
 

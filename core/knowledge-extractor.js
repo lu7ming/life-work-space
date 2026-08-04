@@ -385,8 +385,5 @@ AI回复：{aiResponse}`;
     }
   }
 
-  // v82: 预留事件监听（未来扩展使用）
-  EventBus.on('knowledge:extracted', () => {});
-
   return { analyzeConversation };
 })();

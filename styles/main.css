@@ -61,14 +61,6 @@
   /* 过渡 */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
-
-  /* v82: 补全缺失的 CSS 变量 */
-  --accent-light: var(--accent-orange-light, #FFF0E5);
-  --bg-card-hover: var(--bg-hover, #DCC5AD);
-  --bg-subtle: #F9F6F3;
-  --card-color: var(--bg-main, #D4BA9F);
-  --card-color-light: var(--bg-card, #EEE9E3);
-  --text-main: var(--text-primary, #3D3027);
 }
 
 /* ===== 重置 ===== */
@@ -593,14 +585,6 @@ img {
   /* 过渡：主题切换时平滑过渡 */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
-
-  /* v82: 补全缺失的 CSS 变量 */
-  --accent-light: var(--accent-orange-light, #2E2218);
-  --bg-card-hover: var(--bg-hover, #332C26);
-  --bg-subtle: #241F1A;
-  --card-color: var(--bg-main, #1E1A16);
-  --card-color-light: var(--bg-card, #2A2420);
-  --text-main: var(--text-primary, #E8E0D8);
 }
 
 /* ===== 暗色模式元素覆盖 ===== */

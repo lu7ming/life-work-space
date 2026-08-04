@@ -213,12 +213,12 @@ export const KnowledgeModule = (() => {
   function openCreateModal() {
     editingId = null;
     formTags = [];
-    (document.getElementById('knowledgeModalTitle') || {}).textContent = '新建知识';
-    (document.getElementById('knowledgeFormTitle') || {}).value = '';
-    (document.getElementById('knowledgeFormContent') || {}).value = '';
-    (document.getElementById('knowledgeFormUrl') || {}).value = '';
-    (document.getElementById('knowledgeFormSource') || {}).value = '';
-    document.getElementById('knowledgeFormDelete')?.style.display = 'none';
+    document.getElementById('knowledgeModalTitle').textContent = '新建知识';
+    document.getElementById('knowledgeFormTitle').value = '';
+    document.getElementById('knowledgeFormContent').value = '';
+    document.getElementById('knowledgeFormUrl').value = '';
+    document.getElementById('knowledgeFormSource').value = '';
+    document.getElementById('knowledgeFormDelete').style.display = 'none';
 
     // Reset type to article
     document.querySelectorAll('#knowledgeFormTypes .knowledge-form-type-btn').forEach(btn => {
@@ -235,12 +235,12 @@ export const KnowledgeModule = (() => {
   function openEditModal(entry) {
     editingId = entry.id;
     formTags = [...(entry.tags || [])];
-    (document.getElementById('knowledgeModalTitle') || {}).textContent = '编辑知识';
-    (document.getElementById('knowledgeFormTitle') || {}).value = entry.title || '';
-    (document.getElementById('knowledgeFormContent') || {}).value = entry.content || '';
-    (document.getElementById('knowledgeFormUrl') || {}).value = entry.url || '';
-    (document.getElementById('knowledgeFormSource') || {}).value = entry.source || '';
-    document.getElementById('knowledgeFormDelete')?.style.display = 'inline-flex';
+    document.getElementById('knowledgeModalTitle').textContent = '编辑知识';
+    document.getElementById('knowledgeFormTitle').value = entry.title || '';
+    document.getElementById('knowledgeFormContent').value = entry.content || '';
+    document.getElementById('knowledgeFormUrl').value = entry.url || '';
+    document.getElementById('knowledgeFormSource').value = entry.source || '';
+    document.getElementById('knowledgeFormDelete').style.display = 'inline-flex';
 
     document.querySelectorAll('#knowledgeFormTypes .knowledge-form-type-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.type === entry.type);
@@ -288,23 +288,23 @@ export const KnowledgeModule = (() => {
   }
 
   async function saveEntry() {
-    const title = document.getElementById('knowledgeFormTitle')?.value.trim();
+    const title = document.getElementById('knowledgeFormTitle').value.trim();
     if (!title) {
       if (window.App?.showToast) {
         window.App?.showToast('请输入标题');
       }
-      document.getElementById('knowledgeFormTitle')?.focus();
+      document.getElementById('knowledgeFormTitle').focus();
       return;
     }
 
     const now = Date.now();
     const data = {
       title,
-      content: document.getElementById('knowledgeFormContent')?.value.trim(),
-      url: document.getElementById('knowledgeFormUrl')?.value.trim(),
+      content: document.getElementById('knowledgeFormContent').value.trim(),
+      url: document.getElementById('knowledgeFormUrl').value.trim(),
       type: getFormType(),
       tags: [...formTags],
-      source: document.getElementById('knowledgeFormSource')?.value.trim(),
+      source: document.getElementById('knowledgeFormSource').value.trim(),
       updatedAt: now
     };
 

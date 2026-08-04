@@ -387,10 +387,10 @@ export const ToolboxModule = (() => {
       if (!option) return;
       picker.querySelectorAll('.toolbox-icon-option').forEach(o => o.classList.remove('selected'));
       option.classList.add('selected');
-      (document.getElementById('toolbox-form-icon') || {}).value = option.dataset.icon;
+      document.getElementById('toolbox-form-icon').value = option.dataset.icon;
     };
 
-    (document.getElementById('toolbox-form-icon') || {}).value = selectedIcon;
+    document.getElementById('toolbox-form-icon').value = selectedIcon;
   }
 
   // ===== 关闭表单 =====
@@ -404,11 +404,11 @@ export const ToolboxModule = (() => {
   function handleFormSubmit(e) {
     e.preventDefault();
 
-    const name = document.getElementById('toolbox-form-name')?.value.trim();
-    const url = document.getElementById('toolbox-form-url')?.value.trim();
-    const category = document.getElementById('toolbox-form-category')?.value;
-    const icon = document.getElementById('toolbox-form-icon')?.value || '🔗';
-    const id = document.getElementById('toolbox-form-id')?.value;
+    const name = document.getElementById('toolbox-form-name').value.trim();
+    const url = document.getElementById('toolbox-form-url').value.trim();
+    const category = document.getElementById('toolbox-form-category').value;
+    const icon = document.getElementById('toolbox-form-icon').value || '🔗';
+    const id = document.getElementById('toolbox-form-id').value;
 
     if (!name || !url) return;
 

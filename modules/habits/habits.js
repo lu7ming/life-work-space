@@ -884,13 +884,13 @@ export const HabitsModule = (() => {
         if (retroSelectedHabits.has(habitId)) {
           retroSelectedHabits.delete(habitId);
           item.classList.remove('checked');
-          (item.querySelector('.retroactive-habit-checkbox') || {}).textContent = '';
-          (item.querySelector('.retroactive-habit-badge') || {}).textContent = '未打卡';
+          item.querySelector('.retroactive-habit-checkbox').textContent = '';
+          item.querySelector('.retroactive-habit-badge').textContent = '未打卡';
         } else {
           retroSelectedHabits.add(habitId);
           item.classList.add('checked');
-          (item.querySelector('.retroactive-habit-checkbox') || {}).textContent = '✓';
-          (item.querySelector('.retroactive-habit-badge') || {}).textContent = '补签';
+          item.querySelector('.retroactive-habit-checkbox').textContent = '✓';
+          item.querySelector('.retroactive-habit-badge').textContent = '补签';
         }
         // 更新确认按钮状态
         updateRetroOkBtn();

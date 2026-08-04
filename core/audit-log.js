@@ -370,10 +370,10 @@ export const AuditLog = (() => {
     });
 
     // 绑定事件
-    _panelEl.querySelector('#audit-close-btn')?.addEventListener('click', closeAuditPanel);
-    _panelEl.querySelector('#audit-summary-btn')?.addEventListener('click', _showSummaryView);
-    _panelEl.querySelector('#audit-filter-date')?.addEventListener('change', _refreshList);
-    _panelEl.querySelector('#audit-filter-type')?.addEventListener('change', _refreshList);
+    _panelEl.querySelector('#audit-close-btn').addEventListener('click', closeAuditPanel);
+    _panelEl.querySelector('#audit-summary-btn').addEventListener('click', _showSummaryView);
+    _panelEl.querySelector('#audit-filter-date').addEventListener('change', _refreshList);
+    _panelEl.querySelector('#audit-filter-type').addEventListener('change', _refreshList);
 
     // 加载日志列表
     _refreshList();

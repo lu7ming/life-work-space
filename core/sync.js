@@ -383,20 +383,15 @@ export const SyncModule = (() => {
       body.sha = sha;
     }
 
-    let resp;
-    try {
-      resp = await fetch(`${API_BASE}/${path}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/vnd.github.v3+json'
-        },
-        body: JSON.stringify(body)
-      });
-    } catch (e) {
-      throw new Error(`网络请求失败: ${e.message}`);
-    }
+    const resp = await fetch(`${API_BASE}/${path}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify(body)
+    });
 
     if (!resp.ok) {
       const errBody = await resp.text();
@@ -729,12 +724,12 @@ export const SyncModule = (() => {
 
       document.body.appendChild(overlay);
 
-      overlay.querySelector('#conflict-cancel')?.addEventListener('click', () => {
+      overlay.querySelector('#conflict-cancel').addEventListener('click', () => {
         overlay.remove();
         resolve();
       });
 
-      overlay.querySelector('#conflict-force')?.addEventListener('click', async () => {
+      overlay.querySelector('#conflict-force').addEventListener('click', async () => {
         overlay.remove();
         // 强制全量同步会以本地全量数据覆盖远程
         try {
@@ -826,12 +821,12 @@ export const SyncModule = (() => {
         resolve('incremental');
       });
 
-      overlay.querySelector('#sync-mode-full')?.addEventListener('click', () => {
+      overlay.querySelector('#sync-mode-full').addEventListener('click', () => {
         overlay.remove();
         resolve('full');
       });
 
-      overlay.querySelector('#sync-mode-cancel')?.addEventListener('click', () => {
+      overlay.querySelector('#sync-mode-cancel').addEventListener('click', () => {
         overlay.remove();
         resolve(null);
       });
@@ -1000,7 +995,7 @@ export const SyncModule = (() => {
     listenOnline();
 
     // 每小时检查一次是否需要同步
-    const _autoSyncTimer = setInterval(async () => {
+    setInterval(async () => {
       try {
         const lastSync = await Storage.get('settings', 'last_auto_sync_time');
         const lastTime = lastSync ? new Date(lastSync.value).getTime() : 0;
@@ -1019,7 +1014,7 @@ export const SyncModule = (() => {
 
     // 每日本地备份
     autoBackupToLocal();
-    const _autoBackupTimer = setInterval(autoBackupToLocal, 24 * 60 * 60 * 1000);
+    setInterval(autoBackupToLocal, 24 * 60 * 60 * 1000);
   }
 
   return {

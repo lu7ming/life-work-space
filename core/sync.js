@@ -24,6 +24,8 @@ export const SyncModule = (() => {
   /** 增量同步状态 */
   let _isSyncing = false;
   let _onlineListenerAttached = false;
+  let _autoSyncTimer = null;
+  let _autoBackupTimer = null;
 
   // ========== 样式注入 ==========
   let stylesInjected = false;
@@ -383,27 +385,32 @@ export const SyncModule = (() => {
       body.sha = sha;
     }
 
-    const resp = await fetch(`${API_BASE}/${path}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github.v3+json'
-      },
-      body: JSON.stringify(body)
-    });
+    try {
+      const resp = await fetch(`${API_BASE}/${path}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        body: JSON.stringify(body)
+      });
 
-    if (!resp.ok) {
-      const errBody = await resp.text();
-      // SHA 冲突（409 Conflict）— 远程被其他设备修改
-      if (resp.status === 409) {
-        const err = new Error(`SHA_CONFLICT: 远程文件已被修改 (${errBody})`);
-        err.isConflict = true;
-        throw err;
+      if (!resp.ok) {
+        const errBody = await resp.text();
+        // SHA 冲突（409 Conflict）— 远程被其他设备修改
+        if (resp.status === 409) {
+          const err = new Error(`SHA_CONFLICT: 远程文件已被修改 (${errBody})`);
+          err.isConflict = true;
+          throw err;
+        }
+        throw new Error(`推送失败 (${resp.status}): ${errBody}`);
       }
-      throw new Error(`推送失败 (${resp.status}): ${errBody}`);
+      return await resp.json();
+    } catch (e) {
+      console.warn('[Sync] pushFile 请求失败:', e);
+      throw e;
     }
-    return await resp.json();
   }
 
   // ========== 增量同步：操作队列 ==========
@@ -995,7 +1002,7 @@ export const SyncModule = (() => {
     listenOnline();
 
     // 每小时检查一次是否需要同步
-    setInterval(async () => {
+    _autoSyncTimer = setInterval(async () => {
       try {
         const lastSync = await Storage.get('settings', 'last_auto_sync_time');
         const lastTime = lastSync ? new Date(lastSync.value).getTime() : 0;
@@ -1014,7 +1021,7 @@ export const SyncModule = (() => {
 
     // 每日本地备份
     autoBackupToLocal();
-    setInterval(autoBackupToLocal, 24 * 60 * 60 * 1000);
+    _autoBackupTimer = setInterval(autoBackupToLocal, 24 * 60 * 60 * 1000);
   }
 
   return {

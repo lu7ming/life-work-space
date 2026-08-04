@@ -601,6 +601,7 @@ img {
   --card-color: var(--bg-main, #1E1A16);
   --card-color-light: var(--bg-card, #2A2420);
   --text-main: var(--text-primary, #E8E0D8);
+}
 
 /* ===== 暗色模式元素覆盖 ===== */
 [data-theme="dark"] .sidebar-checkin-btn {

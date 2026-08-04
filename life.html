@@ -10,7 +10,7 @@
   <title>人生工作台</title>
 
   <!-- 应用版本号（集中管理，升级时只需修改此处和 sw.js） -->
-  <script>window.__APP_VERSION__ = 'v82';</script>
+  <script>window.__APP_VERSION__ = 'v83';</script>
   <!-- PWA -->
   <link rel="icon" href="assets/icons/icon-192.png" type="image/png">
   <link rel="manifest" href="manifest.json">
@@ -58,7 +58,7 @@
   <!-- 版本号同步：将所有 stylesheet 的版本号参数同步为 __APP_VERSION__ -->
   <script>
     (function() {
-      var v = window.__APP_VERSION__ || 'v82';
+      var v = window.__APP_VERSION__ || 'v83';
       document.querySelectorAll('link[rel="stylesheet"]').forEach(function(l) {
         l.href = l.href.replace(/\?v=\w+/, '') + '?v=' + v;
       });
@@ -241,7 +241,7 @@
   </div>
 
   <!-- ES Module 入口：核心依赖静态导入，功能模块按需动态加载 -->
-  <script type="module" src="core/app.js?v=82"></script>
+  <script type="module" src="core/app.js?v=83"></script>
 
 </body>
 </html>

@@ -3,7 +3,7 @@
  * v82 - 防御性修复：try/catch、空值检查、CSS变量补全
  */
 
-const CACHE_NAME = 'life-work-space-v82';
+const CACHE_NAME = 'life-work-space-v83';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

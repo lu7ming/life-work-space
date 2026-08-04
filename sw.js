@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v85 - 修复7处HIGH级别bug
+ * v86 - 修复MEDIUM级别bug：浅色CSS变量补全、JSON.parse防护
  */
 
-const CACHE_NAME = 'life-work-space-v85';
+const CACHE_NAME = 'life-work-space-v86';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

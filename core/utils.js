@@ -447,7 +447,13 @@ const SecureStorage = (() => {
     const setting = await Storage.get('settings', 'secure_' + key);
     if (!setting || !setting.value) return null;
     const decrypted = await decrypt(setting.value);
-    return decrypted ? JSON.parse(decrypted) : null;
+    if (!decrypted) return null;
+    try {
+      return JSON.parse(decrypted);
+    } catch (e) {
+      console.warn('[SecureStorage] loadSecure JSON 解析失败:', e);
+      return null;
+    }
   }
 
   return { encrypt, decrypt, saveSecure, loadSecure };

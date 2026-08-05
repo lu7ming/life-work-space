@@ -2670,50 +2670,217 @@ ${context}
   }
 
 
-  // ===== v87: 每日一言 =====
+  // ===== v93: 今日金句 =====
   /**
-   * 渲染每日一言（按日期轮换）
+   * 渲染今日金句（离线数据 + 在线AI推荐）
    */
-  async function renderDailyQuote() {
-    const quotes = [
-      '慢慢来，比较快。',
-      '生活不是等待风暴过去，而是学会在雨中起舞。',
-      '你现在的努力，是为了让未来的自己有更多选择。',
-      '所有的光芒，都需要时间才能被看到。',
-      '把每一件简单的事做好，就是不简单。',
-      '日拱一卒，功不唐捐。',
-      '温柔且坚定地走下去吧。',
-      '没有白走的路，每一步都算数。',
-      '你只管努力，剩下的交给时间。',
-      '愿你的坚持，都是因为热爱。',
-      '不必着急，属于你的风景终会到来。',
-      '做自己喜欢的事，就不觉得累。',
-      '安静地积蓄力量，也是一种勇敢。',
-      '今天也要好好生活呀。',
-      '每一个清晨都是一个新的开始。',
-      '平凡的日子里，也藏着小小的光芒。',
-      '慢慢走，沿途有风景，背后有阳光。',
-      '你比自己想象的更了不起。',
-      '保持热爱，奔赴山海。',
-      '生活明朗，万物可爱。',
-      '此刻的你，正在成为更好的自己。',
-      '别怕慢，只要方向是对的。',
-      '认真生活，就能找到生活藏起来的糖果。',
-      '未来可期，一切都在路上。',
-      '心若向阳，无谓悲伤。',
-      '日子是过出来的，不是想出来的。',
-      '慢慢变好，才是给自己最好的礼物。',
-      '世界很大，不要让自己困在原地。',
-      '有些事不用急，时间会给你答案。',
-      '哪怕只进步一点点，也好过原地踏步。'
-    ];
+  let _wisdomCache = null; // 缓存离线数据
 
+  async function renderDailyQuote() {
+    const listEl = document.getElementById('dash-quote-list');
+    const dayEl = document.getElementById('dash-quote-day');
+    const footerEl = document.getElementById('dash-quote-footer');
+
+    if (!listEl) return;
+
+    // 计算今日 day 索引
     const today = new Date();
     const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
-    const quoteIdx = dayOfYear % quotes.length;
 
-    const el = document.getElementById('dash-quote-text');
-    if (el) el.textContent = quotes[quoteIdx];
+    // 先尝试在线 AI 推荐
+    let quotes = null;
+    let isAI = false;
+    try {
+      quotes = await fetchAIQuoteRecommendation(today, dayOfYear);
+      if (quotes && quotes.length > 0) isAI = true;
+    } catch (e) {
+      console.warn('[Dashboard] AI金句推荐失败，降级到离线数据:', e.message);
+    }
+
+    // 降级到离线数据
+    if (!quotes || quotes.length === 0) {
+      quotes = await loadOfflineQuotes(dayOfYear);
+    }
+
+    // 最终兜底
+    if (!quotes || quotes.length === 0) {
+      listEl.innerHTML = '<div class="dash-quote-fallback">今天也请好好生活 ✨</div>';
+      if (dayEl) dayEl.textContent = '';
+      if (footerEl) footerEl.textContent = '';
+      return;
+    }
+
+    // 渲染金句列表
+    listEl.innerHTML = quotes.map((q, i) => {
+      const bookInfo = q.book ? `<div class="dash-quote-detail-book">📖 ${q.book}</div>` : '';
+      const noteInfo = q.note ? `<div class="dash-quote-detail-note">${q.note}</div>` : '';
+      const detailContent = (bookInfo || noteInfo)
+        ? `<div class="dash-quote-item-detail"><div class="dash-quote-detail-inner">${bookInfo}${noteInfo}</div></div>`
+        : '';
+      const hint = (bookInfo || noteInfo) ? '<div class="dash-quote-expand-hint">点击展开 ▾</div>' : '';
+      return `
+        <div class="dash-quote-item" data-index="${i}">
+          <div class="dash-quote-item-text">${q.quote}</div>
+          <div class="dash-quote-item-source">
+            —— ${q.source || '佚名'}
+            ${q.category ? `<span class="dash-quote-badge">${q.category}</span>` : ''}
+          </div>
+          ${hint}
+          ${detailContent}
+        </div>`;
+    }).join('');
+
+    // 显示天数标记
+    if (dayEl) {
+      const dayNum = dayOfYear % 95 + 1; // 95天循环
+      dayEl.textContent = `第${dayNum}天`;
+    }
+
+    // 底部文案
+    if (footerEl) {
+      footerEl.textContent = isAI ? '✨ 今日推荐 · AI精选' : '📚 今日推荐 · 第' + (dayOfYear % 95 + 1) + '天';
+    }
+
+    // 绑定展开/收起事件
+    listEl.querySelectorAll('.dash-quote-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const detail = item.querySelector('.dash-quote-item-detail');
+        if (!detail) return;
+        const isExpanded = item.classList.contains('expanded');
+        item.classList.toggle('expanded');
+        const hint = item.querySelector('.dash-quote-expand-hint');
+        if (hint) hint.textContent = isExpanded ? '点击展开 ▾' : '收起 ▴';
+      });
+    });
+  }
+
+  /**
+   * 加载离线金句数据
+   */
+  async function loadOfflineQuotes(dayOfYear) {
+    try {
+      // 使用缓存
+      if (!_wisdomCache) {
+        const resp = await fetch('./data/daily-wisdom.json');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        _wisdomCache = await resp.json();
+      }
+      const data = _wisdomCache;
+      const totalDays = data.total_days || 95;
+      const dayIndex = (dayOfYear % totalDays);
+      const dayData = data.data?.[dayIndex];
+      if (dayData && dayData.quotes) {
+        return dayData.quotes.slice(0, 3); // 最多显示3条
+      }
+      return null;
+    } catch (e) {
+      console.warn('[Dashboard] 离线金句加载失败:', e.message);
+      return null;
+    }
+  }
+
+  /**
+   * 尝试在线 AI 推荐（5秒超时）
+   */
+  async function fetchAIQuoteRecommendation(today, dayOfYear) {
+    // 获取 DeepSeek token
+    let token = null;
+    try {
+      if (window.SecureStorage?.loadSecure) {
+        token = await window.SecureStorage?.loadSecure('deepseek_token');
+      }
+      if (!token) {
+        const setting = await Storage.get('settings', 'deepseek_token');
+        token = setting ? setting.value : null;
+      }
+    } catch (e) { /* 无 token */ }
+
+    if (!token) {
+      console.log('[Dashboard] 无 DeepSeek token，跳过AI金句推荐');
+      return null;
+    }
+
+    // 检查今日缓存
+    const cacheKey = `ai_quote_${getTodayStr()}`;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.length > 0) {
+          console.log('[Dashboard] 使用缓存的AI金句推荐');
+          return parsed;
+        }
+      }
+    } catch (e) { /* 忽略缓存错误 */ }
+
+    // 构建季节上下文
+    const month = today.getMonth() + 1;
+    const seasons = { 1: '冬', 2: '冬', 3: '春', 4: '春', 5: '春', 6: '夏', 7: '夏', 8: '夏', 9: '秋', 10: '秋', 11: '秋', 12: '冬' };
+    const season = seasons[month] || '夏';
+    const weekday = ['日','一','二','三','四','五','六'][today.getDay()];
+
+    const prompt = `今天是${today.getFullYear()}年${month}月${today.getDate()}日，星期${weekday}，${season}季。
+请推荐1-3条关于成长、哲学、文学的精选金句。
+
+要求：
+1. 金句应与当前季节和时间氛围呼应
+2. 每条金句包含：quote(句子)、source(出处/作者)、category(分类)、note(核心解读，一句话)
+3. 回复必须严格使用JSON数组格式：
+[{"quote":"...", "source":"...", "category":"...", "note":"..."}]
+4. 只输出JSON数组，不要其他文字
+5. 金句要有深度和温度，避免鸡汤`;
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: 600
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (!resp.ok) {
+        console.warn('[Dashboard] AI金句推荐请求失败:', resp.status);
+        return null;
+      }
+
+      const data = await resp.json();
+      const reply = data.choices?.[0]?.message?.content;
+      if (!reply) return null;
+
+      // 解析 JSON 数组
+      const jsonMatch = reply.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) return null;
+      const result = JSON.parse(jsonMatch[0]);
+
+      if (!Array.isArray(result) || result.length === 0) return null;
+
+      // 缓存结果
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(result));
+      } catch (e) { /* 忽略 */ }
+
+      console.log('[Dashboard] AI金句推荐成功:', result.length, '条');
+      return result.slice(0, 3);
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        console.warn('[Dashboard] AI金句推荐超时(5s)，降级到离线数据');
+      } else {
+        console.warn('[Dashboard] AI金句推荐失败:', e.message);
+      }
+      return null;
+    }
   }
 
   // ===== v87: 倒计时 =====

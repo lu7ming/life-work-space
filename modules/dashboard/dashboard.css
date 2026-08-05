@@ -1948,39 +1948,183 @@
 [data-theme="dark"] .dash-smart-focus-reminder {
   background: rgba(231, 76, 60, 0.1);
 }
-/* ===== v87: 每日一言 ===== */
+/* ===== v93: 今日金句 ===== */
 .dash-quote {
-  padding: 28px 24px;
+  padding: 24px;
   margin-bottom: 20px;
-  text-align: center;
   position: relative;
+  background: var(--bg-card, #EEE9E3);
 }
 
-.dash-quote::before {
-  content: '"';
-  position: absolute;
-  top: 10px;
-  left: 18px;
-  font-size: 2.5rem;
-  color: var(--border-color);
-  font-family: Georgia, serif;
-  line-height: 1;
-  opacity: 0.5;
+.dash-quote-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
 }
 
-.dash-quote-text {
+.dash-quote-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #3D2C1E);
+}
+
+.dash-quote-day {
+  font-size: 12px;
+  color: var(--text-secondary, #6B5B4D);
+  padding: 3px 10px;
+  border-radius: var(--radius-full, 20px);
+  background: rgba(232, 168, 124, 0.12);
+}
+
+.dash-quote-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 单条金句 */
+.dash-quote-item {
+  padding: 14px 16px;
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid var(--accent, #E8A87C);
+}
+
+.dash-quote-item:hover {
+  background: rgba(255, 255, 255, 0.65);
+  transform: translateX(2px);
+}
+
+[data-theme="dark"] .dash-quote-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .dash-quote-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dash-quote-item-text {
   font-size: 15px;
-  line-height: 1.8;
-  color: var(--text-secondary);
-  font-weight: 400;
+  line-height: 1.7;
+  color: var(--text-primary, #3D2C1E);
+  font-weight: 500;
+  margin-bottom: 6px;
 }
 
-.dash-quote-divider {
-  width: 24px;
-  height: 1.5px;
-  background: var(--border-color);
-  margin: 14px auto 0;
-  opacity: 0.5;
+.dash-quote-item-source {
+  font-size: 13px;
+  color: var(--text-secondary, #6B5B4D);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-quote-item-source .dash-quote-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(232, 168, 124, 0.15);
+  color: var(--accent, #E8A87C);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 展开详情区域 */
+.dash-quote-item-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, margin-top 0.35s ease, opacity 0.25s ease;
+  opacity: 0;
+  margin-top: 0;
+}
+
+.dash-quote-item.expanded .dash-quote-item-detail {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 12px;
+}
+
+.dash-quote-detail-inner {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(232, 168, 124, 0.06);
+  border: 1px solid rgba(232, 168, 124, 0.12);
+}
+
+[data-theme="dark"] .dash-quote-detail-inner {
+  background: rgba(232, 168, 124, 0.08);
+  border-color: rgba(232, 168, 124, 0.15);
+}
+
+.dash-quote-detail-book {
+  font-size: 13px;
+  color: var(--text-secondary, #6B5B4D);
+  margin-bottom: 6px;
+}
+
+.dash-quote-detail-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary, #6B5B4D);
+  font-style: italic;
+}
+
+.dash-quote-expand-hint {
+  font-size: 11px;
+  color: var(--text-muted, #8A7D71);
+  margin-top: 6px;
+  text-align: right;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.dash-quote-item:hover .dash-quote-expand-hint {
+  opacity: 1;
+}
+
+/* 底部 */
+.dash-quote-footer {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted, #8A7D71);
+  opacity: 0.7;
+}
+
+/* 兜底文案 */
+.dash-quote-fallback {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* 深色模式全局 */
+[data-theme="dark"] .dash-quote {
+  background: linear-gradient(135deg, #1E1A16 0%, #241F1A 100%);
+}
+
+[data-theme="dark"] .dash-quote-day {
+  background: rgba(232, 168, 124, 0.15);
+}
+
+/* 移动端响应式 */
+@media (max-width: 480px) {
+  .dash-quote {
+    padding: 18px 16px;
+  }
+
+  .dash-quote-item {
+    padding: 12px 14px;
+  }
+
+  .dash-quote-item-text {
+    font-size: 14px;
+  }
 }
 
 /* ===== v87: 天气 + 农历/节气 ===== */
@@ -2055,7 +2199,5 @@
     gap: 10px;
   }
 
-  .dash-quote-text {
-    font-size: 14px;
-  }
+
 }

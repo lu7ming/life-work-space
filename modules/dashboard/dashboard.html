@@ -18,7 +18,48 @@
     <div class="dash-quote-footer" id="dash-quote-footer"></div>
   </div>
 
-  <!-- 天气 + 农历/节气 -->
+  <!-- 碎碎念 -->
+  <div class="dash-nn card" id="dash-nn">
+    <!-- 收起状态 -->
+    <div class="dash-nn-collapsed" id="dash-nn-collapsed">
+      <span class="dash-nn-collapsed-text">📝 碎碎念...</span>
+      <button class="dash-nn-history-btn" id="dash-nn-history-toggle" title="历史记录">🕐</button>
+    </div>
+    <!-- 展开状态 -->
+    <div class="dash-nn-expanded hidden" id="dash-nn-expanded">
+      <div class="dash-nn-header">
+        <span class="dash-nn-title">📝 碎碎念</span>
+        <button class="dash-nn-close" id="dash-nn-close">✕</button>
+      </div>
+      <textarea class="dash-nn-textarea" id="dash-nn-textarea" rows="3" placeholder="说点什么吧…AI会帮你归类到对应模块 ✨"></textarea>
+      <div class="dash-nn-mood-row" id="dash-nn-mood-row">
+        <button class="dash-nn-mood-btn" data-mood="😢">😢</button>
+        <button class="dash-nn-mood-btn" data-mood="😤">😤</button>
+        <button class="dash-nn-mood-btn" data-mood="😐">😐</button>
+        <button class="dash-nn-mood-btn" data-mood="😴">😴</button>
+        <button class="dash-nn-mood-btn" data-mood="😊">😊</button>
+      </div>
+      <button class="dash-nn-submit" id="dash-nn-submit">写好了 ✨</button>
+      <!-- loading -->
+      <div class="dash-nn-loading hidden" id="dash-nn-loading">
+        <span class="dash-nn-loading-dot"></span>
+        <span class="dash-nn-loading-dot"></span>
+        <span class="dash-nn-loading-dot"></span>
+        <span>AI 正在分析…</span>
+      </div>
+      <!-- 预览区域 -->
+      <div class="dash-nn-preview hidden" id="dash-nn-preview"></div>
+      <!-- 确认/放弃 -->
+      <div class="dash-nn-confirm-row hidden" id="dash-nn-confirm-row">
+        <button class="dash-nn-confirm-btn" id="dash-nn-confirm">确认写入 ✅</button>
+        <button class="dash-nn-cancel-btn" id="dash-nn-cancel">放弃</button>
+      </div>
+    </div>
+    <!-- 历史记录面板 -->
+    <div class="dash-nn-history hidden" id="dash-nn-history"></div>
+  </div>
+
+    <!-- 天气 + 农历/节气 -->
   <div class="dash-info-row">
     <div class="dash-info-card card">
       <div class="dash-info-label" id="dash-weather-label">今日天气 · 定位中…</div>

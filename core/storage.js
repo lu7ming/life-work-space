@@ -4,7 +4,7 @@
  */
 
 export const DB_NAME = 'LifeWorkSpace';
-export const DB_VERSION = 12;
+export const DB_VERSION = 13;
 
 /**
  * 存储管理器
@@ -193,6 +193,12 @@ export const Storage = (() => {
             achievements.createIndex('category', 'category', { unique: false });
             achievements.createIndex('unlockedAt', 'unlockedAt', { unique: false });
             console.log('[Storage] v12 迁移：已创建 achievements 表（成就勋章系统）');
+          },
+          // v13: 旅行计划模块
+          13: (db) => {
+            const travel = db.createObjectStore('travel', { keyPath: 'id' });
+            travel.createIndex('stage', 'stage', { unique: false });
+            console.log('[Storage] v13 迁移：已创建 travel 表（旅行计划模块）');
           },
         };
 

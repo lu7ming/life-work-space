@@ -17,23 +17,24 @@ import { Router } from './router.js';
 // ===== 动态导入：模块注册表 =====
 // 路由名 → { jsPath, cssPath?, htmlPath? }
 const MODULE_REGISTRY = {
-  dashboard:   { js: '../modules/dashboard/dashboard.js?v=86',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
-  habits:      { js: '../modules/habits/habits.js?v=86',         html: 'habits/habits.html',         css: 'habits/habits.css' },
-  tasks:       { js: '../modules/tasks/tasks.js?v=86',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
-  study:       { js: '../modules/study/study.js?v=86',           html: 'study/study.html',           css: 'study/study.css' },
-  health:      { js: '../modules/health/health.js?v=86',         html: 'health/health.html',         css: 'health/health.css' },
-  finance:     { js: '../modules/finance/finance.js?v=86',       html: 'finance/finance.html',       css: 'finance/finance.css' },
-  journal:     { js: '../modules/journal/journal.js?v=86',       html: 'journal/journal.html',       css: 'journal/journal.css' },
-  relations:   { js: '../modules/relations/relations.js?v=86',   html: 'relations/relations.html',   css: 'relations/relations.css' },
-  knowledge:   { js: '../modules/knowledge/knowledge.js?v=86',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
-  goals:       { js: '../modules/goals/goals.js?v=86',           html: 'goals/goals.html',           css: 'goals/goals.css' },
-  lifetree:    { js: '../modules/lifetree/lifetree.js?v=86',     html: 'lifetree/lifetree.html',     css: 'lifetree/lifetree.css' },
-  content:     { js: '../modules/content/content.js?v=86',       html: 'content/content.html',       css: 'content/content.css' },
-  achievements:{ js: '../modules/achievements/achievements.js?v=86', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
-  timetracker: { js: '../modules/timetracker/timetracker.js?v=86', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
-  templates:   { js: '../modules/templates/templates_module.js?v=86', html: 'templates/templates.html' },
-  calendar:    { js: '../modules/calendar/calendar.js?v=86',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
-  toolbox:     { js: '../modules/toolbox/toolbox.js?v=86',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
+  dashboard:   { js: '../modules/dashboard/dashboard.js?v=88',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
+  habits:      { js: '../modules/habits/habits.js?v=88',         html: 'habits/habits.html',         css: 'habits/habits.css' },
+  tasks:       { js: '../modules/tasks/tasks.js?v=88',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
+  study:       { js: '../modules/study/study.js?v=88',           html: 'study/study.html',           css: 'study/study.css' },
+  health:      { js: '../modules/health/health.js?v=88',         html: 'health/health.html',         css: 'health/health.css' },
+  finance:     { js: '../modules/finance/finance.js?v=88',       html: 'finance/finance.html',       css: 'finance/finance.css' },
+  journal:     { js: '../modules/journal/journal.js?v=88',       html: 'journal/journal.html',       css: 'journal/journal.css' },
+  relations:   { js: '../modules/relations/relations.js?v=88',   html: 'relations/relations.html',   css: 'relations/relations.css' },
+  knowledge:   { js: '../modules/knowledge/knowledge.js?v=88',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
+  goals:       { js: '../modules/goals/goals.js?v=88',           html: 'goals/goals.html',           css: 'goals/goals.css' },
+  lifetree:    { js: '../modules/lifetree/lifetree.js?v=88',     html: 'lifetree/lifetree.html',     css: 'lifetree/lifetree.css' },
+  content:     { js: '../modules/content/content.js?v=88',       html: 'content/content.html',       css: 'content/content.css' },
+  achievements:{ js: '../modules/achievements/achievements.js?v=88', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
+  timetracker: { js: '../modules/timetracker/timetracker.js?v=88', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
+  templates:   { js: '../modules/templates/templates_module.js?v=88', html: 'templates/templates.html' },
+  calendar:    { js: '../modules/calendar/calendar.js?v=88',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
+  toolbox:     { js: '../modules/toolbox/toolbox.js?v=88',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
+  travel:      { js: '../modules/travel/travel.js?v=88',           html: 'travel/travel.html',           css: 'travel/travel.css' },
 };
 
 // 模块名映射：路由名 → 导出的模块对象名
@@ -55,6 +56,7 @@ const MODULE_NAME_MAP = {
   templates: 'TemplatesModule',
   calendar: 'CalendarModule',
   toolbox: 'ToolboxModule',
+  travel: 'TravelModule',
 };
 
 // ===== 懒加载核心模块缓存 =====
@@ -66,35 +68,35 @@ let _lazyModules = {};
 async function lazyImport(name) {
   if (_lazyModules[name]) return _lazyModules[name];
   const pathMap = {
-    secureStorage: './secure-storage.js?v=86',
-    theme: './theme.js?v=86',
-    bgEffects: './bg-effects.js?v=86',
-    notifications: './notifications.js?v=86',
-    smartReminder: './smart-reminder.js?v=86',
-    templates: './templates.js?v=86',
-    userProfile: './user-profile.js?v=86',
-    preferenceLearner: './preference-learner.js?v=86',
-    predictiveEngine: './predictive-engine.js?v=86',
-    auditLog: './audit-log.js?v=86',
-    localAI: './local-ai.js?v=86',
-    quickinput: './quickinput.js?v=86',
-    sharedKnowledge: './shared-knowledge.js?v=86',
-    orchestrator: './orchestrator.js?v=86',
-    modelRouter: './model-router.js?v=86',
-    smartSuggestion: './smart-suggestion.js?v=86',
-    crossLinker: './cross-linker.js?v=86',
-    sync: './sync.js?v=86',
-    search: './search.js?v=86',
-    export: './export.js?v=86',
-    emotionAnalyzer: './emotion-analyzer.js?v=86',
-    dataMinimizer: './data-minimizer.js?v=86',
-    knowledgeExtractor: './knowledge-extractor.js?v=86',
-    nicole: './nicole.js?v=86',
-    xiaolu: './xiaolu.js?v=86',
-    music: '../modules/music/music.js?v=86',
-    report: '../modules/report/report.js?v=86',
-    rest: '../modules/rest/rest.js?v=86',
-    achievements: './achievements.js?v=86',
+    secureStorage: './secure-storage.js?v=88',
+    theme: './theme.js?v=88',
+    bgEffects: './bg-effects.js?v=88',
+    notifications: './notifications.js?v=88',
+    smartReminder: './smart-reminder.js?v=88',
+    templates: './templates.js?v=88',
+    userProfile: './user-profile.js?v=88',
+    preferenceLearner: './preference-learner.js?v=88',
+    predictiveEngine: './predictive-engine.js?v=88',
+    auditLog: './audit-log.js?v=88',
+    localAI: './local-ai.js?v=88',
+    quickinput: './quickinput.js?v=88',
+    sharedKnowledge: './shared-knowledge.js?v=88',
+    orchestrator: './orchestrator.js?v=88',
+    modelRouter: './model-router.js?v=88',
+    smartSuggestion: './smart-suggestion.js?v=88',
+    crossLinker: './cross-linker.js?v=88',
+    sync: './sync.js?v=88',
+    search: './search.js?v=88',
+    export: './export.js?v=88',
+    emotionAnalyzer: './emotion-analyzer.js?v=88',
+    dataMinimizer: './data-minimizer.js?v=88',
+    knowledgeExtractor: './knowledge-extractor.js?v=88',
+    nicole: './nicole.js?v=88',
+    xiaolu: './xiaolu.js?v=88',
+    music: '../modules/music/music.js?v=88',
+    report: '../modules/report/report.js?v=88',
+    rest: '../modules/rest/rest.js?v=88',
+    achievements: './achievements.js?v=88',
   };
   const path = pathMap[name];
   if (!path) throw new Error(`Unknown lazy module: ${name}`);
@@ -674,6 +676,12 @@ export const App = (() => {
       });
     }
 
+    // 旅行计划按钮
+    const topbarTravelBtn = document.getElementById('topbar-travel-btn');
+    if (topbarTravelBtn) {
+      topbarTravelBtn.addEventListener('click', () => { Router.navigate('travel'); });
+    }
+
     // 顶部刷新按钮
     const topbarRefreshBtn = document.getElementById('topbar-refresh-btn');
     if (topbarRefreshBtn) {
@@ -709,7 +717,7 @@ export const App = (() => {
       });
     });
 
-    document.querySelectorAll('.topbar-icon-btn:not(#topbar-more-btn):not(#notif-bell)').forEach((btn) => {
+    document.querySelectorAll('.topbar-icon-btn:not(#topbar-more-btn):not(#notif-bell):not(#topbar-travel-btn):not(#topbar-refresh-btn)').forEach((btn) => {
       btn.addEventListener('click', () => {
         if (btn.id === 'topbar-audit-btn') {
           if (window.AuditLog?.showAuditPanel) {

@@ -147,7 +147,8 @@ export const DashboardModule = (() => {
         renderSmartSuggestions(),
         renderPredictiveActions(),
         renderSmartFocus(),
-        initWidgetSystem()
+        initWidgetSystem(),
+        renderTravelCard()
       ]);
       bindFocusEvents();
       bindAnnualEvents();
@@ -1897,6 +1898,29 @@ export const DashboardModule = (() => {
     if (goBtn) {
       _bindEvent(goBtn, 'click', () => Router.navigate('calendar'));
     }
+  }
+
+  /**
+   * 渲染旅行基金卡片
+   */
+  async function renderTravelCard() {
+    const fundEl = document.getElementById('dash-travel-fund');
+    const cardEl = document.getElementById('dash-travel-card');
+    if (!fundEl || !cardEl) return;
+
+    try {
+      const destinations = await Storage.getAll('travel');
+      const totalSaved = (destinations || []).reduce((s, d) => s + (d.fund?.saved || 0), 0);
+      fundEl.textContent = '¥' + totalSaved.toLocaleString('zh-CN');
+    } catch (e) {
+      console.warn('[Dashboard] 读取旅行基金失败:', e);
+      fundEl.textContent = '¥0';
+    }
+
+    // 点击卡片导航到旅行计划
+    _bindEvent(cardEl, 'click', () => {
+      if (window.Router) window.Router.navigate('travel');
+    });
   }
 
   /**

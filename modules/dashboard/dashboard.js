@@ -135,6 +135,9 @@ export const DashboardModule = (() => {
     try {
       await Promise.all([
         renderGreeting(),
+        renderDailyQuote(),
+        renderWeatherLunar(),
+        renderCountdown(),
         renderCalendar(),
         renderHighlights(),
         renderBirthdayReminder(),
@@ -2642,6 +2645,341 @@ ${context}
     }
   }
 
+
+  // ===== v87: 每日一言 =====
+  /**
+   * 渲染每日一言（按日期轮换）
+   */
+  async function renderDailyQuote() {
+    const quotes = [
+      '慢慢来，比较快。',
+      '生活不是等待风暴过去，而是学会在雨中起舞。',
+      '你现在的努力，是为了让未来的自己有更多选择。',
+      '所有的光芒，都需要时间才能被看到。',
+      '把每一件简单的事做好，就是不简单。',
+      '日拱一卒，功不唐捐。',
+      '温柔且坚定地走下去吧。',
+      '没有白走的路，每一步都算数。',
+      '你只管努力，剩下的交给时间。',
+      '愿你的坚持，都是因为热爱。',
+      '不必着急，属于你的风景终会到来。',
+      '做自己喜欢的事，就不觉得累。',
+      '安静地积蓄力量，也是一种勇敢。',
+      '今天也要好好生活呀。',
+      '每一个清晨都是一个新的开始。',
+      '平凡的日子里，也藏着小小的光芒。',
+      '慢慢走，沿途有风景，背后有阳光。',
+      '你比自己想象的更了不起。',
+      '保持热爱，奔赴山海。',
+      '生活明朗，万物可爱。',
+      '此刻的你，正在成为更好的自己。',
+      '别怕慢，只要方向是对的。',
+      '认真生活，就能找到生活藏起来的糖果。',
+      '未来可期，一切都在路上。',
+      '心若向阳，无谓悲伤。',
+      '日子是过出来的，不是想出来的。',
+      '慢慢变好，才是给自己最好的礼物。',
+      '世界很大，不要让自己困在原地。',
+      '有些事不用急，时间会给你答案。',
+      '哪怕只进步一点点，也好过原地踏步。'
+    ];
+
+    const today = new Date();
+    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+    const quoteIdx = dayOfYear % quotes.length;
+
+    const el = document.getElementById('dash-quote-text');
+    if (el) el.textContent = quotes[quoteIdx];
+  }
+
+  // ===== v87: 倒计时 =====
+  /**
+   * 渲染倒计时（暑假余额 + 开学倒计时）
+   */
+  async function renderCountdown() {
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    // 暑假余额：到8月31日
+    const augEnd = new Date(today.getFullYear(), 7, 31);
+    const summerLeft = Math.ceil((augEnd - todayStart) / 86400000);
+
+    // 开学倒计时：到9月1日
+    const sepStart = new Date(today.getFullYear(), 8, 1);
+    const schoolLeft = Math.ceil((sepStart - todayStart) / 86400000);
+
+    const summerEl = document.getElementById('dash-summer-days');
+    if (summerEl) summerEl.textContent = summerLeft >= 0 ? summerLeft : 0;
+
+    const schoolEl = document.getElementById('dash-school-days');
+    if (schoolEl) schoolEl.textContent = schoolLeft >= 0 ? schoolLeft : 0;
+  }
+
+  // ===== v87: 天气 + 农历/节气 =====
+  /**
+   * 渲染天气 + 农历/节气
+   */
+  async function renderWeatherLunar() {
+    renderLunar();
+    renderWeather();
+  }
+
+  /**
+   * 农历计算（简化查表法，覆盖2025-2028）
+   */
+  function renderLunar() {
+    const today = new Date();
+
+    // 2026年农历数据：春节2月17日，闰六月
+    const springFestival2026 = new Date(2026, 1, 17);
+    const lunarMonths2026 = [29,29,30,29,30,29, 29,30,29,30,29,30,29];
+    const leapMonth2026 = 6;
+
+    // 2025年辅助数据
+    const springFestival2025 = new Date(2025, 0, 29);
+    const lunarMonths2025 = [29,30,29,30,29,30,29,30,29,30,30,29];
+    const leapMonth2025 = 0;
+
+    let springDate, months, leapMonth, lunarYear;
+    if (today >= springFestival2026) {
+      springDate = springFestival2026;
+      months = lunarMonths2026;
+      leapMonth = leapMonth2026;
+      lunarYear = 2026;
+    } else {
+      springDate = springFestival2025;
+      months = lunarMonths2025;
+      leapMonth = leapMonth2025;
+      lunarYear = 2025;
+    }
+
+    const diff = Math.floor((today - springDate) / 86400000);
+    if (diff < 0) return;
+
+    let lunarMonth = 0, lunarDay = 0, isLeap = false;
+    let remaining = diff;
+
+    for (let i = 0; i < months.length; i++) {
+      if (remaining < months[i]) {
+        if (leapMonth > 0 && i === leapMonth) {
+          isLeap = true;
+          lunarMonth = i;
+        } else if (leapMonth > 0 && i > leapMonth) {
+          lunarMonth = i;
+        } else {
+          lunarMonth = i + 1;
+        }
+        lunarDay = remaining + 1;
+        break;
+      }
+      remaining -= months[i];
+    }
+
+    if (lunarMonth === 0) lunarMonth = 1;
+
+    const lunarNames = ['', '正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊'];
+    const dayNames = ['', '初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+      '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+      '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+    const ganNames = ['庚','辛','壬','癸','甲','乙','丙','丁','戊','己'];
+    const zhiNames = ['申','酉','戌','亥','子','丑','寅','卯','辰','巳','午','未'];
+    const animalNames = ['猴','鸡','狗','猪','鼠','牛','虎','兔','龙','蛇','马','羊'];
+
+    const lunarMonthStr = (isLeap ? '闰' : '') + lunarNames[lunarMonth] + '月';
+    const lunarDayStr = dayNames[lunarDay];
+
+    const dateEl = document.getElementById('dash-lunar-date');
+    if (dateEl) dateEl.textContent = lunarMonthStr + lunarDayStr;
+
+    const ganIdx = lunarYear % 10;
+    const zhiIdx = lunarYear % 12;
+    const yearEl = document.getElementById('dash-lunar-year');
+    if (yearEl) yearEl.textContent = ganNames[ganIdx] + zhiNames[zhiIdx] + '年 · ' + animalNames[zhiIdx] + '年';
+
+    // 节气
+    const solarTerms2026 = [
+      { name: '小寒', date: new Date(2026, 0, 5) },
+      { name: '大寒', date: new Date(2026, 0, 20) },
+      { name: '立春', date: new Date(2026, 1, 4) },
+      { name: '雨水', date: new Date(2026, 1, 18) },
+      { name: '惊蛰', date: new Date(2026, 2, 5) },
+      { name: '春分', date: new Date(2026, 2, 20) },
+      { name: '清明', date: new Date(2026, 3, 5) },
+      { name: '谷雨', date: new Date(2026, 3, 20) },
+      { name: '立夏', date: new Date(2026, 4, 5) },
+      { name: '小满', date: new Date(2026, 4, 21) },
+      { name: '芒种', date: new Date(2026, 5, 5) },
+      { name: '夏至', date: new Date(2026, 5, 21) },
+      { name: '小暑', date: new Date(2026, 6, 7) },
+      { name: '大暑', date: new Date(2026, 6, 22) },
+      { name: '立秋', date: new Date(2026, 7, 7) },
+      { name: '处暑', date: new Date(2026, 7, 23) },
+      { name: '白露', date: new Date(2026, 8, 7) },
+      { name: '秋分', date: new Date(2026, 8, 23) },
+      { name: '寒露', date: new Date(2026, 9, 8) },
+      { name: '霜降', date: new Date(2026, 9, 23) },
+      { name: '立冬', date: new Date(2026, 10, 7) },
+      { name: '小雪', date: new Date(2026, 10, 22) },
+      { name: '大雪', date: new Date(2026, 11, 7) },
+      { name: '冬至', date: new Date(2026, 11, 21) }
+    ];
+
+    const todayMs = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    let currentTerm = null;
+    let nextTerm = null;
+
+    for (let i = 0; i < solarTerms2026.length; i++) {
+      const termMs = new Date(solarTerms2026[i].date.getFullYear(),
+        solarTerms2026[i].date.getMonth(), solarTerms2026[i].date.getDate()).getTime();
+      if (termMs <= todayMs) currentTerm = solarTerms2026[i];
+    }
+
+    for (let j = 0; j < solarTerms2026.length; j++) {
+      const tMs = new Date(solarTerms2026[j].date.getFullYear(),
+        solarTerms2026[j].date.getMonth(), solarTerms2026[j].date.getDate()).getTime();
+      if (tMs > todayMs) { nextTerm = solarTerms2026[j]; break; }
+    }
+
+    let termDisplay = '';
+    if (currentTerm) {
+      const daysSinceTerm = Math.floor((todayMs - new Date(currentTerm.date.getFullYear(),
+        currentTerm.date.getMonth(), currentTerm.date.getDate()).getTime()) / 86400000);
+      if (daysSinceTerm === 0) {
+        termDisplay = '今日 ' + currentTerm.name;
+      } else if (daysSinceTerm <= 3) {
+        termDisplay = currentTerm.name + ' 已过' + daysSinceTerm + '天';
+      } else if (nextTerm) {
+        const daysToNext = Math.ceil((new Date(nextTerm.date.getFullYear(),
+          nextTerm.date.getMonth(), nextTerm.date.getDate()).getTime() - todayMs) / 86400000);
+        termDisplay = currentTerm.name + ' · ' + nextTerm.name + '还有' + daysToNext + '天';
+      } else {
+        termDisplay = currentTerm.name;
+      }
+    } else if (nextTerm) {
+      const dToN = Math.ceil((new Date(nextTerm.date.getFullYear(),
+        nextTerm.date.getMonth(), nextTerm.date.getDate()).getTime() - todayMs) / 86400000);
+      termDisplay = nextTerm.name + '还有' + dToN + '天';
+    }
+
+    const termEl = document.getElementById('dash-solar-term');
+    if (termEl) termEl.textContent = termDisplay;
+  }
+
+  /**
+   * 天气获取（IP自动定位 + wttr.in天气查询）
+   */
+  function renderWeather() {
+    const labelEl = document.getElementById('dash-weather-label');
+    const iconEl = document.getElementById('dash-weather-icon');
+    const tempEl = document.getElementById('dash-weather-temp');
+    const descEl = document.getElementById('dash-weather-desc');
+
+    function showFallback() {
+      if (labelEl) labelEl.textContent = '今日天气';
+      if (iconEl) iconEl.textContent = '🌤';
+      if (tempEl) tempEl.textContent = '--°';
+      if (descEl) descEl.textContent = '暂无天气数据';
+    }
+
+    function weatherIconForCode(code) {
+      if (code >= 113 && code <= 116) return '☀️';
+      if (code >= 119 && code <= 122) return '⛅';
+      if (code >= 143 && code <= 176) return '🌫';
+      if (code >= 179 && code <= 182) return '🌨';
+      if (code >= 185 && code <= 200) return '🌫';
+      if (code >= 227 && code <= 230) return '❄️';
+      if (code >= 248 && code <= 260) return '🌫';
+      if (code >= 263 && code <= 293) return '🌧';
+      if (code >= 296 && code <= 311) return '🌧';
+      if (code >= 314 && code <= 329) return '🌧';
+      if (code >= 332 && code <= 350) return '🌨';
+      if (code >= 353 && code <= 371) return '🌧';
+      if (code >= 374 && code <= 395) return '❄️';
+      return '🌤';
+    }
+
+    function descForCode(code) {
+      if (code >= 113 && code <= 116) return '晴';
+      if (code >= 119 && code <= 122) return '多云';
+      if (code >= 143 && code <= 176) return '小雨';
+      if (code >= 227 && code <= 230) return '雪';
+      if (code >= 263 && code <= 329) return '雨';
+      if (code >= 332 && code <= 371) return '阵雨';
+      if (code >= 374 && code <= 395) return '雪';
+      return '多云';
+    }
+
+    function fetchWeather(city) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      fetch('https://wttr.in/' + encodeURIComponent(city) + '?format=j1', {
+        signal: controller.signal
+      }).then(res => res.json()).then(data => {
+        clearTimeout(timeout);
+        const current = data.current_condition && data.current_condition[0];
+        if (current) {
+          const temp = current.temp_C;
+          const code = parseInt(current.weatherCode, 10);
+          const feelTemp = current.FeelsLikeC;
+          if (iconEl) iconEl.textContent = weatherIconForCode(code);
+          if (tempEl) tempEl.textContent = temp + '°';
+          if (descEl) descEl.textContent = descForCode(code) + ' · 体感' + feelTemp + '°';
+        } else {
+          showFallback();
+        }
+      }).catch(() => {
+        clearTimeout(timeout);
+        showFallback();
+      });
+    }
+
+    // IP定位主源：ipwho.is
+    const controller1 = new AbortController();
+    const timeout1 = setTimeout(() => controller1.abort(), 5000);
+    fetch('https://ipwho.is/', { signal: controller1.signal })
+      .then(res => res.json())
+      .then(data => {
+        clearTimeout(timeout1);
+        if (data.success && data.city) {
+          if (labelEl) labelEl.textContent = '今日天气 · ' + data.city;
+          fetchWeather(data.city);
+        } else {
+          // 备源：ipapi.co
+          const controller2 = new AbortController();
+          const timeout2 = setTimeout(() => controller2.abort(), 5000);
+          fetch('https://ipapi.co/json/', { signal: controller2.signal })
+            .then(res => res.json())
+            .then(data2 => {
+              clearTimeout(timeout2);
+              if (data2.city) {
+                if (labelEl) labelEl.textContent = '今日天气 · ' + data2.city;
+                fetchWeather(data2.city);
+              } else {
+                showFallback();
+              }
+            })
+            .catch(() => { clearTimeout(timeout2); showFallback(); });
+        }
+      })
+      .catch(() => {
+        clearTimeout(timeout1);
+        // 备源：ipapi.co
+        const controller2 = new AbortController();
+        const timeout2 = setTimeout(() => controller2.abort(), 5000);
+        fetch('https://ipapi.co/json/', { signal: controller2.signal })
+          .then(res => res.json())
+          .then(data2 => {
+            clearTimeout(timeout2);
+            if (data2.city) {
+              if (labelEl) labelEl.textContent = '今日天气 · ' + data2.city;
+              fetchWeather(data2.city);
+            } else {
+              showFallback();
+            }
+          })
+          .catch(() => { clearTimeout(timeout2); showFallback(); });
+      });
+  }
 
   // ===== 模块生命周期 =====
   let _eventListeners = [];

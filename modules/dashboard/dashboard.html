@@ -6,6 +6,30 @@
     <p class="dash-greeting-subtitle" id="dash-greeting-sub"></p>
   </div>
 
+  <!-- 每日一言 -->
+  <div class="dash-quote card" id="dash-quote">
+    <div class="dash-quote-text" id="dash-quote-text"></div>
+    <div class="dash-quote-divider"></div>
+  </div>
+
+  <!-- 天气 + 农历/节气 -->
+  <div class="dash-info-row">
+    <div class="dash-info-card card">
+      <div class="dash-info-label" id="dash-weather-label">今日天气 · 定位中…</div>
+      <div class="dash-weather-main">
+        <span class="dash-weather-icon" id="dash-weather-icon">🌤</span>
+        <span class="dash-weather-temp" id="dash-weather-temp">--°</span>
+      </div>
+      <div class="dash-weather-desc" id="dash-weather-desc">加载中…</div>
+    </div>
+    <div class="dash-info-card card">
+      <div class="dash-info-label">农历 · 节气</div>
+      <div class="dash-lunar-date" id="dash-lunar-date"></div>
+      <div class="dash-lunar-year" id="dash-lunar-year"></div>
+      <div class="dash-solar-term" id="dash-solar-term"></div>
+    </div>
+  </div>
+
   <!-- 生日提醒区域 -->
   <div id="dash-birthday-reminder" style="display:none;"></div>
 
@@ -104,6 +128,20 @@
         <div class="dash-highlight-info">
           <span class="dash-highlight-value" id="dash-month-balance">¥0</span>
           <span class="dash-highlight-label">本月结余</span>
+        </div>
+      </div>
+      <div class="dash-highlight-card card" style="--accent: var(--accent-blue); --accent-light: var(--accent-blue-light);">
+        <span class="dash-highlight-icon">🏖</span>
+        <div class="dash-highlight-info">
+          <span class="dash-highlight-value" id="dash-summer-days">0</span>
+          <span class="dash-highlight-label">暑假余额(天)</span>
+        </div>
+      </div>
+      <div class="dash-highlight-card card" style="--accent: var(--accent-green); --accent-light: var(--accent-green-light);">
+        <span class="dash-highlight-icon">🎓</span>
+        <div class="dash-highlight-info">
+          <span class="dash-highlight-value" id="dash-school-days">0</span>
+          <span class="dash-highlight-label">开学倒计时(天)</span>
         </div>
       </div>
     </div>

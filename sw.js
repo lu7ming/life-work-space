@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v86 - 修复MEDIUM级别bug：浅色CSS变量补全、JSON.parse防护
+ * v87 - 新增生活气息模块：每日一言、天气+农历/节气、倒计时
  */
 
-const CACHE_NAME = 'life-work-space-v86';
+const CACHE_NAME = 'life-work-space-v87';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

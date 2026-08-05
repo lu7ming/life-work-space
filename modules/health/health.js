@@ -1,49 +1,309 @@
 /**
- * health.js - 健康与身体模块逻辑
- * 人生工作台 · 体重/睡眠/运动/饮水/饮食
+ * health.js - 健康与身体模块逻辑（三Tab升级版）
+ * 人生工作台 · 日常记录 + 中医养生 + 症状自查
  */
 import { AppUtils } from '../../core/utils.js';
 import { Storage } from '../../core/storage.js';
 import { EventBus } from '../../core/event-bus.js';
 import { ModuleLifecycle } from '../../core/module-lifecycle.js';
 
-
 export const HealthModule = (() => {
   const { escapeHtml, formatDate } = AppUtils;
 
-  // 当前查看的日期
+  // ===== 状态 =====
   let currentDate = new Date();
-
-  // 当日健康数据
   let healthData = null;
+  let selectedMood = null;
+  let _eventListeners = [];
+  let _intervals = [];
+  let _timeouts = [];
+  let _shichenTimer = null;
+  let _breathingState = { running: false, cycle: 0, step: 0 };
+  let _timerState = { running: false, remaining: 0, total: 0, intervalId: null };
+
+  // ===== 中医知识数据 =====
+
+  // 体质辨识问卷（16题）
+  const QUIZ_QUESTIONS = [
+    { text: '您是否容易感到疲乏无力？', type: 'qi' },
+    { text: '说话时是否容易气短、声音低弱？', type: 'qi' },
+    { text: '是否容易出汗，尤其是稍微活动就出汗？', type: 'qi' },
+    { text: '是否容易怕冷，手脚发凉？', type: 'yang' },
+    { text: '是否喜欢吃热食热饮，吃凉的会不舒服？', type: 'yang' },
+    { text: '是否面色偏白，容易感冒？', type: 'yang' },
+    { text: '是否容易口干咽燥，总想喝水？', type: 'yin' },
+    { text: '是否容易手足心热，或者有烘热感？', type: 'yin' },
+    { text: '是否皮肤偏干，或者容易便秘？', type: 'yin' },
+    { text: '是否体型偏胖，腹部松软？', type: 'phlegm' },
+    { text: '是否容易出油，面部油脂较多？', type: 'dampheat' },
+    { text: '是否口中黏腻，或者舌苔厚腻？', type: 'phlegm' },
+    { text: '皮肤是否容易出现紫斑，或者面色偏暗？', type: 'blood' },
+    { text: '是否容易健忘，或者嘴唇颜色偏暗？', type: 'blood' },
+    { text: '是否容易情绪低落或者闷闷不乐？', type: 'qi_stagnation' },
+    { text: '是否容易过敏（花粉、食物、药物等）？', type: 'special' }
+  ];
+
+  // 9种体质
+  const CONSTITUTION_TYPES = {
+    pinghe: {
+      name: '平和质', desc: '体态适中，面色润泽，精力充沛',
+      advice: '保持现有生活方式，饮食有节，起居有常，适量运动即可。',
+      scores: { qi: 1, yang: 1, yin: 1, phlegm: 1, blood: 1, damp: 1 }
+    },
+    qixu: {
+      name: '气虚质', desc: '元气不足，易疲乏无力',
+      advice: '宜补气健脾。多食山药、黄芪、大枣、鸡肉；避免过度劳累；练习腹式呼吸、八段锦。',
+      scores: { qi: 3, yang: 1, yin: 1, phlegm: 1, blood: 1, damp: 1 }
+    },
+    yangxu: {
+      name: '阳虚质', desc: '阳气不足，畏寒怕冷',
+      advice: '宜温阳散寒。多食羊肉、生姜、桂圆、韭菜；避免生冷食物；艾灸足三里、关元穴。',
+      scores: { qi: 2, yang: 3, yin: 0, phlegm: 1, blood: 1, damp: 1 }
+    },
+    yinxu: {
+      name: '阴虚质', desc: '阴液亏少，口干咽燥',
+      advice: '宜滋阴润燥。多食银耳、百合、梨、枸杞；避免辛辣燥热；早睡早起，避免熬夜。',
+      scores: { qi: 1, yang: 0, yin: 3, phlegm: 0, blood: 1, damp: 0 }
+    },
+    tanshi: {
+      name: '痰湿质', desc: '痰湿凝聚，体型偏胖',
+      advice: '宜化痰祛湿。多食薏米、冬瓜、陈皮、萝卜；少吃甜腻；坚持有氧运动。',
+      scores: { qi: 2, yang: 1, yin: 0, phlegm: 3, blood: 1, damp: 2 }
+    },
+    shire: {
+      name: '湿热质', desc: '湿热内蕴，面油口苦',
+      advice: '宜清热利湿。多食绿豆、苦瓜、薏米、冬瓜；忌酒及辛辣；保持居住环境干燥通风。',
+      scores: { qi: 1, yang: 0, yin: 1, phlegm: 1, blood: 0, damp: 3 }
+    },
+    xueyu: {
+      name: '血瘀质', desc: '血行不畅，肤色偏暗',
+      advice: '宜活血化瘀。多食山楂、玫瑰花、黑豆、醋；适当运动促进气血运行；保持心情舒畅。',
+      scores: { qi: 1, yang: 1, yin: 0, phlegm: 0, blood: 3, damp: 0 }
+    },
+    qiyu: {
+      name: '气郁质', desc: '气机郁滞，情绪低落',
+      advice: '宜疏肝理气。多食柑橘、玫瑰花、佛手、萝卜；多户外活动，保持心情开朗；可练习六字诀中的"嘘"字。',
+      scores: { qi: 2, yang: 0, yin: 1, phlegm: 0, blood: 1, damp: 0 }
+    },
+    tebing: {
+      name: '特禀质', desc: '先天禀赋异常，易过敏',
+      advice: '宜益气固表。避免接触过敏原；多食黄芪、防风、白术（玉屏风散）；注意季节变化时的防护。',
+      scores: { qi: 2, yang: 1, yin: 1, phlegm: 0, blood: 0, damp: 0 }
+    }
+  };
+
+  // 问卷选项到体质分数映射
+  const QUIZ_TYPE_MAP = {
+    qi: 'qixu', yang: 'yangxu', yin: 'yinxu',
+    phlegm: 'tanshi', dampheat: 'shire', blood: 'xueyu',
+    qi_stagnation: 'qiyu', special: 'tebing'
+  };
+
+  // 子午流注12时辰
+  const SHICHEN_DATA = [
+    { name: '子', organ: '胆经', time: '23-1', tip: '子时宜安眠，胆经当令，熟睡利胆养阳。此时入睡有助于胆汁新陈代谢。' },
+    { name: '丑', organ: '肝经', time: '1-3', tip: '丑时宜深睡，肝经当令，养血排毒佳时。此时是肝脏修复和藏血的重要时段。' },
+    { name: '寅', organ: '肺经', time: '3-5', tip: '寅时宜熟睡，肺经当令，气血由静转动。此时深睡有助于肺气肃降。' },
+    { name: '卯', organ: '大肠经', time: '5-7', tip: '卯时宜起床排便，大肠经当令，排毒素正当时。建议起床后喝杯温水。' },
+    { name: '辰', organ: '胃经', time: '7-9', tip: '辰时宜吃早餐，胃经当令，消化吸收最佳。此时吃早餐营养最易吸收。' },
+    { name: '巳', organ: '脾经', time: '9-11', tip: '巳时宜工作学习，脾经当令，精力充沛效率高。此时是大脑最活跃的时段。' },
+    { name: '午', organ: '心经', time: '11-13', tip: '午时宜小憩，心经当令，午睡养心安神。建议午休15-30分钟。' },
+    { name: '未', organ: '小肠经', time: '13-15', tip: '未时宜消化，小肠经当令，分清别浊。此时不宜剧烈运动。' },
+    { name: '申', organ: '膀胱经', time: '15-17', tip: '申时宜运动多喝水，膀胱经当令，排毒利水好时机。适合运动和饮水。' },
+    { name: '酉', organ: '肾经', time: '17-19', tip: '酉时宜养肾，肾经当令，藏精纳气正当时。适合放松休息，按摩腰部。' },
+    { name: '戌', organ: '心包经', time: '19-21', tip: '戌时宜放松，心包经当令，散步听音乐养心。保持心情愉悦。' },
+    { name: '亥', organ: '三焦经', time: '21-23', tip: '亥时宜安眠，三焦经当令，百脉通修养身。建议放下手机准备入睡。' }
+  ];
+
+  // 推荐茶饮（10方）
+  const TEA_RECIPES = [
+    { name: '黄芪红枣茶', recipe: '黄芪10g · 红枣3枚 · 枸杞5g', effect: '补气健脾，提升元气', brew: '沸水冲泡，加盖焖10分钟，可反复冲泡2-3次', constitutions: ['qixu', 'yangxu'], seasons: ['spring', 'winter'] },
+    { name: '陈皮生姜茶', recipe: '陈皮6g · 生姜3片 · 红糖适量', effect: '理气健脾，温中散寒', brew: '生姜切片与陈皮同煮5分钟，加红糖调味，趁热饮用', constitutions: ['yangxu', 'tanshi'], seasons: ['winter', 'autumn'] },
+    { name: '银耳百合茶', recipe: '银耳5g · 百合10g · 冰糖少许', effect: '滋阴润肺，生津止渴', brew: '银耳泡发后与百合小火慢炖30分钟，加冰糖调味', constitutions: ['yinxu'], seasons: ['autumn'] },
+    { name: '菊花枸杞茶', recipe: '菊花5g · 枸杞10g', effect: '清肝明目，滋阴降火', brew: '沸水冲泡，焖5分钟即可饮用', constitutions: ['yinxu', 'shire'], seasons: ['summer'] },
+    { name: '玫瑰花茶', recipe: '干玫瑰花6-8朵', effect: '疏肝理气，活血化瘀', brew: '80°C温水冲泡，焖3分钟，可加蜂蜜调味', constitutions: ['qiyu', 'xueyu'], seasons: ['spring'] },
+    { name: '薏米赤小豆茶', recipe: '薏米15g · 赤小豆15g', effect: '健脾祛湿，利水消肿', brew: '薏米炒后与赤小豆同煮20分钟，取汤代茶饮', constitutions: ['tanshi', 'shire'], seasons: ['summer'] },
+    { name: '桂圆红枣茶', recipe: '桂圆肉10g · 红枣5枚 · 生姜2片', effect: '温阳补血，安神助眠', brew: '所有材料加水煮15分钟，趁热饮用', constitutions: ['yangxu', 'qixu'], seasons: ['winter'] },
+    { name: '山楂决明茶', recipe: '山楂10g · 决明子10g', effect: '消食化滞，清肝明目', brew: '沸水冲泡，焖10分钟，饭后饮用', constitutions: ['tanshi', 'shire'], seasons: ['autumn'] },
+    { name: '胖大海甘草茶', recipe: '胖大海2枚 · 甘草3g · 桔梗5g', effect: '清热润肺，利咽开音', brew: '沸水冲泡，焖10分钟，温服，适合用嗓后饮用', constitutions: ['yinxu', 'shire'], seasons: ['autumn', 'spring'] },
+    { name: '防风白术茶', recipe: '防风6g · 白术10g · 黄芪10g', effect: '益气固表，预防感冒', brew: '三味加水煎煮15分钟，取汁代茶饮', constitutions: ['tebing', 'qixu'], seasons: ['spring', 'autumn'] }
+  ];
+
+  // 护嗓穴位（6个）
+  const ACUPOINTS = [
+    { id: 'tiantu', name: '天突穴', loc: '胸骨上窝正中', fn: '止咳化痰，利咽开音', detail: '用食指或中指轻轻按揉，力度适中，适合咳嗽、咽痒、声音嘶哑。', svgPos: { cx: 60, cy: 50, r: 5 } },
+    { id: 'lieque', name: '列缺穴', loc: '腕横纹上1.5寸', fn: '宣肺利咽，通经活络', detail: '两手虎口交叉，食指尖到达处即是。按揉可缓解咽喉肿痛、头痛。', svgPos: { cx: 30, cy: 120, r: 5 } },
+    { id: 'taiyuan', name: '太渊穴', loc: '腕掌侧横纹桡侧', fn: '补肺益气，止咳平喘', detail: '腕横纹桡动脉搏动处。按揉可增强肺功能，改善气短。', svgPos: { cx: 90, cy: 120, r: 5 } },
+    { id: 'hegu', name: '合谷穴', loc: '手背虎口处', fn: '疏风解表，镇痛开窍', detail: '"面口合谷收"，按揉可缓解牙痛、咽痛、头痛，是常用保健穴。', svgPos: { cx: 30, cy: 145, r: 5 } },
+    { id: 'zusanli', name: '足三里', loc: '外膝眼下3寸', fn: '健脾和胃，扶正培元', detail: '强壮保健要穴。常按可增强免疫力，改善消化功能，延缓衰老。', svgPos: { cx: 45, cy: 215, r: 5 } },
+    { id: 'zhaohai', name: '照海穴', loc: '内踝尖直下凹陷处', fn: '滋阴清热，利咽安神', detail: '八脉交会穴之一，通阴跷脉。按揉可缓解咽干咽痛、失眠。', svgPos: { cx: 75, cy: 215, r: 5 } }
+  ];
+
+  // 舌诊数据
+  const TONGUE_DATA = {
+    color: [
+      { val: 'pale', label: '淡白', interpret: '气血不足或阳虚。多见于贫血、脾胃虚弱。建议：补气养血，多食红枣、桂圆、黄芪。' },
+      { val: 'normal', label: '淡红', interpret: '正常舌色，气血充盈，为健康表现。' },
+      { val: 'red', label: '红', interpret: '热证。实热多见舌红苔黄，虚热多见舌红少苔。建议：清热泻火或滋阴降火。' },
+      { val: 'crimson', label: '绛', interpret: '热入营血，多见于高热或久病阴虚火旺。建议：及时就医，滋阴凉血。' },
+      { val: 'purple', label: '紫', interpret: '血瘀。淡紫为气滞血瘀，暗紫为寒凝血瘀。建议：活血化瘀，保持情绪舒畅。' }
+    ],
+    coating: [
+      { val: 'thin_white', label: '薄白', interpret: '正常舌苔或表证初起。为健康表现或外感风寒初期。' },
+      { val: 'thick_white', label: '厚白', interpret: '湿浊或寒湿内停。多见于消化不良、痰湿体质。建议：健脾祛湿，忌生冷。' },
+      { val: 'yellow', label: '黄', interpret: '热证或湿热。多见于胃热、肝胆湿热。建议：清热利湿，忌辛辣油腻。' },
+      { val: 'gray_black', label: '灰黑', interpret: '寒证或热证极期。灰黑而润为寒极，灰黑而燥为热极。建议：及时就医。' },
+      { val: 'none', label: '无苔', interpret: '胃气不足或胃阴亏虚。多见于久病、阴虚体质。建议：滋阴养胃，多食银耳、百合。' }
+    ],
+    shape: [
+      { val: 'normal', label: '正常', interpret: '舌体大小适中，无齿痕、裂纹，为健康表现。' },
+      { val: 'teeth_marks', label: '齿痕', interpret: '脾虚湿盛。舌边有齿痕，多伴乏力、便溏。建议：健脾祛湿，多食薏米、山药。' },
+      { val: 'cracked', label: '裂纹', interpret: '阴液亏虚或血虚。多见于阴虚体质、老年人。建议：滋阴润燥，避免辛辣。' },
+      { val: 'swollen', label: '胖大', interpret: '脾虚湿盛或阳虚水泛。建议：温阳健脾利水，忌生冷甜腻。' },
+      { val: 'thin', label: '瘦薄', interpret: '气血不足或阴虚火旺。建议：补气养血或滋阴降火。' }
+    ]
+  };
+
+  // 六字诀
+  const SIX_SOUNDS = [
+    { char: '嘘', pinyin: 'xū', organ: '肝', effect: '疏肝理气，明目', method: '口型如发"虚"音，两唇微合，舌尖前伸向上。配合怒目圆睁，吐气发声。' },
+    { char: '呵', pinyin: 'hē', organ: '心', effect: '清心泻火，安神', method: '口型如发"喝"音，口半开，舌抵下腭。配合面带微笑，吐气发声。' },
+    { char: '呼', pinyin: 'hū', organ: '脾', effect: '健脾消食，化湿', method: '口型如发"呼"音，撮口如管状。配合双手托腹，吐气发声。' },
+    { char: '呬', pinyin: 'sī', organ: '肺', effect: '润肺益气，止咳', method: '口型如发"丝"音，上下牙齿对齐，微露缝隙。配合双手托天，吐气发声。' },
+    { char: '吹', pinyin: 'chuī', organ: '肾', effect: '固肾纳气，强腰', method: '口型如发"吹"音，撮口前突。配合双手抱膝，吐气发声。' },
+    { char: '嘻', pinyin: 'xī', organ: '三焦', effect: '通调三焦，理气', method: '口型如发"嘻"音，两唇微启，舌尖轻抵下腭。配合全身放松，吐气发声。' }
+  ];
+
+  // 简易八段锦（4式）
+  const BA_DUAN_JIN = [
+    { name: '第一式 · 两手托天理三焦', desc: '自然站立，双手交叉上托至头顶，掌心向上，如同托举天空。拉伸全身，调理三焦气机。', effect: '调理三焦，舒展全身' },
+    { name: '第二式 · 左右开弓似射雕', desc: '马步站立，双手如拉弓射箭状，左右交替。目视食指方向，舒展胸廓。', effect: '宽胸理气，强健臂力' },
+    { name: '第三式 · 调理脾胃须单举', desc: '站立，单手上举，掌心向上，另一手下按，掌心向下。左右交替，力达掌根。', effect: '调理脾胃，升降气机' },
+    { name: '第四式 · 五劳七伤往后瞧', desc: '自然站立，头慢慢向左转，目视左后方，再转回正，换右侧。动作缓慢柔和。', effect: '缓解疲劳，舒展颈项' }
+  ];
+
+  // 症状部位及对应症状
+  const SYMPTOM_DATA = {
+    head: { name: '头面部', icon: '🧑', symptoms: ['头痛', '头晕', '耳鸣', '眼干涩', '鼻塞流涕', '口干口苦', '面色苍白', '面红目赤'] },
+    respiratory: { name: '呼吸系统', icon: '🫁', symptoms: ['咳嗽', '气短气喘', '咳痰清稀', '咳痰黄稠', '咽喉肿痛', '声音嘶哑', '鼻干咽燥', '胸闷'] },
+    chest: { name: '胸腹部', icon: '🫀', symptoms: ['心悸', '胃脘胀痛', '食欲不振', '恶心呕吐', '腹胀', '便秘', '腹泻', '反酸烧心'] },
+    back: { name: '腰背四肢', icon: '🦴', symptoms: ['腰膝酸软', '关节疼痛', '肢体麻木', '肩颈僵硬', '下肢浮肿', '抽筋', '肢体发凉', '关节红肿'] },
+    whole: { name: '全身', icon: '🧍', symptoms: ['畏寒怕冷', '自汗', '盗汗', '疲倦乏力', '消瘦', '肥胖', '低热', '水肿'] },
+    emotion: { name: '情绪', icon: '💭', symptoms: ['失眠多梦', '心烦易怒', '抑郁寡欢', '焦虑不安', '健忘', '善太息', '心神不宁', '多疑'] }
+  };
+
+  // 补充信息维度
+  const SUPPLEMENT_DATA = [
+    { key: 'sleep', label: '🛏️ 睡眠', options: ['正常', '入睡困难', '多梦易醒', '嗜睡'] },
+    { key: 'diet', label: '🍽️ 饮食', options: ['正常', '食欲不振', '食欲亢进', '口干口渴'] },
+    { key: 'emotion', label: '💭 情绪', options: ['平和', '烦躁易怒', '低落抑郁', '焦虑紧张'] },
+    { key: 'excretion', label: '🚽 二便', options: ['正常', '便秘', '腹泻', '尿频尿急'] }
+  ];
+
+  // 证型库（34种）
+  const SYNDROME_TYPES = [
+    // 呼吸系统 6种
+    { id: 'fqx', name: '肺气虚证', category: '呼吸', symptoms: { '气短气喘': 3, '咳嗽': 2, '声音嘶哑': 2, '自汗': 2, '疲倦乏力': 2, '畏寒怕冷': 1, '面色苍白': 1 }, interpretation: '肺气亏虚，卫表不固。主要表现为咳喘无力、气短懒言、声音低怯、自汗畏风，容易反复感冒。多因久咳伤气或脾虚及肺所致。', tea: ['黄芪防风茶', '党参五味子茶'], acupoints: ['肺俞穴', '足三里', '膻中穴'], diet: { good: '山药、百合、银耳、蜂蜜、雪梨、核桃', bad: '生冷寒凉、辛辣刺激、油腻厚味' } },
+    { id: 'fyx', name: '肺阴虚证', category: '呼吸', symptoms: { '咳嗽': 2, '咳痰黄稠': 1, '咽喉肿痛': 2, '声音嘶哑': 2, '鼻干咽燥': 3, '盗汗': 2, '低热': 1 }, interpretation: '肺阴亏虚，虚热内生。表现为干咳少痰、咽干鼻燥、声音嘶哑、盗汗。多因久咳伤阴或燥热伤肺。', tea: ['银耳百合茶', '胖大海甘草茶'], acupoints: ['太渊穴', '列缺穴', '照海穴'], diet: { good: '银耳、百合、梨、蜂蜜、麦冬', bad: '辛辣燥热、烟酒、油炸食品' } },
+    { id: 'fsr', name: '风寒犯肺证', category: '呼吸', symptoms: { '咳嗽': 3, '鼻塞流涕': 3, '咳痰清稀': 3, '咽喉肿痛': 1, '畏寒怕冷': 2, '头痛': 1 }, interpretation: '风寒外袭，肺失宣降。表现为咳嗽声重、痰稀色白、鼻塞流清涕、恶寒无汗。多见于冬春季节外感风寒。', tea: ['陈皮生姜茶', '紫苏生姜茶'], acupoints: ['列缺穴', '合谷穴', '风池穴'], diet: { good: '生姜、葱白、紫苏、红糖', bad: '生冷瓜果、寒凉食物' } },
+    { id: 'fsr2', name: '风热犯肺证', category: '呼吸', symptoms: { '咳嗽': 2, '咽喉肿痛': 3, '鼻塞流涕': 1, '咳痰黄稠': 2, '头痛': 1, '面红目赤': 1, '口干口苦': 1 }, interpretation: '风热外袭，肺失清肃。表现为咳嗽痰黄、咽痛口渴、鼻塞流黄涕、发热微恶风。多见于春夏季节。', tea: ['菊花枸杞茶', '金银花茶'], acupoints: ['合谷穴', '列缺穴', '少商穴'], diet: { good: '菊花、金银花、薄荷、梨、西瓜', bad: '辛辣燥热、羊肉、桂圆' } },
+    { id: 'tzr', name: '痰热蕴肺证', category: '呼吸', symptoms: { '咳嗽': 3, '咳痰黄稠': 3, '胸闷': 2, '气短气喘': 2, '咽喉肿痛': 1, '口干口苦': 1 }, interpretation: '痰热壅肺，肺气上逆。表现为咳嗽气急、痰多黄稠、胸闷口干。多因外感风热或痰湿化热。', tea: ['罗汉果茶', '鱼腥草茶'], acupoints: ['肺俞穴', '丰隆穴', '膻中穴'], diet: { good: '梨、枇杷、罗汉果、冬瓜、萝卜', bad: '甜腻、油炸、辛辣食物' } },
+    { id: 'zqy', name: '燥邪犯肺证', category: '呼吸', symptoms: { '咳嗽': 2, '鼻干咽燥': 3, '咽喉肿痛': 2, '声音嘶哑': 2, '咳痰清稀': -1, '口干口渴': 2 }, interpretation: '燥邪伤肺，津液受损。表现为干咳无痰或痰少而黏、咽干鼻燥、声音嘶哑。多见于秋季。', tea: ['银耳百合茶', '胖大海甘草茶'], acupoints: ['太渊穴', '列缺穴', '照海穴'], diet: { good: '梨、银耳、百合、蜂蜜、芝麻', bad: '辛辣刺激、炒货、烟酒' } },
+    // 头面部 4种
+    { id: 'gsh', name: '肝火上炎证', category: '头面', symptoms: { '头痛': 3, '头晕': 2, '面红目赤': 3, '耳鸣': 2, '口干口苦': 2, '心烦易怒': 2, '眼干涩': 1 }, interpretation: '肝经实火，上扰清窍。表现为头痛眩晕、面红目赤、口苦耳鸣、急躁易怒。多因情志不遂、气郁化火。', tea: ['菊花枸杞茶', '决明子茶'], acupoints: ['太冲穴', '合谷穴', '风池穴'], diet: { good: '芹菜、苦瓜、菊花、决明子', bad: '辛辣、羊肉、酒类' } },
+    { id: 'gysx', name: '肝阳上亢证', category: '头面', symptoms: { '头痛': 2, '头晕': 3, '耳鸣': 2, '眼干涩': 2, '失眠多梦': 2, '心烦易怒': 2, '肢体麻木': 1 }, interpretation: '肝肾阴虚，肝阳偏亢。表现为眩晕耳鸣、头目胀痛、腰膝酸软、面部潮红。多见于中老年人、高血压患者。', tea: ['菊花枸杞茶', '天麻钩藤茶'], acupoints: ['太冲穴', '风池穴', '百会穴'], diet: { good: '芹菜、菊花、天麻、枸杞', bad: '辛辣燥热、动物内脏' } },
+    { id: 'qxue', name: '气血两虚证', category: '头面', symptoms: { '头晕': 2, '面色苍白': 3, '眼干涩': 1, '心悸': 2, '疲倦乏力': 3, '失眠多梦': 1, '健忘': 1 }, interpretation: '气血不足，不能上荣。表现为面色苍白或萎黄、头晕眼花、心悸失眠、疲倦乏力。多因脾胃虚弱或失血。', tea: ['黄芪红枣茶', '桂圆红枣茶'], acupoints: ['足三里', '三阴交', '气海穴'], diet: { good: '红枣、桂圆、当归、乌鸡、猪肝', bad: '生冷寒凉、浓茶咖啡' } },
+    { id: 'sgbx', name: '肾精不足证', category: '头面', symptoms: { '头晕': 2, '耳鸣': 3, '健忘': 2, '腰膝酸软': 2, '失眠多梦': 1, '脱发': 2, '疲倦乏力': 1 }, interpretation: '肾精亏虚，髓海不足。表现为头晕耳鸣、健忘失眠、腰膝酸软、发白早脱。多因年老体衰或房劳过度。', tea: ['枸杞黄精茶', '首乌茶'], acupoints: ['肾俞穴', '太溪穴', '百会穴'], diet: { good: '黑芝麻、核桃、枸杞、桑椹', bad: '生冷寒凉、过度节食' } },
+    // 消化 5种
+    { id: 'pxq', name: '脾气虚证', category: '消化', symptoms: { '食欲不振': 3, '腹胀': 2, '疲倦乏力': 3, '腹泻': 2, '面色苍白': 1, '自汗': 1 }, interpretation: '脾气亏虚，运化失健。表现为食欲不振、腹胀便溏、疲倦乏力、面色萎黄。多因饮食不节或劳倦伤脾。', tea: ['黄芪红枣茶', '陈皮茯苓茶'], acupoints: ['足三里', '脾俞穴', '中脘穴'], diet: { good: '山药、薏米、大枣、扁豆、糯米', bad: '生冷瓜果、油腻厚味' } },
+    { id: 'pyx', name: '脾阳虚证', category: '消化', symptoms: { '食欲不振': 2, '腹胀': 2, '腹泻': 3, '畏寒怕冷': 2, '腹痛喜温': 2, '面色苍白': 1 }, interpretation: '脾阳不足，寒从内生。表现为腹中冷痛、喜温喜按、大便溏稀、四肢不温。多由脾气虚发展而来。', tea: ['陈皮生姜茶', '桂圆红枣茶'], acupoints: ['足三里', '关元穴', '神阙穴'], diet: { good: '生姜、桂圆、羊肉、胡椒', bad: '生冷寒凉、绿豆、西瓜' } },
+    { id: 'wyrs', name: '胃热炽盛证', category: '消化', symptoms: { '胃脘胀痛': 2, '口干口苦': 3, '反酸烧心': 2, '食欲亢进': 2, '便秘': 2, '面红目赤': 1 }, interpretation: '胃火炽盛，灼伤胃津。表现为胃脘灼痛、口渴口臭、消谷善饥、牙龈肿痛。多因嗜食辛辣或热邪犯胃。', tea: ['菊花茶', '芦根茶'], acupoints: ['内庭穴', '中脘穴', '合谷穴'], diet: { good: '绿豆、苦瓜、西瓜、梨、莲藕', bad: '辛辣燥热、烧烤、酒类' } },
+    { id: 'wyx', name: '胃阴虚证', category: '消化', symptoms: { '胃脘胀痛': 2, '口干口渴': 3, '食欲不振': 2, '便秘': 2, '反酸烧心': 1, '恶心呕吐': 1 }, interpretation: '胃阴亏虚，胃失濡润。表现为胃脘隐痛、口干咽燥、饥不欲食、大便干结。多因热病伤阴或久病胃阴不足。', tea: ['银耳百合茶', '石斛麦冬茶'], acupoints: ['中脘穴', '足三里', '内庭穴'], diet: { good: '银耳、百合、麦冬、石斛、梨', bad: '辛辣燥热、油炸、浓茶' } },
+    { id: 'stsr', name: '食滞胃脘证', category: '消化', symptoms: { '胃脘胀痛': 3, '腹胀': 2, '恶心呕吐': 2, '食欲不振': 2, '反酸烧心': 1, '腹泻': 1 }, interpretation: '饮食停滞，胃失和降。表现为脘腹胀满、嗳腐吞酸、不思饮食、呕吐酸腐。多因暴饮暴食或食积不化。', tea: ['山楂决明茶', '陈皮茶'], acupoints: ['中脘穴', '足三里', '天枢穴'], diet: { good: '山楂、萝卜、麦芽、陈皮', bad: '油腻厚味、甜食、糯米' } },
+    { id: 'gdpq', name: '肝胃不和证', category: '消化', symptoms: { '胃脘胀痛': 2, '反酸烧心': 2, '腹胀': 1, '心烦易怒': 2, '善太息': 2, '恶心呕吐': 1, '口干口苦': 1 }, interpretation: '肝气郁结，横逆犯胃。表现为胃脘胀痛、痛连两胁、嗳气泛酸、情志不舒时加重。多因情志不畅。', tea: ['玫瑰花茶', '佛手柑茶'], acupoints: ['太冲穴', '中脘穴', '足三里'], diet: { good: '玫瑰花、佛手、柑橘、萝卜', bad: '辛辣刺激、油腻、酒类' } },
+    // 全身情志 6种
+    { id: 'qxs', name: '气虚证', category: '全身', symptoms: { '疲倦乏力': 3, '自汗': 2, '气短气喘': 2, '面色苍白': 2, '食欲不振': 1, '头晕': 1 }, interpretation: '元气不足，脏腑功能衰退。表现为神疲乏力、少气懒言、自汗、活动后加重。多因先天不足或久病。', tea: ['黄芪红枣茶', '党参茶'], acupoints: ['足三里', '气海穴', '关元穴'], diet: { good: '黄芪、党参、山药、大枣、鸡肉', bad: '生冷寒凉、萝卜（破气）' } },
+    { id: 'yxs', name: '阳虚证', category: '全身', symptoms: { '畏寒怕冷': 3, '四肢不温': 2, '疲倦乏力': 1, '面色苍白': 1, '腹泻': 1, '腰膝酸软': 1, '肢体发凉': 2 }, interpretation: '阳气不足，温煦失职。表现为畏寒怕冷、四肢不温、面色苍白、喜温喜热。多由气虚发展而来。', tea: ['桂圆红枣茶', '干姜红茶'], acupoints: ['关元穴', '命门穴', '足三里'], diet: { good: '羊肉、生姜、桂圆、韭菜、核桃', bad: '生冷寒凉、绿豆、苦瓜' } },
+    { id: 'yys', name: '阴虚证', category: '全身', symptoms: { '盗汗': 3, '低热': 2, '口干口渴': 2, '心烦易怒': 1, '失眠多梦': 1, '消瘦': 1 }, interpretation: '阴液亏虚，虚热内生。表现为午后潮热、盗汗、口干咽燥、五心烦热。多因热病伤阴或久病。', tea: ['银耳百合茶', '枸杞麦冬茶'], acupoints: ['太溪穴', '三阴交', '照海穴'], diet: { good: '银耳、百合、梨、枸杞、麦冬', bad: '辛辣燥热、羊肉、韭菜' } },
+    { id: 'xsx', name: '血虚证', category: '全身', symptoms: { '面色苍白': 3, '头晕': 2, '眼干涩': 2, '心悸': 2, '失眠多梦': 2, '健忘': 1, '肢体麻木': 2 }, interpretation: '血液亏虚，脏腑失养。表现为面色淡白或萎黄、唇舌色淡、头晕眼花、心悸失眠。多因失血或脾胃虚弱。', tea: ['桂圆红枣茶', '当归茶'], acupoints: ['三阴交', '足三里', '血海穴'], diet: { good: '红枣、桂圆、当归、猪肝、乌鸡', bad: '生冷寒凉、浓茶' } },
+    { id: 'qyz', name: '气郁证', category: '情志', symptoms: { '抑郁寡欢': 3, '善太息': 3, '心烦易怒': 2, '胸闷': 2, '失眠多梦': 1, '焦虑不安': 2, '腹胀': 1 }, interpretation: '气机郁滞，情志不舒。表现为情绪低落、胸闷叹息、胁肋胀痛、咽中如有物梗。多因情志不畅。', tea: ['玫瑰花茶', '佛手柑茶'], acupoints: ['太冲穴', '膻中穴', '期门穴'], diet: { good: '玫瑰花、柑橘、佛手、萝卜、芹菜', bad: '收涩酸敛、油腻' } },
+    { id: 'xsyz', name: '心血虚证', category: '情志', symptoms: { '心悸': 3, '失眠多梦': 3, '健忘': 2, '面色苍白': 1, '心神不宁': 2, '头晕': 1 }, interpretation: '心血不足，心失所养。表现为心悸怔忡、失眠多梦、健忘、面色无华。多因失血或脾虚生血不足。', tea: ['桂圆红枣茶', '酸枣仁茶'], acupoints: ['神门穴', '心俞穴', '三阴交'], diet: { good: '桂圆、红枣、莲子、猪心、百合', bad: '浓茶咖啡、辛辣刺激' } },
+    // 其他常见 5种+
+    { id: 'syx', name: '肾阳虚证', category: '其他', symptoms: { '腰膝酸软': 3, '畏寒怕冷': 3, '肢体发凉': 2, '下肢浮肿': 2, '腹泻': 1, '尿频尿急': 1, '疲倦乏力': 1 }, interpretation: '肾阳亏虚，温煦失职。表现为腰膝酸冷、畏寒肢冷、夜尿频多、性功能减退。多因年老肾亏或久病伤阳。', tea: ['桂圆红枣茶', '杜仲茶'], acupoints: ['肾俞穴', '关元穴', '命门穴'], diet: { good: '羊肉、韭菜、核桃、虾、桂皮', bad: '生冷寒凉、西瓜、绿豆' } },
+    { id: 'syy', name: '肾阴虚证', category: '其他', symptoms: { '腰膝酸软': 3, '盗汗': 2, '低热': 1, '耳鸣': 2, '失眠多梦': 1, '头晕': 1, '口干口渴': 1 }, interpretation: '肾阴亏虚，虚热内生。表现为腰膝酸软、眩晕耳鸣、盗汗潮热、遗精。多因久病伤阴或房劳过度。', tea: ['枸杞麦冬茶', '六味地黄茶'], acupoints: ['太溪穴', '肾俞穴', '三阴交'], diet: { good: '黑芝麻、枸杞、桑椹、银耳、鸭肉', bad: '辛辣燥热、羊肉、韭菜' } },
+    { id: 'tsx', name: '痰湿证', category: '其他', symptoms: { '肥胖': 2, '疲倦乏力': 2, '胸闷': 2, '腹胀': 1, '腹泻': 1, '咳嗽': 1, '咳痰清稀': 1, '下肢浮肿': 1 }, interpretation: '痰湿内停，阻滞气机。表现为体型肥胖、身体困重、痰多、胸闷、嗜食肥甘。多因脾虚运化失职。', tea: ['薏米赤小豆茶', '陈皮茯苓茶'], acupoints: ['丰隆穴', '足三里', '阴陵泉'], diet: { good: '薏米、冬瓜、萝卜、陈皮、荷叶', bad: '甜腻、油腻、生冷' } },
+    { id: 'srx', name: '湿热证', category: '其他', symptoms: { '口干口苦': 2, '面红目赤': 1, '腹胀': 1, '腹泻': 1, '尿频尿急': 1, '便秘': 1, '低热': 1, '关节红肿': 1 }, interpretation: '湿热蕴结，阻滞气机。表现为口苦口黏、身热不扬、小便短黄、大便黏滞。多因感受湿热或饮食不节。', tea: ['薏米赤小豆茶', '菊花茶'], acupoints: ['阴陵泉', '丰隆穴', '合谷穴'], diet: { good: '绿豆、薏米、苦瓜、冬瓜、赤小豆', bad: '甜腻、油炸、酒类、辛辣' } },
+    { id: 'xxy', name: '血瘀证', category: '其他', symptoms: { '关节疼痛': 2, '肢体麻木': 2, '头痛': 1, '面色苍白': -1, '健忘': 1, '失眠多梦': 1, '胸闷': 1 }, interpretation: '瘀血内停，血脉不畅。表现为刺痛固定不移、面色晦暗、口唇紫暗、肌肤甲错。多因气滞或寒凝。', tea: ['玫瑰花茶', '山楂茶'], acupoints: ['血海穴', '三阴交', '膈俞穴'], diet: { good: '山楂、玫瑰花、黑豆、醋、桃仁', bad: '寒凉收涩、过度油腻' } },
+    // 补充：嗓子相关特殊证型
+    { id: 'fgx', name: '肺肾气虚证', category: '呼吸', symptoms: { '气短气喘': 3, '声音嘶哑': 3, '咳嗽': 1, '腰膝酸软': 2, '疲倦乏力': 2, '自汗': 1 }, interpretation: '肺肾两脏气虚，纳气无力。表现为气短喘促、声低息微、腰膝酸软、呼多吸少。多因久病咳喘伤及肾气。', tea: ['黄芪核桃茶', '冬虫夏草茶'], acupoints: ['肺俞穴', '肾俞穴', '足三里'], diet: { good: '核桃、山药、冬虫夏草、蛤蚧', bad: '生冷寒凉、破气食物' } },
+    { id: 'gys', name: '肝郁化火证', category: '情志', symptoms: { '心烦易怒': 3, '头痛': 2, '口干口苦': 2, '失眠多梦': 2, '面红目赤': 1, '耳鸣': 1, '焦虑不安': 1, '善太息': 1 }, interpretation: '肝气郁结，日久化火。表现为急躁易怒、头痛目赤、口苦咽干、胸胁灼痛。多因长期情志不遂。', tea: ['菊花枸杞茶', '决明子茶'], acupoints: ['太冲穴', '行间穴', '风池穴'], diet: { good: '芹菜、苦瓜、菊花、决明子、绿豆', bad: '辛辣、羊肉、酒类、油炸' } },
+    { id: 'xrsj', name: '心肾不交证', category: '情志', symptoms: { '失眠多梦': 3, '心烦易怒': 2, '心悸': 2, '健忘': 2, '盗汗': 1, '耳鸣': 1, '腰膝酸软': 1, '焦虑不安': 1 }, interpretation: '心火偏亢，肾水不足。表现为心烦失眠、多梦遗精、腰膝酸软、潮热盗汗。多因久病或思虑过度。', tea: ['莲子心茶', '酸枣仁茶'], acupoints: ['神门穴', '太溪穴', '心俞穴'], diet: { good: '莲子、百合、酸枣仁、小麦', bad: '辛辣燥热、浓茶咖啡' } },
+    { id: 'psy', name: '脾胃湿热证', category: '消化', symptoms: { '腹胀': 2, '食欲不振': 2, '口干口苦': 2, '腹泻': 1, '恶心呕吐': 1, '反酸烧心': 1, '疲倦乏力': 1, '面红目赤': -1 }, interpretation: '湿热蕴结脾胃，运化失职。表现为脘腹痞闷、口苦口黏、纳呆呕恶、大便黏滞不爽。多因饮食不节。', tea: ['薏米赤小豆茶', '藿香佩兰茶'], acupoints: ['中脘穴', '阴陵泉', '足三里'], diet: { good: '薏米、绿豆、冬瓜、苦瓜、赤小豆', bad: '甜腻、油炸、酒类、辛辣' } },
+    { id: 'tpqx', name: '脾肺气虚证', category: '全身', symptoms: { '疲倦乏力': 2, '食欲不振': 2, '咳嗽': 2, '气短气喘': 2, '腹泻': 1, '自汗': 1, '面色苍白': 1 }, interpretation: '脾肺两脏气虚，土不生金。表现为食欲不振、腹胀便溏、久咳不止、气短懒言。多因久病或脾虚及肺。', tea: ['黄芪红枣茶', '山药茯苓茶'], acupoints: ['足三里', '肺俞穴', '脾俞穴'], diet: { good: '山药、黄芪、大枣、糯米、鸡肉', bad: '生冷寒凉、破气食物' } },
+    { id: 'fgsx', name: '风寒湿痹证', category: '其他', symptoms: { '关节疼痛': 3, '关节红肿': -1, '肢体发凉': 2, '肢体麻木': 2, '肩颈僵硬': 1, '畏寒怕冷': 1, '抽筋': 1 }, interpretation: '风寒湿邪侵袭经络关节。表现为关节冷痛、遇寒加重、得温则减、肢体麻木。多因居处潮湿或冒雨涉水。', tea: ['生姜红茶', '独活茶'], acupoints: ['阿是穴', '足三里', '阳陵泉'], diet: { good: '生姜、葱白、桂皮、胡椒、羊肉', bad: '生冷寒凉、西瓜、绿豆' } },
+    { id: 'rsbj', name: '风湿热痹证', category: '其他', symptoms: { '关节疼痛': 2, '关节红肿': 3, '肢体麻木': 1, '低热': 1, '口干口苦': 1, '面红目赤': 1 }, interpretation: '风湿热邪壅滞经络关节。表现为关节红肿热痛、活动不利、口渴烦闷。多因感受风湿热邪或素体阳盛。', tea: ['金银花茶', '桑枝茶'], acupoints: ['曲池穴', '合谷穴', '阳陵泉'], diet: { good: '绿豆、薏米、冬瓜、丝瓜、苦瓜', bad: '辛辣燥热、羊肉、酒类' } }
+  ];
 
   // ===== 工具函数 =====
-
-
   function getWeekdayName(date) {
     const names = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
     return names[date.getDay()];
   }
-
   function isToday(date) {
-    const today = new Date();
-    return formatDate(date) === formatDate(today);
+    return formatDate(date) === formatDate(new Date());
+  }
+  function timeToMinutes(timeStr) {
+    const [h, m] = timeStr.split(':').map(Number);
+    return h * 60 + m;
+  }
+  function getSeason() {
+    const m = new Date().getMonth() + 1;
+    if (m >= 3 && m <= 5) return 'spring';
+    if (m >= 6 && m <= 8) return 'summer';
+    if (m >= 9 && m <= 11) return 'autumn';
+    return 'winter';
+  }
+  function showToast(msg) {
+    const toast = document.getElementById('healthToast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
   }
 
-
-
-  // ===== 初始化 =====
-  async function init() {
-    console.log('[Health] 健康模块初始化...');
-    currentDate = new Date();
-    renderAll();
-    await loadData();
-    bindEvents();
+  // ===== 事件绑定辅助 =====
+  function _bindEvent(el, event, handler) {
+    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
   }
 
-  // ===== 渲染骨架 =====
-  function renderAll() {
-    updateDateDisplay();
+  // ===== Tab 切换 =====
+  function initTabs() {
+    const tabs = document.querySelectorAll('.health-tab-item');
+    const indicator = document.getElementById('healthTabIndicator');
+    const tabBar = document.getElementById('healthTabBar');
+
+    function updateIndicator(index) {
+      const tab = tabs[index];
+      if (!tab || !tabBar || !indicator) return;
+      const barRect = tabBar.getBoundingClientRect();
+      const tabRect = tab.getBoundingClientRect();
+      const left = tabRect.left - barRect.left - 4;
+      indicator.style.width = tabRect.width + 'px';
+      indicator.style.transform = `translateX(${left}px)`;
+    }
+    function switchTab(index) {
+      tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+      document.querySelectorAll('.health-tab-content').forEach((c, i) => c.classList.toggle('active', i === index));
+      updateIndicator(index);
+    }
+    tabs.forEach((tab, i) => {
+      _bindEvent(tab, 'click', () => switchTab(i));
+    });
+    requestAnimationFrame(() => updateIndicator(0));
+    _bindEvent(window, 'resize', () => {
+      const activeIndex = [...tabs].findIndex(t => t.classList.contains('active'));
+      updateIndicator(activeIndex >= 0 ? activeIndex : 0);
+    });
   }
 
   // ===== 日期显示 =====
@@ -51,20 +311,12 @@ export const HealthModule = (() => {
     const dateTextEl = document.getElementById('health-date-text');
     const weekdayEl = document.getElementById('health-date-weekday');
     const todayBtn = document.getElementById('health-today-btn');
-
     const y = currentDate.getFullYear();
     const m = currentDate.getMonth() + 1;
     const d = currentDate.getDate();
-
-    if (dateTextEl) {
-      dateTextEl.textContent = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    }
-    if (weekdayEl) {
-      weekdayEl.textContent = isToday(currentDate) ? '今天' : getWeekdayName(currentDate);
-    }
-    if (todayBtn) {
-      todayBtn.classList.toggle('active', isToday(currentDate));
-    }
+    if (dateTextEl) dateTextEl.textContent = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    if (weekdayEl) weekdayEl.textContent = isToday(currentDate) ? '今天' : getWeekdayName(currentDate);
+    if (todayBtn) todayBtn.classList.toggle('active', isToday(currentDate));
   }
 
   // ===== 加载数据 =====
@@ -73,71 +325,17 @@ export const HealthModule = (() => {
     try {
       healthData = await Storage.get('health', dateStr);
       if (!healthData) {
-        healthData = {
-          id: dateStr,
-          date: dateStr,
-          weight: null,
-          weightTrend: '',
-          sleep: { bedtime: '23:00', waketime: '07:00', duration: null, nap: 0 },
-          exercises: [],
-          water: 0,
-          diets: []
-        };
+        healthData = { id: dateStr, date: dateStr, weight: null, weightTrend: '', sleep: { bedtime: '23:00', waketime: '07:00', duration: null, nap: 0 }, exercises: [], water: 0, diets: [] };
       }
-      // 确保字段完整（兼容旧数据）
       if (!healthData.sleep) healthData.sleep = { bedtime: '23:00', waketime: '07:00', duration: null, nap: 0 };
       if (!healthData.exercises) healthData.exercises = [];
       if (healthData.water === undefined) healthData.water = 0;
       if (!healthData.diets) healthData.diets = [];
-
       fillUI();
+      await renderMiniCharts();
     } catch (err) {
       console.error('[Health] 加载数据失败:', err);
     }
-  }
-
-  // ===== 填充UI =====
-  function fillUI() {
-    // 体重
-    const weightInput = document.getElementById('health-weight-input');
-    if (weightInput && healthData.weight !== null && healthData.weight !== undefined) {
-      weightInput.value = healthData.weight;
-    }
-    const trendEl = document.getElementById('health-weight-trend');
-    if (trendEl && healthData.weightTrend) {
-      trendEl.textContent = healthData.weightTrend;
-    }
-
-    // 睡眠
-    const bedtimeInput = document.getElementById('health-sleep-bedtime');
-    const waketimeInput = document.getElementById('health-sleep-waketime');
-    const napInput = document.getElementById('health-sleep-nap');
-    if (bedtimeInput) bedtimeInput.value = healthData.sleep.bedtime || '23:00';
-    if (waketimeInput) waketimeInput.value = healthData.sleep.waketime || '07:00';
-    if (napInput) napInput.value = healthData.sleep.nap || 0;
-    calcSleepDuration();
-
-    // 运动
-    renderExercises();
-
-    // 饮水
-    updateWaterDisplay();
-
-    // 饮食
-    renderDiets();
-  }
-
-  // ===== 日期切换 =====
-  function shiftDate(delta) {
-    currentDate.setDate(currentDate.getDate() + delta);
-    renderAll();
-    loadData();
-  }
-
-  function goToday() {
-    currentDate = new Date();
-    renderAll();
-    loadData();
   }
 
   // ===== 保存数据 =====
@@ -147,13 +345,79 @@ export const HealthModule = (() => {
       healthData.id = dateStr;
       healthData.date = dateStr;
       await Storage.put('health', healthData);
-      // EventBus: 健康数据记录
-      if (true) /* EventBus always available via import */ {
-        EventBus.emit('health:logged', { data: healthData });
-      }
+      EventBus.emit('health:logged', { data: healthData });
     } catch (err) {
       console.error('[Health] 保存失败:', err);
     }
+  }
+
+  // ===== 填充UI =====
+  function fillUI() {
+    const weightInput = document.getElementById('health-weight-input');
+    if (weightInput && healthData.weight !== null && healthData.weight !== undefined) weightInput.value = healthData.weight;
+    const trendEl = document.getElementById('health-weight-trend');
+    if (trendEl && healthData.weightTrend) trendEl.textContent = healthData.weightTrend;
+    const bedtimeInput = document.getElementById('health-sleep-bedtime');
+    const waketimeInput = document.getElementById('health-sleep-waketime');
+    const napInput = document.getElementById('health-sleep-nap');
+    if (bedtimeInput) bedtimeInput.value = healthData.sleep.bedtime || '23:00';
+    if (waketimeInput) waketimeInput.value = healthData.sleep.waketime || '07:00';
+    if (napInput) napInput.value = healthData.sleep.nap || 0;
+    calcSleepDuration();
+    renderExercises();
+    updateWaterDisplay();
+    renderDiets();
+  }
+
+  // ===== 周趋势迷你图表 =====
+  async function renderMiniCharts() {
+    try {
+      const allHealth = await Storage.getAll('health');
+      const today = new Date();
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        days.push(formatDate(d));
+      }
+      const weightData = [], sleepData = [], exerciseData = [];
+      let lastWeight = null;
+      for (const dateStr of days) {
+        const rec = allHealth.find(r => r.date === dateStr);
+        weightData.push(rec && rec.weight ? rec.weight : (lastWeight || 0));
+        sleepData.push(rec && rec.sleep && rec.sleep.duration ? rec.sleep.duration / 60 : 0);
+        const exMin = rec && rec.exercises ? rec.exercises.reduce((s, e) => s + (e.duration || 0), 0) : 0;
+        exerciseData.push(exMin);
+        if (rec && rec.weight) lastWeight = rec.weight;
+      }
+      renderSparkline('healthWeightChart', weightData, 'weight');
+      renderSparkline('healthSleepChart', sleepData, 'sleep');
+      renderSparkline('healthExerciseChart', exerciseData, 'exercise');
+      const wv = document.getElementById('health-chart-weight-val');
+      const sv = document.getElementById('health-chart-sleep-val');
+      const ev = document.getElementById('health-chart-exercise-val');
+      if (wv) wv.innerHTML = (weightData[6] || '--') + ' <span>kg</span>';
+      if (sv) sv.innerHTML = (sleepData[6] ? sleepData[6].toFixed(1) : '--') + ' <span>h</span>';
+      if (ev) ev.innerHTML = (exerciseData[6] || '--') + ' <span>min</span>';
+    } catch (err) {
+      console.error('[Health] 渲染图表失败:', err);
+    }
+  }
+  function renderSparkline(containerId, data, cssClass) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    const max = Math.max(...data, 1);
+    const min = Math.min(...data);
+    const range = max - min || 1;
+    data.forEach((val, i) => {
+      const bar = document.createElement('div');
+      bar.className = `health-sparkline-bar ${cssClass}${i === data.length - 1 ? ' highlight' : ''}`;
+      const height = val > 0 ? 4 + ((val - min) / range) * 28 : 3;
+      bar.style.height = height + 'px';
+      bar.title = val;
+      container.appendChild(bar);
+    });
   }
 
   // ===== 体重 =====
@@ -165,7 +429,6 @@ export const HealthModule = (() => {
       const val = parseFloat(input.value);
       if (!isNaN(val) && val > 0) {
         healthData.weight = val;
-        // 计算趋势
         calcWeightTrend();
       } else {
         healthData.weight = null;
@@ -174,36 +437,20 @@ export const HealthModule = (() => {
       saveTimer = setTimeout(() => saveData(), 500);
     });
   }
-
   async function calcWeightTrend() {
     const trendEl = document.getElementById('health-weight-trend');
-    if (!trendEl || !healthData.weight) { trendEl.textContent = ''; return; }
-
+    if (!trendEl || !healthData.weight) { if (trendEl) trendEl.textContent = ''; return; }
     try {
-      // 找最近一次有体重的记录
       const allHealth = await Storage.getAll('health');
       const dateStr = formatDate(currentDate);
-      const prevRecords = allHealth
-        .filter(r => r.date < dateStr && r.weight !== null && r.weight !== undefined)
-        .sort((a, b) => b.date.localeCompare(a.date));
-
+      const prevRecords = allHealth.filter(r => r.date < dateStr && r.weight !== null && r.weight !== undefined).sort((a, b) => b.date.localeCompare(a.date));
       if (prevRecords.length === 0) { trendEl.textContent = ''; return; }
-
       const prev = prevRecords[0];
       const diff = (healthData.weight - prev.weight).toFixed(1);
-      if (diff > 0) {
-        trendEl.textContent = `较上次 +${diff} kg`;
-        trendEl.style.color = 'var(--accent-red)';
-      } else if (diff < 0) {
-        trendEl.textContent = `较上次 ${diff} kg`;
-        trendEl.style.color = 'var(--accent-green)';
-      } else {
-        trendEl.textContent = '与上次持平';
-        trendEl.style.color = 'var(--text-muted)';
-      }
-    } catch (err) {
-      trendEl.textContent = '';
-    }
+      if (diff > 0) { trendEl.textContent = `较上次 +${diff} kg`; trendEl.style.color = 'var(--accent-red)'; }
+      else if (diff < 0) { trendEl.textContent = `较上次 ${diff} kg`; trendEl.style.color = 'var(--accent-green)'; }
+      else { trendEl.textContent = '与上次持平'; trendEl.style.color = 'var(--text-muted)'; }
+    } catch (err) { trendEl.textContent = ''; }
   }
 
   // ===== 睡眠 =====
@@ -211,7 +458,6 @@ export const HealthModule = (() => {
     const bedtimeInput = document.getElementById('health-sleep-bedtime');
     const waketimeInput = document.getElementById('health-sleep-waketime');
     const napInput = document.getElementById('health-sleep-nap');
-
     const update = () => {
       if (bedtimeInput) healthData.sleep.bedtime = bedtimeInput.value;
       if (waketimeInput) healthData.sleep.waketime = waketimeInput.value;
@@ -220,63 +466,36 @@ export const HealthModule = (() => {
       clearTimeout(saveData._sleepTimer);
       saveData._sleepTimer = setTimeout(() => saveData(), 500);
     };
-
     _bindEvent(bedtimeInput, 'change', update);
     _bindEvent(waketimeInput, 'change', update);
     _bindEvent(napInput, 'input', update);
   }
-
   function calcSleepDuration() {
     const bedtimeEl = document.getElementById('health-sleep-bedtime');
     const waketimeEl = document.getElementById('health-sleep-waketime');
     const hoursEl = document.querySelector('.health-sleep-hours');
     if (!bedtimeEl || !waketimeEl || !hoursEl) return;
-
-    const bed = bedtimeEl.value;
-    const wake = waketimeEl.value;
+    const bed = bedtimeEl.value, wake = waketimeEl.value;
     if (!bed || !wake) { hoursEl.textContent = '--'; return; }
-
     const bedMin = timeToMinutes(bed);
     let wakeMin = timeToMinutes(wake);
-
-    // 如果起床时间 <= 入睡时间，说明跨天了
-    if (wakeMin <= bedMin) {
-      wakeMin += 24 * 60;
-    }
-
+    if (wakeMin <= bedMin) wakeMin += 24 * 60;
     const durationMin = wakeMin - bedMin;
+    healthData.sleep.duration = durationMin;
     const hours = Math.floor(durationMin / 60);
     const mins = durationMin % 60;
-    healthData.sleep.duration = durationMin;
-
-    if (mins > 0) {
-      hoursEl.textContent = `${hours}小时${mins}分`;
-    } else {
-      hoursEl.textContent = `${hours}`;
-    }
-  }
-
-  function timeToMinutes(timeStr) {
-    const [h, m] = timeStr.split(':').map(Number);
-    return h * 60 + m;
+    hoursEl.textContent = mins > 0 ? `${hours}小时${mins}分` : `${hours}`;
   }
 
   // ===== 运动 =====
   function renderExercises() {
     const list = document.getElementById('health-exercise-list');
     if (!list) return;
-
     if (healthData.exercises.length === 0) {
-      list.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:8px;">还没有运动记录</div>';
+      list.innerHTML = '<div class="health-empty-state">还没有运动记录</div>';
       return;
     }
-
-    const typeEmoji = {
-      walking: '🚶', running: '🏃', cycling: '🚴', swimming: '🏊',
-      yoga: '🧘', strength: '🏋️', basketball: '🏀', badminton: '🏸',
-      hiking: '🥾'
-    };
-
+    const typeEmoji = { walking: '🚶', running: '🏃', cycling: '🚴', swimming: '🏊', yoga: '🧘', strength: '🏋️', basketball: '🏀', badminton: '🏸', hiking: '🥾', vocal: '🎤' };
     list.innerHTML = healthData.exercises.map((ex, i) => `
       <div class="health-exercise-item">
         <span class="health-exercise-item-name">${typeEmoji[ex.type] || '️'} ${escapeHtml(ex.customType || ex.type)}</span>
@@ -284,8 +503,6 @@ export const HealthModule = (() => {
         <button class="health-exercise-item-delete" data-index="${i}">✕</button>
       </div>
     `).join('');
-
-    // 绑定删除
     list.querySelectorAll('.health-exercise-item-delete').forEach(btn => {
       _bindEvent(btn, 'click', () => {
         const idx = parseInt(btn.dataset.index);
@@ -295,46 +512,23 @@ export const HealthModule = (() => {
       });
     });
   }
-
   function bindExerciseEvents() {
     const typeSelect = document.getElementById('health-exercise-type');
     const customInput = document.getElementById('health-exercise-custom');
     const durationInput = document.getElementById('health-exercise-duration');
     const addBtn = document.getElementById('health-exercise-add-btn');
-
     if (!typeSelect || !addBtn) return;
-
-    // 自定义类型切换
     _bindEvent(typeSelect, 'change', () => {
-      if (customInput) {
-        customInput.style.display = typeSelect.value === 'custom' ? '' : 'none';
-      }
+      if (customInput) customInput.style.display = typeSelect.value === 'custom' ? '' : 'none';
     });
-
-    // 添加运动
     _bindEvent(addBtn, 'click', () => {
       const type = typeSelect.value;
-      if (!type) {
-        if (window.App?.showToast) window.App?.showToast('请选择运动类型');
-        return;
-      }
+      if (!type) { showToast('请选择运动类型'); return; }
       const duration = parseInt(durationInput.value);
-      if (!duration || duration <= 0) {
-        if (window.App?.showToast) window.App?.showToast('请输入运动时长');
-        return;
-      }
-
-      const exercise = {
-        type: type,
-        customType: type === 'custom' ? (customInput?.value || '') : '',
-        duration: duration
-      };
-
-      healthData.exercises.push(exercise);
+      if (!duration || duration <= 0) { showToast('请输入运动时长'); return; }
+      healthData.exercises.push({ type, customType: type === 'custom' ? (customInput?.value || '') : '', duration });
       renderExercises();
       saveData();
-
-      // 重置表单
       typeSelect.value = '';
       if (customInput) { customInput.value = ''; customInput.style.display = 'none'; }
       if (durationInput) durationInput.value = '';
@@ -351,48 +545,31 @@ export const HealthModule = (() => {
       fillEl.style.width = `${pct}%`;
     }
   }
-
   function bindWaterEvents() {
-    // 快捷按钮
     document.querySelectorAll('.health-water-btn[data-amount]').forEach(btn => {
       _bindEvent(btn, 'click', () => {
-        const amount = parseInt(btn.dataset.amount);
-        healthData.water = (healthData.water || 0) + amount;
+        healthData.water = (healthData.water || 0) + parseInt(btn.dataset.amount);
         updateWaterDisplay();
         saveData();
       });
     });
-
-    // 自定义按钮
     const customBtn = document.getElementById('health-water-custom-btn');
     const customInput = document.getElementById('health-water-custom-input');
     if (customBtn && customInput) {
       _bindEvent(customBtn, 'click', () => {
         if (customInput.style.display === 'none' || !customInput.style.display) {
-          customInput.style.display = '';
-          customInput.focus();
+          customInput.style.display = ''; customInput.focus();
         } else {
           const amount = parseInt(customInput.value);
-          if (amount && amount > 0) {
-            healthData.water = (healthData.water || 0) + amount;
-            updateWaterDisplay();
-            saveData();
-          }
-          customInput.value = '';
-          customInput.style.display = 'none';
+          if (amount && amount > 0) { healthData.water = (healthData.water || 0) + amount; updateWaterDisplay(); saveData(); }
+          customInput.value = ''; customInput.style.display = 'none';
         }
       });
-
       _bindEvent(customInput, 'keydown', (e) => {
         if (e.key === 'Enter') {
           const amount = parseInt(customInput.value);
-          if (amount && amount > 0) {
-            healthData.water = (healthData.water || 0) + amount;
-            updateWaterDisplay();
-            saveData();
-          }
-          customInput.value = '';
-          customInput.style.display = 'none';
+          if (amount && amount > 0) { healthData.water = (healthData.water || 0) + amount; updateWaterDisplay(); saveData(); }
+          customInput.value = ''; customInput.style.display = 'none';
         }
       });
     }
@@ -402,15 +579,12 @@ export const HealthModule = (() => {
   function renderDiets() {
     const list = document.getElementById('health-diet-list');
     if (!list) return;
-
     const mealEmoji = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍪' };
     const mealLabel = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '加餐' };
-
     if (healthData.diets.length === 0) {
-      list.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:8px;">还没有饮食记录</div>';
+      list.innerHTML = '<div class="health-empty-state">还没有饮食记录</div>';
       return;
     }
-
     list.innerHTML = healthData.diets.map((diet, i) => `
       <div class="health-diet-item">
         <span class="health-diet-item-meal">${mealEmoji[diet.meal] || '🍽️'}</span>
@@ -421,8 +595,6 @@ export const HealthModule = (() => {
         <button class="health-diet-item-delete" data-index="${i}">✕</button>
       </div>
     `).join('');
-
-    // 绑定删除
     list.querySelectorAll('.health-diet-item-delete').forEach(btn => {
       _bindEvent(btn, 'click', () => {
         const idx = parseInt(btn.dataset.index);
@@ -432,7 +604,6 @@ export const HealthModule = (() => {
       });
     });
   }
-
   function bindDietEvents() {
     const addBtn = document.getElementById('health-diet-add-btn');
     const form = document.getElementById('health-diet-form');
@@ -440,45 +611,808 @@ export const HealthModule = (() => {
     const confirmBtn = document.getElementById('health-diet-confirm');
     const mealSelect = document.getElementById('health-diet-meal');
     const contentInput = document.getElementById('health-diet-content');
-
     if (!addBtn || !form) return;
-
-    // 展开表单
     _bindEvent(addBtn, 'click', () => {
       form.style.display = form.style.display === 'none' ? '' : 'none';
       if (form.style.display !== 'none' && contentInput) contentInput.focus();
     });
+    if (cancelBtn) _bindEvent(cancelBtn, 'click', () => { form.style.display = 'none'; if (contentInput) contentInput.value = ''; });
+    if (confirmBtn) _bindEvent(confirmBtn, 'click', () => {
+      const meal = mealSelect?.value || 'lunch';
+      const content = contentInput?.value?.trim();
+      if (!content) { showToast('请输入饮食内容'); return; }
+      healthData.diets.push({ meal, content });
+      renderDiets();
+      saveData();
+      form.style.display = 'none';
+      if (contentInput) contentInput.value = '';
+    });
+  }
 
-    // 取消
-    if (cancelBtn) {
-      _bindEvent(cancelBtn, 'click', () => {
-        form.style.display = 'none';
-        if (contentInput) contentInput.value = '';
-      });
+  // ===== 情绪打卡 =====
+  async function loadMoodData() {
+    try {
+      const setting = await Storage.get('settings', 'health/mood');
+      if (setting && setting.value) return setting.value;
+    } catch (e) {}
+    return { records: {}, streak: 0, lastDate: null };
+  }
+  async function saveMoodData(data) {
+    try { await Storage.put('settings', { key: 'health/mood', value: data }); } catch (e) { console.error('[Health] 保存情绪失败:', e); }
+  }
+  async function initMoodCheckin() {
+    const moodData = await loadMoodData();
+    const streakEl = document.getElementById('healthStreakCount');
+    if (streakEl) streakEl.textContent = moodData.streak || 0;
+    const todayStr = formatDate(new Date());
+    if (moodData.records && moodData.records[todayStr] && moodData.records[todayStr].mood) {
+      const moodBtn = document.querySelector(`.health-mood-btn[data-mood="${moodData.records[todayStr].mood}"]`);
+      if (moodBtn) { moodBtn.classList.add('selected'); selectedMood = moodData.records[todayStr].mood; }
+      const noteEl = document.getElementById('healthMoodNote');
+      if (noteEl) noteEl.value = moodData.records[todayStr].note || '';
     }
-
-    // 确认
-    if (confirmBtn) {
-      _bindEvent(confirmBtn, 'click', () => {
-        const meal = mealSelect?.value || 'lunch';
-        const content = contentInput?.value?.trim();
-        if (!content) {
-          if (window.App?.showToast) window.App?.showToast('请输入饮食内容');
-          return;
+    const moodBtns = document.querySelectorAll('.health-mood-btn');
+    moodBtns.forEach(btn => {
+      _bindEvent(btn, 'click', () => {
+        moodBtns.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedMood = btn.dataset.mood;
+      });
+    });
+    const checkinBtn = document.getElementById('healthCheckinBtn');
+    if (checkinBtn) {
+      _bindEvent(checkinBtn, 'click', async () => {
+        if (!selectedMood) { showToast('请先选择一个心情 😊'); return; }
+        const noteEl = document.getElementById('healthMoodNote');
+        const note = noteEl ? noteEl.value.trim() : '';
+        const data = await loadMoodData();
+        if (!data.records) data.records = {};
+        const today = formatDate(new Date());
+        const wasNew = !data.records[today];
+        data.records[today] = { mood: selectedMood, note, time: new Date().toISOString() };
+        if (wasNew) {
+          const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+          if (data.lastDate === formatDate(yesterday)) data.streak = (data.streak || 0) + 1;
+          else data.streak = 1;
+          data.lastDate = today;
         }
-
-        healthData.diets.push({ meal, content });
-        renderDiets();
-        saveData();
-
-        form.style.display = 'none';
-        if (contentInput) contentInput.value = '';
+        await saveMoodData(data);
+        if (streakEl) streakEl.textContent = data.streak;
+        showToast('打卡成功！' + selectedMood);
+        moodBtns.forEach(b => b.classList.remove('selected'));
+        selectedMood = null;
+        if (noteEl) noteEl.value = '';
       });
     }
   }
 
-  // ===== 绑定事件 =====
-  function bindEvents() {
+  // ===== 体质辨识 =====
+  let quizStep = 0;
+  let quizAnswers = [];
+  function initConstitution() {
+    const assessBtn = document.getElementById('healthAssessBtn');
+    const reassessBtn = document.getElementById('healthReassessBtn');
+    if (assessBtn) _bindEvent(assessBtn, 'click', () => openQuiz());
+    if (reassessBtn) _bindEvent(reassessBtn, 'click', () => openQuiz());
+    const quizPrev = document.getElementById('healthQuizPrev');
+    const quizNext = document.getElementById('healthQuizNext');
+    const quizModal = document.getElementById('healthQuizModal');
+    if (quizPrev) _bindEvent(quizPrev, 'click', quizPrevStep);
+    if (quizNext) _bindEvent(quizNext, 'click', quizNextStep);
+    if (quizModal) _bindEvent(quizModal, 'click', (e) => { if (e.target === quizModal) closeQuiz(); });
+    loadConstitutionResult();
+  }
+  async function loadConstitutionResult() {
+    try {
+      const setting = await Storage.get('settings', 'health/constitution');
+      if (setting && setting.value) showConstitutionResult(setting.value);
+    } catch (e) {}
+  }
+  function openQuiz() {
+    quizStep = 0;
+    quizAnswers = new Array(QUIZ_QUESTIONS.length).fill(null);
+    renderQuizStep();
+    document.getElementById('healthQuizModal')?.classList.add('show');
+  }
+  function closeQuiz() {
+    document.getElementById('healthQuizModal')?.classList.remove('show');
+  }
+  function renderQuizStep() {
+    const q = QUIZ_QUESTIONS[quizStep];
+    const progressEl = document.getElementById('healthQuizProgress');
+    if (progressEl) progressEl.textContent = `第 ${quizStep + 1} 题 / 共 ${QUIZ_QUESTIONS.length} 题`;
+    const options = ['从不/没有', '偶尔/有一点', '经常/比较明显', '总是/非常明显'];
+    let html = `<div class="health-quiz-question"><div class="health-quiz-q-text">${q.text}</div><div class="health-quiz-options">`;
+    options.forEach((opt, i) => {
+      const selected = quizAnswers[quizStep] === i ? ' selected' : '';
+      html += `<div class="health-quiz-opt${selected}" data-opt="${i}">${opt}</div>`;
+    });
+    html += '</div></div>';
+    const bodyEl = document.getElementById('healthQuizBody');
+    if (bodyEl) {
+      bodyEl.innerHTML = html;
+      bodyEl.querySelectorAll('.health-quiz-opt').forEach(el => {
+        _bindEvent(el, 'click', () => {
+          quizAnswers[quizStep] = parseInt(el.dataset.opt);
+          renderQuizStep();
+        });
+      });
+    }
+    const prevBtn = document.getElementById('healthQuizPrev');
+    const nextBtn = document.getElementById('healthQuizNext');
+    if (prevBtn) prevBtn.style.display = quizStep === 0 ? 'none' : 'block';
+    if (nextBtn) {
+      nextBtn.textContent = quizStep === QUIZ_QUESTIONS.length - 1 ? '查看结果' : '下一步';
+      nextBtn.disabled = quizAnswers[quizStep] === null;
+      nextBtn.style.opacity = quizAnswers[quizStep] === null ? '0.5' : '1';
+    }
+  }
+  function quizPrevStep() {
+    if (quizStep > 0) { quizStep--; renderQuizStep(); }
+  }
+  function quizNextStep() {
+    if (quizAnswers[quizStep] === null) return;
+    if (quizStep < QUIZ_QUESTIONS.length - 1) { quizStep++; renderQuizStep(); }
+    else { closeQuiz(); finishQuiz(); }
+  }
+  function finishQuiz() {
+    const scores = {};
+    QUIZ_QUESTIONS.forEach((q, i) => {
+      const answer = quizAnswers[i];
+      if (answer !== null && answer > 0) {
+        const typeKey = QUIZ_TYPE_MAP[q.type];
+        if (!scores[typeKey]) scores[typeKey] = 0;
+        scores[typeKey] += answer;
+      }
+    });
+    let bestType = 'pinghe';
+    let bestScore = 0;
+    for (const [k, v] of Object.entries(scores)) {
+      if (v > bestScore) { bestScore = v; bestType = k; }
+    }
+    if (bestScore === 0) bestType = 'pinghe';
+    const ct = CONSTITUTION_TYPES[bestType];
+    const radarScores = ct.scores;
+    const result = { type: bestType, name: ct.name, desc: ct.desc, advice: ct.advice, scores: radarScores, date: new Date().toISOString() };
+    Storage.put('settings', { key: 'health/constitution', value: result }).catch(() => {});
+    showConstitutionResult(result);
+    showToast('体质评估完成 🧬');
+  }
+  function showConstitutionResult(result) {
+    const placeholder = document.getElementById('healthConstitutionPlaceholder');
+    const resultEl = document.getElementById('healthConstitutionResult');
+    if (placeholder) placeholder.style.display = 'none';
+    if (resultEl) resultEl.classList.add('show');
+    const nameEl = document.getElementById('healthConstTypeName');
+    const descEl = document.getElementById('healthConstTypeDesc');
+    const adviceEl = document.getElementById('healthConstAdvice');
+    if (nameEl) nameEl.textContent = result.name;
+    if (descEl) descEl.textContent = result.desc;
+    if (adviceEl) adviceEl.textContent = result.advice;
+    renderRadarChart(result.scores);
+  }
+  function renderRadarChart(scores) {
+    const container = document.getElementById('healthRadarChart');
+    if (!container) return;
+    const dims = [
+      { key: 'qi', label: '气', angle: -90 },
+      { key: 'blood', label: '血', angle: -30 },
+      { key: 'yin', label: '阴', angle: 30 },
+      { key: 'yang', label: '阳', angle: 90 },
+      { key: 'phlegm', label: '痰', angle: 150 },
+      { key: 'damp', label: '湿', angle: 210 }
+    ];
+    const cx = 100, cy = 100, maxR = 70;
+    let html = '<svg width="200" height="200" viewBox="0 0 200 200" style="overflow:visible;">';
+    // rings
+    for (let i = 1; i <= 3; i++) {
+      const r = maxR * i / 3;
+      html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border-color)" stroke-width="0.5"/>`;
+    }
+    // axes
+    dims.forEach(d => {
+      const rad = (d.angle * Math.PI) / 180;
+      const x = cx + Math.cos(rad) * maxR;
+      const y = cy + Math.sin(rad) * maxR;
+      html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--border-color)" stroke-width="0.5"/>`;
+    });
+    // polygon
+    const points = dims.map(d => {
+      const val = (scores[d.key] || 0) / 3;
+      const r = maxR * Math.max(val, 0.15);
+      const rad = (d.angle * Math.PI) / 180;
+      const x = cx + Math.cos(rad) * r;
+      const y = cy + Math.sin(rad) * r;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    html += `<polygon points="${points}" fill="rgba(232,168,124,0.2)" stroke="var(--accent)" stroke-width="2"/>`;
+    // points
+    dims.forEach(d => {
+      const val = (scores[d.key] || 0) / 3;
+      const r = maxR * Math.max(val, 0.15);
+      const rad = (d.angle * Math.PI) / 180;
+      const x = cx + Math.cos(rad) * r;
+      const y = cy + Math.sin(rad) * r;
+      html += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="var(--accent)"/>`;
+    });
+    // labels
+    dims.forEach(d => {
+      const rad = (d.angle * Math.PI) / 180;
+      const lx = cx + Math.cos(rad) * (maxR + 14);
+      const ly = cy + Math.sin(rad) * (maxR + 14);
+      html += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="var(--text-secondary)" font-weight="500">${d.label}</text>`;
+    });
+    html += '</svg>';
+    container.innerHTML = html;
+  }
+
+  // ===== 子午流注 =====
+  function getCurrentShichen() {
+    const h = new Date().getHours();
+    if (h >= 23 || h < 1) return 0;
+    return Math.floor((h + 1) / 2);
+  }
+  function renderShichen() {
+    const current = getCurrentShichen();
+    const sc = SHICHEN_DATA[current];
+    const nameEl = document.getElementById('healthShichenName');
+    const organEl = document.getElementById('healthShichenOrgan');
+    const tipEl = document.getElementById('healthShichenTip');
+    const timelineEl = document.getElementById('healthShichenTimeline');
+    if (nameEl) nameEl.textContent = sc.name + '时';
+    if (organEl) organEl.textContent = sc.organ + ' · 当令';
+    if (tipEl) tipEl.innerHTML = '💡 ' + sc.name + '时（' + sc.time + '点）为' + sc.organ + '当令。' + sc.tip;
+    if (timelineEl) {
+      timelineEl.innerHTML = '';
+      SHICHEN_DATA.forEach((s, i) => {
+        const slot = document.createElement('div');
+        slot.className = 'health-shichen-slot' + (i === current ? ' active' : '');
+        slot.innerHTML = `<div class="sc-name">${s.name}</div><div class="sc-dot"></div>`;
+        timelineEl.appendChild(slot);
+      });
+    }
+  }
+  function initShichen() {
+    renderShichen();
+    _shichenTimer = setInterval(renderShichen, 60000);
+    _intervals.push(_shichenTimer);
+  }
+
+  // ===== 推荐茶饮 =====
+  function initTea() {
+    renderTea(false);
+    const viewAllBtn = document.getElementById('healthTeaViewAll');
+    if (viewAllBtn) {
+      let showAll = false;
+      _bindEvent(viewAllBtn, 'click', () => {
+        showAll = !showAll;
+        renderTea(showAll);
+        viewAllBtn.textContent = showAll ? '收起 ←' : '查看全部茶饮 →';
+      });
+    }
+  }
+  async function renderTea(showAll) {
+    const list = document.getElementById('healthTeaList');
+    if (!list) return;
+    const season = getSeason();
+    let constitution = null;
+    try {
+      const setting = await Storage.get('settings', 'health/constitution');
+      if (setting && setting.value) constitution = setting.value.type;
+    } catch (e) {}
+    const scored = TEA_RECIPES.map(tea => {
+      let score = 0;
+      if (constitution && tea.constitutions.includes(constitution)) score += 2;
+      if (tea.seasons.includes(season)) score += 1;
+      return { tea, score };
+    }).sort((a, b) => b.score - a.score);
+    const display = showAll ? scored : scored.slice(0, 3);
+    list.innerHTML = display.map(({ tea }) => {
+      const tags = [];
+      if (constitution && tea.constitutions.includes(constitution)) tags.push('<span class="health-tea-tag">适合体质</span>');
+      if (tea.seasons.includes(season)) tags.push('<span class="health-tea-tag">当季</span>');
+      return `<div class="health-tea-item">
+        <div class="health-tea-name">${tea.name} ${tags.join('')}</div>
+        <div class="health-tea-recipe">📋 ${tea.recipe}</div>
+        <div class="health-tea-effect">✨ ${tea.effect}</div>
+        <div class="health-tea-brew">🫖 ${tea.brew}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ===== 护嗓穴位 =====
+  function initAcupoints() {
+    renderAcupointSvg();
+    renderAcupointList();
+  }
+  function renderAcupointSvg() {
+    const container = document.getElementById('healthAcupointSvg');
+    if (!container) return;
+    let html = '<svg width="120" height="260" viewBox="0 0 120 260">';
+    // 简易人体轮廓
+    html += '<ellipse cx="60" cy="30" rx="20" ry="24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 头
+    html += '<line x1="60" y1="54" x2="60" y2="60" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 颈
+    html += '<path d="M 30 62 Q 60 58 90 62 L 88 130 Q 60 135 32 130 Z" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 躯干
+    html += '<line x1="30" y1="68" x2="18" y2="120" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 左臂
+    html += '<line x1="90" y1="68" x2="102" y2="120" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 右臂
+    html += '<line x1="40" y1="130" x2="35" y2="230" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 左腿
+    html += '<line x1="80" y1="130" x2="85" y2="230" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 右腿
+    // 穴位点
+    ACUPOINTS.forEach((ap, i) => {
+      const p = ap.svgPos;
+      html += `<circle cx="${p.cx}" cy="${p.cy}" r="${p.r}" fill="var(--accent)" stroke="#fff" stroke-width="1" class="health-acupoint-dot" data-id="${ap.id}" style="cursor:pointer;"/>`;
+      html += `<text x="${p.cx}" y="${p.cy - 8}" text-anchor="middle" font-size="9" fill="var(--accent)" font-weight="600">${i + 1}</text>`;
+    });
+    html += '</svg>';
+    container.innerHTML = html;
+    container.querySelectorAll('.health-acupoint-dot').forEach(dot => {
+      _bindEvent(dot, 'click', () => {
+        const ap = ACUPOINTS.find(a => a.id === dot.dataset.id);
+        if (ap) openAcupointTimer(ap);
+      });
+    });
+  }
+  function renderAcupointList() {
+    const container = document.getElementById('healthAcupointList');
+    if (!container) return;
+    container.innerHTML = ACUPOINTS.map((ap, i) => `
+      <div class="health-acupoint-item" data-id="${ap.id}">
+        <div class="health-acupoint-name">${i + 1}. ${ap.name}</div>
+        <div class="health-acupoint-loc">📍 ${ap.loc}</div>
+        <div class="health-acupoint-fn">✨ ${ap.fn}</div>
+        <div class="health-acupoint-timer-hint">👉 点击开始按揉计时</div>
+      </div>
+    `).join('');
+    container.querySelectorAll('.health-acupoint-item').forEach(item => {
+      _bindEvent(item, 'click', () => {
+        const ap = ACUPOINTS.find(a => a.id === item.dataset.id);
+        if (ap) openAcupointTimer(ap);
+      });
+    });
+  }
+  function openAcupointTimer(ap) {
+    const modal = document.getElementById('healthAcupointTimerModal');
+    const titleEl = document.getElementById('healthTimerTitle');
+    const infoEl = document.getElementById('healthTimerAcupointInfo');
+    if (titleEl) titleEl.textContent = '🤲 ' + ap.name + ' 按揉计时';
+    if (infoEl) infoEl.innerHTML = `📍 ${ap.loc}<br>✨ ${ap.fn}<br>📝 ${ap.detail}`;
+    resetTimer();
+    if (modal) modal.classList.add('show');
+  }
+  function resetTimer() {
+    _timerState.running = false;
+    _timerState.remaining = 0;
+    _timerState.total = 0;
+    if (_timerState.intervalId) { clearInterval(_timerState.intervalId); _timerState.intervalId = null; }
+    const display = document.getElementById('healthTimerDisplay');
+    if (display) display.textContent = '00:00';
+    const startBtn = document.getElementById('healthTimerStart');
+    const stopBtn = document.getElementById('healthTimerStop');
+    if (startBtn) startBtn.style.display = '';
+    if (stopBtn) stopBtn.style.display = 'none';
+    document.querySelectorAll('.health-timer-preset').forEach(b => b.classList.remove('selected'));
+  }
+  function initTimerEvents() {
+    const startBtn = document.getElementById('healthTimerStart');
+    const stopBtn = document.getElementById('healthTimerStop');
+    const closeBtn = document.getElementById('healthTimerClose');
+    const modal = document.getElementById('healthAcupointTimerModal');
+    document.querySelectorAll('.health-timer-preset').forEach(btn => {
+      _bindEvent(btn, 'click', () => {
+        document.querySelectorAll('.health-timer-preset').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        _timerState.remaining = parseInt(btn.dataset.seconds);
+        _timerState.total = _timerState.remaining;
+        updateTimerDisplay();
+      });
+    });
+    if (startBtn) _bindEvent(startBtn, 'click', () => {
+      if (_timerState.remaining <= 0) { showToast('请先选择计时时长'); return; }
+      _timerState.running = true;
+      startBtn.style.display = 'none';
+      if (stopBtn) stopBtn.style.display = '';
+      _timerState.intervalId = setInterval(() => {
+        _timerState.remaining--;
+        updateTimerDisplay();
+        if (_timerState.remaining <= 0) {
+          clearInterval(_timerState.intervalId);
+          _timerState.intervalId = null;
+          _timerState.running = false;
+          startBtn.style.display = '';
+          if (stopBtn) stopBtn.style.display = 'none';
+          showToast('⏰ 按揉时间到！干得好 👍');
+        }
+      }, 1000);
+      _intervals.push(_timerState.intervalId);
+    });
+    if (stopBtn) _bindEvent(stopBtn, 'click', () => {
+      _timerState.running = false;
+      if (_timerState.intervalId) { clearInterval(_timerState.intervalId); _timerState.intervalId = null; }
+      stopBtn.style.display = 'none';
+      if (startBtn) startBtn.style.display = '';
+    });
+    if (closeBtn) _bindEvent(closeBtn, 'click', () => {
+      resetTimer();
+      if (modal) modal.classList.remove('show');
+    });
+    if (modal) _bindEvent(modal, 'click', (e) => { if (e.target === modal) { resetTimer(); modal.classList.remove('show'); } });
+  }
+  function updateTimerDisplay() {
+    const display = document.getElementById('healthTimerDisplay');
+    if (!display) return;
+    const m = Math.floor(_timerState.remaining / 60);
+    const s = _timerState.remaining % 60;
+    display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  // ===== 舌诊自测 =====
+  let tongueSelections = { color: null, coating: null, shape: null };
+  function initTongueDiagnosis() {
+    renderTongueOptions('healthTongueColor', TONGUE_DATA.color, 'color');
+    renderTongueOptions('healthTongueCoating', TONGUE_DATA.coating, 'coating');
+    renderTongueOptions('healthTongueShape', TONGUE_DATA.shape, 'shape');
+    const saveBtn = document.getElementById('healthTongueSaveBtn');
+    if (saveBtn) _bindEvent(saveBtn, 'click', saveTongueRecord);
+    loadTongueHistory();
+  }
+  function renderTongueOptions(containerId, data, dim) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = data.map(item => `<div class="health-tongue-opt" data-val="${item.val}" data-dim="${dim}">${item.label}</div>`).join('');
+    container.querySelectorAll('.health-tongue-opt').forEach(el => {
+      _bindEvent(el, 'click', () => {
+        container.querySelectorAll('.health-tongue-opt').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        tongueSelections[dim] = el.dataset.val;
+        updateTongueResult();
+      });
+    });
+  }
+  function updateTongueResult() {
+    const resultEl = document.getElementById('healthTongueResult');
+    const saveBtn = document.getElementById('healthTongueSaveBtn');
+    if (!tongueSelections.color || !tongueSelections.coating || !tongueSelections.shape) return;
+    const colorData = TONGUE_DATA.color.find(c => c.val === tongueSelections.color);
+    const coatingData = TONGUE_DATA.coating.find(c => c.val === tongueSelections.coating);
+    const shapeData = TONGUE_DATA.shape.find(c => c.val === tongueSelections.shape);
+    if (!colorData || !coatingData || !shapeData) return;
+    let html = '<div style="margin-bottom:8px;">';
+    html += `<strong>舌色 · ${colorData.label}</strong><br>${colorData.interpret}<br><br>`;
+    html += `<strong>舌苔 · ${coatingData.label}</strong><br>${coatingData.interpret}<br><br>`;
+    html += `<strong>舌形 · ${shapeData.label}</strong><br>${shapeData.interpret}`;
+    html += '</div>';
+    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">⚠️ 舌诊仅供参考，如有不适请咨询专业中医师。</div>';
+    if (resultEl) { resultEl.innerHTML = html; resultEl.classList.add('show'); }
+    if (saveBtn) saveBtn.style.display = '';
+  }
+  async function saveTongueRecord() {
+    const record = { ...tongueSelections, date: new Date().toISOString() };
+    try {
+      const setting = await Storage.get('settings', 'health/tongue');
+      let history = (setting && setting.value) || [];
+      history.unshift(record);
+      if (history.length > 20) history = history.slice(0, 20);
+      await Storage.put('settings', { key: 'health/tongue', value: history });
+      showToast('舌诊记录已保存 💾');
+      loadTongueHistory();
+    } catch (e) { showToast('保存失败'); }
+  }
+  async function loadTongueHistory() {
+    const container = document.getElementById('healthTongueHistory');
+    if (!container) return;
+    try {
+      const setting = await Storage.get('settings', 'health/tongue');
+      const history = (setting && setting.value) || [];
+      if (history.length === 0) { container.innerHTML = '<div class="health-empty-state">暂无舌诊记录</div>'; return; }
+      const colorMap = {}, coatingMap = {}, shapeMap = {};
+      TONGUE_DATA.color.forEach(c => colorMap[c.val] = c.label);
+      TONGUE_DATA.coating.forEach(c => coatingMap[c.val] = c.label);
+      TONGUE_DATA.shape.forEach(c => shapeMap[c.val] = c.label);
+      container.innerHTML = history.slice(0, 5).map(r => {
+        const d = new Date(r.date);
+        const ds = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        return `<div class="health-tongue-history-item"><div class="th-date">${ds}</div>舌色: ${colorMap[r.color] || r.color} · 舌苔: ${coatingMap[r.coating] || r.coating} · 舌形: ${shapeMap[r.shape] || r.shape}</div>`;
+      }).join('');
+    } catch (e) {}
+  }
+
+  // ===== 功法引导 =====
+  function initQigong() {
+    const tabs = document.querySelectorAll('.health-qigong-tab');
+    tabs.forEach(tab => {
+      _bindEvent(tab, 'click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.health-qigong-panel').forEach(p => p.classList.remove('active'));
+        const panel = document.getElementById('healthQg' + (tab.dataset.qg === 'breathing' ? 'Breathing' : tab.dataset.qg === 'sixsounds' ? 'SixSounds' : 'Baduanjin'));
+        if (panel) panel.classList.add('active');
+      });
+    });
+    renderSixSounds();
+    renderBaDuanJin();
+    const startBtn = document.getElementById('healthBreathingStartBtn');
+    if (startBtn) _bindEvent(startBtn, 'click', startBreathing);
+  }
+  function renderSixSounds() {
+    const container = document.getElementById('healthQgSixSounds');
+    if (!container) return;
+    container.innerHTML = SIX_SOUNDS.map(s => `
+      <div class="health-qigong-item">
+        <div class="health-qigong-item-name">「${s.char}」— ${s.pinyin} · 对应${s.organ}</div>
+        <div class="health-qigong-item-desc">${s.method}</div>
+        <div class="health-qigong-item-effect">✨ ${s.effect}</div>
+      </div>
+    `).join('');
+  }
+  function renderBaDuanJin() {
+    const container = document.getElementById('healthQgBaduanjin');
+    if (!container) return;
+    container.innerHTML = BA_DUAN_JIN.map(b => `
+      <div class="health-qigong-item">
+        <div class="health-qigong-item-name">${b.name}</div>
+        <div class="health-qigong-item-desc">${b.desc}</div>
+        <div class="health-qigong-item-effect">✨ ${b.effect}</div>
+      </div>
+    `).join('');
+  }
+  function startBreathing() {
+    if (_breathingState.running) return;
+    _breathingState.running = true;
+    _breathingState.cycle = 0;
+    _breathingState.step = 0;
+    const circle = document.getElementById('healthBreathingCircle');
+    const text = document.getElementById('healthBreathingText');
+    const cycleEl = document.getElementById('healthBreathingCycle');
+    const startBtn = document.getElementById('healthBreathingStartBtn');
+    if (startBtn) startBtn.textContent = '⏸ 训练中...';
+    function runStep() {
+      if (!_breathingState.running) return;
+      if (_breathingState.cycle >= 5) {
+        _breathingState.running = false;
+        if (circle) circle.className = 'health-breathing-circle';
+        if (text) text.textContent = '完成 🎉';
+        if (cycleEl) cycleEl.textContent = '5 / 5 循环完成！';
+        if (startBtn) startBtn.textContent = '▶ 再来一次';
+        showToast('呼吸训练完成！身心舒畅 🧘');
+        return;
+      }
+      const phases = [
+        { name: '吸气', cls: 'inhale', duration: 4000 },
+        { name: '屏息', cls: 'hold', duration: 4000 },
+        { name: '呼气', cls: 'exhale', duration: 6000 }
+      ];
+      const phase = phases[_breathingState.step];
+      if (circle) circle.className = 'health-breathing-circle ' + phase.cls;
+      if (text) text.textContent = phase.name;
+      if (cycleEl) cycleEl.textContent = `第 ${_breathingState.cycle + 1} / 5 循环`;
+      _breathingState.step++;
+      if (_breathingState.step >= 3) { _breathingState.step = 0; _breathingState.cycle++; }
+      const t = setTimeout(runStep, phase.duration);
+      _timeouts.push(t);
+    }
+    runStep();
+  }
+
+  // ===== 症状自查 =====
+  let symptomState = { part: null, symptoms: new Set(), supplements: {}, step: 1 };
+  function initSymptomCheck() {
+    renderBodyGrid();
+    const back1 = document.getElementById('healthStepBack1');
+    const back2 = document.getElementById('healthStepBack2');
+    const nextBtn = document.getElementById('healthSymptomNext');
+    const analyzeBtn = document.getElementById('healthAnalyzeBtn');
+    const restartBtn = document.getElementById('healthRestartBtn');
+    if (back1) _bindEvent(back1, 'click', () => goToStep(1));
+    if (back2) _bindEvent(back2, 'click', () => goToStep(2));
+    if (nextBtn) _bindEvent(nextBtn, 'click', () => {
+      if (symptomState.symptoms.size === 0) { showToast('请至少选择一个症状'); return; }
+      renderSupplementGrid();
+      goToStep(3);
+    });
+    if (analyzeBtn) _bindEvent(analyzeBtn, 'click', () => { analyzeSymptoms(); goToStep(4); });
+    if (restartBtn) _bindEvent(restartBtn, 'click', () => {
+      symptomState = { part: null, symptoms: new Set(), supplements: {}, step: 1 };
+      document.querySelectorAll('.health-body-part').forEach(p => p.classList.remove('selected'));
+      goToStep(1);
+    });
+    loadSymptomHistory();
+  }
+  function renderBodyGrid() {
+    const grid = document.getElementById('healthBodyGrid');
+    if (!grid) return;
+    grid.innerHTML = Object.entries(SYMPTOM_DATA).map(([key, val]) => `
+      <div class="health-body-part" data-part="${key}">
+        <div class="bp-icon">${val.icon}</div>
+        <div class="bp-label">${val.name}</div>
+      </div>
+    `).join('');
+    grid.querySelectorAll('.health-body-part').forEach(el => {
+      _bindEvent(el, 'click', () => {
+        grid.querySelectorAll('.health-body-part').forEach(p => p.classList.remove('selected'));
+        el.classList.add('selected');
+        symptomState.part = el.dataset.part;
+        symptomState.symptoms.clear();
+        renderSymptomList();
+        goToStep(2);
+      });
+    });
+  }
+  function renderSymptomList() {
+    const promptEl = document.getElementById('healthSymptomPrompt');
+    const listEl = document.getElementById('healthSymptomList');
+    if (!promptEl || !listEl || !symptomState.part) return;
+    const partData = SYMPTOM_DATA[symptomState.part];
+    promptEl.textContent = `${partData.name} — 请勾选具体症状：`;
+    listEl.innerHTML = partData.symptoms.map(sym => `
+      <div class="health-symptom-item" data-sym="${escapeHtml(sym)}">
+        <div class="health-symptom-checkbox"></div>
+        <div class="health-symptom-text">${sym}</div>
+      </div>
+    `).join('');
+    listEl.querySelectorAll('.health-symptom-item').forEach(item => {
+      _bindEvent(item, 'click', () => {
+        item.classList.toggle('checked');
+        const sym = item.dataset.sym;
+        if (item.classList.contains('checked')) symptomState.symptoms.add(sym);
+        else symptomState.symptoms.delete(sym);
+      });
+    });
+  }
+  function renderSupplementGrid() {
+    const grid = document.getElementById('healthSupplementGrid');
+    if (!grid) return;
+    grid.innerHTML = SUPPLEMENT_DATA.map(dim => `
+      <div class="health-supplement-item">
+        <div class="health-supplement-label">${dim.label}</div>
+        <div class="health-supplement-options">
+          ${dim.options.map(opt => `<button class="health-supplement-opt" data-key="${dim.key}" data-val="${escapeHtml(opt)}">${opt}</button>`).join('')}
+        </div>
+      </div>
+    `).join('');
+    grid.querySelectorAll('.health-supplement-opt').forEach(btn => {
+      _bindEvent(btn, 'click', () => {
+        const key = btn.dataset.key;
+        const parent = btn.closest('.health-supplement-options');
+        parent.querySelectorAll('.health-supplement-opt').forEach(o => o.classList.remove('selected'));
+        btn.classList.add('selected');
+        symptomState.supplements[key] = btn.dataset.val;
+      });
+    });
+  }
+  function goToStep(step) {
+    symptomState.step = step;
+    for (let i = 1; i <= 4; i++) {
+      const dot = document.getElementById('healthStepDot' + i);
+      if (dot) { dot.classList.remove('active', 'done'); if (i < step) dot.classList.add('done'); else if (i === step) dot.classList.add('active'); }
+    }
+    for (let i = 1; i <= 3; i++) {
+      const line = document.getElementById('healthStepLine' + i);
+      if (line) line.classList.toggle('done', i < step);
+    }
+    document.querySelectorAll('.health-step-panel').forEach((p, i) => p.classList.toggle('active', i + 1 === step));
+  }
+  function analyzeSymptoms() {
+    const selected = [...symptomState.symptoms];
+    const supplements = symptomState.supplements;
+    // Add supplement symptoms to matching
+    const supplementSymptomMap = {
+      sleep: { '入睡困难': '失眠多梦', '多梦易醒': '失眠多梦', '嗜睡': '疲倦乏力' },
+      diet: { '食欲不振': '食欲不振', '食欲亢进': '食欲亢进', '口干口渴': '口干口渴' },
+      emotion: { '烦躁易怒': '心烦易怒', '低落抑郁': '抑郁寡欢', '焦虑紧张': '焦虑不安' },
+      excretion: { '便秘': '便秘', '腹泻': '腹泻', '尿频尿急': '尿频尿急' }
+    };
+    Object.entries(supplements).forEach(([key, val]) => {
+      const mapped = supplementSymptomMap[key]?.[val];
+      if (mapped && !selected.includes(mapped)) selected.push(mapped);
+    });
+    // Calculate match scores
+    const results = SYNDROME_TYPES.map(syn => {
+      let totalWeight = 0, matchedWeight = 0;
+      for (const [sym, weight] of Object.entries(syn.symptoms)) {
+        if (weight > 0) {
+          totalWeight += weight;
+          if (selected.includes(sym)) matchedWeight += weight;
+        }
+      }
+      const matchPct = totalWeight > 0 ? Math.round((matchedWeight / totalWeight) * 100) : 0;
+      return { syndrome: syn, matchPct };
+    }).filter(r => r.matchPct > 0).sort((a, b) => b.matchPct - a.matchPct);
+    const top = results.slice(0, 2);
+    renderResult(top, selected);
+    saveSymptomHistory(top, selected);
+  }
+  function renderResult(top, selected) {
+    const panel = document.getElementById('healthResultPanel');
+    if (!panel) return;
+    if (top.length === 0) {
+      panel.innerHTML = '<div class="health-empty-state">未能匹配到明确证型，建议咨询专业中医师。</div>';
+      return;
+    }
+    let html = '';
+    top.forEach((r, idx) => {
+      const syn = r.syndrome;
+      const isPrimary = idx === 0;
+      html += `<div class="health-result-header">`;
+      html += `<div class="health-result-type">${syn.name}</div>`;
+      html += `<div class="health-result-match">匹配度 <strong>${r.matchPct}%</strong></div>`;
+      html += `</div>`;
+      html += `<div class="health-result-section"><div class="health-result-section-title">📖 证型解读</div><p>${syn.interpretation}</p></div>`;
+      html += `<div class="health-result-section"><div class="health-result-section-title">🍵 推荐茶饮</div><ul class="health-recommendation-list">${syn.tea.map(t => `<li>${t}</li>`).join('')}</ul></div>`;
+      html += `<div class="health-result-section"><div class="health-result-section-title">🤲 推荐穴位</div><ul class="health-recommendation-list">${syn.acupoints.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
+      html += `<div class="health-result-section"><div class="health-result-section-title">🥗 饮食宜忌</div><ul class="health-recommendation-list"><li>✅ 宜：${syn.diet.good}</li><li>❌ 忌：${syn.diet.bad}</li></ul></div>`;
+      if (isPrimary) {
+        html += `<div class="health-medical-notice"><span class="warn-icon">⚠️</span><span>以上结果仅供参考，不能替代专业医疗诊断。如症状持续或加重，请及时就医咨询专业医师。</span></div>`;
+      }
+      if (idx < top.length - 1) html += '<hr style="border:none;border-top:1px solid var(--border-color);margin:14px 0;">';
+    });
+    panel.innerHTML = html;
+  }
+  async function saveSymptomHistory(top, selected) {
+    const record = {
+      date: new Date().toISOString(),
+      part: symptomState.part,
+      partName: SYMPTOM_DATA[symptomState.part]?.name || '',
+      symptoms: selected,
+      results: top.map(r => ({ name: r.syndrome.name, matchPct: r.matchPct }))
+    };
+    try {
+      const setting = await Storage.get('settings', 'health/symptoms');
+      let history = (setting && setting.value) || [];
+      history.unshift(record);
+      if (history.length > 30) history = history.slice(0, 30);
+      await Storage.put('settings', { key: 'health/symptoms', value: history });
+      loadSymptomHistory();
+    } catch (e) {}
+  }
+  async function loadSymptomHistory() {
+    const container = document.getElementById('healthSymptomHistory');
+    if (!container) return;
+    try {
+      const setting = await Storage.get('settings', 'health/symptoms');
+      const history = (setting && setting.value) || [];
+      if (history.length === 0) { container.innerHTML = '<div class="health-empty-state">暂无自查记录</div>'; return; }
+      container.innerHTML = history.slice(0, 10).map(r => {
+        const d = new Date(r.date);
+        const ds = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        const typeStr = r.results.map(res => `${res.name}(${res.matchPct}%)`).join('、');
+        return `<div class="health-symptom-history-item"><div class="sh-date">${ds} · ${r.partName}</div><div class="sh-type">${typeStr}</div><div class="sh-symptoms">${r.symptoms.join('、')}</div></div>`;
+      }).join('');
+    } catch (e) {}
+  }
+
+  // ===== 日期切换 =====
+  function shiftDate(delta) {
+    currentDate.setDate(currentDate.getDate() + delta);
+    updateDateDisplay();
+    loadData();
+  }
+  function goToday() {
+    currentDate = new Date();
+    updateDateDisplay();
+    loadData();
+  }
+
+  // ===== 初始化 =====
+  async function init() {
+    console.log('[Health] 健康模块初始化...');
+    currentDate = new Date();
+    updateDateDisplay();
+    await loadData();
+    initTabs();
+    bindWeightEvents();
+    bindSleepEvents();
+    bindExerciseEvents();
+    bindWaterEvents();
+    bindDietEvents();
+    await initMoodCheckin();
+    initConstitution();
+    initShichen();
+    initTea();
+    initAcupoints();
+    initTimerEvents();
+    initTongueDiagnosis();
+    initQigong();
+    initSymptomCheck();
     // 日期切换
     const prevBtn = document.getElementById('health-prev-day');
     const nextBtn = document.getElementById('health-next-day');
@@ -486,28 +1420,18 @@ export const HealthModule = (() => {
     _bindEvent(prevBtn, 'click', () => shiftDate(-1));
     _bindEvent(nextBtn, 'click', () => shiftDate(1));
     _bindEvent(todayBtn, 'click', goToday);
-
-    bindWeightEvents();
-    bindSleepEvents();
-    bindExerciseEvents();
-    bindWaterEvents();
-    bindDietEvents();
   }
 
-
-  // ===== 模块生命周期 =====
-  let _eventListeners = [];
-  let _intervals = [];
-
-  function _bindEvent(el, event, handler) {
-    if (el) { el.addEventListener(event, handler); _eventListeners.push({ el, event, handler }); }
-  }
-
+  // ===== 销毁 =====
   function destroy() {
-    _eventListeners.forEach(({ el, event, handler }) => el.removeEventListener(event, handler));
+    _eventListeners.forEach(({ el, event, handler }) => { if (el) el.removeEventListener(event, handler); });
     _eventListeners = [];
     _intervals.forEach(id => clearInterval(id));
     _intervals = [];
+    _timeouts.forEach(id => clearTimeout(id));
+    _timeouts = [];
+    _breathingState.running = false;
+    _timerState.running = false;
     console.log('[HealthModule] 模块已销毁');
   }
 

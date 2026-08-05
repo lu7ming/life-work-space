@@ -1380,6 +1380,479 @@ export const HealthModule = (() => {
     } catch (e) {}
   }
 
+
+  // ===== 食物性味速查库 =====
+  const FOOD_DATA = [
+    // 谷物
+    { name: '大米', category: '谷物', nature: '平', flavor: '甘', meridians: ['脾','胃'], effects: '补中益气、健脾养胃', goodFor: ['气虚质','平和质'], badFor: [] },
+    { name: '小米', category: '谷物', nature: '凉', flavor: '甘咸', meridians: ['肾','脾','胃'], effects: '健脾和胃、补益虚损', goodFor: ['气虚质','脾胃虚弱'], badFor: [] },
+    { name: '糯米', category: '谷物', nature: '温', flavor: '甘', meridians: ['脾','肺'], effects: '补中益气、健脾止泻', goodFor: ['阳虚质','气虚质'], badFor: ['湿热质','痰湿质'] },
+    { name: '小麦', category: '谷物', nature: '凉', flavor: '甘', meridians: ['心','脾','肾'], effects: '养心安神、除烦止渴', goodFor: ['阴虚质','气郁质'], badFor: [] },
+    { name: '燕麦', category: '谷物', nature: '平', flavor: '甘', meridians: ['脾','心'], effects: '益脾养心、敛汗', goodFor: ['气虚质','平和质'], badFor: [] },
+    { name: '薏米', category: '谷物', nature: '凉', flavor: '甘淡', meridians: ['脾','胃','肺'], effects: '健脾渗湿、除痹止泻', goodFor: ['痰湿质','湿热质'], badFor: ['阳虚质'] },
+    { name: '玉米', category: '谷物', nature: '平', flavor: '甘', meridians: ['脾','胃'], effects: '调中开胃、利水通淋', goodFor: ['痰湿质','平和质'], badFor: [] },
+    // 蔬菜
+    { name: '白菜', category: '蔬菜', nature: '平', flavor: '甘', meridians: ['胃','大肠'], effects: '清热除烦、通利肠胃', goodFor: ['湿热质','平和质'], badFor: ['阳虚质'] },
+    { name: '白萝卜', category: '蔬菜', nature: '凉', flavor: '辛甘', meridians: ['肺','胃'], effects: '消食化积、下气化痰', goodFor: ['痰湿质','气郁质'], badFor: ['气虚质'] },
+    { name: '胡萝卜', category: '蔬菜', nature: '平', flavor: '甘', meridians: ['脾','肝','肺'], effects: '健脾消食、补肝明目', goodFor: ['气虚质','血瘀质'], badFor: [] },
+    { name: '菠菜', category: '蔬菜', nature: '凉', flavor: '甘', meridians: ['肝','胃','大肠'], effects: '养血止血、敛阴润燥', goodFor: ['阴虚质','血瘀质'], badFor: ['阳虚质'] },
+    { name: '芹菜', category: '蔬菜', nature: '凉', flavor: '甘苦', meridians: ['肝','胃'], effects: '平肝清热、祛风利湿', goodFor: ['湿热质','阴虚质'], badFor: ['阳虚质'] },
+    { name: '苦瓜', category: '蔬菜', nature: '寒', flavor: '苦', meridians: ['心','脾','胃'], effects: '清热解暑、明目解毒', goodFor: ['湿热质','阴虚质'], badFor: ['阳虚质','气虚质'] },
+    { name: '冬瓜', category: '蔬菜', nature: '凉', flavor: '甘淡', meridians: ['肺','大肠','膀胱'], effects: '清热利水、解毒生津', goodFor: ['湿热质','痰湿质'], badFor: ['阳虚质'] },
+    { name: '莲藕', category: '蔬菜', nature: '凉', flavor: '甘', meridians: ['心','脾','胃'], effects: '清热生津、凉血止血', goodFor: ['阴虚质','血瘀质'], badFor: ['阳虚质'] },
+    { name: '山药', category: '蔬菜', nature: '平', flavor: '甘', meridians: ['脾','肺','肾'], effects: '补脾养胃、生津益肺', goodFor: ['气虚质','阴虚质','平和质'], badFor: ['湿热质'] },
+    { name: '南瓜', category: '蔬菜', nature: '温', flavor: '甘', meridians: ['脾','胃'], effects: '补中益气、解毒杀虫', goodFor: ['气虚质','阳虚质'], badFor: ['湿热质'] },
+    { name: '韭菜', category: '蔬菜', nature: '温', flavor: '辛', meridians: ['肝','胃','肾'], effects: '温中行气、散瘀活血', goodFor: ['阳虚质','血瘀质'], badFor: ['阴虚质','湿热质'] },
+    { name: '生姜', category: '蔬菜', nature: '温', flavor: '辛', meridians: ['肺','脾','胃'], effects: '散寒解表、温中止呕', goodFor: ['阳虚质','痰湿质'], badFor: ['阴虚质','湿热质'] },
+    { name: '大蒜', category: '蔬菜', nature: '温', flavor: '辛', meridians: ['脾','胃','肺'], effects: '解毒杀虫、消肿止痛', goodFor: ['阳虚质','痰湿质'], badFor: ['阴虚质','湿热质'] },
+    { name: '洋葱', category: '蔬菜', nature: '温', flavor: '辛', meridians: ['肺','胃'], effects: '理气和胃、健脾消食', goodFor: ['气郁质','阳虚质'], badFor: ['湿热质'] },
+    // 水果
+    { name: '苹果', category: '水果', nature: '平', flavor: '甘酸', meridians: ['脾','肺'], effects: '生津止渴、健脾和胃', goodFor: ['平和质','气虚质'], badFor: [] },
+    { name: '梨', category: '水果', nature: '凉', flavor: '甘微酸', meridians: ['肺','胃'], effects: '生津润燥、清热化痰', goodFor: ['阴虚质','肺热咳嗽'], badFor: ['阳虚质'] },
+    { name: '香蕉', category: '水果', nature: '寒', flavor: '甘', meridians: ['肺','大肠'], effects: '清热润肠、解毒', goodFor: ['阴虚质','便秘'], badFor: ['阳虚质','痰湿质'] },
+    { name: '橙子', category: '水果', nature: '凉', flavor: '甘酸', meridians: ['肺','胃'], effects: '生津止渴、和胃理气', goodFor: ['阴虚质','气郁质'], badFor: ['阳虚质'] },
+    { name: '橘子', category: '水果', nature: '温', flavor: '甘酸', meridians: ['肺','胃'], effects: '开胃理气、止渴润肺', goodFor: ['气郁质','阳虚质'], badFor: ['湿热质'] },
+    { name: '桂圆', category: '水果', nature: '温', flavor: '甘', meridians: ['心','脾'], effects: '补心脾、益气血', goodFor: ['气虚质','血瘀质'], badFor: ['湿热质','阴虚质'] },
+    { name: '红枣', category: '水果', nature: '温', flavor: '甘', meridians: ['脾','胃','心'], effects: '补中益气、养血安神', goodFor: ['气虚质','血瘀质'], badFor: ['湿热质','痰湿质'] },
+    { name: '山楂', category: '水果', nature: '温', flavor: '酸甘', meridians: ['脾','胃','肝'], effects: '消食化积、活血散瘀', goodFor: ['痰湿质','血瘀质'], badFor: ['气虚质'] },
+    { name: '西瓜', category: '水果', nature: '寒', flavor: '甘', meridians: ['心','胃','膀胱'], effects: '清热解暑、除烦止渴', goodFor: ['湿热质','阴虚质'], badFor: ['阳虚质','气虚质'] },
+    { name: '葡萄', category: '水果', nature: '平', flavor: '甘酸', meridians: ['肺','脾','肾'], effects: '补气血、强筋骨', goodFor: ['气虚质','血瘀质'], badFor: [] },
+    { name: '桃子', category: '水果', nature: '温', flavor: '甘酸', meridians: ['肺','大肠'], effects: '生津润肠、活血消积', goodFor: ['血瘀质','气虚质'], badFor: ['湿热质'] },
+    { name: '荔枝', category: '水果', nature: '温', flavor: '甘酸', meridians: ['脾','肝'], effects: '补脾益肝、生津止渴', goodFor: ['阳虚质','气虚质'], badFor: ['阴虚质','湿热质'] },
+    // 肉蛋
+    { name: '猪肉', category: '肉蛋', nature: '平', flavor: '甘咸', meridians: ['脾','胃','肾'], effects: '滋阴润燥、补肾养血', goodFor: ['阴虚质','平和质'], badFor: ['痰湿质'] },
+    { name: '牛肉', category: '肉蛋', nature: '温', flavor: '甘', meridians: ['脾','胃'], effects: '补中益气、健脾养胃', goodFor: ['气虚质','阳虚质'], badFor: ['湿热质'] },
+    { name: '羊肉', category: '肉蛋', nature: '热', flavor: '甘', meridians: ['脾','肾'], effects: '温中暖肾、益气补虚', goodFor: ['阳虚质','气虚质'], badFor: ['阴虚质','湿热质'] },
+    { name: '鸡肉', category: '肉蛋', nature: '温', flavor: '甘', meridians: ['脾','胃'], effects: '温中益气、补精填髓', goodFor: ['气虚质','阳虚质'], badFor: ['湿热质'] },
+    { name: '鸭肉', category: '肉蛋', nature: '凉', flavor: '甘咸', meridians: ['肺','脾','肾'], effects: '滋阴养胃、利水消肿', goodFor: ['阴虚质','湿热质'], badFor: ['阳虚质'] },
+    { name: '鸡蛋', category: '肉蛋', nature: '平', flavor: '甘', meridians: ['心','肺'], effects: '滋阴润燥、养血安胎', goodFor: ['阴虚质','气虚质','平和质'], badFor: [] },
+    // 水产
+    { name: '鲤鱼', category: '水产', nature: '平', flavor: '甘', meridians: ['脾','肾'], effects: '健脾利水、下气通乳', goodFor: ['痰湿质','水肿'], badFor: [] },
+    { name: '鲫鱼', category: '水产', nature: '平', flavor: '甘', meridians: ['脾','胃'], effects: '健脾利湿、和中开胃', goodFor: ['气虚质','痰湿质'], badFor: [] },
+    { name: '虾', category: '水产', nature: '温', flavor: '甘', meridians: ['肝','肾'], effects: '补肾壮阳、通乳托毒', goodFor: ['阳虚质','气虚质'], badFor: ['阴虚质','湿热质'] },
+    { name: '螃蟹', category: '水产', nature: '寒', flavor: '咸', meridians: ['肝','胃'], effects: '清热散瘀、消肿解毒', goodFor: ['湿热质','血瘀质'], badFor: ['阳虚质','气虚质'] },
+    { name: '海参', category: '水产', nature: '温', flavor: '咸', meridians: ['心','肾'], effects: '补肾益精、养血润燥', goodFor: ['阳虚质','阴虚质'], badFor: ['痰湿质'] },
+    { name: '海带', category: '水产', nature: '寒', flavor: '咸', meridians: ['肝','胃','肾'], effects: '软坚散结、清热利水', goodFor: ['痰湿质','血瘀质'], badFor: ['阳虚质'] },
+    { name: '紫菜', category: '水产', nature: '寒', flavor: '甘咸', meridians: ['肺'], effects: '化痰软坚、清热利尿', goodFor: ['痰湿质','湿热质'], badFor: ['阳虚质'] },
+    // 豆类
+    { name: '黄豆', category: '豆类', nature: '平', flavor: '甘', meridians: ['脾','大肠'], effects: '健脾宽中、润燥消水', goodFor: ['气虚质','平和质'], badFor: [] },
+    { name: '绿豆', category: '豆类', nature: '凉', flavor: '甘', meridians: ['心','胃'], effects: '清热解毒、消暑利尿', goodFor: ['湿热质','阴虚质'], badFor: ['阳虚质'] },
+    { name: '红豆', category: '豆类', nature: '平', flavor: '甘酸', meridians: ['心','小肠'], effects: '利水消肿、解毒排脓', goodFor: ['痰湿质','湿热质'], badFor: [] },
+    { name: '黑豆', category: '豆类', nature: '平', flavor: '甘', meridians: ['脾','肾'], effects: '活血利水、祛风解毒', goodFor: ['血瘀质','肾虚'], badFor: [] },
+    { name: '豆腐', category: '豆类', nature: '凉', flavor: '甘', meridians: ['脾','胃','大肠'], effects: '益气和中、生津润燥', goodFor: ['阴虚质','平和质'], badFor: ['阳虚质'] },
+    { name: '赤小豆', category: '豆类', nature: '平', flavor: '甘酸', meridians: ['心','小肠'], effects: '利水消肿、解毒排脓', goodFor: ['痰湿质','湿热质'], badFor: [] },
+    // 调料
+    { name: '生姜', category: '调料', nature: '温', flavor: '辛', meridians: ['肺','脾','胃'], effects: '散寒解表、温中止呕', goodFor: ['阳虚质','痰湿质'], badFor: ['阴虚质','湿热质'] },
+    { name: '葱白', category: '调料', nature: '温', flavor: '辛', meridians: ['肺','胃'], effects: '散寒通阳、解毒散结', goodFor: ['阳虚质','风寒感冒'], badFor: ['阴虚质'] },
+    { name: '花椒', category: '调料', nature: '温', flavor: '辛', meridians: ['脾','胃','肾'], effects: '温中散寒、除湿止痛', goodFor: ['阳虚质','寒湿体质'], badFor: ['阴虚质','湿热质'] },
+    { name: '胡椒', category: '调料', nature: '热', flavor: '辛', meridians: ['胃','大肠'], effects: '温中散寒、下气消痰', goodFor: ['阳虚质','痰湿质'], badFor: ['阴虚质','湿热质'] },
+    { name: '醋', category: '调料', nature: '温', flavor: '酸苦', meridians: ['肝','胃'], effects: '散瘀止血、理气止痛', goodFor: ['血瘀质','气郁质'], badFor: [] },
+    { name: '蜂蜜', category: '调料', nature: '平', flavor: '甘', meridians: ['肺','脾','大肠'], effects: '补中润燥、止痛解毒', goodFor: ['阴虚质','气虚质'], badFor: ['痰湿质','湿热质'] },
+    { name: '桂皮', category: '调料', nature: '热', flavor: '辛甘', meridians: ['肾','脾','心'], effects: '补火助阳、散寒止痛', goodFor: ['阳虚质','寒证'], badFor: ['阴虚质','湿热质'] },
+    { name: '八角', category: '调料', nature: '温', flavor: '辛', meridians: ['脾','胃'], effects: '温阳散寒、理气止痛', goodFor: ['阳虚质','寒湿体质'], badFor: ['阴虚质'] },
+    // 饮品
+    { name: '绿茶', category: '饮品', nature: '凉', flavor: '苦甘', meridians: ['心','肺','胃'], effects: '清热解毒、消食化痰', goodFor: ['湿热质','痰湿质'], badFor: ['阳虚质'] },
+    { name: '红茶', category: '饮品', nature: '温', flavor: '甘', meridians: ['心','胃'], effects: '温中暖胃、散寒活血', goodFor: ['阳虚质','气虚质'], badFor: ['阴虚质'] },
+    { name: '菊花茶', category: '饮品', nature: '凉', flavor: '甘苦', meridians: ['肝','肺'], effects: '疏风散热、平肝明目', goodFor: ['阴虚质','湿热质'], badFor: ['阳虚质'] },
+    { name: '枸杞茶', category: '饮品', nature: '平', flavor: '甘', meridians: ['肝','肾'], effects: '滋补肝肾、益精明目', goodFor: ['阴虚质','平和质'], badFor: ['痰湿质'] },
+    { name: '牛奶', category: '饮品', nature: '平', flavor: '甘', meridians: ['心','肺','胃'], effects: '补虚损、益肺胃', goodFor: ['阴虚质','气虚质'], badFor: ['痰湿质'] },
+    { name: '豆浆', category: '饮品', nature: '凉', flavor: '甘', meridians: ['肺','胃'], effects: '补虚润燥、清肺化痰', goodFor: ['阴虚质','平和质'], badFor: ['阳虚质'] }
+  ];
+
+  let _foodFilter = { category: '全部', search: '' };
+
+  function initFoodLib() {
+    const searchInput = document.getElementById('healthFoodSearch');
+    const catContainer = document.getElementById('healthFoodCategories');
+    if (searchInput) {
+      _bindEvent(searchInput, 'input', () => {
+        _foodFilter.search = searchInput.value.trim();
+        renderFoodList();
+      });
+    }
+    if (catContainer) {
+      catContainer.querySelectorAll('.health-food-cat-btn').forEach(btn => {
+        _bindEvent(btn, 'click', () => {
+          catContainer.querySelectorAll('.health-food-cat-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          _foodFilter.category = btn.dataset.cat;
+          renderFoodList();
+        });
+      });
+    }
+    renderFoodList();
+  }
+
+  function renderFoodList() {
+    const container = document.getElementById('healthFoodList');
+    if (!container) return;
+    let list = FOOD_DATA;
+    if (_foodFilter.category !== '全部') {
+      list = list.filter(f => f.category === _foodFilter.category);
+    }
+    if (_foodFilter.search) {
+      const kw = _foodFilter.search.toLowerCase();
+      list = list.filter(f => f.name.toLowerCase().includes(kw));
+    }
+    if (list.length === 0) {
+      container.innerHTML = '<div class="health-food-empty">未找到匹配的食物</div>';
+      return;
+    }
+    container.innerHTML = list.map(f => {
+      const natureCls = f.nature === '寒' || f.nature === '凉' ? 'nature-cold' :
+                        f.nature === '平' ? 'nature-neutral' : 'nature-warm';
+      return `<div class="health-food-item">
+        <div class="health-food-item-header">
+          <span class="health-food-item-name">${escapeHtml(f.name)}</span>
+          <span class="health-food-item-cat">${escapeHtml(f.category)}</span>
+        </div>
+        <div class="health-food-item-props">
+          <span class="health-food-nature-tag ${natureCls}">${escapeHtml(f.nature)}</span>
+          <span class="health-food-flavor-tag">${escapeHtml(f.flavor)}</span>
+        </div>
+        <div class="health-food-item-meridians">${f.meridians.map(m => escapeHtml(m)).join('、')}</div>
+        <div class="health-food-item-effects">${escapeHtml(f.effects)}</div>
+        <div class="health-food-item-constitution">
+          ${f.goodFor.length ? '<span class="health-food-good">✓ ' + f.goodFor.join('、') + '</span>' : ''}
+          ${f.badFor.length ? '<span class="health-food-bad"> ✗ ' + f.badFor.join('、') + '</span>' : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ===== 五脏知识库 =====
+  const ORGAN_DATA = {
+    '心': {
+      alias: '心者，君主之官',
+      function: '心主血脉，主神明，其华在面，开窍于舌。心为五脏六腑之大主，统领精神意识思维活动。',
+      relations: { '五志': '喜', '五味': '苦', '五色': '赤', '五季': '夏', '五官': '舌' },
+      tips: [
+        '午时（11-13点）心经当令，宜午休养心，小憩15-30分钟',
+        '保持心情愉悦，避免大喜大悲，以防心气耗散',
+        '红色食物养心，如红枣、赤小豆、西红柿、山楂',
+        '适当运动如散步、太极，促进气血运行',
+        '睡前泡脚引火归元，有助安眠养心'
+      ],
+      issues: [
+        { name: '心悸失眠', desc: '多因心血不足或心气虚弱，表现为心慌、失眠多梦。调理：养心安神，可食桂圆、莲子、酸枣仁；按摩神门穴、内关穴。' },
+        { name: '心火上炎', desc: '多因情志化火或过食辛辣，表现为口舌生疮、心烦失眠。调理：清心泻火，可饮莲子心茶、竹叶茶；少食辛辣。' },
+        { name: '心血瘀阻', desc: '多因气滞血瘀或寒凝心脉，表现为胸闷心痛、唇色紫暗。调理：活血化瘀，可食山楂、丹参茶；注意保暖防寒。' }
+      ]
+    },
+    '肝': {
+      alias: '肝者，将军之官',
+      function: '肝主疏泄，主藏血，在体合筋，开窍于目。肝调畅气机，调节情志，促进消化吸收。',
+      relations: { '五志': '怒', '五味': '酸', '五色': '青', '五季': '春', '五官': '目' },
+      tips: [
+        '丑时（1-3点）肝经当令，此时宜深睡以养肝血',
+        '保持情绪舒畅，切忌暴怒伤肝，学会疏导压力',
+        '青色食物养肝，如菠菜、芹菜、西兰花、绿豆',
+        '适度运动疏肝理气，如散步、瑜伽、八段锦',
+        '避免过度饮酒，酒精最伤肝脏'
+      ],
+      issues: [
+        { name: '肝郁气滞', desc: '多因情志不遂，表现为胸胁胀痛、善太息、情绪低落。调理：疏肝理气，可饮玫瑰花茶、佛手茶；按压太冲穴。' },
+        { name: '肝火上炎', desc: '多因气郁化火，表现为头痛目赤、口苦易怒。调理：清肝泻火，可饮菊花茶、决明子茶；忌辛辣燥热。' },
+        { name: '肝血不足', desc: '多因失血或久病，表现为眼干涩、肢体麻木、面色淡白。调理：养血柔肝，可食枸杞、猪肝、黑芝麻。' }
+      ]
+    },
+    '脾': {
+      alias: '脾者，仓廪之官',
+      function: '脾主运化，主统血，在体合肌肉，开窍于口。脾为后天之本，气血生化之源，主消化吸收和水液代谢。',
+      relations: { '五志': '思', '五味': '甘', '五色': '黄', '五季': '长夏', '五官': '口' },
+      tips: [
+        '辰时（7-9点）胃经当令，巳时（9-11点）脾经当令，此时消化吸收最佳，务必吃好早餐',
+        '饮食有节，忌暴饮暴食，少食生冷寒凉以免伤脾阳',
+        '黄色食物养脾，如山药、小米、南瓜、黄豆',
+        '饭后百步走，有助脾胃运化',
+        '避免过度思虑，思则气结伤脾'
+      ],
+      issues: [
+        { name: '脾气虚弱', desc: '多因饮食不节或劳倦，表现为食欲不振、腹胀便溏、疲倦乏力。调理：健脾益气，可食山药、黄芪、大枣；艾灸足三里。' },
+        { name: '脾阳不振', desc: '多由脾气虚发展而来，表现为腹中冷痛、四肢不温、完谷不化。调理：温阳健脾，可食生姜、桂圆、羊肉；忌生冷。' },
+        { name: '湿困脾土', desc: '多因外湿或饮食不节，表现为脘腹痞闷、口黏乏味、身重困倦。调理：化湿健脾，可食薏米、冬瓜、陈皮。' }
+      ]
+    },
+    '肺': {
+      alias: '肺者，相傅之官',
+      function: '肺主气司呼吸，主宣发肃降，通调水道，在体合皮毛，开窍于鼻。肺为华盖，主一身之气，外合皮毛以御外邪。',
+      relations: { '五志': '忧', '五味': '辛', '五色': '白', '五季': '秋', '五官': '鼻' },
+      tips: [
+        '寅时（3-5点）肺经当令，此时宜熟睡，有助肺气肃降',
+        '秋季养肺，多食白色食物如百合、银耳、梨、白萝卜',
+        '练习腹式呼吸，增强肺活量，每次5-10分钟',
+        '避免悲伤过度，悲则气消伤肺',
+        '注意防寒保暖，肺主皮毛，外邪最易犯肺'
+      ],
+      issues: [
+        { name: '肺气虚弱', desc: '多因久咳或脾虚及肺，表现为气短懒言、自汗畏风、易感冒。调理：补益肺气，可食黄芪、山药、百合；练习腹式呼吸。' },
+        { name: '肺阴亏虚', desc: '多因燥热伤肺或久咳伤阴，表现为干咳少痰、咽干鼻燥。调理：滋阴润肺，可食银耳、百合、梨、蜂蜜。' },
+        { name: '风寒犯肺', desc: '多因外感风寒，表现为咳嗽声重、痰稀色白、鼻塞流清涕。调理：疏风散寒，可饮生姜红糖茶、紫苏茶。' }
+      ]
+    },
+    '肾': {
+      alias: '肾者，作强之官',
+      function: '肾主藏精，主水液代谢，主纳气，在体合骨生髓，开窍于耳。肾为先天之本，藏元阴元阳，是生命活动的根本。',
+      relations: { '五志': '恐', '五味': '咸', '五色': '黑', '五季': '冬', '五官': '耳' },
+      tips: [
+        '酉时（17-19点）肾经当令，此时宜养肾，可按摩腰部',
+        '冬季养肾，多食黑色食物如黑芝麻、黑豆、核桃、桑椹',
+        '节制房事，保精养肾，不可纵欲过度',
+        '避免恐惧惊吓，恐则气下伤肾',
+        '坚持叩齿吞津，每日晨起叩齿36次，可固肾气'
+      ],
+      issues: [
+        { name: '肾阳虚衰', desc: '多因年老体衰或久病伤阳，表现为腰膝酸冷、畏寒肢冷、夜尿频多。调理：温补肾阳，可食羊肉、韭菜、核桃；艾灸关元、命门。' },
+        { name: '肾阴不足', desc: '多因久病或房劳过度，表现为腰膝酸软、眩晕耳鸣、盗汗潮热。调理：滋补肾阴，可食黑芝麻、枸杞、桑椹、银耳。' },
+        { name: '肾气不固', desc: '多因先天不足或年老肾衰，表现为小便频数、遗精滑泄、腰膝无力。调理：固摄肾气，可食芡实、金樱子、核桃；避免劳累。' }
+      ]
+    }
+  };
+
+  let _currentOrgan = '心';
+
+  function initOrganLib() {
+    const tabContainer = document.getElementById('healthOrganTabs');
+    if (tabContainer) {
+      tabContainer.querySelectorAll('.health-organ-tab').forEach(btn => {
+        _bindEvent(btn, 'click', () => {
+          tabContainer.querySelectorAll('.health-organ-tab').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          _currentOrgan = btn.dataset.organ;
+          renderOrganDetail();
+        });
+      });
+    }
+    renderOrganDetail();
+  }
+
+  function renderOrganDetail() {
+    const container = document.getElementById('healthOrganDetail');
+    if (!container) return;
+    const data = ORGAN_DATA[_currentOrgan];
+    if (!data) return;
+    const relRows = Object.entries(data.relations).map(([k, v]) =>
+      `<tr><th>${escapeHtml(k)}</th><td>${escapeHtml(v)}</td></tr>`
+    ).join('');
+    const tipsHtml = data.tips.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+    const issuesHtml = data.issues.map(iss =>
+      `<div class="health-organ-issue"><div class="health-organ-issue-name">${escapeHtml(iss.name)}</div><div class="health-organ-issue-desc">${escapeHtml(iss.desc)}</div></div>`
+    ).join('');
+    container.innerHTML = `
+      <div class="health-organ-header">
+        <div class="health-organ-name">${escapeHtml(_currentOrgan)}</div>
+        <div class="health-organ-alias">${escapeHtml(data.alias)}</div>
+      </div>
+      <div class="health-organ-function">${escapeHtml(data.function)}</div>
+      <table class="health-organ-table"><tbody>${relRows}</tbody></table>
+      <div class="health-organ-section-title">💡 养护要点</div>
+      <ul class="health-organ-tips">${tipsHtml}</ul>
+      <div class="health-organ-section-title">⚠️ 常见问题</div>
+      <div class="health-organ-issues">${issuesHtml}</div>
+    `;
+  }
+
+  // ===== 情志调养 =====
+  const EMOTION_DATA = {
+    '喜': {
+      organ: '心',
+      overperformance: '喜则气缓，过喜则心气涣散，表现为心神不宁、注意力涣散、心悸怔忡，甚则喜笑不休、神志失常。大喜之后常感空虚疲惫。',
+      tips: [
+        '饮食：莲子、百合、酸枣仁，养心安神',
+        '起居：保持规律作息，午时小憩养心',
+        '运动：练习静坐冥想，收敛心神',
+        '穴位：按揉神门穴、内关穴，宁心安神',
+        '情志：以恐惧收敛过喜之气（恐胜喜）'
+      ],
+      overcome: '恐胜喜——水克火。恐惧能收敛涣散的心气，适度体验敬畏、慎重之感有助于平复过度的喜悦，使心神归位。'
+    },
+    '怒': {
+      organ: '肝',
+      overperformance: '怒则气上，暴怒则肝气上逆，表现为头痛眩晕、面红目赤、口苦耳鸣，甚则呕血、昏厥。长期郁怒则肝气郁结，两胁胀痛。',
+      tips: [
+        '饮食：菊花、决明子、芹菜、苦瓜，清肝泻火',
+        '起居：保证丑时（1-3点）深睡，养肝血',
+        '运动：户外散步、瑜伽，疏肝理气',
+        '穴位：按揉太冲穴、行间穴，平肝降逆',
+        '情志：以悲忧平抑怒气（悲胜怒）'
+      ],
+      overcome: '悲胜怒——金克木。悲忧之情能收敛肝气上逆，适当感受悲悯、反思，有助于平息怒火，使肝气条达。'
+    },
+    '忧': {
+      organ: '肺',
+      overperformance: '忧伤肺，忧则气聚，过度忧愁则肺气郁闭，表现为胸闷气短、呼吸不畅、食欲减退，久之面色暗淡、精神萎靡。',
+      tips: [
+        '饮食：百合、银耳、梨、蜂蜜，润肺解忧',
+        '起居：保持室内通风，秋季防燥',
+        '运动：腹式呼吸、户外登山，宣发肺气',
+        '穴位：按揉膻中穴、肺俞穴，宽胸理气',
+        '情志：以喜悦化解忧愁（喜胜忧）'
+      ],
+      overcome: '喜胜忧——火克金。喜悦之情能驱散忧愁阴霾，与朋友欢笑、看喜剧、听音乐，有助于振奋精神，宣通肺气。'
+    },
+    '思': {
+      organ: '脾',
+      overperformance: '思则气结，过度思虑则脾气郁结，表现为食欲不振、腹胀便溏、疲倦乏力，甚则失眠健忘、面色萎黄。',
+      tips: [
+        '饮食：山药、小米、大枣、陈皮，健脾理气',
+        '起居：规律饮食，细嚼慢咽，忌边吃边思',
+        '运动：饭后散步、八段锦"调理脾胃须单举"',
+        '穴位：按揉足三里、中脘穴，健脾助运',
+        '情志：以怒气冲破思虑之结（怒胜思）'
+      ],
+      overcome: '怒胜思——木克土。适当的愤怒和决断力能打破思虑僵局，勇敢做出选择，有助于疏通郁结的脾气，恢复运化。'
+    },
+    '悲': {
+      organ: '肺',
+      overperformance: '悲伤肺，悲则气消，过度悲伤则肺气耗散，表现为呼吸短促、胸闷心悸、精神萎靡、意志消沉，久之毛发枯焦。',
+      tips: [
+        '饮食：百合、莲子、银耳、牛奶，养肺安神',
+        '起居：早睡早起，保证充足睡眠',
+        '运动：适度运动如慢跑、太极，振奋阳气',
+        '穴位：按揉太渊穴、膻中穴，补益肺气',
+        '情志：以喜悦驱散悲伤（喜胜悲）'
+      ],
+      overcome: '喜胜悲——火克金。喜悦是悲伤的对治，积极参与社交活动、培养兴趣爱好，让阳光驱散内心阴霾，肺气自复。'
+    },
+    '恐': {
+      organ: '肾',
+      overperformance: '恐则气下，过度恐惧则肾气不固，表现为二便失禁、腰膝酸软、遗精滑泄，甚则骨酸痿厥、气陷于下。',
+      tips: [
+        '饮食：核桃、黑芝麻、枸杞、山药，补肾固气',
+        '起居：冬季保暖，避免受惊吓',
+        '运动：站桩、深蹲，强健下元',
+        '穴位：按揉肾俞穴、太溪穴，补肾固摄',
+        '情志：以思虑安定恐惧之心（思胜恐）'
+      ],
+      overcome: '思胜恐——土克水。理性思考和认知能化解恐惧，了解事物真相、制定计划，有助于安定心神，固摄肾气。'
+    }
+  };
+
+  const CONSTITUTION_EMOTION_MAP = {
+    qixu: { tendency: '易忧虑、缺乏自信', advice: '补气健脾可改善忧思倾向，多食黄芪、山药，适当运动提振精神。' },
+    yangxu: { tendency: '易恐惧、缺乏安全感', advice: '温阳散寒可增强勇气，多食羊肉、生姜，艾灸关元、命门。' },
+    yinxu: { tendency: '易烦躁、心神不宁', advice: '滋阴降火可安定心神，多食银耳、百合，避免熬夜伤阴。' },
+    tanshi: { tendency: '易郁闷、思维迟缓', advice: '化痰祛湿可清爽头脑，多食薏米、陈皮，坚持有氧运动。' },
+    shire: { tendency: '易急躁、怒火内郁', advice: '清热利湿可平息急躁，多食绿豆、苦瓜，保持环境通风凉爽。' },
+    xueyu: { tendency: '易烦躁、情绪不稳', advice: '活血化瘀可疏通情志，多食山楂、玫瑰花，保持心情舒畅。' },
+    qiyu: { tendency: '易忧郁、闷闷不乐', advice: '疏肝理气是关键，多食柑橘、玫瑰花，多户外活动释怀。' },
+    tebing: { tendency: '易焦虑、紧张不安', advice: '益气固表可增强安全感，多食黄芪、白术，避免过敏原。' },
+    pinghe: { tendency: '情绪较稳定平和', advice: '继续保持平衡生活方式，适度调节即可。' }
+  };
+
+  let _currentEmotion = null;
+
+  function initEmotionCare() {
+    const selector = document.getElementById('healthEmotionSelector');
+    if (selector) {
+      selector.querySelectorAll('.health-emotion-btn').forEach(btn => {
+        _bindEvent(btn, 'click', () => {
+          selector.querySelectorAll('.health-emotion-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          _currentEmotion = btn.dataset.emotion;
+          renderEmotionDetail();
+        });
+      });
+    }
+    const saveBtn = document.getElementById('healthDiarySave');
+    if (saveBtn) {
+      _bindEvent(saveBtn, 'click', saveEmotionDiary);
+    }
+    loadEmotionDiary();
+  }
+
+  async function renderEmotionDetail() {
+    const container = document.getElementById('healthEmotionDetail');
+    if (!container || !_currentEmotion) {
+      if (container) container.innerHTML = '<div class="health-emotion-empty">请选择一种情绪查看调养方法</div>';
+      return;
+    }
+    const data = EMOTION_DATA[_currentEmotion];
+    if (!data) return;
+    const tipsHtml = data.tips.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+    let constitutionNote = '';
+    try {
+      const setting = await Storage.get('settings', 'health/constitution');
+      if (setting && setting.value && setting.value.type) {
+        const cData = CONSTITUTION_EMOTION_MAP[setting.value.type];
+        if (cData) {
+          constitutionNote = `<div class="health-emotion-constitution-note">${escapeHtml(cData.tendency)}。${escapeHtml(cData.advice)}</div>`;
+        }
+      }
+    } catch (e) {}
+    container.innerHTML = `
+      <div class="health-emotion-organ">"${escapeHtml(_currentEmotion)}"伤${escapeHtml(data.organ)} —— ${escapeHtml(_currentEmotion)}与${escapeHtml(data.organ)}相应，过度则损伤${escapeHtml(data.organ)}气</div>
+      <div class="health-emotion-section">
+        <div class="health-emotion-section-title">⚡ 过度表现</div>
+        <div class="health-emotion-overperformance">${escapeHtml(data.overperformance)}</div>
+      </div>
+      <div class="health-emotion-section">
+        <div class="health-emotion-section-title">🌿 调理方法</div>
+        <ul class="health-emotion-tips">${tipsHtml}</ul>
+      </div>
+      <div class="health-emotion-section">
+        <div class="health-emotion-section-title">⚖️ 相克调节</div>
+        <div class="health-emotion-overcome">${escapeHtml(data.overcome)}</div>
+      </div>
+      ${constitutionNote}
+    `;
+  }
+
+  async function saveEmotionDiary() {
+    const emotionSelect = document.getElementById('healthDiaryEmotion');
+    const triggerInput = document.getElementById('healthDiaryTrigger');
+    if (!emotionSelect || !emotionSelect.value) {
+      showToast('请选择情绪类型');
+      return;
+    }
+    const record = {
+      date: new Date().toISOString(),
+      emotion: emotionSelect.value,
+      trigger: triggerInput ? triggerInput.value.trim() : ''
+    };
+    try {
+      const setting = await Storage.get('settings', 'health/emotion');
+      let records = (setting && setting.value) || [];
+      records.unshift(record);
+      if (records.length > 30) records = records.slice(0, 30);
+      await Storage.put('settings', { key: 'health/emotion', value: records });
+      if (emotionSelect) emotionSelect.value = '';
+      if (triggerInput) triggerInput.value = '';
+      showToast('情绪已记录 📝');
+      loadEmotionDiary();
+    } catch (e) {
+      showToast('记录失败');
+    }
+  }
+
+  async function loadEmotionDiary() {
+    const container = document.getElementById('healthDiaryRecords');
+    if (!container) return;
+    try {
+      const setting = await Storage.get('settings', 'health/emotion');
+      const records = (setting && setting.value) || [];
+      if (records.length === 0) {
+        container.innerHTML = '<div class="health-diary-empty">暂无记录，记录今天的心情吧</div>';
+        return;
+      }
+      const emotionIcons = { '喜': '😄', '怒': '😤', '忧': '😟', '思': '🤔', '悲': '😢', '恐': '😰' };
+      container.innerHTML = records.slice(0, 7).map(r => {
+        const d = new Date(r.date);
+        const ds = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        const icon = emotionIcons[r.emotion] || '😶';
+        return `<div class="health-diary-record">
+          <span class="health-diary-record-emotion">${icon}</span>
+          <div class="health-diary-record-info">
+            <div class="health-diary-record-date">${escapeHtml(ds)}</div>
+            ${r.trigger ? `<div class="health-diary-record-trigger">${escapeHtml(r.trigger)}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    } catch (e) {
+      container.innerHTML = '<div class="health-diary-empty">加载失败</div>';
+    }
+  }
+
   // ===== 日期切换 =====
   function shiftDate(delta) {
     currentDate.setDate(currentDate.getDate() + delta);
@@ -1413,6 +1886,9 @@ export const HealthModule = (() => {
     initTongueDiagnosis();
     initQigong();
     initSymptomCheck();
+    initFoodLib();
+    initOrganLib();
+    initEmotionCare();
     // 日期切换
     const prevBtn = document.getElementById('health-prev-day');
     const nextBtn = document.getElementById('health-next-day');

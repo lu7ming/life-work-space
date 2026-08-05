@@ -1719,3 +1719,567 @@
 [data-theme="dark"] .health-tea-tag {
   background: var(--accent-orange-light);
 }
+
+/* ===== 食物性味速查库 ===== */
+.health-food-search-wrap {
+  margin-bottom: 10px;
+}
+.health-food-search {
+  width: 100%;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.health-food-search:focus {
+  border-color: var(--accent);
+}
+.health-food-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.health-food-cat-btn {
+  padding: 4px 12px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.health-food-cat-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.health-food-cat-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-orange-light);
+  color: var(--accent);
+  font-weight: 600;
+}
+.health-food-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.health-food-item {
+  background: var(--bg-main);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  transition: box-shadow 0.2s;
+}
+.health-food-item:hover {
+  box-shadow: var(--shadow-sm);
+}
+.health-food-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.health-food-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.health-food-item-cat {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--accent-orange-light);
+  color: var(--text-secondary);
+}
+.health-food-item-props {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.health-food-nature-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+}
+.health-food-nature-tag.nature-cold,
+.health-food-nature-tag.nature-cool {
+  background: rgba(74, 144, 217, 0.15);
+  color: #4A90D9;
+}
+.health-food-nature-tag.nature-neutral {
+  background: rgba(91, 175, 91, 0.15);
+  color: #5BAF5B;
+}
+.health-food-nature-tag.nature-warm,
+.health-food-nature-tag.nature-hot {
+  background: rgba(232, 131, 74, 0.15);
+  color: #E8834A;
+}
+.health-food-flavor-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+}
+.health-food-item-meridians {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.health-food-item-meridians::before {
+  content: '归经：';
+  color: var(--text-secondary);
+}
+.health-food-item-effects {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+.health-food-item-effects::before {
+  content: '功效：';
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.health-food-item-constitution {
+  font-size: 11px;
+  line-height: 1.6;
+}
+.health-food-good {
+  color: #5BAF5B;
+}
+.health-food-bad {
+  color: #D9534F;
+}
+.health-food-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 20px 0;
+}
+
+/* ===== 五脏知识库 ===== */
+.health-organ-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.health-organ-tab {
+  flex: 1;
+  padding: 8px 0;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.health-organ-tab:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.health-organ-tab.active {
+  border-color: var(--accent);
+  background: var(--accent-orange-light);
+  color: var(--accent);
+  font-weight: 600;
+}
+.health-organ-detail {
+  animation: healthFadeIn 0.3s ease;
+}
+.health-organ-header {
+  text-align: center;
+  margin-bottom: 14px;
+}
+.health-organ-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.health-organ-alias {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.health-organ-function {
+  background: var(--accent-orange-light);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+.health-organ-function::before {
+  content: '📋 核心功能：';
+  font-weight: 600;
+}
+.health-organ-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+.health-organ-table th,
+.health-organ-table td {
+  padding: 8px 12px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+.health-organ-table th {
+  background: var(--bg-main);
+  color: var(--text-secondary);
+  font-weight: 600;
+  width: 30%;
+}
+.health-organ-table td {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.health-organ-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.health-organ-tips {
+  list-style: none;
+  margin-bottom: 14px;
+}
+.health-organ-tips li {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  padding-left: 14px;
+  position: relative;
+  margin-bottom: 4px;
+}
+.health-organ-tips li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: 600;
+}
+.health-organ-issues {
+  margin-bottom: 4px;
+}
+.health-organ-issue {
+  background: var(--bg-main);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.health-organ-issue-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.health-organ-issue-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ===== 情志调养 ===== */
+.health-emotion-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.health-emotion-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 24px;
+  min-width: 56px;
+}
+.health-emotion-btn span {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.health-emotion-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-orange-light);
+}
+.health-emotion-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-orange-light);
+  box-shadow: 0 2px 8px rgba(232, 168, 124, 0.3);
+}
+.health-emotion-btn.active span {
+  color: var(--accent);
+  font-weight: 600;
+}
+.health-emotion-detail {
+  animation: healthFadeIn 0.3s ease;
+  margin-bottom: 16px;
+}
+.health-emotion-organ {
+  background: var(--accent-orange-light);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.health-emotion-section {
+  margin-bottom: 12px;
+}
+.health-emotion-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.health-emotion-overperformance {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  padding: 8px 12px;
+  background: var(--bg-main);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+.health-emotion-tips {
+  list-style: none;
+}
+.health-emotion-tips li {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  padding-left: 14px;
+  position: relative;
+  margin-bottom: 4px;
+}
+.health-emotion-tips li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+.health-emotion-overcome {
+  background: rgba(74, 144, 217, 0.1);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #4A90D9;
+  line-height: 1.7;
+}
+.health-emotion-overcome::before {
+  content: '⚖️ ';
+}
+.health-emotion-constitution-note {
+  background: rgba(91, 175, 91, 0.1);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #5BAF5B;
+  line-height: 1.7;
+}
+.health-emotion-constitution-note::before {
+  content: '🧬 体质关联：';
+  font-weight: 600;
+}
+.health-emotion-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 20px 0;
+}
+
+/* 情绪日记 */
+.health-emotion-diary {
+  border-top: 1px solid var(--border-color);
+  padding-top: 14px;
+}
+.health-emotion-diary-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+.health-emotion-diary-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.health-emotion-diary-select {
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  outline: none;
+  font-family: inherit;
+  min-width: 130px;
+}
+.health-emotion-diary-input {
+  flex: 1;
+  min-width: 120px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  outline: none;
+  font-family: inherit;
+}
+.health-emotion-diary-input:focus,
+.health-emotion-diary-select:focus {
+  border-color: var(--accent);
+}
+.health-emotion-diary-save {
+  padding: 6px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.health-emotion-diary-save:hover {
+  background: var(--accent-hover);
+}
+.health-emotion-diary-records {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.health-diary-record {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-main);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+.health-diary-record-emotion {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.health-diary-record-info {
+  flex: 1;
+  min-width: 0;
+}
+.health-diary-record-date {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.health-diary-record-trigger {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.health-diary-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+/* ===== 食物/五脏/情志 响应式 ===== */
+@media (max-width: 600px) {
+  .health-food-list {
+    grid-template-columns: 1fr;
+  }
+  .health-organ-tabs {
+    gap: 4px;
+  }
+  .health-organ-tab {
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  .health-emotion-selector {
+    gap: 6px;
+  }
+  .health-emotion-btn {
+    padding: 8px 10px;
+    font-size: 20px;
+    min-width: 48px;
+  }
+  .health-emotion-diary-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .health-emotion-diary-select,
+  .health-emotion-diary-input {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* ===== 食物/五脏/情志 深色模式 ===== */
+[data-theme="dark"] .health-food-item {
+  background: var(--bg-hover);
+}
+[data-theme="dark"] .health-food-nature-tag.nature-cold,
+[data-theme="dark"] .health-food-nature-tag.nature-cool {
+  background: rgba(74, 144, 217, 0.25);
+}
+[data-theme="dark"] .health-food-nature-tag.nature-neutral {
+  background: rgba(91, 175, 91, 0.25);
+}
+[data-theme="dark"] .health-food-nature-tag.nature-warm,
+[data-theme="dark"] .health-food-nature-tag.nature-hot {
+  background: rgba(232, 131, 74, 0.25);
+}
+[data-theme="dark"] .health-organ-function {
+  background: var(--accent-orange-light);
+}
+[data-theme="dark"] .health-organ-table th {
+  background: var(--bg-hover);
+}
+[data-theme="dark"] .health-organ-issue {
+  background: var(--bg-hover);
+}
+[data-theme="dark"] .health-emotion-overperformance {
+  background: var(--bg-hover);
+}
+[data-theme="dark"] .health-diary-record {
+  background: var(--bg-hover);
+}

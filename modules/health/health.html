@@ -285,6 +285,70 @@
       <div class="health-qigong-panel" id="healthQgBaduanjin"></div>
     </div>
 
+    <!-- 食物性味速查库 -->
+    <div class="health-card card">
+      <div class="health-card-title"><span class="icon">🍎</span> 食物性味速查库</div>
+      <div class="health-food-search-wrap">
+        <input type="text" class="health-food-search" id="healthFoodSearch" placeholder="搜索食物名称...">
+      </div>
+      <div class="health-food-categories" id="healthFoodCategories">
+        <button class="health-food-cat-btn active" data-cat="全部">全部</button>
+        <button class="health-food-cat-btn" data-cat="谷物">谷物</button>
+        <button class="health-food-cat-btn" data-cat="蔬菜">蔬菜</button>
+        <button class="health-food-cat-btn" data-cat="水果">水果</button>
+        <button class="health-food-cat-btn" data-cat="肉蛋">肉蛋</button>
+        <button class="health-food-cat-btn" data-cat="水产">水产</button>
+        <button class="health-food-cat-btn" data-cat="豆类">豆类</button>
+        <button class="health-food-cat-btn" data-cat="调料">调料</button>
+        <button class="health-food-cat-btn" data-cat="饮品">饮品</button>
+      </div>
+      <div class="health-food-list" id="healthFoodList"></div>
+    </div>
+
+    <!-- 五脏知识库 -->
+    <div class="health-card card">
+      <div class="health-card-title"><span class="icon">🫀</span> 五脏知识库</div>
+      <div class="health-organ-tabs" id="healthOrganTabs">
+        <button class="health-organ-tab active" data-organ="心">心</button>
+        <button class="health-organ-tab" data-organ="肝">肝</button>
+        <button class="health-organ-tab" data-organ="脾">脾</button>
+        <button class="health-organ-tab" data-organ="肺">肺</button>
+        <button class="health-organ-tab" data-organ="肾">肾</button>
+      </div>
+      <div class="health-organ-detail" id="healthOrganDetail"></div>
+    </div>
+
+    <!-- 情志调养 -->
+    <div class="health-card card">
+      <div class="health-card-title"><span class="icon">🎭</span> 情志调养</div>
+      <div class="health-emotion-selector" id="healthEmotionSelector">
+        <button class="health-emotion-btn" data-emotion="喜">😄<span>喜</span></button>
+        <button class="health-emotion-btn" data-emotion="怒">😤<span>怒</span></button>
+        <button class="health-emotion-btn" data-emotion="忧">😟<span>忧</span></button>
+        <button class="health-emotion-btn" data-emotion="思">🤔<span>思</span></button>
+        <button class="health-emotion-btn" data-emotion="悲">😢<span>悲</span></button>
+        <button class="health-emotion-btn" data-emotion="恐">😰<span>恐</span></button>
+      </div>
+      <div class="health-emotion-detail" id="healthEmotionDetail"></div>
+      <div class="health-emotion-diary">
+        <div class="health-emotion-diary-title">📝 情绪日记</div>
+        <div class="health-emotion-diary-form">
+          <select class="health-emotion-diary-select" id="healthDiaryEmotion">
+            <option value="">选择今天的主要情绪</option>
+            <option value="喜">😄 喜</option>
+            <option value="怒">😤 怒</option>
+            <option value="忧">😟 忧</option>
+            <option value="思">🤔 思</option>
+            <option value="悲">😢 悲</option>
+            <option value="恐">😰 恐</option>
+          </select>
+          <input type="text" class="health-emotion-diary-input" id="healthDiaryTrigger" placeholder="触发事件（可选）">
+          <button class="health-emotion-diary-save" id="healthDiarySave">记录</button>
+        </div>
+        <div class="health-emotion-diary-records" id="healthDiaryRecords"></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ==================== Tab 3: 症状自查 ==================== -->

@@ -312,6 +312,41 @@
   transform: rotate(180deg);
 }
 
+/* 卡片内删除按钮（仅展开时显示） */
+.travel-dest-delete {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.travel-dest-delete svg {
+  width: 17px;
+  height: 17px;
+}
+
+.travel-dest-card.expanded .travel-dest-delete {
+  display: flex;
+}
+
+.travel-dest-delete:hover {
+  background: var(--accent-red-light);
+  color: var(--accent-red);
+}
+
+.travel-dest-delete:active {
+  transform: scale(0.92);
+}
+
 /* 卡片内容 */
 .travel-dest-body {
   max-height: 0;

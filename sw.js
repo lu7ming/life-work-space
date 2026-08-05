@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v88 - 新增旅行计划模块：每日一言、天气+农历/节气、倒计时
+ * v89 - 旅行计划模块优化：去除预置数据、新增卡片删除功能：每日一言、天气+农历/节气、倒计时
  */
 
-const CACHE_NAME = 'life-work-space-v88';
+const CACHE_NAME = 'life-work-space-v89';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

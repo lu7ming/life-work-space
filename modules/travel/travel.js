@@ -68,86 +68,13 @@ export const TravelModule = (() => {
     return Date.now() + Math.floor(Math.random() * 1000);
   }
 
-  // ===== 预置示例数据 =====
-  const SAMPLE_DATA = [
-    {
-      id: 1,
-      flag: '🇮🇸',
-      name: '冰岛',
-      subtitle: '极光 · 蓝湖 · 冰川',
-      stage: 'prep',
-      fund: { target: 30000, saved: 8000 },
-      departure: '2026-12-21',
-      checklist: [
-        { label: '护照', checked: true },
-        { label: '签证', checked: false },
-        { label: '机票', checked: false },
-        { label: '酒店', checked: false },
-        { label: '保险', checked: false },
-        { label: '行程单', checked: false },
-        { label: '申根签证', checked: false, extra: true },
-      ],
-      costs: [
-        { cat: '机票', amount: 8000 },
-        { cat: '住宿', amount: 10000 },
-        { cat: '签证', amount: 800 },
-        { cat: '保险', amount: 500 },
-        { cat: '日常开销', amount: 10700 },
-      ],
-    },
-    {
-      id: 2,
-      flag: '🏴',
-      name: '爱丁堡',
-      subtitle: '古堡 · 文学 · 威士忌',
-      stage: 'want',
-      fund: { target: 15000, saved: 2000 },
-      departure: null,
-      checklist: [
-        { label: '护照', checked: true },
-        { label: '签证', checked: false },
-        { label: '机票', checked: false },
-        { label: '酒店', checked: false },
-        { label: '保险', checked: false },
-        { label: '行程单', checked: false },
-        { label: '英国签证', checked: false, extra: true },
-      ],
-      costs: [
-        { cat: '机票', amount: 5000 },
-        { cat: '住宿', amount: 5000 },
-        { cat: '签证', amount: 1000 },
-        { cat: '保险', amount: 400 },
-        { cat: '日常开销', amount: 3600 },
-      ],
-    },
-  ];
-
   // ===== 数据加载 =====
   async function loadData() {
     try {
       allDestinations = await Storage.getAll('travel');
     } catch (e) {
-      console.warn('[Travel] 读取travel表失败，尝试初始化示例数据:', e);
+      console.warn('[Travel] 读取travel表失败:', e);
       allDestinations = [];
-    }
-
-    // 首次使用：注入示例数据
-    if (!allDestinations || allDestinations.length === 0) {
-      const meta = await Storage.get('meta', 'travel_initialized');
-      if (!meta) {
-        console.log('[Travel] 首次运行，注入示例数据...');
-        for (const item of SAMPLE_DATA) {
-          item.createdAt = Date.now();
-          item.updatedAt = Date.now();
-          try {
-            await Storage.put('travel', item);
-          } catch (e) {
-            console.error('[Travel] 写入示例数据失败:', e);
-          }
-        }
-        await Storage.put('meta', { key: 'travel_initialized', value: true });
-        allDestinations = [...SAMPLE_DATA];
-      }
     }
 
     // 按阶段排序：want → prep → done
@@ -273,6 +200,9 @@ export const TravelModule = (() => {
             </div>
           </div>
           <div class="travel-stage-badge ${stageCfg.badge}" data-action="cycle-stage" data-id="${d.id}">${stageCfg.label}</div>
+          <button class="travel-dest-delete" data-action="delete-dest" data-id="${d.id}" title="删除目的地">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
           <svg class="travel-dest-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </div>
         <div class="travel-dest-body">
@@ -515,6 +445,26 @@ export const TravelModule = (() => {
     renderAll();
   }
 
+  // ===== 卡片内直接删除目的地 =====
+  async function deleteDestination(destId) {
+    if (!confirm('确定删除这个目的地？此操作不可撤销。')) return;
+    try {
+      // 从 IndexedDB 移除
+      await Storage.remove('travel', destId);
+    } catch (e) {
+      console.error('[Travel] 删除目的地失败:', e);
+      showToast('删除失败，请重试');
+      return;
+    }
+    // 从内存数组中移除
+    allDestinations = allDestinations.filter(d => d.id !== destId);
+    // 如果当前展开的是被删除的卡片，重置展开状态
+    if (expandedId === destId) expandedId = null;
+    // 刷新列表 UI 和基金总览
+    renderAll();
+    showToast('目的地已删除 🗑️');
+  }
+
   async function setStage(id, stage) {
     const dest = allDestinations.find(d => d.id == id);
     if (!dest) return;
@@ -638,6 +588,15 @@ export const TravelModule = (() => {
         const id = parseInt(stageStep.dataset.id);
         const stage = stageStep.dataset.stage;
         setStage(id, stage);
+        return;
+      }
+
+      // 删除目的地（卡片内）
+      const deleteBtn = e.target.closest('[data-action="delete-dest"]');
+      if (deleteBtn) {
+        e.stopPropagation();
+        const id = parseInt(deleteBtn.dataset.id);
+        deleteDestination(id);
         return;
       }
 

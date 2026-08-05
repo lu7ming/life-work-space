@@ -12,6 +12,7 @@
       <button class="tasks-tab" data-tab="weekly">周计划</button>
       <button class="tasks-tab" data-tab="projects">项目</button>
       <button class="tasks-tab tasks-tab--pomodoro" data-tab="pomodoro">🍅</button>
+      <button class="tasks-tab" data-tab="shopping">🛒 购物车</button>
     </div>
   </div>
 
@@ -125,6 +126,36 @@
           </div>
         </div>
       </div>
+
+    <!-- ===== 购物车面板 ===== -->
+    <div class="tasks-panel" data-panel="shopping">
+      <!-- 顶部汇总栏 -->
+      <div class="shopping-summary" id="shopping-summary">
+        <span class="shopping-summary-text">待购 <strong id="shopping-pending-count">0</strong> 件 · 预估 <strong id="shopping-pending-total">¥0.00</strong></span>
+      </div>
+
+      <!-- 筛选/排序 -->
+      <div class="shopping-controls">
+        <div class="shopping-filters" id="shopping-filters">
+          <button class="shopping-filter-btn active" data-filter="all">全部</button>
+          <button class="shopping-filter-btn" data-filter="pending">待购买</button>
+          <button class="shopping-filter-btn" data-filter="bought">已购买</button>
+        </div>
+        <select class="shopping-sort-select" id="shopping-sort">
+          <option value="priority">按优先级</option>
+          <option value="time">按时间</option>
+        </select>
+      </div>
+
+      <!-- 物品列表 -->
+      <div class="shopping-list" id="shopping-list"></div>
+
+      <!-- 空状态 -->
+      <div class="tasks-empty" id="shopping-empty" style="display:none;">
+        <div class="tasks-empty-icon">🛒</div>
+        <p>购物车空空如也，点击 + 添加物品</p>
+      </div>
+    </div>
     </div>
   </div>
 
@@ -252,6 +283,52 @@
       <div class="tasks-modal-footer">
         <button class="tasks-btn tasks-btn--danger" id="edit-task-delete">删除</button>
         <button class="tasks-btn tasks-btn--confirm" id="edit-task-save">保存</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===== 购物车添加/编辑浮层 ===== -->
+  <div class="tasks-modal-overlay" id="shopping-modal-overlay">
+    <div class="tasks-modal card" id="shopping-modal">
+      <div class="tasks-modal-header">
+        <h3 id="shopping-modal-title">添加物品</h3>
+        <button class="tasks-modal-close" id="shopping-modal-close">✕</button>
+      </div>
+      <div class="tasks-modal-body">
+        <div class="tasks-form-group">
+          <label>物品名称 *</label>
+          <input type="text" class="tasks-input" id="shopping-name-input" placeholder="输入物品名称..." maxlength="100" />
+        </div>
+        <div class="tasks-form-group">
+          <label>预估价格</label>
+          <input type="number" class="tasks-input" id="shopping-price-input" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        <div class="tasks-form-group">
+          <label>分类</label>
+          <input type="text" class="tasks-input" id="shopping-category-input" placeholder="如：食品、日用品..." maxlength="30" />
+          <div class="shopping-category-tags" id="shopping-category-tags"></div>
+        </div>
+        <div class="tasks-form-group">
+          <label>优先级</label>
+          <div class="shopping-priority-picker" id="shopping-priority-picker">
+            <button class="shopping-priority-btn" data-priority="high">高</button>
+            <button class="shopping-priority-btn active" data-priority="medium">中</button>
+            <button class="shopping-priority-btn" data-priority="low">低</button>
+          </div>
+        </div>
+        <div class="tasks-form-group">
+          <label>购买链接</label>
+          <input type="text" class="tasks-input" id="shopping-link-input" placeholder="https://..." />
+        </div>
+        <div class="tasks-form-group">
+          <label>备注</label>
+          <textarea class="tasks-input shopping-textarea" id="shopping-note-input" placeholder="添加备注..." rows="2"></textarea>
+        </div>
+      </div>
+      <div class="tasks-modal-footer">
+        <button class="tasks-btn tasks-btn--cancel" id="shopping-btn-cancel">取消</button>
+        <button class="tasks-btn tasks-btn--confirm" id="shopping-btn-confirm">确定</button>
       </div>
     </div>
   </div>

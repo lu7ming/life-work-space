@@ -1398,3 +1398,408 @@
 
 /* 删除按钮深色 */
 [data-theme="dark"] .tasks-card-action.danger:hover { background: var(--accent-red-light); color: var(--accent-red); }
+
+/* ========================================
+   购物车模块
+   ======================================== */
+
+/* ===== 汇总栏 ===== */
+.shopping-summary {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.shopping-summary-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.shopping-summary-text strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* ===== 筛选/排序控制栏 ===== */
+.shopping-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.shopping-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.shopping-filter-btn {
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.shopping-filter-btn:hover {
+  background: var(--bg-hover);
+}
+
+.shopping-filter-btn.active {
+  background: var(--text-primary);
+  color: #fff;
+}
+
+.shopping-sort-select {
+  padding: 5px 12px;
+  border: 1.5px solid var(--text-light);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--bg-main);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23A99E93' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+.shopping-sort-select:focus {
+  border-color: var(--accent-green);
+}
+
+/* ===== 物品列表 ===== */
+.shopping-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ===== 物品卡片 ===== */
+.shopping-item {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 18px;
+  transition: box-shadow var(--transition-fast), opacity var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shopping-item:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* 已购买样式 */
+.shopping-item.bought {
+  opacity: 0.55;
+}
+
+.shopping-item.bought .shopping-item-name {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* 卡片头部：名称 + 操作 */
+.shopping-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shopping-item-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+  flex: 1;
+}
+
+/* 标签行 */
+.shopping-item-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.shopping-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 分类标签 */
+.shopping-tag-category {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+/* 优先级标签 */
+.shopping-tag-priority-high {
+  background: rgba(232, 93, 93, 0.15);
+  color: #E85D5D;
+}
+
+.shopping-tag-priority-medium {
+  background: rgba(232, 168, 124, 0.15);
+  color: #E8A87C;
+}
+
+.shopping-tag-priority-low {
+  background: rgba(160, 160, 160, 0.15);
+  color: #A0A0A0;
+}
+
+/* 价格 */
+.shopping-item-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 链接 */
+.shopping-item-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--accent-blue);
+  text-decoration: none;
+  word-break: break-all;
+  transition: opacity var(--transition-fast);
+}
+
+.shopping-item-link:hover {
+  opacity: 0.75;
+}
+
+/* 备注 */
+.shopping-item-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  word-break: break-word;
+  padding: 6px 10px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-sm);
+}
+
+/* 操作按钮 */
+.shopping-item-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.shopping-action-btn {
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.shopping-action-btn--done {
+  background: var(--accent-green-light, rgba(126, 191, 142, 0.15));
+  color: var(--accent-green);
+}
+
+.shopping-action-btn--done:hover {
+  background: var(--accent-green);
+  color: #fff;
+}
+
+.shopping-action-btn--restore {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.shopping-action-btn--restore:hover {
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+.shopping-action-btn--delete {
+  background: var(--accent-red-light, rgba(231, 76, 60, 0.1));
+  color: var(--accent-red);
+}
+
+.shopping-action-btn--delete:hover {
+  background: #E74C3C;
+  color: #fff;
+}
+
+/* ===== 购物车表单弹窗 ===== */
+.shopping-textarea {
+  resize: vertical;
+  min-height: 40px;
+  font-family: inherit;
+}
+
+.shopping-category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.shopping-category-tag {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.shopping-category-tag:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+/* 优先级选择器 */
+.shopping-priority-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.shopping-priority-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--text-light);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.shopping-priority-btn:hover {
+  border-color: var(--text-muted);
+  background: var(--bg-hover);
+}
+
+.shopping-priority-btn[data-priority="high"].active {
+  border-color: #E85D5D;
+  background: rgba(232, 93, 93, 0.12);
+  color: #E85D5D;
+}
+
+.shopping-priority-btn[data-priority="medium"].active {
+  border-color: #E8A87C;
+  background: rgba(232, 168, 124, 0.12);
+  color: #E8A87C;
+}
+
+.shopping-priority-btn[data-priority="low"].active {
+  border-color: #A0A0A0;
+  background: rgba(160, 160, 160, 0.12);
+  color: #A0A0A0;
+}
+
+/* ===== 购物车响应式 ===== */
+@media (max-width: 768px) {
+  .shopping-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shopping-sort-select {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .shopping-item {
+    padding: 14px;
+  }
+
+  .shopping-item-name {
+    font-size: 15px;
+  }
+
+  .shopping-priority-picker {
+    flex-direction: row;
+  }
+
+  .shopping-priority-btn {
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+
+  .shopping-action-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+}
+
+/* ===== 购物车深色模式适配 ===== */
+[data-theme="dark"] .shopping-summary {
+  background: var(--bg-card);
+}
+
+[data-theme="dark"] .shopping-sort-select {
+  background-color: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .shopping-item {
+  background: var(--bg-card);
+}
+
+[data-theme="dark"] .shopping-tag-priority-high {
+  background: rgba(216, 120, 120, 0.18);
+  color: #D87878;
+}
+
+[data-theme="dark"] .shopping-tag-priority-medium {
+  background: rgba(232, 168, 124, 0.18);
+  color: #E8A87C;
+}
+
+[data-theme="dark"] .shopping-tag-priority-low {
+  background: rgba(140, 140, 140, 0.18);
+  color: #999;
+}
+
+[data-theme="dark"] .shopping-item-note {
+  background: var(--bg-hover);
+}
+
+[data-theme="dark"] .shopping-input,
+[data-theme="dark"] .shopping-textarea {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}

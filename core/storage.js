@@ -4,7 +4,7 @@
  */
 
 export const DB_NAME = 'LifeWorkSpace';
-export const DB_VERSION = 13;
+export const DB_VERSION = 14;
 
 /**
  * 存储管理器
@@ -199,6 +199,13 @@ export const Storage = (() => {
             const travel = db.createObjectStore('travel', { keyPath: 'id' });
             travel.createIndex('stage', 'stage', { unique: false });
             console.log('[Storage] v13 迁移：已创建 travel 表（旅行计划模块）');
+          },
+          // v14: 购物车模块
+          14: (db) => {
+            const shoppingItems = db.createObjectStore('shopping_items', { keyPath: 'id', autoIncrement: true });
+            shoppingItems.createIndex('status', 'status', { unique: false });
+            shoppingItems.createIndex('category', 'category', { unique: false });
+            console.log('[Storage] v14 迁移：已创建 shopping_items 表（购物车模块）');
           },
         };
 

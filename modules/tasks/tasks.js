@@ -49,6 +49,17 @@ export const TasksModule = (() => {
     taskId: null,
   };
 
+  // ===== 购物车状态 =====
+  const SHOPPING_PRIORITY_CONFIG = {
+    high: { label: '高', color: '#E85D5D' },
+    medium: { label: '中', color: '#E8A87C' },
+    low: { label: '低', color: '#A0A0A0' },
+  };
+  let shoppingItems = [];
+  let shoppingFilter = 'all';    // all / pending / bought
+  let shoppingSort = 'priority'; // priority / time
+  let editingShoppingId = null;
+
   // ===== 工具函数 =====
 
 
@@ -98,6 +109,13 @@ export const TasksModule = (() => {
       allTasks = [];
       allProjects = [];
     }
+    // 购物车数据独立加载（store 可能尚未创建，容错处理）
+    try {
+      shoppingItems = await Storage.getAll('shopping_items');
+    } catch (err) {
+      console.warn('[Tasks] 购物车数据加载失败（store 可能未初始化）:', err);
+      shoppingItems = [];
+    }
   }
 
   // ===== 渲染所有 =====
@@ -110,6 +128,7 @@ export const TasksModule = (() => {
     renderProjects();
     renderPomodoroTaskSelect();
     renderPomodoroHistory();
+    renderShopping();
     updateStats();
     updatePomodoroCount();
   }
@@ -136,7 +155,7 @@ export const TasksModule = (() => {
       // 底部统计只在任务 tab 显示
       const footer = document.getElementById('tasks-footer');
       if (footer) {
-        footer.style.display = (tabName === 'projects' || tabName === 'pomodoro') ? 'none' : 'flex';
+        footer.style.display = (tabName === 'projects' || tabName === 'pomodoro' || tabName === 'shopping') ? 'none' : 'flex';
       }
     });
   }
@@ -149,6 +168,8 @@ export const TasksModule = (() => {
     } else if (currentTab === 'pomodoro') {
       fab.style.display = 'none';
       return;
+    } else if (currentTab === 'shopping') {
+      fab.title = '添加购物物品';
     } else {
       fab.title = '新建任务';
     }
@@ -302,6 +323,8 @@ export const TasksModule = (() => {
     _bindEvent(fab, 'click', () => {
       if (currentTab === 'projects') {
         showProjectsModal();
+      } else if (currentTab === 'shopping') {
+        showShoppingModal();
       } else {
         showTaskModal();
       }
@@ -515,6 +538,36 @@ export const TasksModule = (() => {
       if (info) {
         const taskId = parseInt(info.dataset.taskId);
         showTaskDetail(taskId);
+        return;
+      }
+
+      // ===== 购物车操作 =====
+      // 标记已购买
+      const shopDoneBtn = e.target.closest('.shopping-action-btn--done');
+      if (shopDoneBtn) {
+        const itemId = parseInt(shopDoneBtn.dataset.id);
+        toggleShoppingStatus(itemId);
+        return;
+      }
+      // 恢复待购买
+      const shopRestoreBtn = e.target.closest('.shopping-action-btn--restore');
+      if (shopRestoreBtn) {
+        const itemId = parseInt(shopRestoreBtn.dataset.id);
+        toggleShoppingStatus(itemId);
+        return;
+      }
+      // 删除
+      const shopDeleteBtn = e.target.closest('.shopping-action-btn--delete');
+      if (shopDeleteBtn) {
+        const itemId = parseInt(shopDeleteBtn.dataset.id);
+        deleteShoppingItem(itemId);
+        return;
+      }
+      // 点击卡片名称打开编辑
+      const shopItem = e.target.closest('.shopping-item-name');
+      if (shopItem) {
+        const itemId = parseInt(shopItem.dataset.id);
+        showShoppingModal(itemId);
         return;
       }
     });
@@ -1006,6 +1059,310 @@ export const TasksModule = (() => {
     }, { passive: true });
   }
 
+
+  // ===== 购物车模块 =====
+
+  function bindShoppingEvents() {
+    // 弹窗关闭/取消
+    _bindEvent(document.getElementById('shopping-modal-close'), 'click', hideShoppingModal);
+    _bindEvent(document.getElementById('shopping-btn-cancel'), 'click', hideShoppingModal);
+    _bindEvent(document.getElementById('shopping-modal-overlay'), 'click', (e) => {
+      if (e.target.id === 'shopping-modal-overlay') hideShoppingModal();
+    });
+    // 确认按钮
+    _bindEvent(document.getElementById('shopping-btn-confirm'), 'click', handleShoppingSubmit);
+
+    // 优先级选择
+    _bindEvent(document.getElementById('shopping-priority-picker'), 'click', (e) => {
+      const btn = e.target.closest('.shopping-priority-btn');
+      if (btn) setShoppingPriority(btn.dataset.priority);
+    });
+
+    // 筛选
+    _bindEvent(document.getElementById('shopping-filters'), 'click', (e) => {
+      const btn = e.target.closest('.shopping-filter-btn');
+      if (!btn) return;
+      shoppingFilter = btn.dataset.filter;
+      document.getElementById('shopping-filters').querySelectorAll('.shopping-filter-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderShopping();
+    });
+
+    // 排序
+    _bindEvent(document.getElementById('shopping-sort'), 'change', (e) => {
+      shoppingSort = e.target.value;
+      renderShopping();
+    });
+
+    // 分类输入：显示历史分类标签
+    _bindEvent(document.getElementById('shopping-category-input'), 'focus', renderCategoryTags);
+    _bindEvent(document.getElementById('shopping-category-input'), 'input', renderCategoryTags);
+    // 点击历史分类标签快速填入
+    _bindEvent(document.getElementById('shopping-category-tags'), 'click', (e) => {
+      const tag = e.target.closest('.shopping-category-tag');
+      if (tag) {
+        document.getElementById('shopping-category-input').value = tag.textContent;
+      }
+    });
+  }
+
+  function setShoppingPriority(priority) {
+    const picker = document.getElementById('shopping-priority-picker');
+    if (!picker) return;
+    picker.querySelectorAll('.shopping-priority-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.priority === priority);
+    });
+  }
+
+  function getShoppingPriority() {
+    const picker = document.getElementById('shopping-priority-picker');
+    if (!picker) return 'medium';
+    const active = picker.querySelector('.shopping-priority-btn.active');
+    return active ? active.dataset.priority : 'medium';
+  }
+
+  function showShoppingModal(itemId) {
+    const overlay = document.getElementById('shopping-modal-overlay');
+    const titleEl = document.getElementById('shopping-modal-title');
+    if (!overlay) return;
+
+    if (itemId) {
+      // 编辑模式
+      const item = shoppingItems.find((s) => s.id === itemId);
+      if (!item) return;
+      editingShoppingId = itemId;
+      if (titleEl) titleEl.textContent = '编辑物品';
+      document.getElementById('shopping-name-input').value = item.name || '';
+      document.getElementById('shopping-price-input').value = item.price || '';
+      document.getElementById('shopping-category-input').value = item.category || '';
+      document.getElementById('shopping-link-input').value = item.link || '';
+      document.getElementById('shopping-note-input').value = item.note || '';
+      setShoppingPriority(item.priority || 'medium');
+    } else {
+      // 新增模式
+      editingShoppingId = null;
+      if (titleEl) titleEl.textContent = '添加物品';
+      document.getElementById('shopping-name-input').value = '';
+      document.getElementById('shopping-price-input').value = '';
+      document.getElementById('shopping-category-input').value = '';
+      document.getElementById('shopping-link-input').value = '';
+      document.getElementById('shopping-note-input').value = '';
+      setShoppingPriority('medium');
+    }
+
+    renderCategoryTags();
+    overlay.classList.add('show');
+    setTimeout(() => document.getElementById('shopping-name-input')?.focus(), 200);
+  }
+
+  function hideShoppingModal() {
+    const overlay = document.getElementById('shopping-modal-overlay');
+    if (overlay) overlay.classList.remove('show');
+    editingShoppingId = null;
+  }
+
+  function renderCategoryTags() {
+    const container = document.getElementById('shopping-category-tags');
+    if (!container) return;
+    // 从现有数据中收集去重的分类
+    const categories = [...new Set(
+      shoppingItems
+        .map((s) => (s.category || '').trim())
+        .filter((c) => c)
+    )];
+    if (categories.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+    container.innerHTML = categories
+      .map((c) => `<span class="shopping-category-tag">${escapeHtml(c)}</span>`)
+      .join('');
+  }
+
+  async function handleShoppingSubmit() {
+    const name = document.getElementById('shopping-name-input')?.value.trim();
+    if (!name) {
+      if (window.App?.showToast) window.App?.showToast('请输入物品名称');
+      return;
+    }
+
+    const priceStr = document.getElementById('shopping-price-input')?.value;
+    const price = priceStr ? parseFloat(priceStr) : 0;
+    const category = document.getElementById('shopping-category-input')?.value.trim() || '';
+    const priority = getShoppingPriority();
+    const link = document.getElementById('shopping-link-input')?.value.trim() || '';
+    const note = document.getElementById('shopping-note-input')?.value.trim() || '';
+
+    if (editingShoppingId) {
+      // 编辑
+      const item = shoppingItems.find((s) => s.id === editingShoppingId);
+      if (!item) return;
+      item.name = name;
+      item.price = price || 0;
+      item.category = category;
+      item.priority = priority;
+      item.link = link;
+      item.note = note;
+      try {
+        await Storage.put('shopping_items', item);
+        hideShoppingModal();
+        renderShopping();
+        if (window.App?.showToast) window.App?.showToast('已保存 ✅');
+      } catch (err) {
+        console.error('[Tasks] 保存购物项失败:', err);
+      }
+    } else {
+      // 新增
+      const item = {
+        name,
+        price: price || 0,
+        category,
+        priority,
+        link,
+        note,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        boughtAt: null,
+      };
+      try {
+        const id = await Storage.add('shopping_items', item);
+        item.id = id;
+        shoppingItems.push(item);
+        hideShoppingModal();
+        renderShopping();
+        if (window.App?.showToast) window.App?.showToast('已添加到购物车 🛒');
+      } catch (err) {
+        console.error('[Tasks] 添加购物项失败:', err);
+        if (window.App?.showToast) window.App?.showToast('添加失败，请重试');
+      }
+    }
+  }
+
+  async function toggleShoppingStatus(itemId) {
+    const item = shoppingItems.find((s) => s.id === itemId);
+    if (!item) return;
+    if (item.status === 'pending') {
+      item.status = 'bought';
+      item.boughtAt = new Date().toISOString();
+    } else {
+      item.status = 'pending';
+      item.boughtAt = null;
+    }
+    try {
+      await Storage.put('shopping_items', item);
+      renderShopping();
+    } catch (err) {
+      console.error('[Tasks] 更新购物项状态失败:', err);
+    }
+  }
+
+  async function deleteShoppingItem(itemId) {
+    if (!confirm('确定删除这个物品吗？')) return;
+    try {
+      await Storage.remove('shopping_items', itemId);
+      shoppingItems = shoppingItems.filter((s) => s.id !== itemId);
+      renderShopping();
+      if (window.App?.showToast) window.App?.showToast('已删除');
+    } catch (err) {
+      console.error('[Tasks] 删除购物项失败:', err);
+    }
+  }
+
+  function renderShopping() {
+    // 汇总栏
+    const pendingItems = shoppingItems.filter((s) => s.status === 'pending');
+    const pendingCount = pendingItems.length;
+    const pendingTotal = pendingItems.reduce((sum, s) => sum + (s.price || 0), 0);
+    const countEl = document.getElementById('shopping-pending-count');
+    const totalEl = document.getElementById('shopping-pending-total');
+    if (countEl) countEl.textContent = pendingCount;
+    if (totalEl) totalEl.textContent = `¥${pendingTotal.toFixed(2)}`;
+
+    // 筛选
+    let items = shoppingItems;
+    if (shoppingFilter === 'pending') {
+      items = items.filter((s) => s.status === 'pending');
+    } else if (shoppingFilter === 'bought') {
+      items = items.filter((s) => s.status === 'bought');
+    }
+
+    // 排序
+    items = [...items];
+    if (shoppingSort === 'priority') {
+      const order = { high: 0, medium: 1, low: 2 };
+      items.sort((a, b) => {
+        // 待购买排在已购买前面
+        if (a.status !== b.status) return a.status === 'pending' ? -1 : 1;
+        return (order[a.priority] || 1) - (order[b.priority] || 1);
+      });
+    } else {
+      // 按时间排序（新的在前）
+      items.sort((a, b) => {
+        const ta = new Date(a.createdAt || 0).getTime();
+        const tb = new Date(b.createdAt || 0).getTime();
+        return tb - ta;
+      });
+    }
+
+    const listEl = document.getElementById('shopping-list');
+    const emptyEl = document.getElementById('shopping-empty');
+    if (!listEl) return;
+
+    if (items.length === 0) {
+      listEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = '';
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    listEl.innerHTML = items.map((item) => renderShoppingItem(item)).join('');
+  }
+
+  function renderShoppingItem(item) {
+    const isBought = item.status === 'bought';
+    const priorityCfg = SHOPPING_PRIORITY_CONFIG[item.priority] || SHOPPING_PRIORITY_CONFIG.medium;
+    const priorityLabel = priorityCfg.label;
+    const priceText = item.price > 0 ? `¥${item.price.toFixed(2)}` : '';
+
+    // 操作按钮
+    let actionBtns;
+    if (isBought) {
+      actionBtns = `
+        <button class="shopping-action-btn shopping-action-btn--restore" data-id="${item.id}">↩ 恢复</button>
+        <button class="shopping-action-btn shopping-action-btn--delete" data-id="${item.id}">🗑️ 删除</button>`;
+    } else {
+      actionBtns = `
+        <button class="shopping-action-btn shopping-action-btn--done" data-id="${item.id}">✓ 已买</button>
+        <button class="shopping-action-btn shopping-action-btn--delete" data-id="${item.id}">🗑️ 删除</button>`;
+    }
+
+    // 购买链接
+    const linkHtml = item.link
+      ? `<a class="shopping-item-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">🔗 ${escapeHtml(item.link)}</a>`
+      : '';
+
+    // 备注
+    const noteHtml = item.note
+      ? `<div class="shopping-item-note">${escapeHtml(item.note)}</div>`
+      : '';
+
+    return `
+      <div class="shopping-item${isBought ? ' bought' : ''}">
+        <div class="shopping-item-top">
+          <div class="shopping-item-name" data-id="${item.id}">${escapeHtml(item.name)}</div>
+          ${priceText ? `<div class="shopping-item-price">${priceText}</div>` : ''}
+        </div>
+        <div class="shopping-item-tags">
+          ${item.category ? `<span class="shopping-tag shopping-tag-category">${escapeHtml(item.category)}</span>` : ''}
+          <span class="shopping-tag shopping-tag-priority-${item.priority || 'medium'}">${priorityLabel}</span>
+        </div>
+        ${linkHtml}
+        ${noteHtml}
+        <div class="shopping-item-actions">${actionBtns}</div>
+      </div>
+    `;
+  }
+
   // ===== 初始化事件委托 =====
   function init() {
     console.log('[Tasks] 任务模块初始化...');
@@ -1017,6 +1374,7 @@ export const TasksModule = (() => {
     bindDetailEvents();
     bindListClickEvents();
     bindWeeklyEvents();
+    bindShoppingEvents();
     loadData().then(() => {
       renderAll();
       // 确保 pomodoro 显示与当前状态同步（路由切换后恢复）

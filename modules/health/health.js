@@ -225,7 +225,7 @@ export const HealthModule = (() => {
     { name: '桂圆红枣茶', recipe: '桂圆肉10g · 红枣5枚 · 生姜2片', effect: '温阳补血，安神助眠', brew: '所有材料加水煮15分钟，趁热饮用', constitutions: ['yangxu', 'qixu'], seasons: ['winter'], category: 'tea' },
     { name: '山楂决明茶', recipe: '山楂10g · 决明子10g', effect: '消食化滞，清肝明目', brew: '沸水冲泡，焖10分钟，饭后饮用', constitutions: ['tanshi', 'shire'], seasons: ['autumn'], category: 'tea' },
     { name: '胖大海甘草茶', recipe: '胖大海2枚 · 甘草3g · 桔梗5g', effect: '清热润肺，利咽开音', brew: '沸水冲泡，焖10分钟，温服，适合用嗓后饮用', constitutions: ['yinxu', 'shire'], seasons: ['autumn', 'spring'], category: 'tea' },
-    { name: '防风白术茶', recipe: '防风6g · 白术10g · 黄芪10g', effect: '益气固表，预防感冒', brew: '三味加水煎煮15分钟，取汁代茶饮', constitutions: ['tebing', 'qixu'], seasons: ['spring', 'autumn'], category: 'tea' }
+    { name: '防风白术茶', recipe: '防风6g · 白术10g · 黄芪10g', effect: '益气固表，预防感冒', brew: '三味加水煎煮15分钟，取汁代茶饮', constitutions: ['tebing', 'qixu'], seasons: ['spring', 'autumn'], category: 'tea' },
     // 粥品 4款
     { name: '山药薏米粥', recipe: '山药30g · 薏米30g · 大米50g', effect: '健脾祛湿，益气养胃', brew: '薏米提前浸泡2小时，山药切块，与大米同煮成粥，小火慢熬30分钟', constitutions: ['qixu', 'tanshi'], seasons: ['longsummer', 'autumn'], category: 'porridge' },
     { name: '红枣桂圆粥', recipe: '红枣10枚 · 桂圆肉15g · 糯米50g', effect: '补血养心，安神助眠', brew: '红枣去核，与桂圆、糯米同煮，大火煮沸后小火熬40分钟', constitutions: ['qixu', 'yangxu'], seasons: ['winter'], category: 'porridge' },
@@ -1956,6 +1956,8 @@ export const HealthModule = (() => {
       issues: [
         { name: '肾阳虚衰', desc: '多因年老体衰或久病伤阳，表现为腰膝酸冷、畏寒肢冷、夜尿频多。调理：温补肾阳，可食羊肉、韭菜、核桃；艾灸关元、命门。' },
         { name: '肾阴不足', desc: '多因久病或房劳过度，表现为腰膝酸软、眩晕耳鸣、盗汗潮热。调理：滋补肾阴，可食黑芝麻、枸杞、桑椹、银耳。' },
+        { name: '肾气不固', desc: '多因先天不足或年老肾衰，表现为小便频数、遗精滑泄、腰膝无力。调理：固摄肾气，可食芡实、金樱子、核桃；避免劳累。' }
+      ]
     },
     '气血': {
       alias: '气血者，人之根本',

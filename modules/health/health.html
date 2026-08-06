@@ -176,6 +176,42 @@
 
     </div>
 
+    <!-- 大便记录 -->
+    <div class="health-card card" id="health-bowel-card">
+      <div class="health-card-header">
+        <span class="health-card-icon">🚽</span>
+        <span class="health-card-name">大便记录</span>
+      </div>
+      <div class="health-card-body">
+        <div class="health-bowel-row">
+          <label>排便次数</label>
+          <input type="number" class="health-mini-input" id="health-bowel-count" placeholder="0" min="0" max="20" value="0">
+        </div>
+        <div class="health-bowel-row">
+          <label>形态</label>
+          <div class="health-bowel-options" id="healthBowelForm">
+            <button class="health-bowel-opt" data-val="normal">正常</button>
+            <button class="health-bowel-opt" data-val="dry">偏干</button>
+            <button class="health-bowel-opt" data-val="loose">偏稀</button>
+            <button class="health-bowel-opt" data-val="watery">水样</button>
+          </div>
+        </div>
+        <div class="health-bowel-row">
+          <label>颜色</label>
+          <div class="health-bowel-options" id="healthBowelColor">
+            <button class="health-bowel-opt" data-val="normal">正常</button>
+            <button class="health-bowel-opt" data-val="dark">偏深</button>
+            <button class="health-bowel-opt" data-val="light">偏浅</button>
+            <button class="health-bowel-opt" data-val="abnormal">异常</button>
+          </div>
+        </div>
+        <div class="health-bowel-row">
+          <label>备注</label>
+          <input type="text" class="health-bowel-note-input" id="health-bowel-note" placeholder="如：排便顺畅/费力等">
+        </div>
+      </div>
+    </div>
+
     <!-- 情绪打卡 -->
     <div class="health-card card health-mood-card">
       <div class="health-card-title"><span class="icon">😊</span> 情绪打卡</div>
@@ -197,6 +233,19 @@
 
   <!-- ==================== Tab 2: 养生 ==================== -->
   <div class="health-tab-content" id="healthTab1">
+
+    <!-- 四季养生 -->
+    <div class="health-card card">
+      <div class="health-card-title"><span class="icon">🍂</span> 四季养生</div>
+      <div class="health-season-tabs" id="healthSeasonTabs">
+        <button class="health-season-tab" data-season="spring">春</button>
+        <button class="health-season-tab" data-season="summer">夏</button>
+        <button class="health-season-tab" data-season="longsummer">长夏</button>
+        <button class="health-season-tab" data-season="autumn">秋</button>
+        <button class="health-season-tab" data-season="winter">冬</button>
+      </div>
+      <div class="health-season-content" id="healthSeasonContent"></div>
+    </div>
 
     <!-- 体质辨识 -->
     <div class="health-card card">
@@ -229,14 +278,20 @@
 
     <!-- 推荐茶饮 -->
     <div class="health-card card">
-      <div class="health-card-title"><span class="icon">🍵</span> 推荐茶饮</div>
+      <div class="health-card-title"><span class="icon">🍲</span> 食疗方</div>
+      <div class="health-tea-filter" id="healthTeaFilter">
+        <button class="health-tea-filter-btn active" data-filter="all">全部</button>
+        <button class="health-tea-filter-btn" data-filter="tea">茶饮</button>
+        <button class="health-tea-filter-btn" data-filter="porridge">粥品</button>
+        <button class="health-tea-filter-btn" data-filter="soup">汤品</button>
+      </div>
       <div class="health-tea-list" id="healthTeaList"></div>
-      <button class="health-view-all-btn" id="healthTeaViewAll">查看全部茶饮 →</button>
+      <button class="health-view-all-btn" id="healthTeaViewAll">查看全部食疗方 →</button>
     </div>
 
     <!-- 护嗓穴位 -->
     <div class="health-card card">
-      <div class="health-card-title"><span class="icon">🤲</span> 护嗓穴位</div>
+      <div class="health-card-title"><span class="icon">🤲</span> 经络穴位</div>
       <div class="health-acupoint-layout">
         <div class="health-acupoint-svg" id="healthAcupointSvg"></div>
         <div class="health-acupoint-list" id="healthAcupointList"></div>
@@ -245,7 +300,11 @@
 
     <!-- 舌诊自测 -->
     <div class="health-card card">
-      <div class="health-card-title"><span class="icon">👅</span> 舌诊自测</div>
+      <div class="health-card-title"><span class="icon">👅</span> 望诊自测</div>
+      <div class="health-tongue-section">
+        <div class="health-tongue-dim-label">面色</div>
+        <div class="health-tongue-options" id="healthFaceColor"></div>
+      </div>
       <div class="health-tongue-section">
         <div class="health-tongue-dim-label">舌色</div>
         <div class="health-tongue-options" id="healthTongueColor"></div>
@@ -314,6 +373,7 @@
         <button class="health-organ-tab" data-organ="脾">脾</button>
         <button class="health-organ-tab" data-organ="肺">肺</button>
         <button class="health-organ-tab" data-organ="肾">肾</button>
+        <button class="health-organ-tab" data-organ="气血">气血</button>
       </div>
       <div class="health-organ-detail" id="healthOrganDetail"></div>
     </div>

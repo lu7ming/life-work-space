@@ -115,32 +115,163 @@ export const HealthModule = (() => {
     { name: '亥', organ: '三焦经', time: '21-23', tip: '亥时宜安眠，三焦经当令，百脉通修养身。建议放下手机准备入睡。' }
   ];
 
-  // 推荐茶饮（10方）
+
+  // 四季养生数据
+  const SEASON_DATA = {
+    spring: {
+      name: '春', icon: '🌸',
+      focus: '养肝护肝，疏肝理气，防风御寒',
+      diet: { good: '韭菜、香椿、豆芽、菠菜、荠菜、春笋、大枣、枸杞', bad: '酸味过多收敛肝气、油炸辛辣、羊肉等大热之物' },
+      living: '夜卧早起，广步于庭。春捂秋冻，不宜过早减衣。保持居室通风，多晒太阳。',
+      exercise: '宜舒展筋骨，如散步、慢跑、太极、八段锦"两手托天理三焦"。避免大汗淋漓。',
+      emotion: '保持心情舒畅开朗，切忌暴怒伤肝。多踏青赏花，疏肝解郁。'
+    },
+    summer: {
+      name: '夏', icon: '☀️',
+      focus: '养心安神，清热消暑，防暑降温',
+      diet: { good: '西瓜、苦瓜、绿豆、黄瓜、番茄、莲子、百合、荷叶', bad: '过度贪凉饮冷、肥甘厚腻、辛辣燥热' },
+      living: '夜卧早起，无厌于日。午时小憩养心，避免空调直吹。注意防暑降温。',
+      exercise: '宜清晨或傍晚运动，如游泳、瑜伽、散步。避免烈日下剧烈运动，防止大汗伤津。',
+      emotion: '保持心平气和，避免烦躁易怒。静心宁神，可听轻音乐、冥想。'
+    },
+    longsummer: {
+      name: '长夏', icon: '🌿',
+      focus: '健脾祛湿，化湿和中，调理脾胃',
+      diet: { good: '薏米、山药、扁豆、冬瓜、陈皮、赤小豆、茯苓、莲子', bad: '生冷瓜果、甜腻糕点、肥肉等碍脾生湿之物' },
+      living: '起居有常，避免潮湿环境。雨后及时更衣，不坐湿地。饮食宜清淡易消化。',
+      exercise: '宜柔和运动，如散步、太极、八段锦"调理脾胃须单举"。微微出汗即可，忌大汗伤气。',
+      emotion: '避免过度思虑，思则气结伤脾。保持心情轻松，适当午休。'
+    },
+    autumn: {
+      name: '秋', icon: '🍁',
+      focus: '养肺润燥，滋阴润肺，防燥护阴',
+      diet: { good: '梨、银耳、百合、莲藕、蜂蜜、芝麻、杏仁、白萝卜', bad: '辛辣刺激、葱姜蒜过多、炒货油炸伤阴之物' },
+      living: '早卧早起，与鸡俱兴。秋冻适度，注意背部保暖。保持室内湿度，防秋燥。',
+      exercise: '宜登高望远、慢跑、呼吸操。练习腹式呼吸，增强肺功能。避免晨起雾中运动。',
+      emotion: '收敛神气，避免悲忧伤肺。保持乐观豁达，赏秋景以怡情。'
+    },
+    winter: {
+      name: '冬', icon: '❄️',
+      focus: '养肾防寒，温补肾阳，敛阴护阳',
+      diet: { good: '羊肉、牛肉、桂圆、核桃、黑芝麻、黑豆、栗子、韭菜', bad: '生冷寒凉、绿豆、苦瓜等寒性食物' },
+      living: '早卧晚起，必待日光。注意保暖，尤其是腰腹和足部。睡前泡脚，温阳助眠。',
+      exercise: '宜室内运动，如太极、八段锦、力量训练。避免大汗，冬不欲极温。坚持叩齿吞津。',
+      emotion: '使志若伏若匿，保持安静平和。避免恐惧惊吓，恐则气下伤肾。'
+    }
+  };
+
+  function getCurrentSeason() {
+    const m = new Date().getMonth() + 1;
+    if (m >= 3 && m <= 5) return 'spring';
+    if (m === 6 || m === 7) return 'summer';
+    if (m === 8) return 'longsummer';
+    if (m >= 9 && m <= 11) return 'autumn';
+    return 'winter';
+  }
+  let _currentSeasonTab = null;
+  function initSeasons() {
+    const container = document.getElementById('healthSeasonTabs');
+    if (!container) return;
+    const currentSeason = getCurrentSeason();
+    _currentSeasonTab = currentSeason;
+    container.querySelectorAll('.health-season-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.season === currentSeason);
+      _bindEvent(btn, 'click', () => {
+        container.querySelectorAll('.health-season-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        _currentSeasonTab = btn.dataset.season;
+        renderSeasonContent();
+      });
+    });
+    renderSeasonContent();
+  }
+  function renderSeasonContent() {
+    const container = document.getElementById('healthSeasonContent');
+    if (!container || !_currentSeasonTab) return;
+    const s = SEASON_DATA[_currentSeasonTab];
+    if (!s) return;
+    container.innerHTML = `
+      <div class="health-season-focus">${s.icon} <strong>养生重点：</strong>${escapeHtml(s.focus)}</div>
+      <div class="health-season-section">
+        <div class="health-season-section-title">🥗 饮食建议</div>
+        <div class="health-season-diet">
+          <div class="health-season-diet-good"><span class="health-diet-icon">✅ 宜</span> ${escapeHtml(s.diet.good)}</div>
+          <div class="health-season-diet-bad"><span class="health-diet-icon">❌ 忌</span> ${escapeHtml(s.diet.bad)}</div>
+        </div>
+      </div>
+      <div class="health-season-section">
+        <div class="health-season-section-title">🛏️ 起居建议</div>
+        <div class="health-season-text">${escapeHtml(s.living)}</div>
+      </div>
+      <div class="health-season-section">
+        <div class="health-season-section-title">🏃 运动建议</div>
+        <div class="health-season-text">${escapeHtml(s.exercise)}</div>
+      </div>
+      <div class="health-season-section">
+        <div class="health-season-section-title">🎭 情志建议</div>
+        <div class="health-season-text">${escapeHtml(s.emotion)}</div>
+      </div>
+    `;
+  }
+
+  // 食疗方（茶饮+粥品+汤品）
   const TEA_RECIPES = [
-    { name: '黄芪红枣茶', recipe: '黄芪10g · 红枣3枚 · 枸杞5g', effect: '补气健脾，提升元气', brew: '沸水冲泡，加盖焖10分钟，可反复冲泡2-3次', constitutions: ['qixu', 'yangxu'], seasons: ['spring', 'winter'] },
-    { name: '陈皮生姜茶', recipe: '陈皮6g · 生姜3片 · 红糖适量', effect: '理气健脾，温中散寒', brew: '生姜切片与陈皮同煮5分钟，加红糖调味，趁热饮用', constitutions: ['yangxu', 'tanshi'], seasons: ['winter', 'autumn'] },
-    { name: '银耳百合茶', recipe: '银耳5g · 百合10g · 冰糖少许', effect: '滋阴润肺，生津止渴', brew: '银耳泡发后与百合小火慢炖30分钟，加冰糖调味', constitutions: ['yinxu'], seasons: ['autumn'] },
-    { name: '菊花枸杞茶', recipe: '菊花5g · 枸杞10g', effect: '清肝明目，滋阴降火', brew: '沸水冲泡，焖5分钟即可饮用', constitutions: ['yinxu', 'shire'], seasons: ['summer'] },
-    { name: '玫瑰花茶', recipe: '干玫瑰花6-8朵', effect: '疏肝理气，活血化瘀', brew: '80°C温水冲泡，焖3分钟，可加蜂蜜调味', constitutions: ['qiyu', 'xueyu'], seasons: ['spring'] },
-    { name: '薏米赤小豆茶', recipe: '薏米15g · 赤小豆15g', effect: '健脾祛湿，利水消肿', brew: '薏米炒后与赤小豆同煮20分钟，取汤代茶饮', constitutions: ['tanshi', 'shire'], seasons: ['summer'] },
-    { name: '桂圆红枣茶', recipe: '桂圆肉10g · 红枣5枚 · 生姜2片', effect: '温阳补血，安神助眠', brew: '所有材料加水煮15分钟，趁热饮用', constitutions: ['yangxu', 'qixu'], seasons: ['winter'] },
-    { name: '山楂决明茶', recipe: '山楂10g · 决明子10g', effect: '消食化滞，清肝明目', brew: '沸水冲泡，焖10分钟，饭后饮用', constitutions: ['tanshi', 'shire'], seasons: ['autumn'] },
-    { name: '胖大海甘草茶', recipe: '胖大海2枚 · 甘草3g · 桔梗5g', effect: '清热润肺，利咽开音', brew: '沸水冲泡，焖10分钟，温服，适合用嗓后饮用', constitutions: ['yinxu', 'shire'], seasons: ['autumn', 'spring'] },
-    { name: '防风白术茶', recipe: '防风6g · 白术10g · 黄芪10g', effect: '益气固表，预防感冒', brew: '三味加水煎煮15分钟，取汁代茶饮', constitutions: ['tebing', 'qixu'], seasons: ['spring', 'autumn'] }
+    { name: '黄芪红枣茶', recipe: '黄芪10g · 红枣3枚 · 枸杞5g', effect: '补气健脾，提升元气', brew: '沸水冲泡，加盖焖10分钟，可反复冲泡2-3次', constitutions: ['qixu', 'yangxu'], seasons: ['spring', 'winter'], category: 'tea' },
+    { name: '陈皮生姜茶', recipe: '陈皮6g · 生姜3片 · 红糖适量', effect: '理气健脾，温中散寒', brew: '生姜切片与陈皮同煮5分钟，加红糖调味，趁热饮用', constitutions: ['yangxu', 'tanshi'], seasons: ['winter', 'autumn'], category: 'tea' },
+    { name: '银耳百合茶', recipe: '银耳5g · 百合10g · 冰糖少许', effect: '滋阴润肺，生津止渴', brew: '银耳泡发后与百合小火慢炖30分钟，加冰糖调味', constitutions: ['yinxu'], seasons: ['autumn'], category: 'tea' },
+    { name: '菊花枸杞茶', recipe: '菊花5g · 枸杞10g', effect: '清肝明目，滋阴降火', brew: '沸水冲泡，焖5分钟即可饮用', constitutions: ['yinxu', 'shire'], seasons: ['summer'], category: 'tea' },
+    { name: '玫瑰花茶', recipe: '干玫瑰花6-8朵', effect: '疏肝理气，活血化瘀', brew: '80°C温水冲泡，焖3分钟，可加蜂蜜调味', constitutions: ['qiyu', 'xueyu'], seasons: ['spring'], category: 'tea' },
+    { name: '薏米赤小豆茶', recipe: '薏米15g · 赤小豆15g', effect: '健脾祛湿，利水消肿', brew: '薏米炒后与赤小豆同煮20分钟，取汤代茶饮', constitutions: ['tanshi', 'shire'], seasons: ['summer'], category: 'tea' },
+    { name: '桂圆红枣茶', recipe: '桂圆肉10g · 红枣5枚 · 生姜2片', effect: '温阳补血，安神助眠', brew: '所有材料加水煮15分钟，趁热饮用', constitutions: ['yangxu', 'qixu'], seasons: ['winter'], category: 'tea' },
+    { name: '山楂决明茶', recipe: '山楂10g · 决明子10g', effect: '消食化滞，清肝明目', brew: '沸水冲泡，焖10分钟，饭后饮用', constitutions: ['tanshi', 'shire'], seasons: ['autumn'], category: 'tea' },
+    { name: '胖大海甘草茶', recipe: '胖大海2枚 · 甘草3g · 桔梗5g', effect: '清热润肺，利咽开音', brew: '沸水冲泡，焖10分钟，温服，适合用嗓后饮用', constitutions: ['yinxu', 'shire'], seasons: ['autumn', 'spring'], category: 'tea' },
+    { name: '防风白术茶', recipe: '防风6g · 白术10g · 黄芪10g', effect: '益气固表，预防感冒', brew: '三味加水煎煮15分钟，取汁代茶饮', constitutions: ['tebing', 'qixu'], seasons: ['spring', 'autumn'], category: 'tea' }
+    // 粥品 4款
+    { name: '山药薏米粥', recipe: '山药30g · 薏米30g · 大米50g', effect: '健脾祛湿，益气养胃', brew: '薏米提前浸泡2小时，山药切块，与大米同煮成粥，小火慢熬30分钟', constitutions: ['qixu', 'tanshi'], seasons: ['longsummer', 'autumn'], category: 'porridge' },
+    { name: '红枣桂圆粥', recipe: '红枣10枚 · 桂圆肉15g · 糯米50g', effect: '补血养心，安神助眠', brew: '红枣去核，与桂圆、糯米同煮，大火煮沸后小火熬40分钟', constitutions: ['qixu', 'yangxu'], seasons: ['winter'], category: 'porridge' },
+    { name: '百合莲子粥', recipe: '百合20g · 莲子30g · 大米50g', effect: '滋阴润肺，养心安神', brew: '莲子去心泡发，与百合、大米同煮成粥，小火慢熬30分钟', constitutions: ['yinxu'], seasons: ['autumn'], category: 'porridge' },
+    { name: '小米南瓜粥', recipe: '小米50g · 南瓜100g', effect: '健脾和胃，补中益气', brew: '南瓜切小块，与小米同煮，大火煮沸后小火熬25分钟', constitutions: ['qixu', 'pinghe'], seasons: ['autumn', 'winter'], category: 'porridge' },
+    // 汤品 4款
+    { name: '当归生姜羊肉汤', recipe: '当归10g · 生姜30g · 羊肉250g', effect: '温阳散寒，补血活血', brew: '羊肉焯水去血沫，与当归、生姜同炖2小时，加盐调味', constitutions: ['yangxu', 'xueyu'], seasons: ['winter'], category: 'soup' },
+    { name: '黄芪乌鸡汤', recipe: '黄芪30g · 乌鸡半只 · 红枣6枚', effect: '补气养血，健脾益肺', brew: '乌鸡焯水，与黄芪、红枣同炖1.5小时，加盐调味', constitutions: ['qixu'], seasons: ['spring', 'winter'], category: 'soup' },
+    { name: '银耳百合瘦肉汤', recipe: '银耳15g · 百合20g · 瘦肉150g', effect: '滋阴润燥，清热生津', brew: '银耳泡发撕碎，与百合、瘦肉同煮1小时，加冰糖调味', constitutions: ['yinxu'], seasons: ['autumn'], category: 'soup' },
+    { name: '冬瓜薏米排骨汤', recipe: '冬瓜200g · 薏米30g · 排骨200g', effect: '清热祛湿，健脾利水', brew: '排骨焯水，与薏米同炖40分钟，加冬瓜再煮20分钟，加盐调味', constitutions: ['shire', 'tanshi'], seasons: ['summer', 'longsummer'], category: 'soup' }
   ];
 
-  // 护嗓穴位（6个）
+  // 经络穴位（全身常用穴位，按部位分组）
   const ACUPOINTS = [
-    { id: 'tiantu', name: '天突穴', loc: '胸骨上窝正中', fn: '止咳化痰，利咽开音', detail: '用食指或中指轻轻按揉，力度适中，适合咳嗽、咽痒、声音嘶哑。', svgPos: { cx: 60, cy: 50, r: 5 } },
-    { id: 'lieque', name: '列缺穴', loc: '腕横纹上1.5寸', fn: '宣肺利咽，通经活络', detail: '两手虎口交叉，食指尖到达处即是。按揉可缓解咽喉肿痛、头痛。', svgPos: { cx: 30, cy: 120, r: 5 } },
-    { id: 'taiyuan', name: '太渊穴', loc: '腕掌侧横纹桡侧', fn: '补肺益气，止咳平喘', detail: '腕横纹桡动脉搏动处。按揉可增强肺功能，改善气短。', svgPos: { cx: 90, cy: 120, r: 5 } },
-    { id: 'hegu', name: '合谷穴', loc: '手背虎口处', fn: '疏风解表，镇痛开窍', detail: '"面口合谷收"，按揉可缓解牙痛、咽痛、头痛，是常用保健穴。', svgPos: { cx: 30, cy: 145, r: 5 } },
-    { id: 'zusanli', name: '足三里', loc: '外膝眼下3寸', fn: '健脾和胃，扶正培元', detail: '强壮保健要穴。常按可增强免疫力，改善消化功能，延缓衰老。', svgPos: { cx: 45, cy: 215, r: 5 } },
-    { id: 'zhaohai', name: '照海穴', loc: '内踝尖直下凹陷处', fn: '滋阴清热，利咽安神', detail: '八脉交会穴之一，通阴跷脉。按揉可缓解咽干咽痛、失眠。', svgPos: { cx: 75, cy: 215, r: 5 } }
+    // 头颈部
+    { id: 'fengchi', name: '风池穴', loc: '后颈部，枕骨下，胸锁乳突肌与斜方肌之间凹陷处', fn: '疏风散寒，清头明目', detail: '用拇指和食指相对按揉，力度适中，适合头痛、感冒、颈项强痛。', bodyPart: '头颈部' },
+    { id: 'baihui', name: '百会穴', loc: '头顶正中，两耳尖连线中点', fn: '升阳举陷，醒脑开窍', detail: '用中指或掌心按揉，适合头痛、眩晕、失眠、脱肛。', bodyPart: '头颈部' },
+    // 上肢
+    { id: 'hegu', name: '合谷穴', loc: '手背第1、2掌骨间，第2掌骨桡侧中点', fn: '疏风解表，镇痛通络', detail: '"面口合谷收"，拇指按压，力度由轻渐重，适合牙痛、咽痛、头痛。', bodyPart: '上肢' },
+    { id: 'quchi', name: '曲池穴', loc: '肘横纹外侧端，屈肘时尺泽与肱骨外上髁连线中点', fn: '清热解表，疏经活络', detail: '屈肘取穴，拇指按揉，适合发热、咽喉肿痛、高血压、皮肤病。', bodyPart: '上肢' },
+    { id: 'lieque', name: '列缺穴', loc: '桡骨茎突上方，腕横纹上1.5寸', fn: '宣肺利咽，通经活络', detail: '两手虎口交叉，食指尖到达处。按揉可缓解咽喉肿痛、头痛。', bodyPart: '上肢' },
+    { id: 'taiyuan', name: '太渊穴', loc: '腕掌侧横纹桡侧，桡动脉搏动处', fn: '补肺益气，止咳平喘', detail: '腕横纹桡动脉搏动处。按揉可增强肺功能，改善气短。', bodyPart: '上肢' },
+    // 下肢
+    { id: 'zusanli', name: '足三里', loc: '外膝眼下3寸，胫骨前嵴外开一横指', fn: '健脾和胃，扶正培元', detail: '强壮保健要穴。常按可增强免疫力，改善消化功能，延缓衰老。', bodyPart: '下肢' },
+    { id: 'sanyinjiao', name: '三阴交', loc: '内踝尖上3寸，胫骨内侧缘后际', fn: '健脾益血，调肝补肾', detail: '脾肝肾三经交会穴。按揉可调理月经、改善失眠、健脾利湿。', bodyPart: '下肢' },
+    { id: 'yongquan', name: '涌泉穴', loc: '足底前1/3与后2/3交界处，蜷足时凹陷处', fn: '滋阴降火，醒脑开窍', detail: '肾经井穴。每晚搓涌泉100次，可引火归元，改善失眠、高血压。', bodyPart: '下肢' },
+    { id: 'taichong', name: '太冲穴', loc: '足背第1、2跖骨结合部前凹陷处', fn: '平肝泻火，疏肝理气', detail: '肝经原穴。按揉可缓解头痛、眩晕、易怒、痛经。', bodyPart: '下肢' },
+    { id: 'xuehai', name: '血海穴', loc: '髌骨内上缘上2寸，股内侧肌内侧缘', fn: '活血化瘀，补血养血', detail: '脾经穴位。按揉可改善月经不调、皮肤瘙痒、血虚诸症。', bodyPart: '下肢' },
+    { id: 'zhaohai', name: '照海穴', loc: '内踝尖直下凹陷处', fn: '滋阴清热，利咽安神', detail: '八脉交会穴之一，通阴跷脉。按揉可缓解咽干咽痛、失眠。', bodyPart: '下肢' },
+    // 躯干
+    { id: 'guanyuan', name: '关元穴', loc: '前正中线上，脐下3寸', fn: '培补元气，温肾固精', detail: '任脉要穴，培元固本。艾灸或按揉可改善阳虚、宫寒、尿频。', bodyPart: '躯干' },
+    { id: 'qihai', name: '气海穴', loc: '前正中线上，脐下1.5寸', fn: '益气助阳，调经固经', detail: '"气海一穴暖全身"，按揉或艾灸可补益元气，改善气虚乏力。', bodyPart: '躯干' },
+    { id: 'mingmen', name: '命门穴', loc: '后正中线上，第2腰椎棘突下凹陷处', fn: '温肾壮阳，固精止带', detail: '肾阳之根本。艾灸或搓热命门可温补肾阳，改善腰冷、阳痿。', bodyPart: '躯干' },
+    { id: 'tiantu', name: '天突穴', loc: '胸骨上窝正中凹陷处', fn: '止咳化痰，利咽开音', detail: '用食指或中指轻轻按揉，力度适中，适合咳嗽、咽痒、声音嘶哑。', bodyPart: '躯干' }
   ];
 
-  // 舌诊数据
+  // 望诊数据（面色+舌诊）
   const TONGUE_DATA = {
+    faceColor: [
+      { val: 'ruddy', label: '红润', interpret: '气血充盈，为健康面色。红黄隐隐，明润含蓄，是精气充沛的表现。' },
+      { val: 'pale', label: '苍白', interpret: '气血不足或阳虚寒证。多见于贫血、气虚、阳虚体质。建议：补气养血温阳，多食红枣、桂圆、黄芪、羊肉。' },
+      { val: 'sallow', label: '萎黄', interpret: '脾胃虚弱，气血不足。面色枯黄暗淡，多见于脾虚、营养不良。建议：健脾益气，多食山药、小米、大枣。' },
+      { val: 'flushed', label: '潮红', interpret: '阴虚内热或实热证。午后颧红多为阴虚火旺，满面通红多为实热。建议：滋阴降火或清热泻火。' },
+      { val: 'dull', label: '晦暗', interpret: '肾虚或血瘀。面色暗滞无光泽，多见于肾虚、慢性肝病或血瘀体质。建议：补肾活血，多食黑芝麻、核桃、山楂。' },
+      { val: 'dark_black', label: '黧黑', interpret: '肾阳虚衰或肾精亏耗。面色黑而暗淡，多见于慢性肾病、肾上腺疾病。建议：温补肾阳，及时就医检查。' }
+    ],
     color: [
       { val: 'pale', label: '淡白', interpret: '气血不足或阳虚。多见于贫血、脾胃虚弱。建议：补气养血，多食红枣、桂圆、黄芪。' },
       { val: 'normal', label: '淡红', interpret: '正常舌色，气血充盈，为健康表现。' },
@@ -259,7 +390,8 @@ export const HealthModule = (() => {
   function getSeason() {
     const m = new Date().getMonth() + 1;
     if (m >= 3 && m <= 5) return 'spring';
-    if (m >= 6 && m <= 8) return 'summer';
+    if (m === 6 || m === 7) return 'summer';
+    if (m === 8) return 'longsummer';
     if (m >= 9 && m <= 11) return 'autumn';
     return 'winter';
   }
@@ -325,12 +457,13 @@ export const HealthModule = (() => {
     try {
       healthData = await Storage.get('health', dateStr);
       if (!healthData) {
-        healthData = { id: dateStr, date: dateStr, weight: null, weightTrend: '', sleep: { bedtime: '23:00', waketime: '07:00', duration: null, nap: 0 }, exercises: [], water: 0, diets: [] };
+        healthData = { id: dateStr, date: dateStr, weight: null, weightTrend: '', sleep: { bedtime: '23:00', waketime: '07:00', duration: null, nap: 0 }, exercises: [], water: 0, diets: [], bowel: { count: 0, form: '', color: '', note: '' } };
       }
       if (!healthData.sleep) healthData.sleep = { bedtime: '23:00', waketime: '07:00', duration: null, nap: 0 };
       if (!healthData.exercises) healthData.exercises = [];
       if (healthData.water === undefined) healthData.water = 0;
       if (!healthData.diets) healthData.diets = [];
+      if (!healthData.bowel) healthData.bowel = { count: 0, form: '', color: '', note: '' };
       fillUI();
       await renderMiniCharts();
     } catch (err) {
@@ -367,6 +500,7 @@ export const HealthModule = (() => {
     renderExercises();
     updateWaterDisplay();
     renderDiets();
+    fillBowelUI();
   }
 
   // ===== 周趋势迷你图表 =====
@@ -629,6 +763,56 @@ export const HealthModule = (() => {
     });
   }
 
+
+  // ===== 大便记录 =====
+  function fillBowelUI() {
+    if (!healthData.bowel) return;
+    const countInput = document.getElementById('health-bowel-count');
+    const noteInput = document.getElementById('health-bowel-note');
+    if (countInput) countInput.value = healthData.bowel.count || 0;
+    if (noteInput) noteInput.value = healthData.bowel.note || '';
+    document.querySelectorAll('#healthBowelForm .health-bowel-opt').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.val === healthData.bowel.form);
+    });
+    document.querySelectorAll('#healthBowelColor .health-bowel-opt').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.val === healthData.bowel.color);
+    });
+  }
+  function bindBowelEvents() {
+    const countInput = document.getElementById('health-bowel-count');
+    const noteInput = document.getElementById('health-bowel-note');
+    if (countInput) {
+      _bindEvent(countInput, 'input', () => {
+        healthData.bowel.count = parseInt(countInput.value) || 0;
+        clearTimeout(saveData._bowelTimer);
+        saveData._bowelTimer = setTimeout(() => saveData(), 500);
+      });
+    }
+    if (noteInput) {
+      _bindEvent(noteInput, 'input', () => {
+        healthData.bowel.note = noteInput.value;
+        clearTimeout(saveData._bowelTimer);
+        saveData._bowelTimer = setTimeout(() => saveData(), 500);
+      });
+    }
+    document.querySelectorAll('#healthBowelForm .health-bowel-opt').forEach(btn => {
+      _bindEvent(btn, 'click', () => {
+        document.querySelectorAll('#healthBowelForm .health-bowel-opt').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        healthData.bowel.form = btn.dataset.val;
+        saveData();
+      });
+    });
+    document.querySelectorAll('#healthBowelColor .health-bowel-opt').forEach(btn => {
+      _bindEvent(btn, 'click', () => {
+        document.querySelectorAll('#healthBowelColor .health-bowel-opt').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        healthData.bowel.color = btn.dataset.val;
+        saveData();
+      });
+    });
+  }
+
   // ===== 情绪打卡 =====
   async function loadMoodData() {
     try {
@@ -878,16 +1062,28 @@ export const HealthModule = (() => {
     _intervals.push(_shichenTimer);
   }
 
-  // ===== 推荐茶饮 =====
+  // ===== 食疗方 =====
+  let _teaFilter = 'all';
+  let _teaShowAll = false;
   function initTea() {
     renderTea(false);
     const viewAllBtn = document.getElementById('healthTeaViewAll');
     if (viewAllBtn) {
-      let showAll = false;
       _bindEvent(viewAllBtn, 'click', () => {
-        showAll = !showAll;
-        renderTea(showAll);
-        viewAllBtn.textContent = showAll ? '收起 ←' : '查看全部茶饮 →';
+        _teaShowAll = !_teaShowAll;
+        renderTea(_teaShowAll);
+        viewAllBtn.textContent = _teaShowAll ? '收起 ←' : '查看全部食疗方 →';
+      });
+    }
+    const filterContainer = document.getElementById('healthTeaFilter');
+    if (filterContainer) {
+      filterContainer.querySelectorAll('.health-tea-filter-btn').forEach(btn => {
+        _bindEvent(btn, 'click', () => {
+          filterContainer.querySelectorAll('.health-tea-filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          _teaFilter = btn.dataset.filter;
+          renderTea(_teaShowAll);
+        });
       });
     }
   }
@@ -900,7 +1096,12 @@ export const HealthModule = (() => {
       const setting = await Storage.get('settings', 'health/constitution');
       if (setting && setting.value) constitution = setting.value.type;
     } catch (e) {}
-    const scored = TEA_RECIPES.map(tea => {
+    let recipes = TEA_RECIPES;
+    if (_teaFilter !== 'all') {
+      recipes = recipes.filter(r => r.category === _teaFilter);
+    }
+    const catLabel = { tea: '🍵 茶饮', porridge: '🍲 粥品', soup: '🥣 汤品' };
+    const scored = recipes.map(tea => {
       let score = 0;
       if (constitution && tea.constitutions.includes(constitution)) score += 2;
       if (tea.seasons.includes(season)) score += 1;
@@ -909,6 +1110,7 @@ export const HealthModule = (() => {
     const display = showAll ? scored : scored.slice(0, 3);
     list.innerHTML = display.map(({ tea }) => {
       const tags = [];
+      if (tea.category) tags.push(`<span class="health-tea-tag">${catLabel[tea.category] || ''}</span>`);
       if (constitution && tea.constitutions.includes(constitution)) tags.push('<span class="health-tea-tag">适合体质</span>');
       if (tea.seasons.includes(season)) tags.push('<span class="health-tea-tag">当季</span>');
       return `<div class="health-tea-item">
@@ -928,41 +1130,43 @@ export const HealthModule = (() => {
   function renderAcupointSvg() {
     const container = document.getElementById('healthAcupointSvg');
     if (!container) return;
+    // 简易人体轮廓 (穴位太多，SVG只做展示，不再标记具体点位)
     let html = '<svg width="120" height="260" viewBox="0 0 120 260">';
-    // 简易人体轮廓
-    html += '<ellipse cx="60" cy="30" rx="20" ry="24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 头
-    html += '<line x1="60" y1="54" x2="60" y2="60" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 颈
-    html += '<path d="M 30 62 Q 60 58 90 62 L 88 130 Q 60 135 32 130 Z" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 躯干
-    html += '<line x1="30" y1="68" x2="18" y2="120" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 左臂
-    html += '<line x1="90" y1="68" x2="102" y2="120" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 右臂
-    html += '<line x1="40" y1="130" x2="35" y2="230" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 左腿
-    html += '<line x1="80" y1="130" x2="85" y2="230" stroke="var(--text-muted)" stroke-width="1.5"/>'; // 右腿
-    // 穴位点
-    ACUPOINTS.forEach((ap, i) => {
-      const p = ap.svgPos;
-      html += `<circle cx="${p.cx}" cy="${p.cy}" r="${p.r}" fill="var(--accent)" stroke="#fff" stroke-width="1" class="health-acupoint-dot" data-id="${ap.id}" style="cursor:pointer;"/>`;
-      html += `<text x="${p.cx}" y="${p.cy - 8}" text-anchor="middle" font-size="9" fill="var(--accent)" font-weight="600">${i + 1}</text>`;
-    });
+    html += '<ellipse cx="60" cy="30" rx="20" ry="24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>';
+    html += '<line x1="60" y1="54" x2="60" y2="60" stroke="var(--text-muted)" stroke-width="1.5"/>';
+    html += '<path d="M 30 62 Q 60 58 90 62 L 88 130 Q 60 135 32 130 Z" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>';
+    html += '<line x1="30" y1="68" x2="18" y2="120" stroke="var(--text-muted)" stroke-width="1.5"/>';
+    html += '<line x1="90" y1="68" x2="102" y2="120" stroke="var(--text-muted)" stroke-width="1.5"/>';
+    html += '<line x1="40" y1="130" x2="35" y2="230" stroke="var(--text-muted)" stroke-width="1.5"/>';
+    html += '<line x1="80" y1="130" x2="85" y2="230" stroke="var(--text-muted)" stroke-width="1.5"/>';
+    html += '<text x="60" y="135" text-anchor="middle" font-size="10" fill="var(--text-muted)">经络穴位图</text>';
+    html += '<text x="60" y="150" text-anchor="middle" font-size="9" fill="var(--text-muted)">点击右侧穴位</text>';
+    html += '<text x="60" y="163" text-anchor="middle" font-size="9" fill="var(--text-muted)">开始按揉计时</text>';
     html += '</svg>';
     container.innerHTML = html;
-    container.querySelectorAll('.health-acupoint-dot').forEach(dot => {
-      _bindEvent(dot, 'click', () => {
-        const ap = ACUPOINTS.find(a => a.id === dot.dataset.id);
-        if (ap) openAcupointTimer(ap);
-      });
-    });
   }
   function renderAcupointList() {
     const container = document.getElementById('healthAcupointList');
     if (!container) return;
-    container.innerHTML = ACUPOINTS.map((ap, i) => `
-      <div class="health-acupoint-item" data-id="${ap.id}">
-        <div class="health-acupoint-name">${i + 1}. ${ap.name}</div>
-        <div class="health-acupoint-loc">📍 ${ap.loc}</div>
-        <div class="health-acupoint-fn">✨ ${ap.fn}</div>
-        <div class="health-acupoint-timer-hint">👉 点击开始按揉计时</div>
-      </div>
-    `).join('');
+    const parts = ['头颈部', '上肢', '下肢', '躯干'];
+    const partIcons = { '头颈部': '🧑', '上肢': '💪', '下肢': '🦵', '躯干': '🫁' };
+    let html = '';
+    let idx = 0;
+    parts.forEach(part => {
+      const points = ACUPOINTS.filter(a => a.bodyPart === part);
+      if (points.length === 0) return;
+      html += `<div class="health-acupoint-group-title">${partIcons[part] || ''} ${part}</div>`;
+      points.forEach(ap => {
+        idx++;
+        html += `<div class="health-acupoint-item" data-id="${ap.id}">
+          <div class="health-acupoint-name">${idx}. ${ap.name}</div>
+          <div class="health-acupoint-loc">📍 ${escapeHtml(ap.loc)}</div>
+          <div class="health-acupoint-fn">✨ ${escapeHtml(ap.fn)}</div>
+          <div class="health-acupoint-timer-hint">👉 点击开始按揉计时</div>
+        </div>`;
+      });
+    });
+    container.innerHTML = html;
     container.querySelectorAll('.health-acupoint-item').forEach(item => {
       _bindEvent(item, 'click', () => {
         const ap = ACUPOINTS.find(a => a.id === item.dataset.id);
@@ -1045,9 +1249,10 @@ export const HealthModule = (() => {
     display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  // ===== 舌诊自测 =====
-  let tongueSelections = { color: null, coating: null, shape: null };
+  // ===== 望诊自测 =====
+  let tongueSelections = { faceColor: null, color: null, coating: null, shape: null };
   function initTongueDiagnosis() {
+    renderTongueOptions('healthFaceColor', TONGUE_DATA.faceColor, 'faceColor');
     renderTongueOptions('healthTongueColor', TONGUE_DATA.color, 'color');
     renderTongueOptions('healthTongueCoating', TONGUE_DATA.coating, 'coating');
     renderTongueOptions('healthTongueShape', TONGUE_DATA.shape, 'shape');
@@ -1071,19 +1276,56 @@ export const HealthModule = (() => {
   function updateTongueResult() {
     const resultEl = document.getElementById('healthTongueResult');
     const saveBtn = document.getElementById('healthTongueSaveBtn');
-    if (!tongueSelections.color || !tongueSelections.coating || !tongueSelections.shape) return;
+    if (!tongueSelections.faceColor || !tongueSelections.color || !tongueSelections.coating || !tongueSelections.shape) return;
+    const faceData = TONGUE_DATA.faceColor.find(c => c.val === tongueSelections.faceColor);
     const colorData = TONGUE_DATA.color.find(c => c.val === tongueSelections.color);
     const coatingData = TONGUE_DATA.coating.find(c => c.val === tongueSelections.coating);
     const shapeData = TONGUE_DATA.shape.find(c => c.val === tongueSelections.shape);
-    if (!colorData || !coatingData || !shapeData) return;
+    if (!faceData || !colorData || !coatingData || !shapeData) return;
     let html = '<div style="margin-bottom:8px;">';
+    html += `<strong>面色 · ${faceData.label}</strong><br>${faceData.interpret}<br><br>`;
     html += `<strong>舌色 · ${colorData.label}</strong><br>${colorData.interpret}<br><br>`;
     html += `<strong>舌苔 · ${coatingData.label}</strong><br>${coatingData.interpret}<br><br>`;
     html += `<strong>舌形 · ${shapeData.label}</strong><br>${shapeData.interpret}`;
     html += '</div>';
-    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">⚠️ 舌诊仅供参考，如有不适请咨询专业中医师。</div>';
+    // 综合判断
+    const comprehensive = generateComprehensiveDiagnosis(tongueSelections);
+    html += `<div class="health-tongue-comprehensive"><div class="health-tongue-comp-title">📋 综合判断</div>${comprehensive}</div>`;
+    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">⚠️ 望诊仅供参考，如有不适请咨询专业中医师。</div>';
     if (resultEl) { resultEl.innerHTML = html; resultEl.classList.add('show'); }
     if (saveBtn) saveBtn.style.display = '';
+  }
+  function generateComprehensiveDiagnosis(sel) {
+    const findings = [];
+    // 气血判断
+    if (sel.faceColor === 'pale' || sel.faceColor === 'sallow' || sel.color === 'pale' || sel.shape === 'thin') {
+      findings.push('气血不足：面色苍白或萎黄、舌淡，提示气血亏虚，建议补气养血。');
+    }
+    // 阴虚判断
+    if (sel.faceColor === 'flushed' || sel.color === 'red' || sel.color === 'crimson' || sel.coating === 'none' || sel.shape === 'cracked') {
+      findings.push('阴虚内热：面色潮红、舌红少苔或裂纹，提示阴液亏虚、虚热内生，建议滋阴降火。');
+    }
+    // 阳虚判断
+    if (sel.faceColor === 'pale' || sel.color === 'pale' && sel.shape === 'swollen') {
+      findings.push('阳虚寒证：面色苍白、舌淡胖大，提示阳气不足，建议温阳散寒。');
+    }
+    // 湿热判断
+    if (sel.faceColor === 'flushed' || sel.coating === 'yellow') {
+      findings.push('湿热内蕴：面色偏红、苔黄，提示湿热证，建议清热利湿。');
+    }
+    // 痰湿判断
+    if (sel.coating === 'thick_white' || sel.shape === 'swollen' || sel.shape === 'teeth_marks') {
+      findings.push('脾虚湿盛：舌苔厚白或舌胖大有齿痕，提示痰湿内停，建议健脾祛湿。');
+    }
+    // 血瘀判断
+    if (sel.color === 'purple' || sel.faceColor === 'dull' || sel.faceColor === 'dark_black') {
+      findings.push('血瘀或肾虚：舌紫或面色晦暗黧黑，提示血瘀或肾虚，建议活血化瘀或补肾。');
+    }
+    // 正常判断
+    if (findings.length === 0) {
+      findings.push('各项望诊指标基本正常，面色红润、舌象正常，提示气血充盈、脏腑功能良好。继续保持良好的生活习惯。');
+    }
+    return findings.map(f => `<div class="health-tongue-comp-item">• ${escapeHtml(f)}</div>`).join('');
   }
   async function saveTongueRecord() {
     const record = { ...tongueSelections, date: new Date().toISOString() };
@@ -1103,15 +1345,16 @@ export const HealthModule = (() => {
     try {
       const setting = await Storage.get('settings', 'health/tongue');
       const history = (setting && setting.value) || [];
-      if (history.length === 0) { container.innerHTML = '<div class="health-empty-state">暂无舌诊记录</div>'; return; }
-      const colorMap = {}, coatingMap = {}, shapeMap = {};
+      if (history.length === 0) { container.innerHTML = '<div class="health-empty-state">暂无望诊记录</div>'; return; }
+      const faceMap = {}, colorMap = {}, coatingMap = {}, shapeMap = {};
+      TONGUE_DATA.faceColor.forEach(c => faceMap[c.val] = c.label);
       TONGUE_DATA.color.forEach(c => colorMap[c.val] = c.label);
       TONGUE_DATA.coating.forEach(c => coatingMap[c.val] = c.label);
       TONGUE_DATA.shape.forEach(c => shapeMap[c.val] = c.label);
       container.innerHTML = history.slice(0, 5).map(r => {
         const d = new Date(r.date);
         const ds = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-        return `<div class="health-tongue-history-item"><div class="th-date">${ds}</div>舌色: ${colorMap[r.color] || r.color} · 舌苔: ${coatingMap[r.coating] || r.coating} · 舌形: ${shapeMap[r.shape] || r.shape}</div>`;
+        return `<div class="health-tongue-history-item"><div class="th-date">${ds}</div>面色: ${faceMap[r.faceColor] || '—'} · 舌色: ${colorMap[r.color] || '—'} · 舌苔: ${coatingMap[r.coating] || '—'} · 舌形: ${shapeMap[r.shape] || '—'}</div>`;
       }).join('');
     } catch (e) {}
   }
@@ -1209,7 +1452,7 @@ export const HealthModule = (() => {
       renderSupplementGrid();
       goToStep(3);
     });
-    if (analyzeBtn) _bindEvent(analyzeBtn, 'click', () => { analyzeSymptoms(); goToStep(4); });
+    if (analyzeBtn) _bindEvent(analyzeBtn, 'click', async () => { await analyzeSymptoms(); goToStep(4); });
     if (restartBtn) _bindEvent(restartBtn, 'click', () => {
       symptomState = { part: null, symptoms: new Set(), supplements: {}, step: 1 };
       document.querySelectorAll('.health-body-part').forEach(p => p.classList.remove('selected'));
@@ -1291,7 +1534,7 @@ export const HealthModule = (() => {
     }
     document.querySelectorAll('.health-step-panel').forEach((p, i) => p.classList.toggle('active', i + 1 === step));
   }
-  function analyzeSymptoms() {
+  async function analyzeSymptoms() {
     const selected = [...symptomState.symptoms];
     const supplements = symptomState.supplements;
     // Add supplement symptoms to matching
@@ -1318,17 +1561,67 @@ export const HealthModule = (() => {
       return { syndrome: syn, matchPct };
     }).filter(r => r.matchPct > 0).sort((a, b) => b.matchPct - a.matchPct);
     const top = results.slice(0, 2);
-    renderResult(top, selected);
+    // 气血辨证分析
+    const qiBloodAnalysis = analyzeQiBlood(selected);
+    // 读取体质数据
+    await renderResult(top, selected, qiBloodAnalysis);
     saveSymptomHistory(top, selected);
   }
-  function renderResult(top, selected) {
+  // 气血辨证分析
+  function analyzeQiBlood(selected) {
+    const qiDeficiencySyms = ['疲倦乏力', '气短气喘', '自汗', '面色苍白', '声音嘶哑'];
+    const bloodDeficiencySyms = ['面色苍白', '头晕', '眼干涩', '心悸', '失眠多梦', '健忘', '肢体麻木'];
+    const qiStagnationSyms = ['抑郁寡欢', '善太息', '心烦易怒', '胸闷', '腹胀', '焦虑不安'];
+    const bloodStasisSyms = ['肢体麻木', '关节疼痛', '面色苍白'];
+    const qiScore = qiDeficiencySyms.filter(s => selected.includes(s)).length;
+    const bloodScore = bloodDeficiencySyms.filter(s => selected.includes(s)).length;
+    const qiStagScore = qiStagnationSyms.filter(s => selected.includes(s)).length;
+    const bloodStasisScore = bloodStasisSyms.filter(s => selected.includes(s)).length;
+    const results = [];
+    if (qiScore >= 2) {
+      results.push({ type: '气虚', desc: '元气不足，表现为疲倦乏力、气短懒言、自汗等。', advice: '补益脾气，多食黄芪、党参、山药、大枣；艾灸足三里、气海穴。' });
+    }
+    if (bloodScore >= 2) {
+      results.push({ type: '血虚', desc: '血液亏虚，表现为面色苍白、头晕心悸、失眠健忘等。', advice: '养血补血，多食桂圆、红枣、当归、猪肝；按摩三阴交、血海穴。' });
+    }
+    if (qiStagScore >= 2) {
+      results.push({ type: '气滞', desc: '气机郁滞，表现为情绪低落、胸闷善太息、腹胀等。', advice: '疏肝理气，多饮玫瑰花茶、佛手茶；按压太冲穴、膻中穴。' });
+    }
+    if (bloodStasisScore >= 2) {
+      results.push({ type: '血瘀', desc: '血行不畅，表现为肢体麻木、关节疼痛、面色晦暗等。', advice: '活血化瘀，多食山楂、玫瑰花、黑豆；适当运动促进气血运行。' });
+    }
+    if (qiScore >= 2 && bloodScore >= 2) {
+      results.push({ type: '气血两虚', desc: '气虚与血虚并见，面色淡白、气短乏力、头晕心悸。', advice: '气血双补，可食黄芪当归乌鸡汤、十全大补汤；避免过度劳累。' });
+    }
+    return results;
+  }
+  async function renderResult(top, selected, qiBloodAnalysis) {
     const panel = document.getElementById('healthResultPanel');
     if (!panel) return;
+    // 读取体质数据
+    let constitution = null;
+    try {
+      const setting = await Storage.get('settings', 'health/constitution');
+      if (setting && setting.value) constitution = setting.value;
+    } catch (e) {}
     if (top.length === 0) {
       panel.innerHTML = '<div class="health-empty-state">未能匹配到明确证型，建议咨询专业中医师。</div>';
       return;
     }
     let html = '';
+    // 体质参考
+    if (constitution) {
+      html += `<div class="health-result-constitution-ref">
+        <div class="health-result-section-title">🧬 体质参考</div>
+        <div class="health-result-const-info">您的体质为<strong>${escapeHtml(constitution.name)}</strong>（${escapeHtml(constitution.desc)}）</div>
+        <div class="health-result-const-advice">💡 个性化建议：${escapeHtml(constitution.advice)}</div>
+      </div>`;
+    } else {
+      html += `<div class="health-result-constitution-ref health-result-const-empty">
+        <div class="health-result-section-title">🧬 体质参考</div>
+        <div class="health-result-const-hint">建议先进行体质辨识，以获取个性化养生建议。</div>
+      </div>`;
+    }
     top.forEach((r, idx) => {
       const syn = r.syndrome;
       const isPrimary = idx === 0;
@@ -1340,11 +1633,27 @@ export const HealthModule = (() => {
       html += `<div class="health-result-section"><div class="health-result-section-title">🍵 推荐茶饮</div><ul class="health-recommendation-list">${syn.tea.map(t => `<li>${t}</li>`).join('')}</ul></div>`;
       html += `<div class="health-result-section"><div class="health-result-section-title">🤲 推荐穴位</div><ul class="health-recommendation-list">${syn.acupoints.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
       html += `<div class="health-result-section"><div class="health-result-section-title">🥗 饮食宜忌</div><ul class="health-recommendation-list"><li>✅ 宜：${syn.diet.good}</li><li>❌ 忌：${syn.diet.bad}</li></ul></div>`;
-      if (isPrimary) {
-        html += `<div class="health-medical-notice"><span class="warn-icon">⚠️</span><span>以上结果仅供参考，不能替代专业医疗诊断。如症状持续或加重，请及时就医咨询专业医师。</span></div>`;
-      }
       if (idx < top.length - 1) html += '<hr style="border:none;border-top:1px solid var(--border-color);margin:14px 0;">';
     });
+    // 气血辨证分析
+    if (qiBloodAnalysis && qiBloodAnalysis.length > 0) {
+      html += `<div class="health-result-qiblood-section">
+        <div class="health-result-section-title">🌀 气血辨证分析</div>`;
+      qiBloodAnalysis.forEach(item => {
+        html += `<div class="health-result-qiblood-item">
+          <div class="health-result-qiblood-type">${escapeHtml(item.type)}倾向</div>
+          <div class="health-result-qiblood-desc">${escapeHtml(item.desc)}</div>
+          <div class="health-result-qiblood-advice">💡 ${escapeHtml(item.advice)}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div class="health-result-qiblood-section">
+        <div class="health-result-section-title">🌀 气血辨证分析</div>
+        <div class="health-empty-state">暂无明显气血异常倾向</div>
+      </div>`;
+    }
+    html += `<div class="health-medical-notice"><span class="warn-icon">⚠️</span><span>以上结果仅供参考，不能替代专业医疗诊断。如症状持续或加重，请及时就医咨询专业医师。</span></div>`;
     panel.innerHTML = html;
   }
   async function saveSymptomHistory(top, selected) {
@@ -1498,13 +1807,17 @@ export const HealthModule = (() => {
       container.innerHTML = '<div class="health-food-empty">未找到匹配的食物</div>';
       return;
     }
-    container.innerHTML = list.map(f => {
+    container.innerHTML = list.map((f, i) => {
       const natureCls = f.nature === '寒' || f.nature === '凉' ? 'nature-cold' :
                         f.nature === '平' ? 'nature-neutral' : 'nature-warm';
-      return `<div class="health-food-item">
-        <div class="health-food-item-header">
+      // 搭配建议
+      const pairings = getFoodPairings(f.name);
+      const pairingText = pairings.length ? pairings.join('、') : '暂无';
+      return `<div class="health-food-item" data-food-idx="${i}">
+        <div class="health-food-item-header" data-toggle="detail">
           <span class="health-food-item-name">${escapeHtml(f.name)}</span>
           <span class="health-food-item-cat">${escapeHtml(f.category)}</span>
+          <span class="health-food-expand-hint">▸</span>
         </div>
         <div class="health-food-item-props">
           <span class="health-food-nature-tag ${natureCls}">${escapeHtml(f.nature)}</span>
@@ -1516,8 +1829,47 @@ export const HealthModule = (() => {
           ${f.goodFor.length ? '<span class="health-food-good">✓ ' + f.goodFor.join('、') + '</span>' : ''}
           ${f.badFor.length ? '<span class="health-food-bad"> ✗ ' + f.badFor.join('、') + '</span>' : ''}
         </div>
+        <div class="health-food-detail" style="display:none;">
+          <div class="health-food-detail-row"><span class="health-food-detail-label">性味归经</span><span>${escapeHtml(f.nature)} · ${escapeHtml(f.flavor)} · 归${f.meridians.map(m => escapeHtml(m)).join('、')}经</span></div>
+          <div class="health-food-detail-row"><span class="health-food-detail-label">功效</span><span>${escapeHtml(f.effects)}</span></div>
+          <div class="health-food-detail-row"><span class="health-food-detail-label">适合体质</span><span>${f.goodFor.length ? f.goodFor.map(g => escapeHtml(g)).join('、') : '一般体质均可'}</span></div>
+          <div class="health-food-detail-row"><span class="health-food-detail-label">禁忌</span><span>${f.badFor.length ? f.badFor.map(b => escapeHtml(b)).join('、') : '无明显禁忌'}</span></div>
+          <div class="health-food-detail-row"><span class="health-food-detail-label">搭配建议</span><span>${escapeHtml(pairingText)}</span></div>
+        </div>
       </div>`;
     }).join('');
+    // 绑定展开/收起
+    container.querySelectorAll('.health-food-item-header[data-toggle="detail"]').forEach(header => {
+      _bindEvent(header, 'click', () => {
+        const detail = header.nextElementSibling;
+        // header is .health-food-item-header, next siblings are props, meridians, effects, constitution, detail
+        const item = header.closest('.health-food-item');
+        const detailEl = item.querySelector('.health-food-detail');
+        const hint = header.querySelector('.health-food-expand-hint');
+        if (detailEl) {
+          const isShown = detailEl.style.display !== 'none';
+          detailEl.style.display = isShown ? 'none' : '';
+          if (hint) hint.textContent = isShown ? '▸' : '▾';
+        }
+      });
+    });
+  }
+  function getFoodPairings(name) {
+    const pairings = {
+      '山药': ['排骨（健脾益胃）', '薏米（祛湿健脾）', '红枣（补气养血）'],
+      '红枣': ['桂圆（补血安神）', '枸杞（滋补肝肾）', '黄芪（补气健脾）'],
+      '百合': ['银耳（滋阴润肺）', '莲子（清心安神）', '雪梨（润肺止咳）'],
+      '枸杞': ['菊花（清肝明目）', '红枣（补气养血）', '山药（滋肾益精）'],
+      '生姜': ['红糖（温中散寒）', '红枣（温胃健脾）', '羊肉（温阳散寒）'],
+      '绿豆': ['百合（清热解暑）', '薏米（清热祛湿）', '冬瓜（清热利水）'],
+      '黑豆': ['核桃（补肾益精）', '红糖（活血调经）', '排骨（补肾强骨）'],
+      '莲藕': ['排骨（滋阴养胃）', '红豆（补血养心）', '雪梨（清热润肺）'],
+      '山楂': ['决明子（消食通便）', '红糖（活血化瘀）', '麦芽（消食化积）'],
+      '银耳': ['百合（滋阴润肺）', '枸杞（滋补肝肾）', '莲子（养心安神）'],
+      '核桃': ['黑芝麻（补肾乌发）', '红枣（补气养血）', '粳米（健脑益智）'],
+      '羊肉': ['当归（温补血虚）', '生姜（温中散寒）', '萝卜（消食化滞）']
+    };
+    return pairings[name] || [];
   }
 
   // ===== 五脏知识库 =====
@@ -1604,7 +1956,22 @@ export const HealthModule = (() => {
       issues: [
         { name: '肾阳虚衰', desc: '多因年老体衰或久病伤阳，表现为腰膝酸冷、畏寒肢冷、夜尿频多。调理：温补肾阳，可食羊肉、韭菜、核桃；艾灸关元、命门。' },
         { name: '肾阴不足', desc: '多因久病或房劳过度，表现为腰膝酸软、眩晕耳鸣、盗汗潮热。调理：滋补肾阴，可食黑芝麻、枸杞、桑椹、银耳。' },
-        { name: '肾气不固', desc: '多因先天不足或年老肾衰，表现为小便频数、遗精滑泄、腰膝无力。调理：固摄肾气，可食芡实、金樱子、核桃；避免劳累。' }
+    },
+    '气血': {
+      alias: '气血者，人之根本',
+      function: '气为血之帅，血为气之母。气能生血、行血、摄血，血能载气、养气。气血充盈则脏腑功能正常，面色红润，精力充沛。',
+      relations: { '五志': '—', '五味': '甘', '五色': '黄赤', '五季': '长夏', '五官': '—' },
+      tips: [
+        '气虚者宜食黄芪、党参、山药、大枣，补益脾气以生化气血',
+        '血虚者宜食桂圆、红枣、当归、猪肝，养血补血',
+        '气血两虚者可食乌鸡汤、黄芪当归汤，气血双补',
+        '避免过度劳累和思虑，劳则耗气，思则气结',
+        '适当运动促进气血运行，如散步、太极，但不可大汗淋漓'
+      ],
+      issues: [
+        { name: '气虚', desc: '元气不足，表现为疲倦乏力、气短懒言、自汗、易感冒。调理：补益脾气，可食黄芪、党参、山药、大枣；艾灸足三里、气海穴；练习腹式呼吸。' },
+        { name: '血虚', desc: '血液亏虚，表现为面色苍白或萎黄、头晕眼花、心悸失眠、唇舌色淡。调理：养血补血，可食当归、桂圆、红枣、猪肝、乌鸡；按摩三阴交、血海穴。' },
+        { name: '气血两虚', desc: '气虚与血虚并见，表现为面色淡白、气短乏力、头晕心悸、月经量少。调理：气血双补，可食黄芪当归乌鸡汤、十全大补汤；避免过度劳累；规律作息。' }
       ]
     }
   };
@@ -1877,9 +2244,11 @@ export const HealthModule = (() => {
     bindExerciseEvents();
     bindWaterEvents();
     bindDietEvents();
+    bindBowelEvents();
     await initMoodCheckin();
     initConstitution();
     initShichen();
+    initSeasons();
     initTea();
     initAcupoints();
     initTimerEvents();

@@ -2283,3 +2283,297 @@
 [data-theme="dark"] .health-diary-record {
   background: var(--bg-hover);
 }
+
+/* ===== v95 新增样式 ===== */
+
+/* --- 大便记录卡片 --- */
+.health-bowel-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.health-bowel-row > label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  min-width: 52px;
+  flex-shrink: 0;
+}
+.health-bowel-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.health-bowel-opt {
+  padding: 4px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.health-bowel-opt.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.health-bowel-note-input {
+  flex: 1;
+  min-width: 120px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* --- 四季养生 --- */
+.health-season-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  background: var(--bg-main);
+  border-radius: 10px;
+  padding: 4px;
+}
+.health-season-tab {
+  flex: 1;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.health-season-tab.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(232, 168, 124, 0.3);
+}
+.health-season-focus {
+  padding: 10px 14px;
+  background: var(--accent-orange-light);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.health-season-section {
+  margin-bottom: 12px;
+}
+.health-season-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.health-season-diet {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.health-season-diet-good,
+.health-season-diet-bad {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+.health-season-diet-good {
+  background: rgba(91, 175, 91, 0.1);
+}
+.health-season-diet-bad {
+  background: rgba(232, 131, 74, 0.1);
+}
+.health-diet-icon {
+  font-weight: 600;
+  margin-right: 4px;
+}
+.health-season-text {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  background: var(--bg-hover);
+  border-radius: 8px;
+}
+
+/* --- 食疗方筛选 --- */
+.health-tea-filter {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.health-tea-filter-btn {
+  padding: 5px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.health-tea-filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* --- 食物展开详情 --- */
+.health-food-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.health-food-expand-hint {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+.health-food-detail {
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--bg-main);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+.health-food-detail-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.health-food-detail-row:last-child {
+  margin-bottom: 0;
+}
+.health-food-detail-label {
+  min-width: 64px;
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* --- 经络穴位分组 --- */
+.health-acupoint-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 8px 0 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 6px;
+  margin-top: 4px;
+}
+.health-acupoint-group-title:first-child {
+  margin-top: 0;
+}
+
+/* --- 望诊综合判断 --- */
+.health-tongue-comprehensive {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--accent-orange-light);
+  border-radius: 10px;
+}
+.health-tongue-comp-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.health-tongue-comp-item {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+/* --- 症状自查：体质参考+气血辨证 --- */
+.health-result-constitution-ref {
+  padding: 10px 14px;
+  background: var(--accent-orange-light);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.health-result-const-info {
+  font-size: 13px;
+  color: var(--text-primary);
+  margin: 4px 0;
+}
+.health-result-const-advice {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.health-result-const-empty {
+  background: var(--bg-hover);
+}
+.health-result-const-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.health-result-qiblood-section {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--bg-main);
+  border-radius: 10px;
+}
+.health-result-qiblood-item {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+.health-result-qiblood-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.health-result-qiblood-type {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.health-result-qiblood-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.health-result-qiblood-advice {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* --- v95 深色模式适配 --- */
+[data-theme="dark"] .health-bowel-opt,
+[data-theme="dark"] .health-season-tab,
+[data-theme="dark"] .health-tea-filter-btn {
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .health-food-detail,
+[data-theme="dark"] .health-season-text {
+  background: var(--bg-hover);
+}
+[data-theme="dark"] .health-result-qiblood-section {
+  background: var(--bg-hover);
+}
+[data-theme="dark"] .health-tongue-comprehensive,
+[data-theme="dark"] .health-result-constitution-ref {
+  background: var(--accent-orange-light);
+}

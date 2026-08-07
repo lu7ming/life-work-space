@@ -135,7 +135,11 @@ const CACHE_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(CACHE_ASSETS))
+      .then((cache) => Promise.all(
+        CACHE_ASSETS.map((asset) =>
+          cache.add(asset).catch(() => { /* skip missing asset */ })
+        )
+      ))
       .then(() => self.skipWaiting())
   );
 });

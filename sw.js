@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v89 - 旅行计划模块优化：去除预置数据、新增卡片删除功能：每日一言、天气+农历/节气、倒计时
+ * v99 - 道模块全量上线
  */
 
-const CACHE_NAME = 'life-work-space-v89';
+const CACHE_NAME = 'life-work-space-v99';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -117,6 +117,11 @@ const CACHE_ASSETS = [
   './modules/travel/travel.html',
   './modules/travel/travel.css',
   './modules/travel/travel.js',
+  // 道模块
+  './modules/dao/dao.html',
+  './modules/dao/dao.css',
+  './modules/dao/dao.js',
+  './modules/dao/dao-data.js',
   // PWA
   './manifest.json',
   // 用户资源

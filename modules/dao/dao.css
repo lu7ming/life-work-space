@@ -1094,3 +1094,331 @@
     font-size: 12px;
   }
 }
+
+/* ===== 养生智慧卡片（v99 升级版） ===== */
+.dao-yangsheng-card {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius);
+  padding: 16px;
+  box-shadow: var(--dao-shadow-sm);
+  border-left: 3px solid var(--dao-green);
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+.dao-yangsheng-card:active {
+  transform: scale(0.99);
+}
+.dao-yangsheng-card.expanded {
+  box-shadow: var(--dao-shadow-md);
+}
+.dao-yangsheng-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dao-yangsheng-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+}
+.dao-yangsheng-subtitle {
+  font-size: 12px;
+  color: var(--dao-text-secondary);
+  font-style: italic;
+  font-family: "STKaiti", "KaiTi", Georgia, serif;
+}
+.dao-yangsheng-body {
+  margin-top: 12px;
+  animation: dao-fade-in 0.25s ease;
+}
+.dao-yangsheng-source {
+  font-size: 11px;
+  color: var(--dao-purple);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.dao-yangsheng-quote {
+  font-size: 12.5px;
+  color: var(--dao-text-primary);
+  line-height: 1.9;
+  font-family: "STKaiti", "KaiTi", Georgia, serif;
+  letter-spacing: 0.3px;
+  background: rgba(129, 199, 132, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+}
+.dao-yangsheng-interpret {
+  margin-bottom: 10px;
+}
+.dao-yangsheng-interpret-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dao-green);
+  margin-bottom: 6px;
+}
+.dao-yangsheng-interpret-text {
+  font-size: 12.5px;
+  color: var(--dao-text-secondary);
+  line-height: 1.8;
+}
+.dao-yangsheng-health-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--dao-accent);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 12px;
+  background: rgba(232, 168, 124, 0.1);
+  border-radius: 16px;
+  transition: background 0.2s;
+}
+.dao-yangsheng-health-link:hover {
+  background: rgba(232, 168, 124, 0.2);
+}
+.dao-yangsheng-expand-hint {
+  font-size: 11px;
+  color: var(--dao-text-muted);
+  text-align: center;
+  margin-top: 10px;
+}
+.dao-yangsheng-footer-tip {
+  font-size: 11px;
+  color: var(--dao-text-muted);
+  text-align: center;
+  margin-top: 16px;
+  padding: 10px;
+  font-style: italic;
+}
+
+/* ===== 暗色模式支持 (v99) ===== */
+[data-theme="dark"] .dao-module {
+  --dao-bg-base: #2A1F15;
+  --dao-bg-card: #3A2E22;
+  --dao-text-primary: #E8D8C6;
+  --dao-text-secondary: #B8A895;
+  --dao-text-muted: #7D6E5E;
+  --dao-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --dao-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .dao-tab-bar {
+  background: var(--dao-bg-card);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .dao-search-box {
+  background: var(--dao-bg-card);
+}
+[data-theme="dark"] .dao-search-input {
+  color: var(--dao-text-primary);
+}
+[data-theme="dark"] .dao-gua-list-item,
+[data-theme="dark"] .dao-yangsheng-card,
+[data-theme="dark"] .dao-placeholder-card,
+[data-theme="dark"] .dao-djd-item,
+[data-theme="dark"] .dao-zz-item,
+[data-theme="dark"] .dao-tutorial-item,
+[data-theme="dark"] .dao-meihua-panel,
+[data-theme="dark"] .dao-liuyao-panel {
+  background: var(--dao-bg-card);
+}
+[data-theme="dark"] .dao-gua-list-symbol {
+  background: rgba(171, 127, 228, 0.15);
+}
+[data-theme="dark"] .dao-yao-lines {
+  background: rgba(171, 127, 228, 0.1);
+}
+[data-theme="dark"] .dao-yao-bar {
+  background: var(--dao-text-primary);
+}
+[data-theme="dark"] .dao-gua-detail-panel {
+  background: var(--dao-bg-card);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+[data-theme="dark"] .dao-gua-detail-header {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+  background: var(--dao-bg-card);
+}
+[data-theme="dark"] .dao-gua-ci-text {
+  background: rgba(232, 168, 124, 0.1);
+}
+[data-theme="dark"] .dao-jiedu-box .dao-gua-ci-text {
+  background: rgba(171, 127, 228, 0.08);
+}
+[data-theme="dark"] .dao-djd-text {
+  color: var(--dao-text-primary);
+}
+[data-theme="dark"] .dao-djd-item::before {
+  opacity: 0.4;
+}
+[data-theme="dark"] .dao-djd-section-text {
+  color: var(--dao-text-secondary);
+}
+[data-theme="dark"] .dao-zz-text {
+  color: var(--dao-text-primary);
+  background: rgba(232, 168, 124, 0.08);
+}
+[data-theme="dark"] .dao-zz-insight {
+  background: rgba(171, 127, 228, 0.08);
+  color: var(--dao-text-primary);
+}
+[data-theme="dark"] .dao-yangsheng-quote {
+  background: rgba(129, 199, 132, 0.1);
+  color: var(--dao-text-primary);
+}
+[data-theme="dark"] .dao-yangsheng-health-link {
+  background: rgba(232, 168, 124, 0.15);
+}
+[data-theme="dark"] .dao-sub-tab {
+  background: var(--dao-bg-card);
+}
+[data-theme="dark"] .dao-sub-tab.active {
+  background: var(--dao-accent);
+  color: #fff;
+}
+[data-theme="dark"] .dao-djd-item {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      rgba(255, 255, 255, 0.03) 27px,
+      rgba(255, 255, 255, 0.03) 28px
+    );
+}
+
+/* ===== 375px 移动端优化 (v99) ===== */
+@media (max-width: 375px) {
+  .dao-tab-item {
+    font-size: 11px;
+    padding: 10px 0;
+  }
+  .dao-tab-content {
+    padding: 10px;
+  }
+  .dao-search-box {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+  }
+  .dao-gua-list-item {
+    padding: 10px 12px;
+  }
+  .dao-gua-list-symbol {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  .dao-gua-list-name {
+    font-size: 13px;
+  }
+  .dao-yangsheng-card {
+    padding: 12px;
+  }
+  .dao-yangsheng-title {
+    font-size: 14px;
+  }
+  .dao-yangsheng-quote {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  .dao-meihua-title {
+    font-size: 13px;
+  }
+  .dao-meihua-gua-row {
+    gap: 4px;
+  }
+  .dao-meihua-gua-box {
+    padding: 8px 4px;
+  }
+  .dao-meihua-gua-name {
+    font-size: 11px;
+  }
+  .dao-liuyao-title {
+    font-size: 13px;
+  }
+  .dao-coin {
+    width: 44px;
+    height: 44px;
+    font-size: 15px;
+  }
+  .dao-gua-detail-panel {
+    max-width: 320px;
+    padding: 0;
+  }
+  .dao-gua-detail-body {
+    padding: 12px 16px 20px;
+  }
+  .dao-yao-lines {
+    padding: 12px;
+    gap: 5px;
+  }
+  .dao-djd-item-header {
+    padding: 12px 14px 8px;
+  }
+  .dao-djd-chapter-num {
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
+  }
+  .dao-djd-chapter-title {
+    font-size: 14px;
+  }
+  .dao-djd-text {
+    font-size: 12.5px;
+    padding-left: 58px;
+  }
+}
+
+/* ===== 卦象爻线移动端优化 ===== */
+@media (max-width: 375px) {
+  .dao-yao-bar {
+    height: 5px;
+    border-radius: 2.5px;
+  }
+  .dao-yao-solid .yao-left,
+  .dao-yao-solid .yao-right {
+    width: 35%;
+  }
+  .dao-yao-broken .yao-left,
+  .dao-yao-broken .yao-right {
+    width: 15%;
+  }
+  .dao-yao-broken .yao-gap {
+    width: 10%;
+    height: 5px;
+  }
+  .dao-yao-label {
+    font-size: 9px;
+    width: 36px;
+  }
+  /* dashboard 卦象爻线移动端 */
+  .dash-gua-yao-lines {
+    padding: 10px 16px;
+    gap: 6px;
+  }
+  .dash-yao-bar {
+    height: 6px;
+    border-radius: 3px;
+  }
+  .dash-yao-yang .dash-yao-full {
+    width: 96px;
+  }
+  .dash-yao-yin .dash-yao-half {
+    width: 40px;
+  }
+  .dash-yao-yin .dash-yao-gap {
+    width: 16px;
+    height: 6px;
+  }
+  .dash-yao-label {
+    font-size: 9px;
+  }
+}
+
+/* ===== 搜索框焦点态 ===== */
+.dao-search-box:focus-within {
+  box-shadow: 0 0 0 2px rgba(232, 168, 124, 0.3);
+}

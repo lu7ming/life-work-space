@@ -1,7 +1,7 @@
 /**
  * dao.js - 道模块
  * 人生工作台 · 易经 / 梅花易数 / 六爻 / 道德经 / 庄子 / 养生智慧
- * v98 - 第二期：道德经 + 庄子内容
+ * v99 - 第三期：养生智慧 + 首页卦象卡片增强
  */
 import { AppUtils } from '../../core/utils.js';
 import { DAODEJING, ZHUANGZI } from './dao-data.js';
@@ -2362,6 +2362,185 @@ const GUADATA = [
   }
 
 
+
+  // ===== 养生智慧数据 =====
+  const YANGSHENG = [
+    {
+      id: 'sishi',
+      title: '🌿 顺应四时',
+      subtitle: '春生夏长，秋收冬藏',
+      source: '《黄帝内经·素问·四气调神大论》',
+      quote: '春三月，此谓发陈。天地俱生，万物以荣。夜卧早起，广步于庭，被发缓形，以使志生。夏三月，此谓蕃秀。天地气交，万物华实。夜卧早起，无厌于日，使志无怒。秋三月，此谓容平。天气以急，地气以明。早卧早起，与鸡俱兴，使志安宁。冬三月，此谓闭藏。水冰地坼，无扰乎阳。早卧晚起，必待日光，使志若伏若匿。',
+      interpretation: '四季更替，天地阴阳消长不息。人身是一小天地，起居、情志、饮食当随四时而调。春天宜舒展情志，夏天宜宣泄阳气，秋天宜收敛神气，冬天宜闭藏精气。逆之则灾害生，从之则苛疾不起。',
+      healthTarget: 'season', // 对应健康模块子功能
+      healthTab: 1, // 养生Tab
+      healthLabel: '四季养生'
+    },
+    {
+      id: 'yinyang',
+      title: '☯️ 阴阳平衡',
+      subtitle: '孤阴不生，独阳不长',
+      source: '《黄帝内经·素问·生气通天论》',
+      quote: '凡阴阳之要，阳密乃固。两者不和，若春无秋，若冬无夏。因而和之，是谓圣度。故阳强不能密，阴气乃绝。阴平阳秘，精神乃治。阴阳离决，精气乃绝。',
+      interpretation: '阴阳是宇宙万物的基本法则。人体健康取决于阴阳的动态平衡：阳偏盛则燥热上火，阴偏盛则虚寒怕冷。养生贵在调和阴阳，寒者热之，热者寒之，虚者补之，实者泻之，使归于平和。',
+      healthTarget: 'constitution',
+      healthTab: 1,
+      healthLabel: '体质辨识'
+    },
+    {
+      id: 'qingjing',
+      title: '🧘 清静无为',
+      subtitle: '恬淡虚无，真气从之',
+      source: '《黄帝内经·素问·上古天真论》',
+      quote: '上古之人，其知道者，法于阴阳，和于术数，食饮有节，起居有常，不妄作劳，故能形与神俱，而尽终其天年，度百岁乃去。恬淡虚无，真气从之，精神内守，病安从来。',
+      interpretation: '道家养生首重养心。心神安宁，则气血调和；情志过极，则脏腑受损。怒伤肝、喜伤心、思伤脾、忧伤肺、恐伤肾。保持内心恬淡清静，减少欲望与焦虑，是养生的根本大法。',
+      healthTarget: 'emotion',
+      healthTab: 1,
+      healthLabel: '情志调养'
+    },
+    {
+      id: 'shiliao',
+      title: '🍵 食疗同源',
+      subtitle: '药食同源，饮食有节',
+      source: '《黄帝内经·素问·藏气法时论》',
+      quote: '五谷为养，五果为助，五畜为益，五菜为充。气味合而服之，以补精益气。肝色青，宜食甘；心色赤，宜食酸；脾色黄，宜食咸；肺色白，宜食苦；肾色黑，宜食辛。',
+      interpretation: '食物与药物本是同源，皆有四气五味之性。酸入肝、苦入心、甘入脾、辛入肺、咸入肾。饮食不当亦可致病，饮食得宜则可去病延年。知性味、明补泻，日常饮食即是最好的药。',
+      healthTarget: 'diet',
+      healthTab: 1,
+      healthLabel: '食疗方'
+    },
+    {
+      id: 'daoyin',
+      title: '💨 导引吐纳',
+      subtitle: '吹呴呼吸，吐故纳新',
+      source: '《庄子·刻意》',
+      quote: '吹呴呼吸，吐故纳新，熊经鸟伸，为寿而已矣。此道引之士，养形之人，彭祖寿考者之所好也。',
+      interpretation: '导引是通过肢体运动与呼吸调节相结合的养生方法。动以养形，静以养神。呼吸吐纳可调畅气血，熊经鸟伸可活动筋骨。动静结合，形神共养，方能延年益寿。',
+      healthTarget: 'qigong',
+      healthTab: 1,
+      healthLabel: '功法引导'
+    },
+    {
+      id: 'qiju',
+      title: '🌙 起居有常',
+      subtitle: '起居有常，不妄作劳',
+      source: '《黄帝内经·素问·上古天真论》',
+      quote: '上古之人，其知道者，法于阴阳，和于术数，食饮有节，起居有常，不妄作劳，故能形与神俱，而尽终其天年，度百岁乃去。今时之人不然也，以酒为浆，以妄为常，醉以入房，以欲竭其精，以耗散其真。',
+      interpretation: '规律的作息是健康的基石。日出而作，日入而息，顺应天地节律。熬夜过劳、作息颠倒，最易耗伤气血、折损寿命。养成固定起居习惯，便是最朴素也最有效的养生之道。',
+      healthTarget: 'daily',
+      healthTab: 0,
+      healthLabel: '日常记录'
+    },
+    {
+      id: 'qiandao',
+      title: '🧧 恬淡守中',
+      subtitle: '是以圣人被褐怀玉',
+      source: '《道德经·第七十章》',
+      quote: '知我者希，则我者贵。是以圣人被褐而怀玉。是以圣人为而不恃，功成而不处，其不欲见贤。',
+      interpretation: '真正的养生不是外在的奢华，而是内心的富足与平和。不追求虚名，不炫耀才华，保持朴素的生活与深厚的内在。少私寡欲，知足常乐，身心自然康健。',
+      healthTarget: 'emotion',
+      healthTab: 1,
+      healthLabel: '情志调养'
+    },
+    {
+      id: 'ziran',
+      title: '🌱 道法自然',
+      subtitle: '人法地，地法天',
+      source: '《道德经·第二十五章》',
+      quote: '人法地，地法天，天法道，道法自然。',
+      interpretation: '养生最高境界是顺应自然。不勉强、不刻意、不执念。饮食饥饱适中，运动劳逸有度，情志喜怒有节。一切顺其自然，便是最好的养生。',
+      healthTarget: 'season',
+      healthTab: 1,
+      healthLabel: '四季养生'
+    }
+  ];
+
+  // ===== 养生智慧渲染 =====
+  function renderYangsheng(filter = '') {
+    const listEl = document.getElementById('dao-yangsheng-list');
+    if (!listEl) return;
+
+    const keyword = filter.trim().toLowerCase();
+    let data = YANGSHENG;
+    if (keyword) {
+      data = YANGSHENG.filter(y =>
+        y.title.toLowerCase().includes(keyword) ||
+        y.subtitle.toLowerCase().includes(keyword) ||
+        y.quote.toLowerCase().includes(keyword) ||
+        y.interpretation.toLowerCase().includes(keyword) ||
+        y.source.toLowerCase().includes(keyword) ||
+        y.healthLabel.toLowerCase().includes(keyword)
+      );
+    }
+
+    if (data.length === 0) {
+      listEl.innerHTML = `
+        <div class="dao-placeholder-card">
+          <div class="dao-placeholder-icon">🌿</div>
+          <div class="dao-placeholder-title">没有找到相关内容</div>
+          <div class="dao-placeholder-desc">试试其他关键词吧</div>
+        </div>
+      `;
+      return;
+    }
+
+    listEl.innerHTML = data.map((y, idx) => `
+      <div class="dao-yangsheng-card" data-ys-id="${escapeHtml(y.id)}">
+        <div class="dao-yangsheng-card-head">
+          <div class="dao-yangsheng-title">${escapeHtml(y.title)}</div>
+          <div class="dao-yangsheng-subtitle">${escapeHtml(y.subtitle)}</div>
+        </div>
+        <div class="dao-yangsheng-body" style="display:none;">
+          <div class="dao-yangsheng-source">📜 ${escapeHtml(y.source)}</div>
+          <div class="dao-yangsheng-quote">${escapeHtml(y.quote)}</div>
+          <div class="dao-yangsheng-interpret">
+            <div class="dao-yangsheng-interpret-label">💡 白话解读</div>
+            <div class="dao-yangsheng-interpret-text">${escapeHtml(y.interpretation)}</div>
+          </div>
+          <div class="dao-yangsheng-health-link" data-health-tab="${y.healthTab}" data-health-target="${escapeHtml(y.healthTarget)}">
+            → 查看健康模块「${escapeHtml(y.healthLabel)}」
+          </div>
+        </div>
+        <div class="dao-yangsheng-expand-hint">点击展开详情 ▾</div>
+      </div>
+    `).join('');
+
+    // 绑定卡片展开/收起
+    listEl.querySelectorAll('.dao-yangsheng-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        // 如果点击的是健康链接，不触发展开/收起
+        if (e.target.closest('.dao-yangsheng-health-link')) return;
+        const body = card.querySelector('.dao-yangsheng-body');
+        const hint = card.querySelector('.dao-yangsheng-expand-hint');
+        const isOpen = body.style.display !== 'none';
+        if (isOpen) {
+          body.style.display = 'none';
+          card.classList.remove('expanded');
+          hint.textContent = '点击展开详情 ▾';
+        } else {
+          body.style.display = 'block';
+          card.classList.add('expanded');
+          hint.textContent = '点击收起 ▴';
+        }
+      });
+    });
+
+    // 绑定健康模块跳转
+    listEl.querySelectorAll('.dao-yangsheng-health-link').forEach(link => {
+      link.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const tab = link.dataset.healthTab;
+        const target = link.dataset.healthTarget;
+        try {
+          const { Router } = await import('../../core/router.js');
+          Router.navigate('health', { tab, target });
+        } catch (err) {
+          console.warn('[DaoModule] 跳转健康模块失败:', err);
+        }
+      });
+    });
+  }
+
   // ===== 道德经渲染 =====
   function renderDaodejing(filter = '') {
     const listEl = document.getElementById('dao-djd-list');
@@ -2557,6 +2736,13 @@ const GUADATA = [
         renderZhuangzi(e.target.value);
       });
     }
+    // 养生智慧搜索
+    const ysSearch = document.getElementById('dao-ys-search');
+    if (ysSearch) {
+      ysSearch.addEventListener('input', e => {
+        renderYangsheng(e.target.value);
+      });
+    }
 
     // 六爻摇卦按钮
     const shakeBtn = document.getElementById('dao-shake-btn');
@@ -2582,8 +2768,8 @@ const GUADATA = [
   }
 
   // ===== 初始化 =====
-  async function init() {
-    console.log('[DaoModule] init - v98 道模块（第二期）');
+  async function init(params = {}) {
+    console.log('[DaoModule] init - v99 道模块（第三期）', params);
 
     // 渲染64卦列表
     renderGuaList();
@@ -2603,11 +2789,27 @@ const GUADATA = [
     // 渲染庄子寓言列表
     renderZhuangzi();
 
+    // 渲染养生智慧
+    renderYangsheng();
+
     // 绑定Tab事件
     bindTabEvents();
 
+    // 处理路由参数：切换到指定Tab
+    if (params && params.tab) {
+      requestAnimationFrame(() => {
+        switchDaoTab(params.tab);
+      });
+    }
+
     // 每分钟更新一次梅花易数时间
     setInterval(renderMeihuaTime, 60000);
+  }
+
+  // 切换主Tab（供外部调用）
+  function switchDaoTab(tabName) {
+    const tab = document.querySelector(`.dao-tab-item[data-dao-tab="${tabName}"]`);
+    if (tab) tab.click();
   }
 
   return {
@@ -2618,5 +2820,6 @@ const GUADATA = [
     solarToLunar,
     meihuaQiGua,
     renderMiniYao,
+    switchDaoTab,
   };
 })();

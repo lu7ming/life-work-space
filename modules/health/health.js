@@ -409,6 +409,62 @@ export const HealthModule = (() => {
   }
 
   // ===== Tab 切换 =====
+  // 主Tab切换（模块级可调用）
+  let _healthSwitchTab = null;
+
+  function switchHealthTab(index) {
+    if (_healthSwitchTab) _healthSwitchTab(index);
+  }
+
+
+  // ===== 路由参数处理（v99 跨模块定位） =====
+  function handleRouteParams(params) {
+    if (!params) return;
+    // tab 参数：切换主Tab
+    if (params.tab !== undefined) {
+      const tabIdx = parseInt(params.tab, 10);
+      if (!isNaN(tabIdx) && tabIdx >= 0 && tabIdx < 3) {
+        switchHealthTab(tabIdx);
+      }
+    }
+    // target 参数：滚动到对应卡片并高亮
+    if (params.target) {
+      // 延迟滚动，确保Tab切换后DOM可见
+      setTimeout(() => {
+        scrollToHealthTarget(params.target);
+      }, 100);
+    }
+  }
+
+  function scrollToHealthTarget(target) {
+    // 健康模块各子功能对应的选择器
+    const targetMap = {
+      'season': '#healthSeasonTabs',
+      'constitution': '#healthConstitutionPlaceholder',
+      'emotion': '#healthEmotionSelector',
+      'diet': '#healthTeaFilter',
+      'qigong': '#healthQigongTabs',
+      'daily': '#healthTab0',
+      'shichen': '#healthShichenName',
+      'acupoint': '#healthAcupointSvg',
+      'tongue': '#healthTongueResult',
+      'food': '#healthFoodSearch',
+      'organ': '#healthOrganTabs',
+    };
+    const selector = targetMap[target];
+    if (!selector) return;
+    const el = document.querySelector(selector);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // 高亮闪烁效果
+      el.style.transition = 'box-shadow 0.3s';
+      el.style.boxShadow = '0 0 0 2px var(--accent, #E8A87C)';
+      setTimeout(() => {
+        el.style.boxShadow = '';
+      }, 2000);
+    }
+  }
+
   function initTabs() {
     const tabs = document.querySelectorAll('.health-tab-item');
     const indicator = document.getElementById('healthTabIndicator');
@@ -428,6 +484,7 @@ export const HealthModule = (() => {
       document.querySelectorAll('.health-tab-content').forEach((c, i) => c.classList.toggle('active', i === index));
       updateIndicator(index);
     }
+    _healthSwitchTab = switchTab;
     tabs.forEach((tab, i) => {
       _bindEvent(tab, 'click', () => switchTab(i));
     });
@@ -2235,8 +2292,8 @@ export const HealthModule = (() => {
   }
 
   // ===== 初始化 =====
-  async function init() {
-    console.log('[Health] 健康模块初始化...');
+  async function init(params = {}) {
+    console.log('[Health] 健康模块初始化...', params);
     currentDate = new Date();
     updateDateDisplay();
     await loadData();
@@ -2260,6 +2317,15 @@ export const HealthModule = (() => {
     initFoodLib();
     initOrganLib();
     initEmotionCare();
+
+    // 处理路由参数：切换到指定Tab并滚动到目标卡片
+    if (params && Object.keys(params).length > 0) {
+      // 延迟执行，确保DOM渲染完成
+      requestAnimationFrame(() => {
+        handleRouteParams(params);
+      });
+    }
+
     // 日期切换
     const prevBtn = document.getElementById('health-prev-day');
     const nextBtn = document.getElementById('health-next-day');
@@ -2282,5 +2348,5 @@ export const HealthModule = (() => {
     console.log('[HealthModule] 模块已销毁');
   }
 
-  return { init, destroy };
+  return { init, destroy, switchHealthTab };
 })();

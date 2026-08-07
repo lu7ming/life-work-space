@@ -154,7 +154,7 @@ export const App = (() => {
 
     // 2. 注册路由
     for (const route of Object.keys(MODULE_REGISTRY)) {
-      Router.register(route, () => loadModule(route));
+      Router.register(route, (params) => loadModule(route, params));
     }
 
     // 3. 监听路由变化，更新侧边栏高亮
@@ -387,7 +387,7 @@ export const App = (() => {
    * 通用模块加载器（动态 import）
    * @param {string} routeName - 路由名
    */
-  async function loadModule(routeName) {
+  async function loadModule(routeName, params = {}) {
     const config = MODULE_REGISTRY[routeName];
     if (!config) {
       console.warn(`[App] 未注册的模块: ${routeName}`);
@@ -416,7 +416,7 @@ export const App = (() => {
       const moduleObj = mod[moduleName];
 
       if (moduleObj && moduleObj.init) {
-        moduleObj.init();
+        moduleObj.init(params);
         _activeModule = moduleObj;
       }
 

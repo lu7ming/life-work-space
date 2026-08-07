@@ -3429,9 +3429,10 @@ ${context}
 
   // ===== v87: 天气 + 农历/节气 =====
 
-  // ===== v97: 每日卦象 =====
+  // ===== v99: 每日卦象（增强版）=====
   /**
    * 渲染每日卦象（基于梅花易数，以当日0时起卦）
+   * v99 增强：点击展开详情，显示爻线、卦辞、今日指引
    */
   async function renderDailyGua() {
     const card = document.getElementById('dash-daily-gua');
@@ -3461,14 +3462,75 @@ ${context}
       const nameEl = document.getElementById('dash-gua-name');
       if (nameEl) nameEl.textContent = `${gua.name} · 第${gua.idx}卦`;
 
-      // 卦辞
+      // 卦辞（摘要显示）
       const ciEl = document.getElementById('dash-gua-ci');
       if (ciEl) ciEl.textContent = gua.guaci;
 
-      // 点击跳转到道模块
-      card.addEventListener('click', () => {
-        Router.navigate('dao');
+      // === 展开详情 ===
+      // 完整卦辞
+      const fullCiEl = document.getElementById('dash-gua-full-ci');
+      if (fullCiEl) fullCiEl.textContent = gua.guaci;
+
+      // 解读/今日指引
+      const jieduEl = document.getElementById('dash-gua-jiedu-text');
+      if (jieduEl) {
+        // 取解读的前两句话作为今日指引
+        const jiedu = gua.jiedu || '';
+        const sentences = jiedu.split(/[。！？]/).filter(s => s.trim().length > 0);
+        const dailyTip = sentences.slice(0, 2).join('。') + '。';
+        jieduEl.textContent = dailyTip || jiedu;
+      }
+
+      // 阴阳爻线
+      const yaoEl = document.getElementById('dash-gua-yao-lines');
+      if (yaoEl && gua.yaos) {
+        // yaos 从上到下（索引0为上爻），渲染时从下到上展示更直观
+        // 但64卦数据中 yaos 是从上到下，卦象展示习惯也是从上到下
+        const yaoNames = ['上', '五', '四', '三', '二', '初'];
+        yaoEl.innerHTML = gua.yaos.map((y, i) => {
+          const isYang = y === 1;
+          return `
+            <div class="dash-yao-line ${isYang ? 'dash-yao-yang' : 'dash-yao-yin'}">
+              ${isYang
+                ? '<span class="dash-yao-bar dash-yao-full"></span>'
+                : '<span class="dash-yao-bar dash-yao-half"></span><span class="dash-yao-gap"></span><span class="dash-yao-bar dash-yao-half"></span>'
+              }
+              <span class="dash-yao-label">${yaoNames[i]}${isYang ? '九' : '六'}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 点击展开/收起（仅当点击卡片主体时）
+      let isExpanded = false;
+      const detailEl = document.getElementById('dash-gua-detail');
+      const hintEl = document.getElementById('dash-gua-hint');
+      const moreLink = document.getElementById('dash-gua-more-link');
+
+      function toggleExpand() {
+        isExpanded = !isExpanded;
+        if (detailEl) {
+          detailEl.style.display = isExpanded ? 'block' : 'none';
+        }
+        if (hintEl) {
+          hintEl.textContent = isExpanded ? '点击收起 ▲' : '点击展开详情 ↓';
+        }
+        card.classList.toggle('expanded', isExpanded);
+      }
+
+      // 卡片点击（排除more-link）
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('#dash-gua-more-link')) return;
+        toggleExpand();
       });
+
+      // 查看详情链接跳转道模块
+      if (moreLink) {
+        moreLink.addEventListener('click', (e) => {
+          e.stopPropagation();
+          Router.navigate('dao', { tab: 'yijing' });
+        });
+      }
     } catch (e) {
       console.warn('[Dashboard] 渲染每日卦象失败:', e);
     }

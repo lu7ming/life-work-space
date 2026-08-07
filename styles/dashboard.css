@@ -18,3 +18,138 @@
     transform: translateY(0);
   }
 }
+
+/* ===== v99: 首页卦象卡片展开详情 ===== */
+.dash-daily-gua.expanded {
+  box-shadow: 0 6px 20px rgba(61, 44, 30, 0.15);
+}
+
+.dash-gua-detail {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(61, 44, 30, 0.15);
+  animation: dash-gua-expand 0.3s ease;
+}
+@keyframes dash-gua-expand {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dash-gua-yao-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px 20px;
+  background: rgba(171, 127, 228, 0.08);
+  border-radius: 12px;
+}
+.dash-yao-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  position: relative;
+}
+.dash-yao-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--text-primary, #3D3027);
+  flex-shrink: 0;
+}
+.dash-yao-yang .dash-yao-full {
+  width: 120px;
+}
+.dash-yao-yin .dash-yao-half {
+  width: 52px;
+}
+.dash-yao-yin .dash-yao-gap {
+  width: 16px;
+  height: 8px;
+  flex-shrink: 0;
+}
+.dash-yao-label {
+  position: absolute;
+  right: 0;
+  font-size: 10px;
+  color: var(--text-muted, #9B8B7D);
+  font-weight: 500;
+}
+
+.dash-gua-ci-box {
+  margin-bottom: 10px;
+}
+.dash-gua-ci-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-purple, #B8A0D4);
+  margin-bottom: 6px;
+}
+.dash-gua-ci-text {
+  font-size: 13px;
+  color: var(--text-primary, #3D3027);
+  line-height: 1.7;
+  background: rgba(232, 168, 124, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: "STKaiti", "KaiTi", Georgia, serif;
+}
+
+.dash-gua-jiedu {
+  margin-bottom: 10px;
+}
+.dash-gua-jiedu-text {
+  font-size: 12.5px;
+  color: var(--text-secondary, #6B5B4D);
+  line-height: 1.7;
+  background: rgba(171, 127, 228, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.dash-gua-more-link {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--accent, #E8A87C);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 14px;
+  background: rgba(232, 168, 124, 0.12);
+  border-radius: 16px;
+  margin-top: 4px;
+  transition: background 0.2s;
+}
+.dash-gua-more-link:active {
+  background: rgba(232, 168, 124, 0.22);
+}
+
+/* ===== v99: 首页卦象卡片 暗色模式 ===== */
+[data-theme="dark"] .dash-daily-gua {
+  background: var(--bg-card);
+  border-color: var(--accent);
+}
+[data-theme="dark"] .dash-gua-detail {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .dash-gua-yao-lines {
+  background: rgba(171, 127, 228, 0.12);
+}
+[data-theme="dark"] .dash-yao-bar {
+  background: var(--text-primary);
+}
+[data-theme="dark"] .dash-gua-ci-text {
+  background: rgba(232, 168, 124, 0.1);
+  color: var(--text-primary);
+}
+[data-theme="dark"] .dash-gua-jiedu-text {
+  background: rgba(171, 127, 228, 0.1);
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .dash-gua-more-link {
+  background: rgba(232, 168, 124, 0.18);
+}
+[data-theme="dark"] .dash-daily-gua.expanded {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}

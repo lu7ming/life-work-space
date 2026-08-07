@@ -858,6 +858,230 @@
   margin-top: 8px;
 }
 
+
+/* ===== 道德经卡片 ===== */
+.dao-djd-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dao-djd-item {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius-sm);
+  box-shadow: var(--dao-shadow-sm);
+  overflow: hidden;
+  position: relative;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      rgba(139, 90, 43, 0.05) 27px,
+      rgba(139, 90, 43, 0.05) 28px
+    );
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.dao-djd-item:active {
+  box-shadow: var(--dao-shadow-md);
+}
+.dao-djd-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--dao-accent);
+  opacity: 0.6;
+}
+.dao-djd-item-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  position: relative;
+  z-index: 1;
+}
+.dao-djd-chapter-num {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(232, 168, 124, 0.2), rgba(171, 127, 228, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dao-accent);
+  flex-shrink: 0;
+  font-family: Georgia, "STKaiti", serif;
+}
+.dao-djd-chapter-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+  min-width: 0;
+}
+.dao-djd-expand-icon {
+  font-size: 12px;
+  color: var(--dao-text-muted);
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+.dao-djd-item.expanded .dao-djd-expand-icon {
+  transform: rotate(180deg);
+  color: var(--dao-accent);
+}
+.dao-djd-text {
+  padding: 0 16px 14px;
+  padding-left: 72px;
+  font-size: 13px;
+  color: var(--dao-text-primary);
+  line-height: 1.9;
+  font-family: "STKaiti", "KaiTi", Georgia, serif;
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+}
+.dao-djd-item-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+  position: relative;
+  z-index: 1;
+}
+.dao-djd-item.expanded .dao-djd-item-body {
+  max-height: 1200px;
+}
+.dao-djd-section {
+  padding: 12px 16px;
+  border-top: 1px dashed rgba(61, 44, 30, 0.08);
+}
+.dao-djd-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dao-purple);
+  margin-bottom: 8px;
+}
+.dao-djd-section-text {
+  font-size: 12.5px;
+  color: var(--dao-text-secondary);
+  line-height: 1.8;
+}
+.dao-djd-section:last-child {
+  padding-bottom: 16px;
+}
+
+/* 章节号大水印 */
+.dao-djd-item::after {
+  content: attr(data-ch);
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 80px;
+  font-weight: 700;
+  color: rgba(61, 44, 30, 0.03);
+  font-family: Georgia, "STKaiti", serif;
+  pointer-events: none;
+  z-index: 0;
+}
+.dao-djd-item {
+  /* 用变量让data属性生效的方法：用JS写入，或者用CSS attr但content有限制 */
+}
+/* 实际的水印我们通过header里的num放大 + background来表现，这里保留视觉层次 */
+
+/* ===== 庄子寓言卡片 ===== */
+.dao-zz-item {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius-sm);
+  box-shadow: var(--dao-shadow-sm);
+  overflow: hidden;
+  border-left: 4px solid var(--dao-accent);
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s;
+  margin-bottom: 10px;
+}
+.dao-zz-item:active {
+  transform: scale(0.99);
+}
+.dao-zz-item-header {
+  padding: 14px 16px;
+}
+.dao-zz-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.dao-zz-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+}
+.dao-zz-expand-icon {
+  font-size: 12px;
+  color: var(--dao-text-muted);
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+.dao-zz-item.expanded .dao-zz-expand-icon {
+  transform: rotate(180deg);
+}
+.dao-zz-source {
+  font-size: 11px;
+  color: var(--dao-text-muted);
+  margin-bottom: 8px;
+}
+.dao-zz-summary {
+  font-size: 12.5px;
+  color: var(--dao-text-secondary);
+  line-height: 1.6;
+}
+.dao-zz-item-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+.dao-zz-item.expanded .dao-zz-item-body {
+  max-height: 1500px;
+}
+.dao-zz-section {
+  padding: 12px 16px;
+  border-top: 1px dashed rgba(61, 44, 30, 0.08);
+}
+.dao-zz-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dao-purple);
+  margin-bottom: 8px;
+}
+.dao-zz-section-text {
+  font-size: 12.5px;
+  color: var(--dao-text-secondary);
+  line-height: 1.8;
+}
+.dao-zz-text {
+  font-family: "STKaiti", "KaiTi", Georgia, serif;
+  color: var(--dao-text-primary);
+  letter-spacing: 0.3px;
+  line-height: 2;
+  background: rgba(232, 168, 124, 0.06);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.dao-zz-insight {
+  background: rgba(171, 127, 228, 0.06);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--dao-text-primary);
+}
+.dao-zz-section:last-child {
+  padding-bottom: 16px;
+}
+
 /* 375px 适配 */
 @media (max-width: 375px) {
   .dao-tab-content {

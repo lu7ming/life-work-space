@@ -1,9 +1,10 @@
 /**
  * dao.js - 道模块
  * 人生工作台 · 易经 / 梅花易数 / 六爻 / 道德经 / 庄子 / 养生智慧
- * v97 - 第一期：框架 + 易经核心功能
+ * v98 - 第二期：道德经 + 庄子内容
  */
 import { AppUtils } from '../../core/utils.js';
+import { DAODEJING, ZHUANGZI } from './dao-data.js';
 import { EventBus } from '../../core/event-bus.js';
 
 export const DaoModule = (() => {
@@ -1807,7 +1808,11 @@ const GUADATA = [
       },
       {
             "title": "第二章：如何起卦——年月日时起卦法",
-            "content": "<p>梅花易数起卦方法众多，其中最经典、最常用的便是\"年月日时起卦法\"，也叫\"以时占之\"。</p>\n<p><strong>基本原理：</strong></p>\n<p>1. 取占卦时的农历年、月、日、时。</p>\n<p>2. 上卦 = (年支数 + 月数 + 日数) ÷ 8 的余数。整除则为8（坤卦）。</p>\n<p>3. 下卦 = (年支数 + 月数 + 日数 + 时支数) ÷ 8 的余数。整除则为8。</p>\n<p>4. 动爻 = (年支数 + 月数 + 日数 + 时支数) ÷ 6 的余数。整除则为6（上爻动）。</p>\n<p><strong>年支数对应（按地支序）：</strong>子1、丑2、寅3、卯4、辰5、巳6、午7、未8、申9、酉10、戌11、亥12</p>\n<p><strong>先天八卦数：</strong>1乾、2兑、3离、4震、5巽、6坎、7艮、8坤</p>\n<p>例如：子年八月十五日午时，上卦=(1+8+15)%8=24%8=0→坤8，下卦=(1+8+15+7)%8=31%8=7→艮7，得地山谦卦。动爻=31%6=1，初爻动。</p>"
+            "content": "<p>梅花易数起卦方法众多，其中最经典、最常用的便是\"年月日时起卦法\"，也叫\"以时占之\"。</p>\n<p><strong>基本原理：</strong></p>\n<p>1. 取占卦时的农历年、月、日、时。</p>\n<p>2. 上卦 = (年支数 + 月数 + 日数) ÷ 8 的余数。整除则为8（坤卦）。</p>\n<p>3. 下卦 = (年支数 + 月数 + 日数 + 时支数) ÷ 8 的余数。整除则为8。</p>\n<p>4. 动爻 = (年支数 + 月数 + 日数 + 时支数) ÷ 6 的余数。整除则为6（上爻动）。</p>\n<p><strong>年支数对应（按地支序）：</strong>子1、丑2、寅3、卯4、辰5、巳6、午7、未8、申9、酉10、戌11、亥12</p>\n<p><strong>先天八卦数：</strong>1乾、2兑、3离、4震、5巽、6坎、7艮、8坤</p>\n<p>例如：子年八月十五日午时，上卦=(1+8+15)%8=24%8=0→坤8，下卦=(1+8+15+7)%8=31%8=7→艮7，得地山谦卦。动爻=31%6=1，初爻动。</p>
+<p><strong>为什么用8和6取余？</strong></p>
+<p>八卦共8个，所以除以8取余来对应卦的序号；每卦共6爻，所以除以6取余来确定动爻的位置。这是易学中"物极则反"思想的体现——每逢周期之末就会回到起点，产生变化。</p>
+<p><strong>其他起卦方法简介：</strong></p>
+<p>除了年月日时起卦，梅花易数还有许多灵活的起卦方式。比如"物数起卦"——看到任何可数的事物都可以起卦，比如听到几声鸟鸣、看到几朵花、想到某个数字，都可以除以8得上卦下卦；又如"方位起卦"——根据人或物所在的方位配卦；还有"字占"——通过字的笔画数或字数起卦。总之，起卦的关键不在于用什么方法，而在于"心动则卦生"——当你心中一动的时候，那个瞬间就是起卦的时机。</p>"
       },
       {
             "title": "第三章：体用关系与互卦变卦",
@@ -2356,6 +2361,139 @@ const GUADATA = [
     renderTutorialList(liuyaoList, TUTORIALS.liuyao);
   }
 
+
+  // ===== 道德经渲染 =====
+  function renderDaodejing(filter = '') {
+    const listEl = document.getElementById('dao-djd-list');
+    if (!listEl) return;
+
+    const keyword = filter.trim().toLowerCase();
+    let data = DAODEJING;
+    if (keyword) {
+      // 支持章节号搜索或关键词搜索
+      const numMatch = keyword.match(/^\d+$/);
+      if (numMatch) {
+        data = DAODEJING.filter(c => c.chapter === parseInt(keyword));
+      } else {
+        data = DAODEJING.filter(c =>
+          c.text.toLowerCase().includes(keyword) ||
+          c.translation.toLowerCase().includes(keyword) ||
+          c.interpretation.toLowerCase().includes(keyword) ||
+          c.title.toLowerCase().includes(keyword)
+        );
+      }
+    }
+
+    if (data.length === 0) {
+      listEl.innerHTML = `
+        <div class="dao-placeholder-card">
+          <div class="dao-placeholder-icon">📜</div>
+          <div class="dao-placeholder-title">没有找到相关章节</div>
+          <div class="dao-placeholder-desc">试试其他关键词吧</div>
+        </div>
+      `;
+      return;
+    }
+
+    listEl.innerHTML = data.map(ch => `
+      <div class="dao-djd-item" data-ch="${ch.chapter}" data-chapter="${ch.chapter}">
+        <div class="dao-djd-item-header">
+          <div class="dao-djd-chapter-num">${ch.chapter}</div>
+          <div class="dao-djd-chapter-title">${escapeHtml(ch.title)}</div>
+          <span class="dao-djd-expand-icon">▾</span>
+        </div>
+        <div class="dao-djd-text">${escapeHtml(ch.text)}</div>
+        <div class="dao-djd-item-body">
+          <div class="dao-djd-section">
+            <div class="dao-djd-section-label">📖 白话译文</div>
+            <div class="dao-djd-section-text">${escapeHtml(ch.translation)}</div>
+          </div>
+          <div class="dao-djd-section">
+            <div class="dao-djd-section-label">💡 现代解读</div>
+            <div class="dao-djd-section-text">${escapeHtml(ch.interpretation)}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // 绑定展开/收起事件
+    listEl.querySelectorAll('.dao-djd-item-header').forEach(header => {
+      header.addEventListener('click', () => {
+        header.parentElement.classList.toggle('expanded');
+      });
+    });
+  }
+
+  // ===== 庄子渲染 =====
+  function renderZhuangzi(filter = '') {
+    const listEl = document.getElementById('dao-zz-list');
+    if (!listEl) return;
+
+    const keyword = filter.trim().toLowerCase();
+    let data = ZHUANGZI;
+    if (keyword) {
+      data = ZHUANGZI.filter(z =>
+        z.title.toLowerCase().includes(keyword) ||
+        z.source.toLowerCase().includes(keyword) ||
+        z.text.toLowerCase().includes(keyword) ||
+        z.translation.toLowerCase().includes(keyword) ||
+        z.insight.toLowerCase().includes(keyword) ||
+        z.summary.toLowerCase().includes(keyword)
+      );
+    }
+
+    if (data.length === 0) {
+      listEl.innerHTML = `
+        <div class="dao-placeholder-card">
+          <div class="dao-placeholder-icon">🦋</div>
+          <div class="dao-placeholder-title">没有找到相关寓言</div>
+          <div class="dao-placeholder-desc">试试其他关键词吧</div>
+        </div>
+      `;
+      return;
+    }
+
+    // 为每则寓言分配不同的左边框颜色
+    const borderColors = ['#E8A87C', '#AB7FE4', '#81C784', '#FFB74D', '#64B5F6', '#F06292', '#A1887F', '#7986CB'];
+
+    listEl.innerHTML = data.map((z, idx) => {
+      const color = borderColors[idx % borderColors.length];
+      return `
+        <div class="dao-zz-item" style="border-left-color: ${color};" data-title="${escapeHtml(z.title)}">
+          <div class="dao-zz-item-header">
+            <div class="dao-zz-title-row">
+              <div class="dao-zz-title">${escapeHtml(z.title)}</div>
+              <span class="dao-zz-expand-icon">▾</span>
+            </div>
+            <div class="dao-zz-source">${escapeHtml(z.source)}</div>
+            <div class="dao-zz-summary">${escapeHtml(z.summary)}</div>
+          </div>
+          <div class="dao-zz-item-body">
+            <div class="dao-zz-section">
+              <div class="dao-zz-section-label">📜 原文</div>
+              <div class="dao-zz-section-text dao-zz-text">${escapeHtml(z.text)}</div>
+            </div>
+            <div class="dao-zz-section">
+              <div class="dao-zz-section-label">📖 白话翻译</div>
+              <div class="dao-zz-section-text">${escapeHtml(z.translation)}</div>
+            </div>
+            <div class="dao-zz-section">
+              <div class="dao-zz-section-label">✨ 现代启示</div>
+              <div class="dao-zz-section-text dao-zz-insight">${escapeHtml(z.insight)}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // 绑定展开/收起事件
+    listEl.querySelectorAll('.dao-zz-item-header').forEach(header => {
+      header.addEventListener('click', () => {
+        header.parentElement.classList.toggle('expanded');
+      });
+    });
+  }
+
   // ===== Tab 切换 =====
   function bindTabEvents() {
     // 主Tab
@@ -2404,6 +2542,22 @@ const GUADATA = [
     const meihuaBtn = document.getElementById('dao-meihua-btn');
     if (meihuaBtn) meihuaBtn.addEventListener('click', doMeihuaQigua);
 
+    // 道德经搜索
+    const djdSearch = document.getElementById('dao-djd-search');
+    if (djdSearch) {
+      djdSearch.addEventListener('input', e => {
+        renderDaodejing(e.target.value);
+      });
+    }
+
+    // 庄子搜索
+    const zzSearch = document.getElementById('dao-zz-search');
+    if (zzSearch) {
+      zzSearch.addEventListener('input', e => {
+        renderZhuangzi(e.target.value);
+      });
+    }
+
     // 六爻摇卦按钮
     const shakeBtn = document.getElementById('dao-shake-btn');
     if (shakeBtn) shakeBtn.addEventListener('click', shakeCoins);
@@ -2429,7 +2583,7 @@ const GUADATA = [
 
   // ===== 初始化 =====
   async function init() {
-    console.log('[DaoModule] init - v97 道模块（第一期）');
+    console.log('[DaoModule] init - v98 道模块（第二期）');
 
     // 渲染64卦列表
     renderGuaList();
@@ -2442,6 +2596,12 @@ const GUADATA = [
 
     // 渲染教程
     renderTutorials();
+
+    // 渲染道德经列表
+    renderDaodejing();
+
+    // 渲染庄子寓言列表
+    renderZhuangzi();
 
     // 绑定Tab事件
     bindTabEvents();

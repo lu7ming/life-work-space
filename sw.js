@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v99 - 道模块全量上线
+ * v100 - dao.js fix cache bust
  */
 
-const CACHE_NAME = 'life-work-space-v99';
+const CACHE_NAME = 'life-work-space-v100';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

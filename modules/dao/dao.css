@@ -1,0 +1,872 @@
+/**
+ * dao.css - 道模块样式
+ * 配色：暖米色系 + 紫金渐变点缀
+ */
+.dao-module {
+  --dao-bg-base: #D4BA9F;
+  --dao-bg-card: #EEE9E3;
+  --dao-accent: #E8A87C;
+  --dao-accent-light: #F0C4A0;
+  --dao-purple: #AB7FE4;
+  --dao-text-primary: #3D2C1E;
+  --dao-text-secondary: #6B5B4D;
+  --dao-text-muted: #9B8B7D;
+  --dao-shadow-sm: 0 2px 8px rgba(61, 44, 30, 0.08);
+  --dao-shadow-md: 0 4px 16px rgba(61, 44, 30, 0.12);
+  --dao-radius: 16px;
+  --dao-radius-sm: 10px;
+  --dao-green: #81C784;
+  --dao-orange: #FFB74D;
+  --dao-blue: #64B5F6;
+  --dao-pink: #F06292;
+}
+
+/* ===== Tab Bar ===== */
+.dao-tab-bar {
+  display: flex;
+  background: var(--dao-bg-card);
+  border-bottom: 1px solid rgba(61, 44, 30, 0.08);
+  padding: 0 8px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.dao-tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 12px;
+  color: var(--dao-text-muted);
+  position: relative;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.dao-tab-item.active {
+  color: var(--dao-accent);
+  font-weight: 600;
+}
+.dao-tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: var(--dao-accent);
+  border-radius: 2px;
+  animation: dao-tab-slide 0.2s ease;
+}
+@keyframes dao-tab-slide {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ===== Tab Panel ===== */
+.dao-tab-content {
+  padding: 16px;
+  min-height: 500px;
+}
+.dao-tab-panel {
+  display: none;
+}
+.dao-tab-panel.active {
+  display: block;
+  animation: dao-fade-in 0.2s ease;
+}
+@keyframes dao-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== 子Tab Bar ===== */
+.dao-sub-tab-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.dao-sub-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+.dao-sub-tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: var(--dao-bg-card);
+  color: var(--dao-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dao-sub-tab.active {
+  background: var(--dao-accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.dao-yi-panel {
+  display: none;
+}
+.dao-yi-panel.active {
+  display: block;
+  animation: dao-fade-in 0.2s ease;
+}
+
+/* ===== 搜索框 ===== */
+.dao-search-box {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--dao-text-muted);
+  box-shadow: var(--dao-shadow-sm);
+}
+.dao-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--dao-text-primary);
+}
+.dao-search-input::placeholder {
+  color: var(--dao-text-muted);
+}
+
+/* ===== 64卦列表 ===== */
+.dao-gua-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dao-gua-list-item {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--dao-shadow-sm);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.dao-gua-list-item:active {
+  transform: scale(0.98);
+}
+.dao-gua-list-num {
+  font-size: 11px;
+  color: var(--dao-text-muted);
+  width: 24px;
+  text-align: center;
+}
+.dao-gua-list-symbol {
+  width: 36px;
+  height: 36px;
+  background: rgba(171, 127, 228, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.dao-gua-list-info {
+  flex: 1;
+  min-width: 0;
+}
+.dao-gua-list-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+}
+.dao-gua-list-desc {
+  font-size: 11px;
+  color: var(--dao-text-secondary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== 卦象详情弹层 ===== */
+.dao-gua-detail-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: dao-fade-in 0.2s ease;
+}
+.dao-gua-detail-mask.hidden {
+  display: none;
+}
+.dao-gua-detail-panel {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius);
+  width: 100%;
+  max-width: 360px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: dao-slide-up 0.25s ease;
+}
+@keyframes dao-slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.dao-gua-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(61, 44, 30, 0.08);
+  position: sticky;
+  top: 0;
+  background: var(--dao-bg-card);
+  z-index: 1;
+}
+.dao-gua-detail-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dao-text-primary);
+}
+.dao-gua-detail-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--dao-text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.dao-gua-detail-body {
+  padding: 16px 20px 24px;
+}
+
+/* 卦象爻线 */
+.dao-yao-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 20px;
+  padding: 16px;
+  background: rgba(171, 127, 228, 0.06);
+  border-radius: var(--dao-radius-sm);
+}
+.dao-yao-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  position: relative;
+}
+.dao-yao-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--dao-text-primary);
+}
+.dao-yao-solid .yao-left,
+.dao-yao-solid .yao-right {
+  width: 40%;
+}
+.dao-yao-solid .yao-gap {
+  display: none;
+}
+.dao-yao-broken .yao-left,
+.dao-yao-broken .yao-right {
+  width: 18%;
+}
+.dao-yao-broken .yao-gap {
+  width: 8%;
+  height: 6px;
+}
+.dao-yao-label {
+  position: absolute;
+  right: 0;
+  font-size: 10px;
+  color: var(--dao-text-muted);
+  width: 40px;
+  text-align: right;
+}
+.dao-yao-dong .dao-yao-bar {
+  background: var(--dao-pink);
+}
+.dao-yao-dong .dao-yao-label {
+  color: var(--dao-pink);
+  font-weight: 600;
+}
+
+.dao-gua-ci-box,
+.dao-jiedu-box {
+  margin-bottom: 16px;
+}
+.dao-gua-ci-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dao-purple);
+  margin-bottom: 6px;
+}
+.dao-gua-ci-text {
+  font-size: 13px;
+  color: var(--dao-text-primary);
+  line-height: 1.7;
+  background: rgba(232, 168, 124, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.dao-jiedu-box .dao-gua-ci-text {
+  background: rgba(171, 127, 228, 0.06);
+  color: var(--dao-text-secondary);
+}
+
+.dao-yao-ci-box {
+  margin-bottom: 16px;
+}
+.dao-yao-ci-item {
+  padding: 8px 12px;
+  border-left: 2px solid var(--dao-accent-light);
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--dao-text-secondary);
+  line-height: 1.6;
+}
+.dao-yao-ci-item strong {
+  color: var(--dao-text-primary);
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+/* ===== 梅花易数 ===== */
+.dao-meihua-panel {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius);
+  padding: 20px;
+  text-align: center;
+  box-shadow: var(--dao-shadow-sm);
+}
+.dao-meihua-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+  margin-bottom: 6px;
+}
+.dao-meihua-time {
+  font-size: 13px;
+  color: var(--dao-text-secondary);
+}
+.dao-meihua-lunar {
+  font-size: 11px;
+  color: var(--dao-text-muted);
+  margin-top: 2px;
+}
+.dao-meihua-btn {
+  background: linear-gradient(135deg, var(--dao-purple), var(--dao-accent));
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 16px 0;
+  box-shadow: 0 4px 12px rgba(171, 127, 228, 0.3);
+  transition: transform 0.15s;
+}
+.dao-meihua-btn:active {
+  transform: scale(0.96);
+}
+
+.dao-meihua-result {
+  text-align: left;
+  animation: dao-fade-in 0.3s ease;
+}
+.dao-meihua-gua-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.dao-meihua-gua-box {
+  text-align: center;
+  background: rgba(171, 127, 228, 0.06);
+  border-radius: var(--dao-radius-sm);
+  padding: 12px 8px;
+  flex: 1;
+  min-width: 0;
+}
+.dao-meihua-gua-label {
+  font-size: 11px;
+  color: var(--dao-text-muted);
+  margin-bottom: 6px;
+}
+.dao-meihua-gua-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dao-text-primary);
+  margin-bottom: 6px;
+}
+.dao-mini-yao {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+.dao-mini-yao-line {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--dao-text-primary);
+  width: 40px;
+}
+.dao-mini-broken {
+  display: flex;
+  gap: 6px;
+  width: 40px;
+  justify-content: center;
+}
+.dao-mini-broken span {
+  width: 17px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--dao-text-primary);
+}
+.dao-mini-yao-line.dao-dong-yao {
+  background: var(--dao-pink);
+}
+.dao-mini-broken.dao-dong-yao span {
+  background: var(--dao-pink);
+}
+
+/* 体用 */
+.dao-tiyong-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dao-tiyong-tag {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+.dao-ti {
+  background: rgba(100, 181, 246, 0.15);
+  color: #1565C0;
+}
+.dao-yong {
+  background: rgba(240, 98, 146, 0.15);
+  color: #AD1457;
+}
+.dao-tiyong-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+.dao-tiyong-sub {
+  font-size: 11px;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+/* 生克 */
+.dao-shengke-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(171, 127, 228, 0.06);
+  border-radius: 8px;
+  text-align: left;
+}
+.dao-shengke-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--dao-text-primary);
+}
+.dao-shengke-text {
+  font-size: 12px;
+  color: var(--dao-text-secondary);
+  line-height: 1.6;
+}
+
+.dao-meihua-hint {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--dao-text-muted);
+  text-align: center;
+}
+
+/* ===== 六爻摇卦 ===== */
+.dao-liuyao-panel {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius);
+  padding: 20px;
+  text-align: center;
+  box-shadow: var(--dao-shadow-sm);
+}
+.dao-liuyao-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+  margin-bottom: 6px;
+}
+.dao-liuyao-progress {
+  font-size: 12px;
+  color: var(--dao-text-muted);
+  margin-bottom: 16px;
+}
+.dao-liuyao-progress span {
+  font-weight: 600;
+  color: var(--dao-accent);
+  font-size: 14px;
+}
+
+.dao-coin-area {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+.dao-coin {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFD700, #DAA520);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #8B4513;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s;
+}
+.dao-coin.dao-coin-tail {
+  background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+  color: #444;
+}
+.dao-coin.shaking {
+  animation: dao-coin-shake 0.5s ease;
+}
+@keyframes dao-coin-shake {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-8px) rotate(-15deg); }
+  50% { transform: translateY(-4px) rotate(10deg); }
+  75% { transform: translateY(-10px) rotate(-8deg); }
+}
+
+.dao-shake-btn {
+  background: linear-gradient(135deg, var(--dao-orange), #E8A87C);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 183, 77, 0.3);
+  transition: transform 0.15s;
+  margin-bottom: 8px;
+}
+.dao-shake-btn:active {
+  transform: scale(0.96);
+}
+.dao-shake-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.dao-reset-btn {
+  background: transparent;
+  border: 1px solid var(--dao-accent);
+  color: var(--dao-accent);
+  border-radius: 25px;
+  padding: 8px 20px;
+  font-size: 13px;
+  cursor: pointer;
+  margin: 8px auto 0;
+  display: block;
+}
+
+.dao-yao-record {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+  text-align: left;
+}
+.dao-yao-record-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.dao-yao-record-row.dao-yao-current {
+  background: rgba(232, 168, 124, 0.1);
+  font-weight: 600;
+}
+.dao-yao-record-row.dao-yao-empty {
+  opacity: 0.35;
+}
+.dao-yao-record-num {
+  color: var(--dao-text-muted);
+  width: 50px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.dao-yao-record-coins {
+  color: var(--dao-text-secondary);
+  flex: 1;
+  font-size: 12px;
+}
+.dao-yao-record-type {
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.dao-yao-type-lao-yang { color: var(--dao-orange); }
+.dao-yao-type-shao-yin { color: var(--dao-pink); }
+.dao-yao-type-shao-yang { color: var(--dao-blue); }
+.dao-yao-type-lao-yin { color: var(--dao-purple); }
+
+.dao-liuyao-result {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(61, 44, 30, 0.1);
+  animation: dao-fade-in 0.3s ease;
+}
+.dao-liuyao-result-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dao-purple);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* ===== 教程 ===== */
+.dao-tutorial-section {
+  margin-bottom: 24px;
+}
+.dao-tutorial-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dao-tutorial-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dao-tutorial-item {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius-sm);
+  overflow: hidden;
+  box-shadow: var(--dao-shadow-sm);
+}
+.dao-tutorial-item-header {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+}
+.dao-tutorial-item-arrow {
+  color: var(--dao-text-muted);
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+.dao-tutorial-item.expanded .dao-tutorial-item-arrow {
+  transform: rotate(90deg);
+  color: var(--dao-accent);
+}
+.dao-tutorial-item-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.dao-tutorial-item.expanded .dao-tutorial-item-body {
+  max-height: 500px;
+}
+.dao-tutorial-item-content {
+  padding: 0 14px 14px;
+  font-size: 12px;
+  color: var(--dao-text-secondary);
+  line-height: 1.7;
+}
+.dao-tutorial-item-content p {
+  margin-bottom: 8px;
+}
+.dao-tutorial-item-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== 道德经/庄子 占位 ===== */
+.dao-placeholder-card {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius);
+  padding: 40px 20px;
+  text-align: center;
+  box-shadow: var(--dao-shadow-sm);
+}
+.dao-placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+.dao-placeholder-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+  margin-bottom: 8px;
+}
+.dao-placeholder-desc {
+  font-size: 13px;
+  color: var(--dao-text-muted);
+  line-height: 1.6;
+}
+
+/* ===== 养生智慧卡片 ===== */
+.dao-yangsheng-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dao-yangsheng-card {
+  background: var(--dao-bg-card);
+  border-radius: var(--dao-radius);
+  padding: 16px;
+  box-shadow: var(--dao-shadow-sm);
+  border-left: 3px solid var(--dao-green);
+}
+.dao-yangsheng-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dao-text-primary);
+  margin-bottom: 6px;
+}
+.dao-yangsheng-desc {
+  font-size: 12px;
+  color: var(--dao-text-secondary);
+  line-height: 1.6;
+}
+.dao-yangsheng-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--dao-accent);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ===== 首页每日卦象卡片 ===== */
+.dash-daily-gua {
+  background: var(--bg-card, #F5EDE4);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(61, 44, 30, 0.08);
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--accent, #D4956B);
+  transition: transform 0.15s;
+}
+.dash-daily-gua:active {
+  transform: scale(0.99);
+}
+.dash-daily-gua::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--dao-purple, #AB7FE4), var(--accent, #D4956B));
+}
+.dash-daily-gua-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.dash-daily-gua-title {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary, #3D3027);
+}
+.dash-daily-gua-date {
+  font-size: 10px;
+  color: var(--text-secondary, #6B5B4D);
+}
+.dash-daily-gua-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.dash-daily-gua-symbol {
+  width: 56px;
+  height: 56px;
+  background: rgba(171, 127, 228, 0.1);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.dash-daily-gua-info {
+  flex: 1;
+  min-width: 0;
+}
+.dash-daily-gua-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary, #3D3027);
+  margin-bottom: 4px;
+}
+.dash-daily-gua-ci {
+  font-size: 12px;
+  color: var(--text-secondary, #6B5B4D);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dash-daily-gua-hint {
+  font-size: 10px;
+  color: var(--text-muted, #9B8B7D);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* 375px 适配 */
+@media (max-width: 375px) {
+  .dao-tab-content {
+    padding: 12px;
+  }
+  .dao-meihua-gua-box {
+    padding: 10px 4px;
+  }
+  .dao-meihua-gua-name {
+    font-size: 12px;
+  }
+}

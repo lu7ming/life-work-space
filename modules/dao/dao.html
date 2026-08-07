@@ -1,0 +1,213 @@
+<!-- 道模块 · 易经 / 道德经 / 庄子 / 养生智慧 -->
+<div class="dao-module">
+  <!-- 顶部 Tab Bar -->
+  <div class="dao-tab-bar">
+    <div class="dao-tab-item active" data-dao-tab="yijing">易经·卦</div>
+    <div class="dao-tab-item" data-dao-tab="daodejing">道德经</div>
+    <div class="dao-tab-item" data-dao-tab="zhuangzi">庄子</div>
+    <div class="dao-tab-item" data-dao-tab="yangsheng">养生智慧</div>
+  </div>
+
+  <!-- Tab 内容容器 -->
+  <div class="dao-tab-content">
+
+    <!-- ========== Tab1: 易经·卦 ========== -->
+    <div class="dao-tab-panel active" id="dao-tab-yijing">
+      <!-- 子 Tab 栏 -->
+      <div class="dao-sub-tab-bar">
+        <div class="dao-sub-tab active" data-yi-tab="guabase">📖 64卦</div>
+        <div class="dao-sub-tab" data-yi-tab="meihua">🌸 梅花易数</div>
+        <div class="dao-sub-tab" data-yi-tab="liuyao">🪙 六爻摇卦</div>
+        <div class="dao-sub-tab" data-yi-tab="tutorial">📚 教程</div>
+      </div>
+
+      <!-- 子Tab1: 64卦知识库 -->
+      <div class="dao-yi-panel active" id="dao-yi-guabase">
+        <div class="dao-search-box">
+          <span class="dao-search-icon">🔍</span>
+          <input type="text" class="dao-search-input" id="dao-gua-search" placeholder="搜索卦名或关键词...">
+        </div>
+        <div class="dao-gua-list" id="dao-gua-list"></div>
+      </div>
+
+      <!-- 子Tab2: 梅花易数 -->
+      <div class="dao-yi-panel" id="dao-yi-meihua">
+        <div class="dao-meihua-panel card">
+          <div class="dao-meihua-title">当前时间起卦</div>
+          <div class="dao-meihua-time" id="dao-meihua-time">--</div>
+          <div class="dao-meihua-lunar" id="dao-meihua-lunar">--</div>
+          <button class="dao-meihua-btn" id="dao-meihua-btn">☯️ 以时占之</button>
+
+          <div class="dao-meihua-result" id="dao-meihua-result" style="display:none;">
+            <div class="dao-meihua-gua-row">
+              <div class="dao-meihua-gua-box">
+                <div class="dao-meihua-gua-label">本卦</div>
+                <div class="dao-meihua-gua-name" id="dao-ben-name">--</div>
+                <div class="dao-mini-yao" id="dao-ben-yao"></div>
+              </div>
+              <div class="dao-meihua-gua-box">
+                <div class="dao-meihua-gua-label">互卦</div>
+                <div class="dao-meihua-gua-name" id="dao-hu-name">--</div>
+                <div class="dao-mini-yao" id="dao-hu-yao"></div>
+              </div>
+              <div class="dao-meihua-gua-box">
+                <div class="dao-meihua-gua-label">变卦</div>
+                <div class="dao-meihua-gua-name" id="dao-bian-name">--</div>
+                <div class="dao-mini-yao" id="dao-bian-yao"></div>
+              </div>
+            </div>
+
+            <div class="dao-tiyong-row">
+              <div class="dao-tiyong-tag dao-ti">
+                <div class="dao-tiyong-title" id="dao-ti-name">体卦 --</div>
+                <div class="dao-tiyong-sub" id="dao-ti-wuxing">五行属--</div>
+              </div>
+              <div class="dao-tiyong-tag dao-yong">
+                <div class="dao-tiyong-title" id="dao-yong-name">用卦 --</div>
+                <div class="dao-tiyong-sub" id="dao-yong-wuxing">五行属--</div>
+              </div>
+            </div>
+
+            <div class="dao-shengke-box">
+              <div class="dao-shengke-title">五行生克</div>
+              <div class="dao-shengke-text" id="dao-shengke-text">--</div>
+            </div>
+
+            <div class="dao-meihua-hint">📚 断卦详解请查看「教程」子Tab</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子Tab3: 六爻摇卦 -->
+      <div class="dao-yi-panel" id="dao-yi-liuyao">
+        <div class="dao-liuyao-panel card">
+          <div class="dao-liuyao-title">集中精神，心中默念所问之事</div>
+          <div class="dao-liuyao-progress">第 <span id="dao-liuyao-step">1</span> / 6 爻</div>
+
+          <div class="dao-coin-area" id="dao-coin-area">
+            <div class="dao-coin">正</div>
+            <div class="dao-coin">正</div>
+            <div class="dao-coin">正</div>
+          </div>
+
+          <button class="dao-shake-btn" id="dao-shake-btn">🪙 摇卦</button>
+          <button class="dao-reset-btn" id="dao-reset-btn" style="display:none;">🔄 重新起卦</button>
+
+          <div class="dao-yao-record" id="dao-yao-record"></div>
+
+          <div class="dao-liuyao-result" id="dao-liuyao-result" style="display:none;">
+            <div class="dao-liuyao-result-title">✨ 卦象已成</div>
+            <div class="dao-meihua-gua-row">
+              <div class="dao-meihua-gua-box">
+                <div class="dao-meihua-gua-label">本卦</div>
+                <div class="dao-meihua-gua-name" id="dao-ly-ben-name">--</div>
+                <div class="dao-mini-yao" id="dao-ly-ben-yao"></div>
+              </div>
+              <div class="dao-meihua-gua-box">
+                <div class="dao-meihua-gua-label">变卦</div>
+                <div class="dao-meihua-gua-name" id="dao-ly-bian-name">--</div>
+                <div class="dao-mini-yao" id="dao-ly-bian-yao"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子Tab4: 教程 -->
+      <div class="dao-yi-panel" id="dao-yi-tutorial">
+        <div class="dao-tutorial-section">
+          <div class="dao-tutorial-section-title">🌸 梅花易数教程</div>
+          <div class="dao-tutorial-list" id="dao-meihua-tutorial-list"></div>
+        </div>
+        <div class="dao-tutorial-section">
+          <div class="dao-tutorial-section-title">🪙 六爻教程</div>
+          <div class="dao-tutorial-list" id="dao-liuyao-tutorial-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Tab2: 道德经 ========== -->
+    <div class="dao-tab-panel" id="dao-tab-daodejing">
+      <div class="dao-search-box">
+        <span class="dao-search-icon">🔍</span>
+        <input type="text" class="dao-search-input" id="dao-djd-search" placeholder="搜索章节或关键词...">
+      </div>
+      <div class="dao-djd-list" id="dao-djd-list">
+        <div class="dao-placeholder-card">
+          <div class="dao-placeholder-icon">📜</div>
+          <div class="dao-placeholder-title">道德经</div>
+          <div class="dao-placeholder-desc">第二期将上线完整 81 章内容与解读</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Tab3: 庄子 ========== -->
+    <div class="dao-tab-panel" id="dao-tab-zhuangzi">
+      <div class="dao-search-box">
+        <span class="dao-search-icon">🔍</span>
+        <input type="text" class="dao-search-input" id="dao-zz-search" placeholder="搜索寓言或关键词...">
+      </div>
+      <div class="dao-djd-list" id="dao-zz-list">
+        <div class="dao-placeholder-card">
+          <div class="dao-placeholder-icon">🦋</div>
+          <div class="dao-placeholder-title">庄子</div>
+          <div class="dao-placeholder-desc">第二期将上线逍遥游、齐物论等经典寓言</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Tab4: 养生智慧 ========== -->
+    <div class="dao-tab-panel" id="dao-tab-yangsheng">
+      <div class="dao-yangsheng-list">
+        <div class="dao-yangsheng-card">
+          <div class="dao-yangsheng-title">🌿 顺应四时</div>
+          <div class="dao-yangsheng-desc">春生、夏长、秋收、冬藏，是天道之常。人的起居饮食应随四时变化而调整。</div>
+          <div class="dao-yangsheng-link">→ 查看健康模块「四季养生」</div>
+        </div>
+        <div class="dao-yangsheng-card">
+          <div class="dao-yangsheng-title">☯️ 阴阳平衡</div>
+          <div class="dao-yangsheng-desc">孤阴不生，独阳不长。养生之要在阴阳调和，不过寒不过热，不劳不逸。</div>
+          <div class="dao-yangsheng-link">→ 查看健康模块「体质辨识」</div>
+        </div>
+        <div class="dao-yangsheng-card">
+          <div class="dao-yangsheng-title">🧘 清静无为</div>
+          <div class="dao-yangsheng-desc">恬淡虚无，真气从之；精神内守，病安从来。养心先于养身。</div>
+          <div class="dao-yangsheng-link">→ 查看健康模块「情志调养」</div>
+        </div>
+        <div class="dao-yangsheng-card">
+          <div class="dao-yangsheng-title">🍵 食疗同源</div>
+          <div class="dao-yangsheng-desc">药食同源，饮食有节。五味入五脏，酸入肝、苦入心、甘入脾、辛入肺、咸入肾。</div>
+          <div class="dao-yangsheng-link">→ 查看健康模块「食疗方」</div>
+        </div>
+        <div class="dao-yangsheng-card">
+          <div class="dao-yangsheng-title">💨 导引吐纳</div>
+          <div class="dao-yangsheng-desc">吹呴呼吸，吐故纳新，熊经鸟伸，为寿而已矣。动以养形，静以养神。</div>
+          <div class="dao-yangsheng-link">→ 查看健康模块「功法引导」</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 卦象详情弹层 -->
+<div class="dao-gua-detail-mask hidden" id="dao-gua-detail-mask">
+  <div class="dao-gua-detail-panel">
+    <div class="dao-gua-detail-header">
+      <div class="dao-gua-detail-title" id="dao-detail-name">--</div>
+      <button class="dao-gua-detail-close" id="dao-detail-close">✕</button>
+    </div>
+    <div class="dao-gua-detail-body">
+      <div class="dao-yao-lines" id="dao-detail-yaos"></div>
+      <div class="dao-gua-ci-box">
+        <div class="dao-gua-ci-label">卦辞</div>
+        <div class="dao-gua-ci-text" id="dao-detail-guaci">--</div>
+      </div>
+      <div class="dao-yao-ci-box" id="dao-detail-yaoci"></div>
+      <div class="dao-jiedu-box">
+        <div class="dao-gua-ci-label">解读</div>
+        <div class="dao-gua-ci-text" id="dao-detail-jiedu">--</div>
+      </div>
+    </div>
+  </div>
+</div>

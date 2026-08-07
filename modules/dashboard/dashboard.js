@@ -137,6 +137,7 @@ export const DashboardModule = (() => {
         renderGreeting(),
         renderDailyQuote(),
         renderWeatherLunar(),
+        renderDailyGua(),
         renderCountdown(),
         renderCalendar(),
         renderHighlights(),
@@ -3427,6 +3428,51 @@ ${context}
   }
 
   // ===== v87: 天气 + 农历/节气 =====
+
+  // ===== v97: 每日卦象 =====
+  /**
+   * 渲染每日卦象（基于梅花易数，以当日0时起卦）
+   */
+  async function renderDailyGua() {
+    const card = document.getElementById('dash-daily-gua');
+    if (!card) return;
+
+    try {
+      // 动态导入 DaoModule（避免循环依赖）
+      const mod = await import('../dao/dao.js');
+      if (!mod || !mod.DaoModule) return;
+
+      const result = mod.DaoModule.getDailyGua(new Date());
+      if (!result || !result.benGua) return;
+
+      const bagua = mod.DaoModule.getBagua();
+      const gua = result.benGua;
+
+      // 日期
+      const now = new Date();
+      const dateEl = document.getElementById('dash-gua-date');
+      if (dateEl) dateEl.textContent = `${now.getMonth()+1}月${now.getDate()}日`;
+
+      // 卦象符号
+      const symEl = document.getElementById('dash-gua-symbol');
+      if (symEl && bagua[gua.upper]) symEl.textContent = bagua[gua.upper].symbol;
+
+      // 卦名
+      const nameEl = document.getElementById('dash-gua-name');
+      if (nameEl) nameEl.textContent = `${gua.name} · 第${gua.idx}卦`;
+
+      // 卦辞
+      const ciEl = document.getElementById('dash-gua-ci');
+      if (ciEl) ciEl.textContent = gua.guaci;
+
+      // 点击跳转到道模块
+      card.addEventListener('click', () => {
+        Router.navigate('dao');
+      });
+    } catch (e) {
+      console.warn('[Dashboard] 渲染每日卦象失败:', e);
+    }
+  }
   /**
    * 渲染天气 + 农历/节气
    */

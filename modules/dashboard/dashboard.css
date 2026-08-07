@@ -2892,3 +2892,88 @@
 [data-theme="dark"] .dash-daily-card-tag {
   background: rgba(232, 168, 124, 0.15);
 }
+
+/* ===== v97: 每日卦象卡片 ===== */
+.dash-daily-gua {
+  background: var(--bg-card, #F5EDE4);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(61, 44, 30, 0.08);
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--accent, #D4956B);
+  transition: transform 0.15s;
+}
+.dash-daily-gua:active {
+  transform: scale(0.99);
+}
+.dash-daily-gua::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #AB7FE4, var(--accent, #D4956B));
+}
+.dash-daily-gua-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.dash-daily-gua-title {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary, #3D3027);
+}
+.dash-daily-gua-date {
+  font-size: 10px;
+  color: var(--text-secondary, #6B5B4D);
+}
+.dash-daily-gua-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.dash-daily-gua-symbol {
+  width: 56px;
+  height: 56px;
+  background: rgba(171, 127, 228, 0.1);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.dash-daily-gua-info {
+  flex: 1;
+  min-width: 0;
+}
+.dash-daily-gua-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary, #3D3027);
+  margin-bottom: 4px;
+}
+.dash-daily-gua-ci {
+  font-size: 12px;
+  color: var(--text-secondary, #6B5B4D);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dash-daily-gua-hint {
+  font-size: 10px;
+  color: var(--text-muted, #9B8B7D);
+  text-align: center;
+  margin-top: 8px;
+}

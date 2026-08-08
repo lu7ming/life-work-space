@@ -3191,22 +3191,31 @@ ${context}
     track.innerHTML = html;
   }
 
-  // ===== v101: 今日文字推荐 =====
+  // ===== v100: 今日文字推荐（金句 + 诗词双卡片） =====
   /**
-   * 文字推荐：按日期轮换类型（金句/诗词/古文名句/优秀句子/歌词佳句）
-   * 静态 JSON 数据 + 刷新按钮换同类型另一条
+   * 文字推荐：每天同时展示一条金句 + 一首诗词
+   * 静态 JSON 数据 + 各自独立刷新按钮
    */
-  const TEXT_RECOMMEND_TYPES = [
-    { key: 'quote',   label: '今日金句',     emoji: '📖' },
-    { key: 'poem',    label: '今日诗词',     emoji: '🏯' },
-    { key: 'classic', label: '古文名句',     emoji: '📜' },
-    { key: 'good',    label: '优秀句子',     emoji: '✨' },
-    { key: 'lyric',   label: '歌词佳句',     emoji: '🎵' }
-  ];
+
+  const TEXT_CARD_CONFIG = {
+    quote: {
+      typeLabel: '📖 今日金句',
+      textId: 'dash-quote-text',
+      sourceId: 'dash-quote-source',
+      refreshId: 'dash-quote-refresh',
+      poolKey: 'quote'
+    },
+    poem: {
+      typeLabel: '🏯 今日诗词',
+      textId: 'dash-poem-text',
+      sourceId: 'dash-poem-source',
+      refreshId: 'dash-poem-refresh',
+      poolKey: 'poem'
+    }
+  };
 
   let _textRecommendCache = null;
-  let _textRecommendTypeIdx = 0;
-  let _textRecommendItemIdx = 0;
+  const _textCardIdx = { quote: 0, poem: 0 };
 
   async function _loadTextRecommendData() {
     if (_textRecommendCache) return _textRecommendCache;
@@ -3229,72 +3238,64 @@ ${context}
     }
   }
 
-  function _getTodayTextType() {
-    const today = new Date();
-    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
-    return dayOfYear % TEXT_RECOMMEND_TYPES.length;
-  }
-
-  function _getTodayTextItemIdx(poolLength) {
-    const todayStr = getTodayStr();
+  function _getDailyTextIdx(seedStr, poolLength) {
     let hash = 0;
-    for (let i = 0; i < todayStr.length; i++) {
-      hash = ((hash << 5) - hash) + todayStr.charCodeAt(i);
+    for (let i = 0; i < seedStr.length; i++) {
+      hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
       hash |= 0;
     }
     return Math.abs(hash) % poolLength;
   }
 
-  async function renderTextRecommend() {
-    const typeEl = document.getElementById('dash-text-recommend-type');
-    const textEl = document.getElementById('dash-text-recommend-text');
-    const sourceEl = document.getElementById('dash-text-recommend-source');
-    const refreshBtn = document.getElementById('dash-text-recommend-refresh');
-    if (!typeEl || !textEl) return;
-
-    const data = await _loadTextRecommendData();
-    _textRecommendTypeIdx = _getTodayTextType();
-    const typeInfo = TEXT_RECOMMEND_TYPES[_textRecommendTypeIdx];
-    const pool = data[typeInfo.key] || data.quote;
-    _textRecommendItemIdx = _getTodayTextItemIdx(pool.length);
-
-    _renderTextItem(typeInfo, pool[_textRecommendItemIdx]);
-
-    if (refreshBtn && !refreshBtn._bound) {
-      refreshBtn._bound = true;
-      refreshBtn.addEventListener('click', () => {
-        const curData = _textRecommendCache;
-        const curType = TEXT_RECOMMEND_TYPES[_textRecommendTypeIdx];
-        const curPool = curData[curType.key] || curData.quote;
-        // 随机选一个不同的
-        let nextIdx = _textRecommendItemIdx;
-        if (curPool.length > 1) {
-          while (nextIdx === _textRecommendItemIdx) {
-            nextIdx = Math.floor(Math.random() * curPool.length);
-          }
-        }
-        _textRecommendItemIdx = nextIdx;
-        _renderTextItem(curType, curPool[nextIdx]);
-        // 简单旋转动画反馈
-        refreshBtn.style.transition = 'transform 0.4s';
-        refreshBtn.style.transform = 'rotate(360deg)';
-        setTimeout(() => {
-          refreshBtn.style.transform = '';
-        }, 400);
-      });
-    }
-  }
-
-  function _renderTextItem(typeInfo, item) {
-    const typeEl = document.getElementById('dash-text-recommend-type');
-    const textEl = document.getElementById('dash-text-recommend-text');
-    const sourceEl = document.getElementById('dash-text-recommend-source');
-    if (typeEl) typeEl.textContent = `${typeInfo.emoji} ${typeInfo.label}`;
+  function _renderTextCard(cardKey, item) {
+    const cfg = TEXT_CARD_CONFIG[cardKey];
+    if (!cfg) return;
+    const textEl = document.getElementById(cfg.textId);
+    const sourceEl = document.getElementById(cfg.sourceId);
     if (textEl) textEl.textContent = item.text || '';
     if (sourceEl) sourceEl.textContent = item.source ? `—— ${item.source}` : '';
   }
 
+  function _bindTextCardRefresh(cardKey) {
+    const cfg = TEXT_CARD_CONFIG[cardKey];
+    if (!cfg) return;
+    const btn = document.getElementById(cfg.refreshId);
+    if (!btn || btn._bound) return;
+    btn._bound = true;
+    btn.addEventListener('click', () => {
+      const data = _textRecommendCache;
+      if (!data) return;
+      const pool = data[cfg.poolKey] || data.quote;
+      if (pool.length <= 1) return;
+      // 随机选一个不同的
+      let nextIdx = _textCardIdx[cardKey];
+      while (nextIdx === _textCardIdx[cardKey]) {
+        nextIdx = Math.floor(Math.random() * pool.length);
+      }
+      _textCardIdx[cardKey] = nextIdx;
+      _renderTextCard(cardKey, pool[nextIdx]);
+      // 旋转动画反馈
+      btn.style.transition = 'transform 0.4s';
+      btn.style.transform = 'rotate(360deg)';
+      setTimeout(() => {
+        btn.style.transform = '';
+      }, 400);
+    });
+  }
 
+  async function renderTextRecommend() {
+    const data = await _loadTextRecommendData();
+    const todayStr = getTodayStr();
+
+    for (const cardKey of Object.keys(TEXT_CARD_CONFIG)) {
+      const cfg = TEXT_CARD_CONFIG[cardKey];
+      const pool = data[cfg.poolKey] || data.quote;
+      const idx = _getDailyTextIdx(todayStr + cardKey, pool.length);
+      _textCardIdx[cardKey] = idx;
+      _renderTextCard(cardKey, pool[idx]);
+      _bindTextCardRefresh(cardKey);
+    }
+  }
 
   // ===== v87: 倒计时 =====
   /**

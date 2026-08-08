@@ -3011,86 +3011,129 @@
   }
 }
 
-/* ===== v101: 今日文字推荐 ===== */
-.dash-text-recommend {
-  display: flex;
-  align-items: center;
+/* ===== v100: 今日文字推荐（金句+诗词双卡片） ===== */
+.dash-text-recommend-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 14px 16px;
   margin-bottom: 16px;
-  background: rgba(255, 253, 248, 0.7);
-  border: 1px solid rgba(232, 168, 124, 0.18);
-  border-radius: var(--radius-md, 12px);
-  position: relative;
 }
 
-.dash-text-recommend-type {
-  flex-shrink: 0;
+.dash-text-card {
+  background: var(--bg-card, #EEE9E3);
+  border-radius: var(--radius-md, 12px);
+  padding: 14px 14px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid rgba(232, 168, 124, 0.1);
+  border-top: 3px solid var(--accent, #E8A87C);
+  transition: transform var(--transition-fast, 0.2s ease), box-shadow var(--transition-fast, 0.2s ease);
+  position: relative;
+  min-height: 110px;
+}
+
+.dash-text-card[data-type="quote"] {
+  border-top-color: #E8A87C;
+}
+
+.dash-text-card[data-type="poem"] {
+  border-top-color: #B58863;
+}
+
+.dash-text-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.08));
+}
+
+.dash-text-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.dash-text-card-type {
   font-size: 11px;
   font-weight: 600;
   color: var(--accent, #E8A87C);
   letter-spacing: 0.5px;
-  writing-mode: vertical-rl;
-  padding: 6px 2px;
-  border-right: 2px solid rgba(232, 168, 124, 0.25);
-  margin-right: 4px;
 }
 
-.dash-text-recommend-content {
+.dash-text-card[data-type="poem"] .dash-text-card-type {
+  color: #B58863;
+}
+
+.dash-text-card-refresh {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(232, 168, 124, 0.12);
+  color: var(--accent, #E8A87C);
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.3s;
+  line-height: 1;
+}
+
+.dash-text-card[data-type="poem"] .dash-text-card-refresh {
+  background: rgba(181, 136, 99, 0.12);
+  color: #B58863;
+}
+
+.dash-text-card-refresh:hover {
+  background: rgba(232, 168, 124, 0.22);
+}
+
+.dash-text-card[data-type="poem"] .dash-text-card-refresh:hover {
+  background: rgba(181, 136, 99, 0.22);
+}
+
+.dash-text-card-refresh:active {
+  transform: scale(0.9);
+}
+
+.dash-text-card-body {
   flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
 }
 
-.dash-text-recommend-text {
+.dash-text-card-text {
   font-size: 14px;
   color: var(--text-primary, #3D2C1E);
   line-height: 1.6;
   font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.dash-text-recommend-source {
+.dash-text-card-source {
   font-size: 11px;
   color: var(--text-muted, #B8A99A);
   text-align: right;
   font-style: italic;
 }
 
-.dash-text-recommend-refresh {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(232, 168, 124, 0.12);
-  color: var(--accent, #E8A87C);
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.dash-text-recommend-refresh:hover {
-  background: rgba(232, 168, 124, 0.22);
-}
-
-.dash-text-recommend-refresh:active {
-  transform: scale(0.92);
-}
-
 @media (max-width: 480px) {
-  .dash-text-recommend {
-    padding: 12px 14px;
+  .dash-text-recommend-row {
+    grid-template-columns: 1fr;
     gap: 10px;
   }
-  .dash-text-recommend-type {
-    font-size: 10px;
+  .dash-text-card {
+    padding: 12px 12px 11px;
+    min-height: auto;
   }
-  .dash-text-recommend-text {
+  .dash-text-card-text {
     font-size: 13px;
   }
 }

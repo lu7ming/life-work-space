@@ -31,14 +31,30 @@
       <span class="dash-daily-recommend-title">☀️ 今日推荐</span>
       <span class="dash-daily-recommend-update" id="dash-daily-recommend-update">每日 8:00 更新</span>
     </div>
-    <!-- 文字推荐区 -->
-    <div class="dash-text-recommend" id="dash-text-recommend">
-      <div class="dash-text-recommend-type" id="dash-text-recommend-type">今日金句</div>
-      <div class="dash-text-recommend-content">
-        <div class="dash-text-recommend-text" id="dash-text-recommend-text">加载中…</div>
-        <div class="dash-text-recommend-source" id="dash-text-recommend-source"></div>
+    <!-- 文字推荐区：金句 + 诗词 双卡片 -->
+    <div class="dash-text-recommend-row" id="dash-text-recommend-row">
+      <!-- 金句卡片 -->
+      <div class="dash-text-card" data-type="quote">
+        <div class="dash-text-card-header">
+          <span class="dash-text-card-type" id="dash-quote-type">📖 今日金句</span>
+          <button class="dash-text-card-refresh" id="dash-quote-refresh" title="换一条">🔄</button>
+        </div>
+        <div class="dash-text-card-body">
+          <div class="dash-text-card-text" id="dash-quote-text">加载中…</div>
+          <div class="dash-text-card-source" id="dash-quote-source"></div>
+        </div>
       </div>
-      <button class="dash-text-recommend-refresh" id="dash-text-recommend-refresh" title="换一条">🔄</button>
+      <!-- 诗词卡片 -->
+      <div class="dash-text-card" data-type="poem">
+        <div class="dash-text-card-header">
+          <span class="dash-text-card-type" id="dash-poem-type">🏯 今日诗词</span>
+          <button class="dash-text-card-refresh" id="dash-poem-refresh" title="换一首">🔄</button>
+        </div>
+        <div class="dash-text-card-body">
+          <div class="dash-text-card-text" id="dash-poem-text">加载中…</div>
+          <div class="dash-text-card-source" id="dash-poem-source"></div>
+        </div>
+      </div>
     </div>
     <!-- 生活推荐横向滑动卡片 -->
     <div class="dash-daily-recommend-track" id="dash-daily-recommend-track">

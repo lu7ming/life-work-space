@@ -3,7 +3,7 @@
  * v101 - dashboard upgrade + new text recommend data
  */
 
-const CACHE_NAME = 'life-work-space-v101';
+const CACHE_NAME = 'life-work-space-v102';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

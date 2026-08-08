@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v100 - dao.js fix cache bust
+ * v101 - dashboard upgrade + new text recommend data
  */
 
-const CACHE_NAME = 'life-work-space-v100';
+const CACHE_NAME = 'life-work-space-v101';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -124,6 +124,9 @@ const CACHE_ASSETS = [
   './modules/dao/dao-data.js',
   // PWA
   './manifest.json',
+  // 数据文件
+  './data/daily-wisdom.json',
+  './data/daily-text-recommend.json',
   // 用户资源
   './assets/avatar.jpg',
   './assets/icons/icon-192.png'

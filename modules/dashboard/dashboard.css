@@ -2977,3 +2977,180 @@
   text-align: center;
   margin-top: 8px;
 }
+
+/* ===== v101: 今日信息合并卡片 ===== */
+.dash-info-row.card {
+  display: flex;
+  gap: 0;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  background: var(--bg-card, #EEE9E3);
+}
+
+.dash-info-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dash-info-divider {
+  width: 1px;
+  background: rgba(61, 44, 30, 0.08);
+  margin: 0 16px;
+}
+
+@media (max-width: 480px) {
+  .dash-info-row.card {
+    flex-direction: row;
+    padding: 16px;
+    gap: 0;
+  }
+  .dash-info-divider {
+    margin: 0 12px;
+  }
+}
+
+/* ===== v101: 今日文字推荐 ===== */
+.dash-text-recommend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: rgba(255, 253, 248, 0.7);
+  border: 1px solid rgba(232, 168, 124, 0.18);
+  border-radius: var(--radius-md, 12px);
+  position: relative;
+}
+
+.dash-text-recommend-type {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent, #E8A87C);
+  letter-spacing: 0.5px;
+  writing-mode: vertical-rl;
+  padding: 6px 2px;
+  border-right: 2px solid rgba(232, 168, 124, 0.25);
+  margin-right: 4px;
+}
+
+.dash-text-recommend-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dash-text-recommend-text {
+  font-size: 14px;
+  color: var(--text-primary, #3D2C1E);
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.dash-text-recommend-source {
+  font-size: 11px;
+  color: var(--text-muted, #B8A99A);
+  text-align: right;
+  font-style: italic;
+}
+
+.dash-text-recommend-refresh {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(232, 168, 124, 0.12);
+  color: var(--accent, #E8A87C);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.dash-text-recommend-refresh:hover {
+  background: rgba(232, 168, 124, 0.22);
+}
+
+.dash-text-recommend-refresh:active {
+  transform: scale(0.92);
+}
+
+@media (max-width: 480px) {
+  .dash-text-recommend {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .dash-text-recommend-type {
+    font-size: 10px;
+  }
+  .dash-text-recommend-text {
+    font-size: 13px;
+  }
+}
+
+/* ===== v101: 数据总览合并卡片 ===== */
+.dash-data-overview {
+  padding: 18px 20px 20px;
+  margin-bottom: 20px;
+  background: var(--bg-card, #EEE9E3);
+}
+
+.dash-data-overview-header {
+  margin-bottom: 14px;
+}
+
+.dash-data-overview-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #3D2C1E);
+  margin: 0;
+}
+
+.dash-feed-section {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(61, 44, 30, 0.06);
+}
+
+.dash-feed-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #3D2C1E);
+  margin: 0 0 10px 0;
+}
+
+.dash-widget-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #3D2C1E);
+  margin: 0;
+}
+
+.dash-data-overview .dash-widget-section {
+  margin-bottom: 0;
+}
+
+.dash-data-overview .dash-widget-header {
+  margin-bottom: 12px;
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] .dash-text-recommend {
+  background: rgba(30, 26, 22, 0.6);
+  border-color: rgba(232, 168, 124, 0.15);
+}
+
+[data-theme="dark"] .dash-data-overview {
+  background: var(--bg-card, #2B241D);
+}
+
+[data-theme="dark"] .dash-feed-section {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}

@@ -6,16 +6,50 @@
     <p class="dash-greeting-subtitle" id="dash-greeting-sub"></p>
   </div>
 
-  <!-- 今日金句 -->
-  <div class="dash-quote card" id="dash-quote">
-    <div class="dash-quote-header">
-      <span class="dash-quote-title">📖 今日金句</span>
-      <span class="dash-quote-day" id="dash-quote-day"></span>
+  <!-- 今日信息（天气+农历/节气合并） -->
+  <div class="dash-info-row card">
+    <div class="dash-info-col">
+      <div class="dash-info-label" id="dash-weather-label">今日天气 · 定位中…</div>
+      <div class="dash-weather-main">
+        <span class="dash-weather-icon" id="dash-weather-icon">🌤</span>
+        <span class="dash-weather-temp" id="dash-weather-temp">--°</span>
+      </div>
+      <div class="dash-weather-desc" id="dash-weather-desc">加载中…</div>
     </div>
-    <div class="dash-quote-list" id="dash-quote-list">
-      <!-- JS 动态生成 -->
+    <div class="dash-info-divider"></div>
+    <div class="dash-info-col">
+      <div class="dash-info-label">农历 · 节气</div>
+      <div class="dash-lunar-date" id="dash-lunar-date"></div>
+      <div class="dash-lunar-year" id="dash-lunar-year"></div>
+      <div class="dash-solar-term" id="dash-solar-term"></div>
     </div>
-    <div class="dash-quote-footer" id="dash-quote-footer"></div>
+  </div>
+
+  <!-- 今日推荐（文字推荐 + 生活推荐卡片） -->
+  <div class="dash-daily-recommend card" id="dash-daily-recommend">
+    <div class="dash-daily-recommend-header">
+      <span class="dash-daily-recommend-title">☀️ 今日推荐</span>
+      <span class="dash-daily-recommend-update" id="dash-daily-recommend-update">每日 8:00 更新</span>
+    </div>
+    <!-- 文字推荐区 -->
+    <div class="dash-text-recommend" id="dash-text-recommend">
+      <div class="dash-text-recommend-type" id="dash-text-recommend-type">今日金句</div>
+      <div class="dash-text-recommend-content">
+        <div class="dash-text-recommend-text" id="dash-text-recommend-text">加载中…</div>
+        <div class="dash-text-recommend-source" id="dash-text-recommend-source"></div>
+      </div>
+      <button class="dash-text-recommend-refresh" id="dash-text-recommend-refresh" title="换一条">🔄</button>
+    </div>
+    <!-- 生活推荐横向滑动卡片 -->
+    <div class="dash-daily-recommend-track" id="dash-daily-recommend-track">
+      <!-- JS 动态生成卡片 -->
+      <div class="dash-daily-loading">
+        <span class="dash-daily-loading-dot"></span>
+        <span class="dash-daily-loading-dot"></span>
+        <span class="dash-daily-loading-dot"></span>
+        <span>正在为你准备今日推荐…</span>
+      </div>
+    </div>
   </div>
 
   <!-- 碎碎念 -->
@@ -59,25 +93,6 @@
     <div class="dash-nn-history hidden" id="dash-nn-history"></div>
   </div>
 
-    <!-- 天气 + 农历/节气 -->
-  <div class="dash-info-row">
-    <div class="dash-info-card card">
-      <div class="dash-info-label" id="dash-weather-label">今日天气 · 定位中…</div>
-      <div class="dash-weather-main">
-        <span class="dash-weather-icon" id="dash-weather-icon">🌤</span>
-        <span class="dash-weather-temp" id="dash-weather-temp">--°</span>
-      </div>
-      <div class="dash-weather-desc" id="dash-weather-desc">加载中…</div>
-    </div>
-    <div class="dash-info-card card">
-      <div class="dash-info-label">农历 · 节气</div>
-      <div class="dash-lunar-date" id="dash-lunar-date"></div>
-      <div class="dash-lunar-year" id="dash-lunar-year"></div>
-      <div class="dash-solar-term" id="dash-solar-term"></div>
-    </div>
-  </div>
-
-
   <!-- 每日卦象 -->
   <div class="dash-daily-gua card" id="dash-daily-gua">
     <div class="dash-daily-gua-header">
@@ -110,20 +125,18 @@
 
     <div class="dash-daily-gua-hint" id="dash-gua-hint">点击展开详情 ↓</div>
   </div>
-  <!-- 今日推荐 -->
-  <div class="dash-daily-recommend card" id="dash-daily-recommend">
-    <div class="dash-daily-recommend-header">
-      <span class="dash-daily-recommend-title">☀️ 今日推荐</span>
-      <span class="dash-daily-recommend-update" id="dash-daily-recommend-update">每日 8:00 更新</span>
-    </div>
-    <div class="dash-daily-recommend-track" id="dash-daily-recommend-track">
-      <!-- JS 动态生成卡片 -->
-      <div class="dash-daily-loading">
-        <span class="dash-daily-loading-dot"></span>
-        <span class="dash-daily-loading-dot"></span>
-        <span class="dash-daily-loading-dot"></span>
-        <span>正在为你准备今日推荐…</span>
+
+  <!-- 今日聚焦 -->
+  <div class="dash-focus-card card" id="dash-focus-card">
+    <div class="dash-focus-header">
+      <h3 class="dash-focus-title">🎯 今日聚焦</h3>
+      <div class="dash-focus-actions">
+        <button class="dash-focus-btn" id="dash-focus-customize" title="自定义今日三件事">✏️ 自定义</button>
+        <button class="dash-focus-btn" id="dash-focus-refresh" title="换一批">🔄 换一批</button>
       </div>
+    </div>
+    <div class="dash-focus-list" id="dash-focus-list">
+      <!-- JS 动态生成 -->
     </div>
   </div>
 
@@ -147,18 +160,35 @@
     <!-- JS 动态渲染 -->
   </div>
 
-  <!-- F1: 今日聚焦卡片 -->
-  <div class="dash-focus-card card" id="dash-focus-card">
-    <div class="dash-focus-header">
-      <h3 class="dash-focus-title">🎯 今日聚焦</h3>
-      <div class="dash-focus-actions">
-        <button class="dash-focus-btn" id="dash-focus-customize" title="自定义今日三件事">✏️ 自定义</button>
-        <button class="dash-focus-btn" id="dash-focus-refresh" title="换一批">🔄 换一批</button>
+  <!-- 数据总览（今日动态 + 数据看板合并） -->
+  <div class="dash-data-overview card" id="dash-data-overview">
+    <div class="dash-data-overview-header">
+      <h3 class="dash-data-overview-title">📊 数据总览</h3>
+    </div>
+    <!-- 今日动态子区块 -->
+    <div class="dash-feed-section">
+      <h4 class="dash-feed-subtitle">📰 今日动态</h4>
+      <div class="dash-feed-list" id="dash-feed-list">
+        <!-- JS 动态生成 -->
       </div>
     </div>
-    <div class="dash-focus-list" id="dash-focus-list">
-      <!-- JS 动态生成 -->
+    <!-- 数据看板子区块 -->
+    <div class="dash-widget-section" id="dash-widget-section">
+      <div class="dash-widget-header">
+        <h4 class="dash-widget-subtitle">📈 数据看板</h4>
+        <div class="dash-widget-actions">
+          <button class="dash-widget-btn" id="dash-widget-edit-btn" title="编辑首页">✏️ 编辑</button>
+        </div>
+      </div>
+      <div class="dash-widget-grid" id="dash-widget-grid">
+        <!-- JS 动态渲染 Widget -->
+      </div>
     </div>
+  </div>
+
+  <!-- F5: 年度回顾入口 -->
+  <div class="dash-annual-entry">
+    <button class="dash-annual-btn" id="dash-annual-btn">📊 年度回顾</button>
   </div>
 
   <!-- 妮可洞察区域 -->
@@ -178,103 +208,6 @@
   <!-- 「猜你想做」预测操作区域 -->
   <div class="dash-predictive-actions card" id="dash-predictive-actions" style="display:none;">
     <!-- JS 动态渲染 -->
-  </div>
-
-  <!-- 两列布局 -->
-  <div class="dash-grid">
-    <!-- 左列：日历 -->
-    <div class="dash-calendar card">
-      <div class="dash-calendar-header">
-        <span class="dash-calendar-title" id="dash-calendar-month"></span>
-        <button class="dash-calendar-go" id="dash-calendar-go" title="查看完整日历">📅 日历总览 ›</button>
-      </div>
-      <div class="dash-calendar-weekdays">
-        <span>日</span><span>一</span><span>二</span><span>三</span>
-        <span>四</span><span>五</span><span>六</span>
-      </div>
-      <div class="dash-calendar-days" id="dash-calendar-days">
-        <!-- JS 动态生成 -->
-      </div>
-    </div>
-
-    <!-- 右列：亮点卡片 -->
-    <div class="dash-highlights">
-      <div class="dash-highlight-card card" style="--accent: var(--accent-green); --accent-light: var(--accent-green-light);">
-        <span class="dash-highlight-icon">📅</span>
-        <div class="dash-highlight-info">
-          <span class="dash-highlight-value" id="dash-checkin-count">0</span>
-          <span class="dash-highlight-label">已签到天数</span>
-        </div>
-      </div>
-      <div class="dash-highlight-card card" style="--accent: var(--accent-blue); --accent-light: var(--accent-blue-light);">
-        <span class="dash-highlight-icon">📖</span>
-        <div class="dash-highlight-info">
-          <span class="dash-highlight-value" id="dash-study-hours">0h</span>
-          <span class="dash-highlight-label">学习时长</span>
-        </div>
-      </div>
-      <div class="dash-highlight-card card" style="--accent: var(--accent-orange); --accent-light: var(--accent-orange-light);">
-        <span class="dash-highlight-icon">💰</span>
-        <div class="dash-highlight-info">
-          <span class="dash-highlight-value" id="dash-month-expense">¥0</span>
-          <span class="dash-highlight-label">本月支出</span>
-        </div>
-      </div>
-      <div class="dash-highlight-card card" style="--accent: var(--accent-purple); --accent-light: var(--accent-purple-light);">
-        <span class="dash-highlight-icon">💎</span>
-        <div class="dash-highlight-info">
-          <span class="dash-highlight-value" id="dash-month-balance">¥0</span>
-          <span class="dash-highlight-label">本月结余</span>
-        </div>
-      </div>
-      <div class="dash-highlight-card card" style="--accent: var(--accent-blue); --accent-light: var(--accent-blue-light);">
-        <span class="dash-highlight-icon">🏖</span>
-        <div class="dash-highlight-info">
-          <span class="dash-highlight-value" id="dash-summer-days">0</span>
-          <span class="dash-highlight-label">暑假余额(天)</span>
-        </div>
-      </div>
-      <div class="dash-highlight-card card" style="--accent: var(--accent-green); --accent-light: var(--accent-green-light);">
-        <span class="dash-highlight-icon">🎓</span>
-        <div class="dash-highlight-info">
-          <span class="dash-highlight-value" id="dash-school-days">0</span>
-          <span class="dash-highlight-label">开学倒计时(天)</span>
-        </div>
-      </div>
-      <div class="dash-highlight-card card" id="dash-travel-card" style="cursor:pointer;--accent: var(--accent-orange); --accent-light: var(--accent-orange-light);">
-        <span class="dash-highlight-icon">✈️</span>
-        <div class="dash-highlight-info">
-          <span class="dash-highlight-value" id="dash-travel-fund">¥0</span>
-          <span class="dash-highlight-label">旅行基金</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 今日推送 -->
-  <div class="dash-feed card">
-    <h3 class="dash-feed-title">📰 今日动态</h3>
-    <div class="dash-feed-list" id="dash-feed-list">
-      <!-- JS 动态生成 -->
-    </div>
-  </div>
-
-  <!-- ===== 数据看板2.0 - Widget系统 ===== -->
-  <div class="dash-widget-section" id="dash-widget-section">
-    <div class="dash-widget-header">
-      <h3 class="dash-widget-title">📊 数据看板</h3>
-      <div class="dash-widget-actions">
-        <button class="dash-widget-btn" id="dash-widget-edit-btn" title="编辑首页">✏️ 编辑首页</button>
-      </div>
-    </div>
-    <div class="dash-widget-grid" id="dash-widget-grid">
-      <!-- JS 动态渲染 Widget -->
-    </div>
-  </div>
-
-  <!-- F5: 年度回顾入口 -->
-  <div class="dash-annual-entry">
-    <button class="dash-annual-btn" id="dash-annual-btn">📊 年度回顾</button>
   </div>
 
   <!-- F1: 自定义今日三件事弹窗 -->

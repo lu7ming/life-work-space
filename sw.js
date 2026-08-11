@@ -3,7 +3,7 @@
  * v101 - dashboard upgrade + new text recommend data
  */
 
-const CACHE_NAME = 'life-work-space-v103';
+const CACHE_NAME = 'life-work-space-v104';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -18,6 +18,7 @@ const CACHE_ASSETS = [
   './styles/audit-log.css',
   './styles/quickinput.css',
   './styles/templates.css',
+  './styles/visual-enhancements.css',
   // 核心 ES Modules（首屏静态导入）
   './core/app.js',
   './core/storage.js',
@@ -46,6 +47,7 @@ const CACHE_ASSETS = [
   './core/search.js',
   './core/theme.js',
   './core/bg-effects.js',
+  './core/visual-enhancements.js',
   './core/sync.js',
   './core/quickinput.js',
   './core/user-profile.js',

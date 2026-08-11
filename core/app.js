@@ -180,6 +180,15 @@ export const App = (() => {
     // 9. 异步初始化后台模块（不阻塞首屏）
     initBackgroundModules();
 
+    // 10. 初始化视觉增强（7 项视觉优化）
+    try {
+      const { VisualEnhancements } = await import('./visual-enhancements.js?v=104');
+      VisualEnhancements.init();
+      console.log('[App] 视觉增强模块初始化完成');
+    } catch (err) {
+      console.warn('[App] 视觉增强模块初始化失败:', err);
+    }
+
     // 18. 自动保存定时器（30秒）
     _autoSaveTimer = setInterval(() => {
       const saveIndicator = document.getElementById('auto-save-indicator');

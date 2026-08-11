@@ -267,48 +267,68 @@ export const App = (() => {
 
     // 初始化主题
     if (themeMod.ThemeManager) {
-      await themeMod.ThemeManager.init();
-      window.ThemeManager = themeMod.ThemeManager;
+      try {
+        await themeMod.ThemeManager.init();
+        window.ThemeManager = themeMod.ThemeManager;
+      } catch (e) {
+        console.warn(`[App] ThemeManager 初始化失败:`, e);
+      }
     }
 
     // 初始化背景动效
     if (bgEffectsMod.BgEffects) {
-      const bgCanvas = document.getElementById('bg-effects-canvas');
-      if (bgCanvas) {
-        bgEffectsMod.BgEffects.init(bgCanvas);
-        window.BgEffects = bgEffectsMod.BgEffects;
-        // 先同步当前明暗主题到 BgEffects
-        if (themeMod.ThemeManager) {
-          const t = themeMod.ThemeManager.getTheme();
-          const effective = t === 'auto'
-            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-            : t;
-          bgEffectsMod.BgEffects.setTheme(effective);
+      try {
+        const bgCanvas = document.getElementById('bg-effects-canvas');
+        if (bgCanvas) {
+          bgEffectsMod.BgEffects.init(bgCanvas);
+          window.BgEffects = bgEffectsMod.BgEffects;
+          // 先同步当前明暗主题到 BgEffects
+          if (themeMod.ThemeManager) {
+            const t = themeMod.ThemeManager.getTheme();
+            const effective = t === 'auto'
+              ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+              : t;
+            bgEffectsMod.BgEffects.setTheme(effective);
+          }
+          // 应用已存储的背景模式
+          const storedMode = themeMod.ThemeManager ? themeMod.ThemeManager.getBgMode() : 'none';
+          if (storedMode && storedMode !== 'none') {
+            bgEffectsMod.BgEffects.switchMode(storedMode);
+          }
         }
-        // 应用已存储的背景模式
-        const storedMode = themeMod.ThemeManager ? themeMod.ThemeManager.getBgMode() : 'none';
-        if (storedMode && storedMode !== 'none') {
-          bgEffectsMod.BgEffects.switchMode(storedMode);
-        }
+      } catch (e) {
+        console.warn(`[App] BgEffects 初始化失败:`, e);
       }
     }
 
     // 初始化通知引擎
     if (notifMod.NotificationEngine) {
-      notifMod.NotificationEngine.init();
-      window.NotificationEngine = notifMod.NotificationEngine;
+      try {
+        notifMod.NotificationEngine.init();
+        window.NotificationEngine = notifMod.NotificationEngine;
+      } catch (e) {
+        console.warn(`[App] NotificationEngine 初始化失败:`, e);
+      }
     }
 
     // 初始化智能提醒
     if (reminderMod.SmartReminder) {
-      reminderMod.SmartReminder.init();
-      window.SmartReminder = reminderMod.SmartReminder;
+      try {
+        reminderMod.SmartReminder.init();
+        window.SmartReminder = reminderMod.SmartReminder;
+      } catch (e) {
+        console.warn(`[App] SmartReminder 初始化失败:`, e);
+      }
     }
 
     // 初始化模板系统
     if (tplMod.Templates) {
-      await tplMod.Templates.init();
-      window.Templates = tplMod.Templates;
+      try {
+        await tplMod.Templates.init();
+        window.Templates = tplMod.Templates;
+      } catch (e) {
+        console.warn(`[App] Templates 初始化失败:`, e);
+      }
     }
 
     // 设置全局引用（供 utils.js 等的 typeof 检查使用）
@@ -316,80 +336,144 @@ export const App = (() => {
     if (searchMod.SearchModule) window.SearchModule = searchMod.SearchModule;
     if (exportMod.ExportModule) window.ExportModule = exportMod.ExportModule;
     if (syncMod.SyncModule) {
-      window.SyncModule = syncMod.SyncModule;
-      syncMod.SyncModule.scheduleAutoSync();
+      try {
+        window.SyncModule = syncMod.SyncModule;
+        syncMod.SyncModule.scheduleAutoSync();
+      } catch (e) {
+        console.warn(`[App] SyncModule 初始化失败:`, e);
+      }
     }
     if (quickinputMod.QuickInput) {
-      quickinputMod.QuickInput.init();
-      window.QuickInput = quickinputMod.QuickInput;
-      // 绑定 FAB 按钮
-      const qiFab = document.getElementById('qi-fab');
-      if (qiFab) {
-        qiFab.addEventListener('click', () => quickinputMod.QuickInput.open());
+      try {
+        quickinputMod.QuickInput.init();
+        window.QuickInput = quickinputMod.QuickInput;
+        // 绑定 FAB 按钮
+        const qiFab = document.getElementById('qi-fab');
+        if (qiFab) {
+          qiFab.addEventListener('click', () => quickinputMod.QuickInput.open());
+        }
+      } catch (e) {
+        console.warn(`[App] QuickInput 初始化失败:`, e);
       }
     }
     if (sharedKnowMod.SharedKnowledge) {
-      sharedKnowMod.SharedKnowledge.init();
-      window.SharedKnowledge = sharedKnowMod.SharedKnowledge;
+      try {
+        sharedKnowMod.SharedKnowledge.init();
+        window.SharedKnowledge = sharedKnowMod.SharedKnowledge;
+      } catch (e) {
+        console.warn(`[App] SharedKnowledge 初始化失败:`, e);
+      }
     }
     if (orchestratorMod.AIOrchestrator) {
-      orchestratorMod.AIOrchestrator.init();
-      window.AIOrchestrator = orchestratorMod.AIOrchestrator;
+      try {
+        orchestratorMod.AIOrchestrator.init();
+        window.AIOrchestrator = orchestratorMod.AIOrchestrator;
+      } catch (e) {
+        console.warn(`[App] AIOrchestrator 初始化失败:`, e);
+      }
     }
     if (modelRouterMod.ModelRouter) {
-      modelRouterMod.ModelRouter.init();
-      window.ModelRouter = modelRouterMod.ModelRouter;
+      try {
+        modelRouterMod.ModelRouter.init();
+        window.ModelRouter = modelRouterMod.ModelRouter;
+      } catch (e) {
+        console.warn(`[App] ModelRouter 初始化失败:`, e);
+      }
     }
     if (smartSuggMod.SmartSuggestion) {
-      smartSuggMod.SmartSuggestion.init();
-      window.SmartSuggestion = smartSuggMod.SmartSuggestion;
+      try {
+        smartSuggMod.SmartSuggestion.init();
+        window.SmartSuggestion = smartSuggMod.SmartSuggestion;
+      } catch (e) {
+        console.warn(`[App] SmartSuggestion 初始化失败:`, e);
+      }
     }
     if (userProfileMod.UserProfile) {
-      await userProfileMod.UserProfile.init();
-      userProfileMod.UserProfile.buildProfile();
-      window.UserProfile = userProfileMod.UserProfile;
+      try {
+        await userProfileMod.UserProfile.init();
+        userProfileMod.UserProfile.buildProfile();
+        window.UserProfile = userProfileMod.UserProfile;
+      } catch (e) {
+        console.warn(`[App] UserProfile 初始化失败:`, e);
+      }
     }
     if (prefLearnerMod.PreferenceLearner) {
-      await prefLearnerMod.PreferenceLearner.init();
-      window.PreferenceLearner = prefLearnerMod.PreferenceLearner;
+      try {
+        await prefLearnerMod.PreferenceLearner.init();
+        window.PreferenceLearner = prefLearnerMod.PreferenceLearner;
+      } catch (e) {
+        console.warn(`[App] PreferenceLearner 初始化失败:`, e);
+      }
     }
     if (predEngineMod.PredictiveEngine) {
-      await predEngineMod.PredictiveEngine.init();
-      window.PredictiveEngine = predEngineMod.PredictiveEngine;
+      try {
+        await predEngineMod.PredictiveEngine.init();
+        window.PredictiveEngine = predEngineMod.PredictiveEngine;
+      } catch (e) {
+        console.warn(`[App] PredictiveEngine 初始化失败:`, e);
+      }
     }
     if (auditLogMod.AuditLog) {
-      auditLogMod.AuditLog.init();
-      window.AuditLog = auditLogMod.AuditLog;
+      try {
+        auditLogMod.AuditLog.init();
+        window.AuditLog = auditLogMod.AuditLog;
+      } catch (e) {
+        console.warn(`[App] AuditLog 初始化失败:`, e);
+      }
     }
     if (localAIMod.LocalAI) {
-      localAIMod.LocalAI.init();
-      window.LocalAI = localAIMod.LocalAI;
+      try {
+        localAIMod.LocalAI.init();
+        window.LocalAI = localAIMod.LocalAI;
+      } catch (e) {
+        console.warn(`[App] LocalAI 初始化失败:`, e);
+      }
     }
     if (musicMod.MusicModule) {
-      musicMod.MusicModule.init();
-      window.MusicModule = musicMod.MusicModule;
+      try {
+        musicMod.MusicModule.init();
+        window.MusicModule = musicMod.MusicModule;
+      } catch (e) {
+        console.warn(`[App] MusicModule 初始化失败:`, e);
+      }
     }
 
     // 初始化休息模式
     if (restMod.RestModule) {
-      restMod.RestModule.init();
-      window.RestModule = restMod.RestModule;
+      try {
+        restMod.RestModule.init();
+        window.RestModule = restMod.RestModule;
+      } catch (e) {
+        console.warn(`[App] RestModule 初始化失败:`, e);
+      }
     }
 
     // 初始化成就系统
     if (achievementsMod.Achievements) {
-      await achievementsMod.Achievements.init();
-      window.Achievements = achievementsMod.Achievements;
+      try {
+        await achievementsMod.Achievements.init();
+        window.Achievements = achievementsMod.Achievements;
+      } catch (e) {
+        console.warn(`[App] Achievements 初始化失败:`, e);
+      }
     }
 
     // 初始化键盘快捷键（AppUtils 内置）
     if (AppUtils.KeyboardShortcuts) {
-      AppUtils.KeyboardShortcuts.init();
+      try {
+        AppUtils.KeyboardShortcuts.init();
+      } catch (e) {
+        console.warn(`[App] KeyboardShortcuts 初始化失败:`, e);
+      }
     }
 
     // 初始化离线检测（AppUtils 内置）
     if (AppUtils.OfflineDetector) {
-      AppUtils.OfflineDetector.init();
+      try {
+        AppUtils.OfflineDetector.init();
+      } catch (e) {
+        console.warn(`[App] OfflineDetector 初始化失败:`, e);
+      }
     }
 
     // 页面卸载时清理定时器

@@ -414,7 +414,11 @@ export const TravelModule = (() => {
       data.createdAt = existing?.createdAt || now;
       data.checklist = existing?.checklist || DEFAULT_CHECKLIST.map(c => ({ ...c }));
       data.costs = existing?.costs || [];
-      await Storage.put('travel', data);
+      try {
+        await Storage.put('travel', data);
+      } catch(e) {
+        console.warn('[Travel] Storage.put 失败:', e);
+      }
       showToast('目的地已更新');
     } else {
       data.id = genId();
@@ -427,7 +431,11 @@ export const TravelModule = (() => {
         { cat: '保险', amount: 0 },
         { cat: '日常开销', amount: 0 },
       ];
-      await Storage.put('travel', data);
+      try {
+        await Storage.put('travel', data);
+      } catch(e) {
+        console.warn('[Travel] Storage.put 失败:', e);
+      }
       showToast('目的地已添加 🎉');
     }
 
@@ -438,7 +446,11 @@ export const TravelModule = (() => {
 
   async function deleteDest(id) {
     if (!confirm('确定删除这个目的地？')) return;
-    await Storage.remove('travel', id);
+    try {
+      await Storage.remove('travel', id);
+    } catch(e) {
+      console.warn('[Travel] Storage.remove 失败:', e);
+    }
     showToast('目的地已删除');
     closeModal();
     await loadData();
@@ -470,7 +482,11 @@ export const TravelModule = (() => {
     if (!dest) return;
     dest.stage = stage;
     dest.updatedAt = Date.now();
-    await Storage.put('travel', dest);
+    try {
+      await Storage.put('travel', dest);
+    } catch(e) {
+      console.warn('[Travel] Storage.put 失败:', e);
+    }
     await loadData();
     renderAll();
     showToast(`📍 ${dest.name} → ${STAGE_CONFIG[stage].label}`);
@@ -490,7 +506,11 @@ export const TravelModule = (() => {
     if (!dest || !dest.checklist || !dest.checklist[ci]) return;
     dest.checklist[ci].checked = !dest.checklist[ci].checked;
     dest.updatedAt = Date.now();
-    await Storage.put('travel', dest);
+    try {
+      await Storage.put('travel', dest);
+    } catch(e) {
+      console.warn('[Travel] Storage.put 失败:', e);
+    }
     // 局部更新：仅重渲染列表（保持展开状态）
     renderDestinations();
   }
@@ -528,7 +548,11 @@ export const TravelModule = (() => {
     if (!dest.fund) dest.fund = { target: 0, saved: 0 };
     dest.fund.saved = (dest.fund.saved || 0) + amount;
     dest.updatedAt = Date.now();
-    await Storage.put('travel', dest);
+    try {
+      await Storage.put('travel', dest);
+    } catch(e) {
+      console.warn('[Travel] Storage.put 失败:', e);
+    }
 
     closeDeposit();
     await loadData();

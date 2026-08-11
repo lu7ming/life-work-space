@@ -108,7 +108,12 @@ export const FinanceModule = (() => {
 
   // ===== 数据加载 =====
   async function loadData() {
-    allRecords = await Storage.getAll('finance');
+    try {
+      allRecords = await Storage.getAll('finance');
+    } catch(e) {
+      console.warn('[Finance] Storage.getAll 失败:', e);
+      allRecords = [];
+    }
     allRecords.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
   }
 
@@ -136,8 +141,16 @@ export const FinanceModule = (() => {
   }
 
   async function saveCategories() {
-    await Storage.put('settings', { key: 'finance_expense_categories', value: expenseCategories });
-    await Storage.put('settings', { key: 'finance_income_sources', value: incomeSources });
+    try {
+      await Storage.put('settings', { key: 'finance_expense_categories', value: expenseCategories });
+    } catch(e) {
+      console.warn('[Finance] Storage.put 失败:', e);
+    }
+    try {
+      await Storage.put('settings', { key: 'finance_income_sources', value: incomeSources });
+    } catch(e) {
+      console.warn('[Finance] Storage.put 失败:', e);
+    }
   }
 
   // ===== 储蓄目标数据 =====
@@ -151,7 +164,11 @@ export const FinanceModule = (() => {
   }
 
   async function saveSavingsGoals() {
-    await Storage.put('settings', { key: 'savings_goals', value: savingsGoals });
+    try {
+      await Storage.put('settings', { key: 'savings_goals', value: savingsGoals });
+    } catch(e) {
+      console.warn('[Finance] Storage.put 失败:', e);
+    }
   }
 
   // ===== 账户数据 =====
@@ -165,7 +182,11 @@ export const FinanceModule = (() => {
   }
 
   async function saveAccounts() {
-    await Storage.put('settings', { key: 'accounts', value: accounts });
+    try {
+      await Storage.put('settings', { key: 'accounts', value: accounts });
+    } catch(e) {
+      console.warn('[Finance] Storage.put 失败:', e);
+    }
   }
 
   // ===== 计算统计 =====
@@ -831,10 +852,18 @@ export const FinanceModule = (() => {
   async function saveRecord(record) {
     if (editingId) {
       record.id = editingId;
-      await Storage.put('finance', record);
+      try {
+        await Storage.put('finance', record);
+      } catch(e) {
+        console.warn('[Finance] Storage.put 失败:', e);
+      }
       showToast('记录已更新');
     } else {
-      await Storage.add('finance', record);
+      try {
+        await Storage.add('finance', record);
+      } catch(e) {
+        console.warn('[Finance] Storage.add 失败:', e);
+      }
       // EventBus: 财务记录新增
       if (true) /* EventBus always available via import */ {
         EventBus.emit('finance:added', { record });
@@ -846,7 +875,11 @@ export const FinanceModule = (() => {
   }
 
   async function deleteRecord(id) {
-    await Storage.remove('finance', id);
+    try {
+      await Storage.remove('finance', id);
+    } catch(e) {
+      console.warn('[Finance] Storage.remove 失败:', e);
+    }
     showToast('记录已删除');
     await loadData();
     renderAll();
@@ -1019,7 +1052,11 @@ export const FinanceModule = (() => {
       const monthly = parseFloat(document.getElementById('finance-monthly-budget').value) || 0;
       const yearly = parseFloat(document.getElementById('finance-yearly-budget').value) || 0;
       budgetData = { monthly, yearly };
-      await Storage.put('settings', { key: 'finance_budget', value: budgetData });
+      try {
+        await Storage.put('settings', { key: 'finance_budget', value: budgetData });
+      } catch(e) {
+        console.warn('[Finance] Storage.put 失败:', e);
+      }
       showToast('预算已保存');
       // 隐藏推荐提示
       document.getElementById('finance-monthly-recommend-hint').style.display = 'none';

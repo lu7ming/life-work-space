@@ -81,7 +81,12 @@ export const GoalsModule = (() => {
 
   // ===== 数据加载 =====
   async function loadData() {
-    allGoals = await Storage.getAll('goals');
+    try {
+      allGoals = await Storage.getAll('goals');
+    } catch(e) {
+      console.warn('[Goals] Storage.getAll 失败:', e);
+      allGoals = [];
+    }
     // 按更新时间倒序
     allGoals.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
 
@@ -395,11 +400,19 @@ export const GoalsModule = (() => {
     if (editId) {
       data.id = parseInt(editId);
       data.createdAt = (allGoals.find(g => g.id === data.id) || {}).createdAt || now;
-      await Storage.put('goals', data);
+      try {
+        await Storage.put('goals', data);
+      } catch(e) {
+        console.warn('[Goals] Storage.put 失败:', e);
+      }
       showToast('目标已更新');
     } else {
       data.createdAt = now;
-      await Storage.add('goals', data);
+      try {
+        await Storage.add('goals', data);
+      } catch(e) {
+        console.warn('[Goals] Storage.add 失败:', e);
+      }
       showToast('目标已创建');
     }
 
@@ -410,7 +423,11 @@ export const GoalsModule = (() => {
 
   async function deleteGoal(id) {
     if (!confirm('确定删除这个目标？')) return;
-    await Storage.remove('goals', id);
+    try {
+      await Storage.remove('goals', id);
+    } catch(e) {
+      console.warn('[Goals] Storage.remove 失败:', e);
+    }
     showToast('目标已删除');
     closeModal();
     await loadData();
@@ -423,7 +440,11 @@ export const GoalsModule = (() => {
     goal.status = status;
     goal.updatedAt = Date.now();
     if (status === 'completed') goal.progress = 100;
-    await Storage.put('goals', goal);
+    try {
+      await Storage.put('goals', goal);
+    } catch(e) {
+      console.warn('[Goals] Storage.put 失败:', e);
+    }
     await loadData();
     renderAll();
     showToast(status === 'completed' ? '目标已完成 🎉' : status === 'abandoned' ? '目标已放弃' : '目标已恢复');

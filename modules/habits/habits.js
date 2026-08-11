@@ -669,7 +669,11 @@ export const HabitsModule = (() => {
   async function incrementRetroCount(monthStr) {
     const usedKey = 'retroactive_count_' + monthStr;
     const { used } = await getRetroQuota(monthStr);
-    await Storage.put('settings', { key: usedKey, value: used + 1 });
+    try {
+      await Storage.put('settings', { key: usedKey, value: used + 1 });
+    } catch(e) {
+      console.warn('[Habits] Storage.put 失败:', e);
+    }
   }
 
   /**

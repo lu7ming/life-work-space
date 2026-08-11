@@ -93,7 +93,11 @@ export const TimeTrackerModule = (() => {
       note: ''
     };
 
-    await Storage.put('settings', { key: 'tt_active_entry', value: _activeEntry });
+    try {
+      await Storage.put('settings', { key: 'tt_active_entry', value: _activeEntry });
+    } catch(e) {
+      console.warn('[Timetracker] Storage.put 失败:', e);
+    }
     showActiveCard();
     startElapsedTimer();
     if (window.App) window.App?.showToast(`${CATEGORIES[category]?.emoji || '⏱️'} ${CATEGORIES[category]?.label || '追踪'}已开始`);
@@ -223,7 +227,13 @@ export const TimeTrackerModule = (() => {
     if (!chartArea || !legendEl) return;
 
     const today = formatDate(new Date());
-    const entries = await Storage.getByIndex('time_entries', 'date', today) || [];
+    let entries;
+    try {
+      entries = await Storage.getByIndex('time_entries', 'date', today) || [];
+    } catch(e) {
+      console.warn('[Timetracker] Storage.getByIndex 失败:', e);
+      entries = [];
+    }
 
     if (entries.length === 0) {
       chartArea.innerHTML = '<div class="tt-empty-state">暂无今日数据，开始追踪吧</div>';
@@ -275,7 +285,13 @@ export const TimeTrackerModule = (() => {
     if (!timelineEl) return;
 
     const today = formatDate(new Date());
-    const entries = await Storage.getByIndex('time_entries', 'date', today) || [];
+    let entries;
+    try {
+      entries = await Storage.getByIndex('time_entries', 'date', today) || [];
+    } catch(e) {
+      console.warn('[Timetracker] Storage.getByIndex 失败:', e);
+      entries = [];
+    }
 
     if (entries.length === 0) {
       timelineEl.innerHTML = '<div class="tt-empty-state">今天还没有记录</div>';
@@ -301,7 +317,13 @@ export const TimeTrackerModule = (() => {
     const recordsEl = document.getElementById('tt-records');
     if (!recordsEl) return;
 
-    const allEntries = await Storage.getAll('time_entries') || [];
+    let allEntries;
+    try {
+      allEntries = await Storage.getAll('time_entries') || [];
+    } catch(e) {
+      console.warn('[Timetracker] Storage.getAll 失败:', e);
+      allEntries = [];
+    }
     const recent = allEntries.sort((a, b) => new Date(b.startTime) - new Date(a.startTime)).slice(0, 20);
 
     if (recent.length === 0) {
@@ -331,7 +353,11 @@ export const TimeTrackerModule = (() => {
       _bindEvent(btn, 'click', async () => {
         const id = parseInt(btn.dataset.id);
         if (id) {
-          await Storage.remove('time_entries', id);
+          try {
+            await Storage.remove('time_entries', id);
+          } catch(e) {
+            console.warn('[Timetracker] Storage.remove 失败:', e);
+          }
           await renderData();
         }
       });

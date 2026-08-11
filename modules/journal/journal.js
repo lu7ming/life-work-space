@@ -396,7 +396,11 @@ export const JournalModule = (() => {
         e.stopPropagation();
         const id = parseInt(btn.dataset.id);
         if (confirm('确定删除这篇日记吗？')) {
-          await Storage.remove('journal', id);
+          try {
+            await Storage.remove('journal', id);
+          } catch(e) {
+            console.warn('[Journal] Storage.remove 失败:', e);
+          }
           await loadData();
           renderDiary();
           showToast('日记已删除');
@@ -1140,7 +1144,11 @@ export const JournalModule = (() => {
 
     _bindEvent(document.getElementById('idea-detail-delete'), 'click', async () => {
       if (confirm('确定删除这条灵感吗？')) {
-        await Storage.remove('ideas', id);
+        try {
+          await Storage.remove('ideas', id);
+        } catch(e) {
+          console.warn('[Journal] Storage.remove 失败:', e);
+        }
         await loadData();
         closeModal('idea-detail-modal');
         renderIdeas();

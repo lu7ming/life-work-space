@@ -390,7 +390,11 @@ export const ContentModule = (() => {
         topic.category = category;
         topic.priority = priority;
         topic.status = status;
-        await Storage.put('content_topics', topic);
+        try {
+          await Storage.put('content_topics', topic);
+        } catch(e) {
+          console.warn('[Content] Storage.put 失败:', e);
+        }
       }
     } else {
       // 新建
@@ -403,7 +407,11 @@ export const ContentModule = (() => {
         createdAt: formatDate(new Date()),
       };
       allTopics.push(topic);
-      await Storage.put('content_topics', topic);
+      try {
+        await Storage.put('content_topics', topic);
+      } catch(e) {
+        console.warn('[Content] Storage.put 失败:', e);
+      }
     }
 
     editingTopicId = null;
@@ -418,7 +426,11 @@ export const ContentModule = (() => {
 
   async function deleteTopic(id) {
     if (!confirm('确认删除此选题？')) return;
-    await Storage.remove('content_topics', id);
+    try {
+      await Storage.remove('content_topics', id);
+    } catch(e) {
+      console.warn('[Content] Storage.remove 失败:', e);
+    }
     await loadData();
     renderAll();
   }
@@ -427,7 +439,11 @@ export const ContentModule = (() => {
     const topic = allTopics.find(t => t.id === id);
     if (!topic) return;
     topic.status = getNextStatus(topic.status);
-    await Storage.put('content_topics', topic);
+    try {
+      await Storage.put('content_topics', topic);
+    } catch(e) {
+      console.warn('[Content] Storage.put 失败:', e);
+    }
     await loadData();
     renderTopicList();
   }
@@ -489,7 +505,11 @@ export const ContentModule = (() => {
       note: noteInput ? noteInput.value : '',
     };
 
-    await Storage.put('content_shootings', shooting);
+    try {
+      await Storage.put('content_shootings', shooting);
+    } catch(e) {
+      console.warn('[Content] Storage.put 失败:', e);
+    }
     editingShootingId = null;
     closeModal('shooting-modal-overlay');
     await loadData();
@@ -498,7 +518,11 @@ export const ContentModule = (() => {
 
   async function deleteShooting(id) {
     if (!confirm('确认删除此拍摄计划？')) return;
-    await Storage.remove('content_shootings', id);
+    try {
+      await Storage.remove('content_shootings', id);
+    } catch(e) {
+      console.warn('[Content] Storage.remove 失败:', e);
+    }
     await loadData();
     renderAll();
   }
@@ -555,7 +579,11 @@ export const ContentModule = (() => {
       favorites: parseInt(favoritesInput ? favoritesInput.value : '0') || 0,
     };
 
-    await Storage.put('content_published', pub);
+    try {
+      await Storage.put('content_published', pub);
+    } catch(e) {
+      console.warn('[Content] Storage.put 失败:', e);
+    }
     editingPublishedId = null;
     closeModal('published-modal-overlay');
     // EventBus: 内容发布
@@ -566,7 +594,11 @@ export const ContentModule = (() => {
 
   async function deletePublished(id) {
     if (!confirm('确认删除此发布记录？')) return;
-    await Storage.remove('content_published', id);
+    try {
+      await Storage.remove('content_published', id);
+    } catch(e) {
+      console.warn('[Content] Storage.remove 失败:', e);
+    }
     await loadData();
     renderAll();
   }

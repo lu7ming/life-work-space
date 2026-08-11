@@ -125,7 +125,13 @@ export const CalendarModule = (() => {
       });
 
       // 5. 健康（全量过滤）
-      const allHealth = await Storage.getAll('health');
+      let allHealth;
+      try {
+        allHealth = await Storage.getAll('health');
+      } catch(e) {
+        console.warn('[Calendar] Storage.getAll 失败:', e);
+        allHealth = [];
+      }
       allHealth.forEach(h => {
         if (h.date && h.date.startsWith(monthStr)) {
           data.health[h.date] = true;
@@ -133,7 +139,13 @@ export const CalendarModule = (() => {
       });
 
       // 6. 学习（全量过滤）
-      const allStudy = await Storage.getAll('study');
+      let allStudy;
+      try {
+        allStudy = await Storage.getAll('study');
+      } catch(e) {
+        console.warn('[Calendar] Storage.getAll 失败:', e);
+        allStudy = [];
+      }
       allStudy.forEach(s => {
         if (s.date && s.date.startsWith(monthStr)) {
           data.study[s.date] = true;

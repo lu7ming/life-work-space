@@ -1493,3 +1493,91 @@ html[data-bg-mode] .content-area {
   min-width: 320px;
   max-width: 90vw;
 }
+
+
+/* ============================================================
+   v106: 水墨晕染转场 (Ink Wash Page Transition)
+   ============================================================
+   切换模块/页面时，从屏幕中心扩散一个墨色圆形，
+   模拟水墨在宣纸上渗透晕染的效果。
+   使用径向渐变（中心深棕 #3D2C1E，边缘透明），
+   CSS @keyframes 控制 scale 与 opacity，时长 0.7s。
+   深色模式下墨色使用更浅的色调。
+*/
+
+#ink-wash-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#ink-wash-overlay .ink-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(61, 44, 30, 0.92) 0%,
+    rgba(61, 44, 30, 0.7) 35%,
+    rgba(61, 44, 30, 0.35) 60%,
+    rgba(61, 44, 30, 0.1) 80%,
+    rgba(61, 44, 30, 0) 100%
+  );
+  transform: scale(0);
+  opacity: 0;
+  filter: blur(2px);
+  will-change: transform, opacity;
+}
+
+#ink-wash-overlay.active .ink-circle {
+  animation: inkWashSpread 0.7s ease-in-out forwards;
+}
+
+@keyframes inkWashSpread {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  70% {
+    transform: scale(60);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(100);
+    opacity: 0;
+  }
+}
+
+/* 深色模式：墨色更浅，接近褐色调，配合深色背景 */
+[data-theme="dark"] #ink-wash-overlay .ink-circle {
+  background: radial-gradient(
+    circle at center,
+    rgba(232, 168, 124, 0.75) 0%,
+    rgba(200, 140, 95, 0.55) 35%,
+    rgba(170, 115, 75, 0.3) 60%,
+    rgba(140, 90, 55, 0.1) 80%,
+    rgba(120, 75, 45, 0) 100%
+  );
+}
+
+/* 降低动画偏好：直接淡入淡出，无缩放 */
+@media (prefers-reduced-motion: reduce) {
+  #ink-wash-overlay.active .ink-circle {
+    animation: inkWashFade 0.35s ease-in-out forwards;
+  }
+  @keyframes inkWashFade {
+    0%   { opacity: 0; transform: scale(1); }
+    50%  { opacity: 0.6; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1); }
+  }
+}

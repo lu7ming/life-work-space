@@ -3197,3 +3197,197 @@
 [data-theme="dark"] .dash-feed-section {
   border-bottom-color: rgba(255, 255, 255, 0.06);
 }
+
+
+/* ============================================================
+   v106: 数字翻页计数器 (Flip Digit Counter)
+   ============================================================
+   用于 counter Widget 中的核心数值展示。
+   纯 CSS 3D 实现：卡片从中间水平分割线处上下翻转，
+   上半部分向下翻转消失，下半部分从上方翻入。
+   动画时长 0.4s ease-in-out，Georgia 衬线字体，暖色卡片背景。
+*/
+
+.flip-counter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  color: var(--text-primary, #3D2C1E);
+  perspective: 800px;
+  line-height: 1;
+}
+
+.flip-counter .flip-digit {
+  position: relative;
+  width: 0.65em;
+  height: 1.1em;
+  display: inline-block;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #F5E6D3 0%, #E8D4BC 50%, #D9C2A6 100%);
+  box-shadow:
+    0 2px 6px rgba(61, 44, 30, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  text-align: center;
+  line-height: 1.1em;
+  font-size: 1em;
+  overflow: hidden;
+}
+
+/* 中间分割线 */
+.flip-counter .flip-digit::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(61, 44, 30, 0.35);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* 上下两半的静态数字层（用于展示当前数字） */
+.flip-counter .flip-digit .digit-top,
+.flip-counter .flip-digit .digit-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-counter .flip-digit .digit-top {
+  top: 0;
+  line-height: 1.1em;
+  background: linear-gradient(180deg, #F5E6D3 0%, #EEDFC9 100%);
+  border-radius: 6px 6px 0 0;
+}
+
+.flip-counter .flip-digit .digit-bottom {
+  bottom: 0;
+  line-height: 0;
+  background: linear-gradient(180deg, #E4CDB2 0%, #D9C2A6 100%);
+  border-radius: 0 0 6px 6px;
+}
+
+/* 翻页动画元素：上半向下翻出，下半从上方翻入 */
+.flip-counter .flip-digit .flip-top,
+.flip-counter .flip-digit .flip-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.flip-counter .flip-digit .flip-top {
+  top: 0;
+  line-height: 1.1em;
+  background: linear-gradient(180deg, #F5E6D3 0%, #EEDFC9 100%);
+  border-radius: 6px 6px 0 0;
+  transform-origin: bottom center;
+  transform: rotateX(0deg);
+}
+
+.flip-counter .flip-digit .flip-bottom {
+  bottom: 0;
+  line-height: 0;
+  background: linear-gradient(180deg, #E4CDB2 0%, #D9C2A6 100%);
+  border-radius: 0 0 6px 6px;
+  transform-origin: top center;
+  transform: rotateX(90deg);
+}
+
+/* 翻转动画触发 */
+.flip-counter .flip-digit.flipping .flip-top {
+  animation: flipTopOut 0.4s ease-in-out forwards;
+}
+
+.flip-counter .flip-digit.flipping .flip-bottom {
+  animation: flipBottomIn 0.4s ease-in-out forwards;
+}
+
+@keyframes flipTopOut {
+  0%   { transform: rotateX(0deg); }
+  100% { transform: rotateX(-90deg); opacity: 0.9; }
+}
+
+@keyframes flipBottomIn {
+  0%   { transform: rotateX(90deg); }
+  100% { transform: rotateX(0deg); }
+}
+
+/* 数字在上下两半中的垂直居中技巧 */
+.flip-counter .flip-digit .digit-top span,
+.flip-counter .flip-digit .flip-top span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.flip-counter .flip-digit .digit-bottom span,
+.flip-counter .flip-digit .flip-bottom span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 非数字字符（小数点、空格）简化展示 */
+.flip-counter .flip-non-digit {
+  padding: 0 1px;
+  font-size: 0.85em;
+  color: var(--text-secondary, #6B5B4D);
+}
+
+/* 单位文字恢复普通样式 */
+.dash-widget-counter-unit {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] .flip-counter .flip-digit {
+  background: linear-gradient(180deg, #3D342C 0%, #2A231E 50%, #1E1814 100%);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .flip-counter .flip-digit::before {
+  background: rgba(232, 168, 124, 0.25);
+}
+
+[data-theme="dark"] .flip-counter .flip-digit .digit-top,
+[data-theme="dark"] .flip-counter .flip-digit .flip-top {
+  background: linear-gradient(180deg, #3D342C 0%, #352D25 100%);
+}
+
+[data-theme="dark"] .flip-counter .flip-digit .digit-bottom,
+[data-theme="dark"] .flip-counter .flip-digit .flip-bottom {
+  background: linear-gradient(180deg, #2A231E 0%, #1E1814 100%);
+}
+
+[data-theme="dark"] .flip-counter .flip-non-digit {
+  color: var(--text-muted, #9B8B7D);
+}
+
+/* 响应式：移动端适当缩小 */
+@media (max-width: 768px) {
+  .flip-counter .flip-digit {
+    border-radius: 4px;
+  }
+}
+
+/* 降低动画偏好：直接切换，无翻页动画 */
+@media (prefers-reduced-motion: reduce) {
+  .flip-counter .flip-digit.flipping .flip-top,
+  .flip-counter .flip-digit.flipping .flip-bottom {
+    animation: none;
+  }
+}

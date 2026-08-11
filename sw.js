@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v101 - dashboard upgrade + new text recommend data
+ * v106 - flip-digit counter + ink-wash page transition
  */
 
-const CACHE_NAME = 'life-work-space-v105';
+const CACHE_NAME = 'life-work-space-v106';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

@@ -1180,14 +1180,97 @@ export const DashboardModule = (() => {
       icon = '📚';
     }
 
+    // v106: 数字翻页计数器
+    const valueStr = String(value);
+    const flipHtml = buildFlipCounter(valueStr);
     container.innerHTML = `
       <div class="dash-widget-counter">
         <span class="dash-widget-counter-icon">${icon}</span>
-        <span class="dash-widget-counter-value">${value}</span>
+        <span class="dash-widget-counter-value flip-counter" data-value="${valueStr}">${flipHtml}</span>
         <span class="dash-widget-counter-unit">${unit}</span>
       </div>
       <div class="dash-widget-counter-label">${label}</div>
     `;
+  }
+
+  /**
+   * v106: 构建翻页计数器 HTML 结构
+   * 每个数字一位，上下两半，动画时翻转
+   */
+  function buildFlipCounter(value) {
+    const chars = String(value).split('');
+    return chars.map((ch) => {
+      if (/\d/.test(ch)) {
+        return `
+          <div class="flip-digit" data-digit="${ch}">
+            <div class="digit-top"><span>${ch}</span></div>
+            <div class="digit-bottom"><span>${ch}</span></div>
+            <div class="flip-top"><span>${ch}</span></div>
+            <div class="flip-bottom"><span>${ch}</span></div>
+          </div>
+        `;
+      } else {
+        return `<span class="flip-non-digit">${ch}</span>`;
+      }
+    }).join('');
+  }
+
+  /**
+   * v106: 播放数字翻页动画（逐位比较新旧数字，不同的位触发翻转）
+   */
+  function animateFlipCounter(containerEl, newValue) {
+    const flipEl = containerEl.querySelector('.flip-counter');
+    if (!flipEl) return;
+    const oldValue = String(flipEl.dataset.value || '');
+    const newStr = String(newValue);
+    if (oldValue === newStr) return;
+
+    // 重建 HTML 并在翻转完成后更新静态层数字
+    const digits = flipEl.querySelectorAll('.flip-digit');
+    const newDigits = newStr.split('');
+    const oldDigits = oldValue.split('');
+
+    // 长度不同时重建
+    if (newDigits.length !== oldDigits.length) {
+      flipEl.innerHTML = buildFlipCounter(newStr);
+      flipEl.dataset.value = newStr;
+      return;
+    }
+
+    // 逐位对比，触发翻转
+    digits.forEach((digitEl, i) => {
+      const oldD = oldDigits[i];
+      const newD = newDigits[i];
+      if (oldD === newD) return;
+
+      // 设置翻页元素内容
+      const flipTop = digitEl.querySelector('.flip-top span');
+      const flipBottom = digitEl.querySelector('.flip-bottom span');
+      const digitTop = digitEl.querySelector('.digit-top span');
+      const digitBottom = digitEl.querySelector('.digit-bottom span');
+
+      if (flipTop) flipTop.textContent = oldD;
+      if (flipBottom) flipBottom.textContent = newD;
+
+      digitEl.classList.remove('flipping');
+      // 触发 reflow 重新播放动画
+      void digitEl.offsetWidth;
+      digitEl.classList.add('flipping');
+
+      // 动画结束后更新静态层
+      const onEnd = () => {
+        digitEl.classList.remove('flipping');
+        if (digitTop) digitTop.textContent = newD;
+        if (digitBottom) digitBottom.textContent = newD;
+        if (flipTop) flipTop.textContent = newD;
+        if (flipBottom) flipBottom.textContent = newD;
+        digitEl.dataset.digit = newD;
+        digitEl.removeEventListener('animationend', onEnd);
+      };
+      digitEl.addEventListener('animationend', onEnd);
+    });
+
+    flipEl.dataset.value = newStr;
   }
 
   // ====================================================================

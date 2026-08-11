@@ -10,7 +10,7 @@
   <title>人生工作台</title>
 
   <!-- 应用版本号（集中管理，升级时只需修改此处和 sw.js） -->
-  <script>window.__APP_VERSION__ = 'v105';</script>
+  <script>window.__APP_VERSION__ = 'v106';</script>
   <!-- PWA -->
   <link rel="icon" href="assets/icons/icon-192.png" type="image/png">
   <link rel="manifest" href="manifest.json">
@@ -76,6 +76,9 @@
 
   <!-- 移动端侧边栏遮罩 -->
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- 水墨晕染转场层 (v106) -->
+  <div id="ink-wash-overlay" aria-hidden="true"><div class="ink-circle"></div></div>
 
   <!-- 应用容器 -->
   <div class="app-container">

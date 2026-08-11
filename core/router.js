@@ -61,7 +61,28 @@ export const Router = (() => {
     // 相同路径 + 不同参数也算切换
     const parsed = parseHash();
     if (path === currentRoute && JSON.stringify(params || {}) === JSON.stringify(currentParams)) return;
+
+    // v106: 触发水墨晕染转场
+    triggerInkWashTransition();
+
     window.location.hash = `#/${target}`;
+  }
+
+  /**
+   * v106: 触发水墨晕染转场动画
+   * 从屏幕中心扩散墨色圆，时长 0.7s
+   */
+  function triggerInkWashTransition() {
+    try {
+      const overlay = document.getElementById('ink-wash-overlay');
+      if (!overlay) return;
+      overlay.classList.remove('active');
+      // 触发 reflow
+      void overlay.offsetWidth;
+      overlay.classList.add('active');
+    } catch (e) {
+      // 静默失败
+    }
   }
 
   /**

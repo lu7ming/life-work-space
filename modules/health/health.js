@@ -262,37 +262,412 @@ export const HealthModule = (() => {
     { id: 'tiantu', name: '天突穴', loc: '胸骨上窝正中凹陷处', fn: '止咳化痰，利咽开音', detail: '用食指或中指轻轻按揉，力度适中，适合咳嗽、咽痒、声音嘶哑。', bodyPart: '躯干' }
   ];
 
-  // 望诊数据（面色+舌诊）
+  // ===== 望诊完整数据结构（v115 升级：望神、望色、望形、望态、望局部、望舌）=====
+  const TONGUE_DIAGNOSIS_DATA = {
+    // 一、望神
+    spirit: {
+      eyeSpirit: [
+        { val: 'bright', label: '有神', interpret: '目光明亮灵活，精彩内含，神气充沛。为健康或病情较轻的表现，脏腑精气充足。' },
+        { val: 'dim', label: '少神', interpret: '目光呆滞，精神不振。多为气虚或轻度脏腑功能减退，建议补气养神。' },
+        { val: 'lifeless', label: '无神', interpret: '目光晦暗，瞳仁呆滞，精神萎靡。多为精气大伤，脏腑功能衰败，需及时就医。' }
+      ],
+      expression: [
+        { val: 'natural', label: '自然', interpret: '表情自然，情绪平和，为神气充足的表现。' },
+        { val: 'indifferent', label: '淡漠', interpret: '表情淡漠，反应迟钝。多为心气不足或痰迷心窍，建议养心安神。' },
+        { val: 'restless', label: '烦躁', interpret: '烦躁不安，坐卧不宁。多为热扰心神或阴虚火旺，建议清心降火。' },
+        { val: 'painful', label: '痛苦', interpret: '表情痛苦，多为疼痛或不适，需结合其他症状判断病因。' }
+      ],
+      energy: [
+        { val: 'abundant', label: '充沛', interpret: '精力旺盛，声音洪亮，为精气充足、身体健康的表现。' },
+        { val: 'normal', label: '一般', interpret: '精力尚可，日常活动无明显不适。' },
+        { val: 'tired', label: '易疲劳', interpret: '稍动即累，气短懒言。多为气虚或脾虚，建议补气健脾。' },
+        { val: 'exhausted', label: '极度倦怠', interpret: '极度疲乏，不愿活动。多为气血大虚或脏腑功能严重减退，需就医检查。' }
+      ],
+      reaction: [
+        { val: 'quick', label: '灵敏', interpret: '反应灵敏，思维清晰，为心神充足的表现。' },
+        { val: 'slow', label: '迟钝', interpret: '反应迟钝，思维缓慢。多为痰湿蒙蔽清窍或气血不足，建议化痰开窍或补气养血。' }
+      ]
+    },
+    // 二、望色
+    complexion: {
+      faceColor: [
+        { val: 'ruddy', label: '红润', interpret: '气血充盈，为健康面色。红黄隐隐，明润含蓄，是精气充沛的表现。' },
+        { val: 'pale', label: '苍白', interpret: '气血不足或阳虚寒证。多见于贫血、气虚、阳虚体质。建议：补气养血温阳，多食红枣、桂圆、黄芪、羊肉。' },
+        { val: 'sallow', label: '萎黄', interpret: '脾胃虚弱，气血不足。面色枯黄暗淡，多见于脾虚、营养不良。建议：健脾益气，多食山药、小米、大枣。' },
+        { val: 'flushed', label: '潮红', interpret: '阴虚内热或实热证。午后颧红多为阴虚火旺，满面通红多为实热。建议：滋阴降火或清热泻火。' },
+        { val: 'dull', label: '晦暗', interpret: '肾虚或血瘀。面色暗滞无光泽，多见于肾虚、慢性肝病或血瘀体质。建议：补肾活血，多食黑芝麻、核桃、山楂。' },
+        { val: 'dark_black', label: '黧黑', interpret: '肾阳虚衰或肾精亏耗。面色黑而暗淡，多见于慢性肾病、肾上腺疾病。建议：温补肾阳，及时就医检查。' }
+      ],
+      luster: [
+        { val: 'moist', label: '润泽', interpret: '面部有光泽，皮肤润泽。为精气未衰，脏腑功能尚可，预后良好。' },
+        { val: 'dry', label: '枯槁', interpret: '面部暗淡无华，皮肤干枯。为精气已衰，脏腑功能减退，预后较差，需调养。' }
+      ],
+      acneLocation: [
+        { val: 'none', label: '无', interpret: '面部无痘痘或斑点，皮肤状况良好。' },
+        { val: 'forehead', label: '额头', interpret: '额头长痘多因心火旺盛、精神压力大、熬夜过多。建议：降心火，可用莲子心泡茶，保证睡眠。' },
+        { val: 'glabella', label: '眉心', interpret: '眉心（印堂）长痘多因肺热、胸闷心悸。建议：清肺热，可用百合、银耳润肺。' },
+        { val: 'nose_bridge', label: '鼻梁', interpret: '鼻梁长痘多因肝气郁结、情绪不畅。建议：疏肝理气，保持心情舒畅，可用玫瑰花茶。' },
+        { val: 'nose_wing', label: '鼻翼', interpret: '鼻翼长痘多因胆热、消化不良。建议：清胆热，饮食清淡，少吃油腻。' },
+        { val: 'nose_tip', label: '鼻头', interpret: '鼻头长痘多因脾胃湿热、胃火过盛。建议：清脾胃湿热，忌辛辣油腻，多食薏米、冬瓜。' },
+        { val: 'left_cheek', label: '左颊', interpret: '左颊长痘多因肝火旺盛、情绪波动。建议：疏肝清火，可用菊花、决明子泡茶。' },
+        { val: 'right_cheek', label: '右颊', interpret: '右颊长痘多因肺热、过敏体质。建议：清肺热，避免过敏原，可用枇杷、梨润肺。' },
+        { val: 'chin', label: '下巴', interpret: '下巴长痘多因肾虚、宫寒（女）、内分泌失调。建议：温补肾阳，女性能量不足者需暖宫。' },
+        { val: 'around_mouth', label: '唇周', interpret: '唇周长痘多因胃肠积热、便秘、饮食不节。建议：清胃肠热，多吃蔬果，保持通便。' }
+      ]
+    },
+    // 三、望形
+    bodyShape: {
+      bodyType: [
+        { val: 'overweight', label: '偏胖', interpret: '形体肥胖，多为痰湿体质，脾虚运化失常。易患代谢性疾病。建议：健脾祛湿，控制饮食，多运动。' },
+        { val: 'normal', label: '适中', interpret: '体型适中，胖瘦均匀，为健康体态。继续保持良好生活习惯。' },
+        { val: 'thin', label: '偏瘦', interpret: '形体消瘦，多为阴虚体质或脾胃虚弱。建议：滋阴润燥或健脾益气，增加营养。' }
+      ],
+      muscle: [
+        { val: 'firm', label: '结实', interpret: '肌肉结实有力，为气血充足、脾气健旺的表现。' },
+        { val: 'flabby', label: '松弛', interpret: '肌肉松软无力，多为脾气虚弱、气血不足。建议：健脾益气，适当锻炼。' }
+      ],
+      special: [
+        { val: 'normal', label: '正常', interpret: '体型正常，无浮肿或异常消瘦。' },
+        { val: 'edema', label: '浮肿', interpret: '身体浮肿，按之凹陷。多为脾肾阳虚、水湿内停。建议：温阳利水，忌生冷。' },
+        { val: 'emaciated', label: '消瘦明显', interpret: '形体极度消瘦，多为气血大虚或阴虚火旺、消耗性疾病。建议：及时就医，大补气血或滋阴。' }
+      ]
+    },
+    // 四、望态
+    posture: {
+      movement: [
+        { val: 'agile', label: '灵活', interpret: '动作灵活，协调自如，为精气充足、筋骨强健。' },
+        { val: 'slow', label: '迟缓', interpret: '动作迟缓，不够灵活。多为气血不足或寒湿阻滞经络。建议：补气养血或温经散寒。' }
+      ],
+      sitting: [
+        { val: 'upright', label: '端正', interpret: '坐姿端正，精神饱满。为精气充足、心肺功能良好。' },
+        { val: 'slouched', label: '弯腰驼背', interpret: '坐姿不正，喜弯腰驼背。多为气虚或肾虚，腰膝无力。建议：补气益肾，加强背部锻炼。' }
+      ],
+      gait: [
+        { val: 'steady', label: '稳健', interpret: '步态稳健，行走有力。为肝肾充足、筋骨强健。' },
+        { val: 'unsteady', label: '蹒跚', interpret: '步态不稳，行走摇晃。多为肝肾不足、气血亏虚，或风痰阻络。建议：补益肝肾，养血通络。' }
+      ],
+      specialPosture: [
+        { val: 'natural', label: '自然', interpret: '姿态自然，无特殊异常。' },
+        { val: 'curled_warm', label: '蜷卧喜暖', interpret: '喜蜷卧、喜暖，多为阳虚寒盛。建议：温阳散寒，可用生姜、肉桂、艾灸。' },
+        { val: 'restless_unquiet', label: '烦躁不宁', interpret: '坐卧不宁，辗转反侧。多为热扰心神或阴虚火旺。建议：清心安神或滋阴降火。' }
+      ]
+    },
+    // 五、望局部
+    local: {
+      hair: [
+        { val: 'thick_black', label: '浓密黑亮', interpret: '头发浓密黑亮有光泽。为肾精充足、血气旺盛的表现。' },
+        { val: 'sparse', label: '稀疏', interpret: '头发稀疏易脱。多为肾精不足或血虚不荣。建议：补肾养血。' },
+        { val: 'yellow', label: '发黄', interpret: '头发枯黄无泽。多为气血不足或营养不良。建议：补气养血，增加蛋白质摄入。' },
+        { val: 'gray_early', label: '早白', interpret: '少年白发。多为肾精不足或血热偏盛。建议：补肾填精，可用黑芝麻、何首乌。' }
+      ],
+      eyes: [
+        { val: 'normal', label: '正常', interpret: '眼睛明亮有神，巩膜洁白。为肝肾充足、气血旺盛。' },
+        { val: 'bloodshot', label: '红血丝', interpret: '眼睛红血丝多。多为肝火上炎或熬夜伤肝。建议：清肝明目，保证睡眠。' },
+        { val: 'dry', label: '干涩', interpret: '眼睛干涩。多为肝血不足或阴虚。建议：养肝血、滋肝阴，可用枸杞、菊花泡茶。' },
+        { val: 'bags', label: '眼袋重', interpret: '眼袋明显。多为脾虚湿盛或肾虚。建议：健脾利湿或补肾，减少睡前饮水。' },
+        { val: 'pale_lid', label: '眼睑淡白', interpret: '眼睑颜色淡白。多为气血不足、贫血。建议：补气养血，多食红枣、桂圆、动物肝脏。' }
+      ],
+      nose: [
+        { val: 'normal_nose', label: '正常', interpret: '鼻子色泽润泽，无异常分泌物。为肺气充足。' },
+        { val: 'dry_nostril', label: '鼻孔干燥', interpret: '鼻孔干燥。多为肺燥或阴虚。建议：滋阴润肺，可用银耳、百合、梨。' },
+        { val: 'clear_discharge', label: '流清涕', interpret: '流清鼻涕。多为风寒犯肺或肺气虚。建议：疏风散寒或补肺气。' },
+        { val: 'yellow_discharge', label: '流黄涕', interpret: '流黄浊鼻涕。多为风热犯肺或肺热。建议：疏风清热，可用金银花、连翘。' }
+      ],
+      ears: [
+        { val: 'moist_red', label: '红润', interpret: '耳朵红润有光泽。为肾气充足的表现。' },
+        { val: 'pale_ear', label: '淡白', interpret: '耳朵颜色淡白。多为气血不足或肾阳虚。建议：补气养血或温补肾阳。' },
+        { val: 'dark_ear', label: '暗黑', interpret: '耳朵颜色暗黑。多为肾阳虚衰或血瘀。建议：温补肾阳，活血化瘀。' }
+      ],
+      lips: [
+        { val: 'ruddy_lips', label: '红润', interpret: '唇色红润。为气血充足、脾胃健运。' },
+        { val: 'pale_lips', label: '淡白', interpret: '唇色淡白。多为气血不足或脾虚。建议：补气养血健脾。' },
+        { val: 'purple_lips', label: '紫暗', interpret: '唇色紫暗。多为血瘀或寒凝。建议：活血化瘀或温经散寒。' },
+        { val: 'deep_red_lips', label: '深红', interpret: '唇色深红。多为热证，实热或阴虚火旺。建议：清热或滋阴降火。' }
+      ],
+      teeth: [
+        { val: 'white_firm', label: '洁白坚固', interpret: '牙齿洁白坚固。为肾精充足、骨骼强健。' },
+        { val: 'yellow', label: '发黄', interpret: '牙齿发黄。多为胃热或口腔卫生不佳。建议：清胃热，注意口腔清洁。' },
+        { val: 'loose', label: '松动', interpret: '牙齿松动。多为肾虚。建议：补肾固齿。' },
+        { val: 'gum_swollen', label: '牙龈红肿', interpret: '牙龈红肿出血。多为胃火上炎。建议：清胃泻火，忌辛辣。' }
+      ],
+      throat: [
+        { val: 'normal_throat', label: '正常', interpret: '咽喉色泽正常，无红肿疼痛。为肺气宣畅。' },
+        { val: 'swollen_red', label: '红肿', interpret: '咽喉红肿疼痛。多为风热或肺胃热盛。建议：清热利咽，可用金银花、胖大海。' },
+        { val: 'foreign_body', label: '有异物感', interpret: '咽喉有异物感，吞之不下、吐之不出。多为梅核气（痰气互结）。建议：理气化痰，可用半夏厚朴汤。' }
+      ],
+      nails: [
+        { val: 'pink_moon', label: '红润有月牙', interpret: '指甲粉红有光泽，月牙明显。为气血充足、肝血旺盛。' },
+        { val: 'pale_nail', label: '苍白', interpret: '指甲苍白无华。多为气血不足或贫血。建议：补气养血。' },
+        { val: 'purple_nail', label: '紫暗', interpret: '指甲紫暗。多为血瘀或寒凝。建议：活血化瘀或温经散寒。' },
+        { val: 'brittle', label: '脆裂', interpret: '指甲脆裂易断。多为肝血不足或阴虚。建议：养肝血、滋阴液。' }
+      ],
+      skin: [
+        { val: 'moist_skin', label: '润泽', interpret: '皮肤润泽有弹性。为气血充足、津液充盈。' },
+        { val: 'dry_skin', label: '干燥', interpret: '皮肤干燥粗糙。多为血虚或阴虚、津液不足。建议：养血滋阴润燥。' },
+        { val: 'oily_skin', label: '油腻', interpret: '皮肤油腻多脂。多为湿热内蕴。建议：清热利湿，饮食清淡。' },
+        { val: 'spots', label: '有斑疹', interpret: '皮肤有斑疹、色素沉着。多为气滞血瘀或肝郁。建议：疏肝理气、活血化瘀。' }
+      ]
+    },
+    // 六、望舌（扩充）
+    tongue: {
+      color: [
+        { val: 'pale', label: '淡白', interpret: '气血不足或阳虚。多见于贫血、脾胃虚弱。建议：补气养血，多食红枣、桂圆、黄芪。' },
+        { val: 'normal', label: '淡红', interpret: '正常舌色，气血充盈，为健康表现。' },
+        { val: 'red', label: '红', interpret: '热证。实热多见舌红苔黄，虚热多见舌红少苔。建议：清热泻火或滋阴降火。' },
+        { val: 'crimson', label: '绛', interpret: '热入营血，多见于高热或久病阴虚火旺。建议：及时就医，滋阴凉血。' },
+        { val: 'purple', label: '紫', interpret: '血瘀。淡紫为气滞血瘀，暗紫为寒凝血瘀。建议：活血化瘀，保持情绪舒畅。' }
+      ],
+      coating: [
+        { val: 'thin_white', label: '薄白', interpret: '正常舌苔或表证初起。为健康表现或外感风寒初期。' },
+        { val: 'thick_white', label: '厚白', interpret: '湿浊或寒湿内停。多见于消化不良、痰湿体质。建议：健脾祛湿，忌生冷。' },
+        { val: 'yellow', label: '黄', interpret: '热证或湿热。多见于胃热、肝胆湿热。建议：清热利湿，忌辛辣油腻。' },
+        { val: 'gray_black', label: '灰黑', interpret: '寒证或热证极期。灰黑而润为寒极，灰黑而燥为热极。建议：及时就医。' },
+        { val: 'none', label: '无苔', interpret: '胃气不足或胃阴亏虚。多见于久病、阴虚体质。建议：滋阴养胃，多食银耳、百合。' }
+      ],
+      shape: [
+        { val: 'normal', label: '正常', interpret: '舌体大小适中，无齿痕、裂纹，为健康表现。' },
+        { val: 'teeth_marks', label: '齿痕', interpret: '脾虚湿盛。舌边有齿痕，多伴乏力、便溏。建议：健脾祛湿，多食薏米、山药。' },
+        { val: 'cracked', label: '裂纹', interpret: '阴液亏虚或血虚。多见于阴虚体质、老年人。建议：滋阴润燥，避免辛辣。' },
+        { val: 'swollen', label: '胖大', interpret: '脾虚湿盛或阳虚水泛。建议：温阳健脾利水，忌生冷甜腻。' },
+        { val: 'thin', label: '瘦薄', interpret: '气血不足或阴虚火旺。建议：补气养血或滋阴降火。' }
+      ],
+      sublingualVein: [
+        { val: 'normal_vein', label: '正常', interpret: '舌下络脉淡紫、细短、无明显怒张。为气血运行正常。' },
+        { val: 'purple_swollen', label: '青紫粗胀', interpret: '舌下络脉青紫、粗胀、延长。多为血瘀或气滞血瘀。建议：活血化瘀，可用山楂、玫瑰花泡茶。' }
+      ]
+    }
+  };
+
+  // 保持旧变量兼容（原有数据仅保留面色和舌诊）
   const TONGUE_DATA = {
-    faceColor: [
-      { val: 'ruddy', label: '红润', interpret: '气血充盈，为健康面色。红黄隐隐，明润含蓄，是精气充沛的表现。' },
-      { val: 'pale', label: '苍白', interpret: '气血不足或阳虚寒证。多见于贫血、气虚、阳虚体质。建议：补气养血温阳，多食红枣、桂圆、黄芪、羊肉。' },
-      { val: 'sallow', label: '萎黄', interpret: '脾胃虚弱，气血不足。面色枯黄暗淡，多见于脾虚、营养不良。建议：健脾益气，多食山药、小米、大枣。' },
-      { val: 'flushed', label: '潮红', interpret: '阴虚内热或实热证。午后颧红多为阴虚火旺，满面通红多为实热。建议：滋阴降火或清热泻火。' },
-      { val: 'dull', label: '晦暗', interpret: '肾虚或血瘀。面色暗滞无光泽，多见于肾虚、慢性肝病或血瘀体质。建议：补肾活血，多食黑芝麻、核桃、山楂。' },
-      { val: 'dark_black', label: '黧黑', interpret: '肾阳虚衰或肾精亏耗。面色黑而暗淡，多见于慢性肾病、肾上腺疾病。建议：温补肾阳，及时就医检查。' }
+    faceColor: TONGUE_DIAGNOSIS_DATA.complexion.faceColor,
+    color: TONGUE_DIAGNOSIS_DATA.tongue.color,
+    coating: TONGUE_DIAGNOSIS_DATA.tongue.coating,
+    shape: TONGUE_DIAGNOSIS_DATA.tongue.shape
+  };
+
+  // 望诊 Tab 配置
+  const TONGUE_TABS = [
+    { key: 'spirit', label: '望神', icon: '👁️', dims: [
+      { key: 'eyeSpirit', label: '眼神' },
+      { key: 'expression', label: '表情' },
+      { key: 'energy', label: '精力' },
+      { key: 'reaction', label: '反应' }
+    ]},
+    { key: 'complexion', label: '望色', icon: '🎨', dims: [
+      { key: 'faceColor', label: '面色' },
+      { key: 'luster', label: '光泽' },
+      { key: 'acneLocation', label: '长痘位置' }
+    ]},
+    { key: 'bodyShape', label: '望形', icon: '🏃', dims: [
+      { key: 'bodyType', label: '体型' },
+      { key: 'muscle', label: '肌肉' },
+      { key: 'special', label: '特殊' }
+    ]},
+    { key: 'posture', label: '望态', icon: '🧘', dims: [
+      { key: 'movement', label: '动作' },
+      { key: 'sitting', label: '坐姿' },
+      { key: 'gait', label: '步态' },
+      { key: 'specialPosture', label: '特殊姿态' }
+    ]},
+    { key: 'local', label: '望局部', icon: '👂', dims: [
+      { key: 'hair', label: '头发' },
+      { key: 'eyes', label: '眼睛' },
+      { key: 'nose', label: '鼻子' },
+      { key: 'ears', label: '耳朵' },
+      { key: 'lips', label: '嘴唇' },
+      { key: 'teeth', label: '牙齿' },
+      { key: 'throat', label: '咽喉' },
+      { key: 'nails', label: '指甲' },
+      { key: 'skin', label: '皮肤' }
+    ]},
+    { key: 'tongue', label: '望舌', icon: '👅', dims: [
+      { key: 'color', label: '舌色' },
+      { key: 'coating', label: '舌苔' },
+      { key: 'shape', label: '舌形' },
+      { key: 'sublingualVein', label: '舌下络脉' }
+    ]}
+  ];
+
+  // 望诊综合判断逻辑
+  const DIAGNOSIS_LOGIC = {
+    patterns: [
+      {
+        name: '气血两虚',
+        conditions: {
+          any: [
+            { spirit: { energy: ['tired', 'exhausted'] } },
+            { complexion: { faceColor: ['pale', 'sallow'] } },
+            { tongue: { color: ['pale'] } },
+            { local: { lips: ['pale_lips'], nails: ['pale_nail'], eyes: ['pale_lid'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '气血不足，脏腑失养。表现为面色萎黄或苍白、神疲乏力、舌淡、唇甲色淡。',
+        suggest: '补气养血',
+        foods: ['红枣', '桂圆', '黄芪', '当归', '乌鸡', '猪肝'],
+        acupoints: ['足三里', '三阴交', '气海穴', '血海穴'],
+        tea: '黄芪红枣茶、当归补血汤'
+      },
+      {
+        name: '脾虚湿重',
+        conditions: {
+          any: [
+            { complexion: { faceColor: ['sallow'] } },
+            { tongue: { shape: ['swollen', 'teeth_marks'], coating: ['thick_white'] } },
+            { bodyShape: { bodyType: ['overweight'], special: ['edema'] } },
+            { local: { skin: ['oily_skin'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '脾气虚弱，运化失常，水湿内停。表现为面色萎黄、舌胖有齿痕、苔白腻、体胖浮肿。',
+        suggest: '健脾祛湿',
+        foods: ['山药', '薏米', '茯苓', '芡实', '白扁豆', '冬瓜'],
+        acupoints: ['足三里', '脾俞穴', '中脘穴', '阴陵泉'],
+        tea: '陈皮茯苓茶、四神汤'
+      },
+      {
+        name: '肝火旺盛',
+        conditions: {
+          any: [
+            { spirit: { expression: ['restless'] } },
+            { complexion: { faceColor: ['flushed'], acneLocation: ['left_cheek', 'nose_bridge'] } },
+            { tongue: { color: ['red', 'crimson'] } },
+            { local: { eyes: ['bloodshot'], lips: ['deep_red_lips'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '肝气郁结，气郁化火。表现为面红目赤、烦躁易怒、舌红、口苦。',
+        suggest: '清肝泻火',
+        foods: ['芹菜', '苦瓜', '菊花', '决明子', '绿豆'],
+        acupoints: ['太冲穴', '行间穴', '风池穴'],
+        tea: '菊花决明子茶、龙胆泻肝汤'
+      },
+      {
+        name: '肾精不足',
+        conditions: {
+          any: [
+            { complexion: { faceColor: ['dull', 'dark_black'], acneLocation: ['chin'] } },
+            { posture: { sitting: ['slouched'] } },
+            { local: { ears: ['dark_ear'], hair: ['sparse', 'gray_early'], teeth: ['loose'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '肾精亏虚，脏腑失养。表现为面色晦暗或黧黑、耳鸣耳聋、腰膝酸软、发脱齿松。',
+        suggest: '补肾填精',
+        foods: ['黑芝麻', '核桃', '枸杞', '桑椹', '黑豆', '海参'],
+        acupoints: ['肾俞穴', '太溪穴', '关元穴', '命门穴'],
+        tea: '枸杞黄精茶、六味地黄丸'
+      },
+      {
+        name: '阴虚火旺',
+        conditions: {
+          any: [
+            { spirit: { expression: ['restless'] } },
+            { complexion: { faceColor: ['flushed'], luster: ['dry'] } },
+            { tongue: { color: ['red', 'crimson'], coating: ['none'], shape: ['cracked', 'thin'] } },
+            { bodyShape: { bodyType: ['thin'] } },
+            { local: { skin: ['dry_skin'], lips: ['deep_red_lips'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '阴液亏虚，虚热内生。表现为潮红颧红、口干咽燥、舌红少苔或裂纹、形体消瘦。',
+        suggest: '滋阴降火',
+        foods: ['银耳', '百合', '麦冬', '玉竹', '梨', '蜂蜜'],
+        acupoints: ['太溪穴', '照海穴', '三阴交'],
+        tea: '银耳百合茶、知柏地黄丸'
+      },
+      {
+        name: '心火旺盛',
+        conditions: {
+          any: [
+            { spirit: { eyeSpirit: ['lifeless'], expression: ['restless'] } },
+            { complexion: { acneLocation: ['forehead'] } },
+            { tongue: { color: ['red', 'crimson'] } },
+            { local: { lips: ['deep_red_lips'], throat: ['swollen_red'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '心火上炎，扰乱心神。表现为额头长痘、心烦失眠、口舌生疮、舌尖红。',
+        suggest: '清心降火',
+        foods: ['莲子心', '苦瓜', '绿豆', '西瓜'],
+        acupoints: ['少府穴', '劳宫穴', '神门穴'],
+        tea: '莲子心茶、导赤散'
+      },
+      {
+        name: '肺热',
+        conditions: {
+          any: [
+            { complexion: { acneLocation: ['glabella', 'right_cheek'] } },
+            { tongue: { color: ['red'], coating: ['yellow'] } },
+            { local: { nose: ['yellow_discharge'], throat: ['swollen_red'], skin: ['oily_skin', 'spots'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '肺热内盛，宣降失常。表现为眉心或右颊长痘、鼻流黄涕、咽痛、皮肤油腻。',
+        suggest: '清肺泻热',
+        foods: ['梨', '枇杷', '白萝卜', '百合', '银耳'],
+        acupoints: ['肺俞穴', '尺泽穴', '列缺穴'],
+        tea: '桑叶菊花茶、清肺汤'
+      },
+      {
+        name: '胃肠积热',
+        conditions: {
+          any: [
+            { complexion: { acneLocation: ['around_mouth', 'nose_tip'] } },
+            { tongue: { color: ['red'], coating: ['yellow', 'thick_white'] } },
+            { local: { teeth: ['gum_swollen'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '胃肠积热，腑气不通。表现为唇周长痘、鼻头痘、牙龈肿痛、便秘。',
+        suggest: '清胃泻热通便',
+        foods: ['冬瓜', '黄瓜', '苦瓜', '芹菜', '红薯', '香蕉'],
+        acupoints: ['天枢穴', '上巨虚', '曲池穴'],
+        tea: '决明子茶、麻子仁丸'
+      },
+      {
+        name: '血瘀',
+        conditions: {
+          any: [
+            { complexion: { faceColor: ['dull', 'dark_black'] } },
+            { tongue: { color: ['purple'], sublingualVein: ['purple_swollen'] } },
+            { local: { lips: ['purple_lips'], nails: ['purple_nail'], skin: ['spots'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '血行不畅，瘀血内阻。表现为面色晦暗、唇甲紫暗、舌紫、有瘀斑。',
+        suggest: '活血化瘀',
+        foods: ['山楂', '玫瑰花', '黑木耳', '醋'],
+        acupoints: ['血海穴', '膈俞穴', '合谷穴', '太冲穴'],
+        tea: '山楂玫瑰花茶、血府逐瘀汤'
+      },
+      {
+        name: '阳虚寒盛',
+        conditions: {
+          any: [
+            { complexion: { faceColor: ['pale'] } },
+            { tongue: { color: ['pale'], shape: ['swollen'] } },
+            { posture: { specialPosture: ['curled_warm'] } },
+            { bodyShape: { special: ['edema'] } },
+            { local: { ears: ['pale_ear'], nails: ['pale_nail'] } }
+          ],
+          minMatch: 2
+        },
+        interpretation: '阳气不足，阴寒内盛。表现为面色苍白、畏寒肢冷、舌淡胖、喜暖蜷卧。',
+        suggest: '温阳散寒',
+        foods: ['生姜', '肉桂', '羊肉', '韭菜', '核桃', '桂圆'],
+        acupoints: ['关元穴', '命门穴', '神阙穴（艾灸）'],
+        tea: '生姜红枣茶、金匮肾气丸'
+      }
     ],
-    color: [
-      { val: 'pale', label: '淡白', interpret: '气血不足或阳虚。多见于贫血、脾胃虚弱。建议：补气养血，多食红枣、桂圆、黄芪。' },
-      { val: 'normal', label: '淡红', interpret: '正常舌色，气血充盈，为健康表现。' },
-      { val: 'red', label: '红', interpret: '热证。实热多见舌红苔黄，虚热多见舌红少苔。建议：清热泻火或滋阴降火。' },
-      { val: 'crimson', label: '绛', interpret: '热入营血，多见于高热或久病阴虚火旺。建议：及时就医，滋阴凉血。' },
-      { val: 'purple', label: '紫', interpret: '血瘀。淡紫为气滞血瘀，暗紫为寒凝血瘀。建议：活血化瘀，保持情绪舒畅。' }
-    ],
-    coating: [
-      { val: 'thin_white', label: '薄白', interpret: '正常舌苔或表证初起。为健康表现或外感风寒初期。' },
-      { val: 'thick_white', label: '厚白', interpret: '湿浊或寒湿内停。多见于消化不良、痰湿体质。建议：健脾祛湿，忌生冷。' },
-      { val: 'yellow', label: '黄', interpret: '热证或湿热。多见于胃热、肝胆湿热。建议：清热利湿，忌辛辣油腻。' },
-      { val: 'gray_black', label: '灰黑', interpret: '寒证或热证极期。灰黑而润为寒极，灰黑而燥为热极。建议：及时就医。' },
-      { val: 'none', label: '无苔', interpret: '胃气不足或胃阴亏虚。多见于久病、阴虚体质。建议：滋阴养胃，多食银耳、百合。' }
-    ],
-    shape: [
-      { val: 'normal', label: '正常', interpret: '舌体大小适中，无齿痕、裂纹，为健康表现。' },
-      { val: 'teeth_marks', label: '齿痕', interpret: '脾虚湿盛。舌边有齿痕，多伴乏力、便溏。建议：健脾祛湿，多食薏米、山药。' },
-      { val: 'cracked', label: '裂纹', interpret: '阴液亏虚或血虚。多见于阴虚体质、老年人。建议：滋阴润燥，避免辛辣。' },
-      { val: 'swollen', label: '胖大', interpret: '脾虚湿盛或阳虚水泛。建议：温阳健脾利水，忌生冷甜腻。' },
-      { val: 'thin', label: '瘦薄', interpret: '气血不足或阴虚火旺。建议：补气养血或滋阴降火。' }
-    ]
+    normalResult: {
+      interpretation: '各项望诊指标基本正常，面色红润、舌象正常、精神饱满，提示气血充盈、脏腑功能良好。',
+      suggest: '继续保持良好的生活习惯，饮食有节，起居有常。',
+      foods: [],
+      acupoints: [],
+      tea: ''
+    }
   };
 
   // 六字诀
@@ -1306,95 +1681,181 @@ export const HealthModule = (() => {
     display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  // ===== 望诊自测 =====
-  let tongueSelections = { faceColor: null, color: null, coating: null, shape: null };
+  // ===== 望诊自测（v115 升级版：六维度 Tab + 综合辨证）=====
+  // 所有维度的扁平化选择状态：{ spirit: {eyeSpirit:'', expression:'', ...}, complexion: {...}, ... }
+  let tongueSelections = {};
+  let currentTongueTab = 'spirit';
+  function _initTongueSelections() {
+    tongueSelections = {};
+    TONGUE_TABS.forEach(tab => {
+      tongueSelections[tab.key] = {};
+      tab.dims.forEach(dim => { tongueSelections[tab.key][dim.key] = null; });
+    });
+  }
   function initTongueDiagnosis() {
-    renderTongueOptions('healthFaceColor', TONGUE_DATA.faceColor, 'faceColor');
-    renderTongueOptions('healthTongueColor', TONGUE_DATA.color, 'color');
-    renderTongueOptions('healthTongueCoating', TONGUE_DATA.coating, 'coating');
-    renderTongueOptions('healthTongueShape', TONGUE_DATA.shape, 'shape');
+    _initTongueSelections();
+    renderTongueTabs();
+    renderTongueTabContent(currentTongueTab);
     const saveBtn = document.getElementById('healthTongueSaveBtn');
     if (saveBtn) _bindEvent(saveBtn, 'click', saveTongueRecord);
     loadTongueHistory();
   }
-  function renderTongueOptions(containerId, data, dim) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = data.map(item => `<div class="health-tongue-opt" data-val="${item.val}" data-dim="${dim}">${item.label}</div>`).join('');
-    container.querySelectorAll('.health-tongue-opt').forEach(el => {
-      _bindEvent(el, 'click', () => {
-        container.querySelectorAll('.health-tongue-opt').forEach(o => o.classList.remove('selected'));
-        el.classList.add('selected');
-        tongueSelections[dim] = el.dataset.val;
-        updateTongueResult();
+  function renderTongueTabs() {
+    const tabsEl = document.getElementById('healthTongueTabs');
+    if (!tabsEl) return;
+    tabsEl.innerHTML = TONGUE_TABS.map(tab =>
+      `<button class="health-tongue-tab ${tab.key === currentTongueTab ? 'active' : ''}" data-tab="${tab.key}">
+        <span class="health-tongue-tab-icon">${tab.icon}</span>${tab.label}
+      </button>`
+    ).join('');
+    tabsEl.querySelectorAll('.health-tongue-tab').forEach(btn => {
+      _bindEvent(btn, 'click', () => {
+        currentTongueTab = btn.dataset.tab;
+        renderTongueTabs();
+        renderTongueTabContent(currentTongueTab);
       });
     });
+  }
+  function renderTongueTabContent(tabKey) {
+    const contentEl = document.getElementById('healthTongueContent');
+    const tabConfig = TONGUE_TABS.find(t => t.key === tabKey);
+    if (!contentEl || !tabConfig) return;
+    contentEl.innerHTML = tabConfig.dims.map(dim => `
+      <div class="health-tongue-section">
+        <div class="health-tongue-dim-label">${dim.label}</div>
+        <div class="health-tongue-options" data-dim="${dim.key}" data-tab="${tabKey}"></div>
+        <div class="health-tongue-interpret" id="tongueInterpret_${tabKey}_${dim.key}" style="display:none;"></div>
+      </div>
+    `).join('');
+    // 渲染每个维度的选项
+    tabConfig.dims.forEach(dim => {
+      const data = TONGUE_DIAGNOSIS_DATA[tabKey][dim.key];
+      const container = contentEl.querySelector(`[data-dim="${dim.key}"][data-tab="${tabKey}"]`);
+      if (!container) return;
+      container.innerHTML = data.map(item =>
+        `<div class="health-tongue-opt ${tongueSelections[tabKey][dim.key] === item.val ? 'selected' : ''}" data-val="${item.val}">${item.label}</div>`
+      ).join('');
+      container.querySelectorAll('.health-tongue-opt').forEach(el => {
+        _bindEvent(el, 'click', () => {
+          container.querySelectorAll('.health-tongue-opt').forEach(o => o.classList.remove('selected'));
+          el.classList.add('selected');
+          tongueSelections[tabKey][dim.key] = el.dataset.val;
+          // 显示解读
+          const interpretEl = document.getElementById(`tongueInterpret_${tabKey}_${dim.key}`);
+          const itemData = data.find(d => d.val === el.dataset.val);
+          if (interpretEl && itemData) {
+            interpretEl.innerHTML = `<div class="health-tongue-interpret-inner">💡 ${escapeHtml(itemData.interpret)}</div>`;
+            interpretEl.style.display = 'block';
+          }
+          updateTongueResult();
+        });
+      });
+      // 如果已有选择，显示解读
+      if (tongueSelections[tabKey][dim.key]) {
+        const itemData = data.find(d => d.val === tongueSelections[tabKey][dim.key]);
+        const interpretEl = document.getElementById(`tongueInterpret_${tabKey}_${dim.key}`);
+        if (interpretEl && itemData) {
+          interpretEl.innerHTML = `<div class="health-tongue-interpret-inner">💡 ${escapeHtml(itemData.interpret)}</div>`;
+          interpretEl.style.display = 'block';
+        }
+      }
+    });
+  }
+  function _countSelectedDims() {
+    let count = 0;
+    TONGUE_TABS.forEach(tab => {
+      tab.dims.forEach(dim => {
+        if (tongueSelections[tab.key][dim.key]) count++;
+      });
+    });
+    return count;
   }
   function updateTongueResult() {
     const resultEl = document.getElementById('healthTongueResult');
     const saveBtn = document.getElementById('healthTongueSaveBtn');
-    if (!tongueSelections.faceColor || !tongueSelections.color || !tongueSelections.coating || !tongueSelections.shape) return;
-    const faceData = TONGUE_DATA.faceColor.find(c => c.val === tongueSelections.faceColor);
-    const colorData = TONGUE_DATA.color.find(c => c.val === tongueSelections.color);
-    const coatingData = TONGUE_DATA.coating.find(c => c.val === tongueSelections.coating);
-    const shapeData = TONGUE_DATA.shape.find(c => c.val === tongueSelections.shape);
-    if (!faceData || !colorData || !coatingData || !shapeData) return;
-    let html = '<div style="margin-bottom:8px;">';
-    html += `<strong>面色 · ${faceData.label}</strong><br>${faceData.interpret}<br><br>`;
-    html += `<strong>舌色 · ${colorData.label}</strong><br>${colorData.interpret}<br><br>`;
-    html += `<strong>舌苔 · ${coatingData.label}</strong><br>${coatingData.interpret}<br><br>`;
-    html += `<strong>舌形 · ${shapeData.label}</strong><br>${shapeData.interpret}`;
-    html += '</div>';
+    const selectedCount = _countSelectedDims();
+    if (selectedCount < 3) {
+      if (resultEl) { resultEl.innerHTML = ''; resultEl.classList.remove('show'); }
+      if (saveBtn) saveBtn.style.display = 'none';
+      return;
+    }
     // 综合判断
-    const comprehensive = generateComprehensiveDiagnosis(tongueSelections);
-    html += `<div class="health-tongue-comprehensive"><div class="health-tongue-comp-title">📋 综合判断</div>${comprehensive}</div>`;
-    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:6px;">⚠️ 望诊仅供参考，如有不适请咨询专业中医师。</div>';
+    const diagnosis = generateComprehensiveDiagnosis(tongueSelections);
+    let html = '';
+    if (diagnosis.patterns.length === 0) {
+      html += `<div class="health-tongue-comprehensive">
+        <div class="health-tongue-comp-title">📋 综合判断</div>
+        <div class="health-tongue-comp-item">✨ ${escapeHtml(diagnosis.normal.interpretation)}</div>
+        <div class="health-tongue-comp-item" style="margin-top:6px;"><strong>建议：</strong>${escapeHtml(diagnosis.normal.suggest)}</div>
+      </div>`;
+    } else {
+      diagnosis.patterns.forEach(p => {
+        html += `<div class="health-tongue-comprehensive">
+          <div class="health-tongue-comp-title">🔍 ${escapeHtml(p.name)}（匹配度 ${p.matchScore}/${p.maxScore}）</div>
+          <div class="health-tongue-comp-item"><strong>解读：</strong>${escapeHtml(p.interpretation)}</div>
+          <div class="health-tongue-comp-item" style="margin-top:4px;"><strong>调理方向：</strong>${escapeHtml(p.suggest)}</div>
+          ${p.foods && p.foods.length ? `<div class="health-tongue-comp-item" style="margin-top:4px;"><strong>🥗 推荐食材：</strong>${p.foods.map(f => escapeHtml(f)).join('、')}</div>` : ''}
+          ${p.acupoints && p.acupoints.length ? `<div class="health-tongue-comp-item" style="margin-top:4px;"><strong>📍 推荐穴位：</strong>${p.acupoints.map(a => escapeHtml(a)).join('、')}</div>` : ''}
+          ${p.tea ? `<div class="health-tongue-comp-item" style="margin-top:4px;"><strong>🍵 推荐茶饮：</strong>${escapeHtml(p.tea)}</div>` : ''}
+        </div>`;
+      });
+    }
+    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:8px;text-align:center;">⚠️ 望诊仅供参考，如有不适请咨询专业中医师。</div>';
     if (resultEl) { resultEl.innerHTML = html; resultEl.classList.add('show'); }
     if (saveBtn) saveBtn.style.display = '';
   }
   function generateComprehensiveDiagnosis(sel) {
-    const findings = [];
-    // 气血判断
-    if (sel.faceColor === 'pale' || sel.faceColor === 'sallow' || sel.color === 'pale' || sel.shape === 'thin') {
-      findings.push('气血不足：面色苍白或萎黄、舌淡，提示气血亏虚，建议补气养血。');
-    }
-    // 阴虚判断
-    if (sel.faceColor === 'flushed' || sel.color === 'red' || sel.color === 'crimson' || sel.coating === 'none' || sel.shape === 'cracked') {
-      findings.push('阴虚内热：面色潮红、舌红少苔或裂纹，提示阴液亏虚、虚热内生，建议滋阴降火。');
-    }
-    // 阳虚判断
-    if (sel.faceColor === 'pale' || sel.color === 'pale' && sel.shape === 'swollen') {
-      findings.push('阳虚寒证：面色苍白、舌淡胖大，提示阳气不足，建议温阳散寒。');
-    }
-    // 湿热判断
-    if (sel.faceColor === 'flushed' || sel.coating === 'yellow') {
-      findings.push('湿热内蕴：面色偏红、苔黄，提示湿热证，建议清热利湿。');
-    }
-    // 痰湿判断
-    if (sel.coating === 'thick_white' || sel.shape === 'swollen' || sel.shape === 'teeth_marks') {
-      findings.push('脾虚湿盛：舌苔厚白或舌胖大有齿痕，提示痰湿内停，建议健脾祛湿。');
-    }
-    // 血瘀判断
-    if (sel.color === 'purple' || sel.faceColor === 'dull' || sel.faceColor === 'dark_black') {
-      findings.push('血瘀或肾虚：舌紫或面色晦暗黧黑，提示血瘀或肾虚，建议活血化瘀或补肾。');
-    }
-    // 正常判断
-    if (findings.length === 0) {
-      findings.push('各项望诊指标基本正常，面色红润、舌象正常，提示气血充盈、脏腑功能良好。继续保持良好的生活习惯。');
-    }
-    return findings.map(f => `<div class="health-tongue-comp-item">• ${escapeHtml(f)}</div>`).join('');
+    const matchedPatterns = [];
+    DIAGNOSIS_LOGIC.patterns.forEach(pattern => {
+      const { any, minMatch } = pattern.conditions;
+      let matchCount = 0;
+      let maxScore = any.length;
+      any.forEach(conditionGroup => {
+        // conditionGroup: { tabKey: { dimKey: [val1, val2] } } 只要任一维度命中即算此组匹配
+        let groupHit = false;
+        for (const tabKey in conditionGroup) {
+          const dims = conditionGroup[tabKey];
+          for (const dimKey in dims) {
+            const validVals = dims[dimKey];
+            const userVal = sel[tabKey] && sel[tabKey][dimKey];
+            if (userVal && validVals.includes(userVal)) {
+              groupHit = true;
+              break;
+            }
+          }
+          if (groupHit) break;
+        }
+        if (groupHit) matchCount++;
+      });
+      if (matchCount >= minMatch) {
+        matchedPatterns.push({
+          ...pattern,
+          matchScore: matchCount,
+          maxScore: maxScore
+        });
+      }
+    });
+    // 按匹配度降序
+    matchedPatterns.sort((a, b) => (b.matchScore / b.maxScore) - (a.matchScore / a.maxScore));
+    return {
+      patterns: matchedPatterns.slice(0, 3),
+      normal: DIAGNOSIS_LOGIC.normalResult
+    };
   }
   async function saveTongueRecord() {
-    const record = { ...tongueSelections, date: new Date().toISOString() };
+    const record = { ..._deepClone(tongueSelections), date: new Date().toISOString(), v: 2 };
     try {
       const setting = await Storage.get('settings', 'health/tongue');
       let history = (setting && setting.value) || [];
       history.unshift(record);
       if (history.length > 20) history = history.slice(0, 20);
       await Storage.put('settings', { key: 'health/tongue', value: history });
-      showToast('舌诊记录已保存 💾');
+      showToast('望诊记录已保存 💾');
       loadTongueHistory();
     } catch (e) { showToast('保存失败'); }
+  }
+  function _deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
   }
   async function loadTongueHistory() {
     const container = document.getElementById('healthTongueHistory');
@@ -1403,17 +1864,42 @@ export const HealthModule = (() => {
       const setting = await Storage.get('settings', 'health/tongue');
       const history = (setting && setting.value) || [];
       if (history.length === 0) { container.innerHTML = '<div class="health-empty-state">暂无望诊记录</div>'; return; }
-      const faceMap = {}, colorMap = {}, coatingMap = {}, shapeMap = {};
-      TONGUE_DATA.faceColor.forEach(c => faceMap[c.val] = c.label);
-      TONGUE_DATA.color.forEach(c => colorMap[c.val] = c.label);
-      TONGUE_DATA.coating.forEach(c => coatingMap[c.val] = c.label);
-      TONGUE_DATA.shape.forEach(c => shapeMap[c.val] = c.label);
       container.innerHTML = history.slice(0, 5).map(r => {
         const d = new Date(r.date);
         const ds = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-        return `<div class="health-tongue-history-item"><div class="th-date">${ds}</div>面色: ${faceMap[r.faceColor] || '—'} · 舌色: ${colorMap[r.color] || '—'} · 舌苔: ${coatingMap[r.coating] || '—'} · 舌形: ${shapeMap[r.shape] || '—'}</div>`;
+        // v2 新版记录：展示前3个关键维度
+        let summary = '';
+        if (r.v === 2) {
+          const parts = [];
+          if (r.complexion && r.complexion.faceColor) {
+            const item = TONGUE_DIAGNOSIS_DATA.complexion.faceColor.find(c => c.val === r.complexion.faceColor);
+            if (item) parts.push(`面色:${item.label}`);
+          }
+          if (r.tongue && r.tongue.color) {
+            const item = TONGUE_DIAGNOSIS_DATA.tongue.color.find(c => c.val === r.tongue.color);
+            if (item) parts.push(`舌色:${item.label}`);
+          }
+          if (r.spirit && r.spirit.energy) {
+            const item = TONGUE_DIAGNOSIS_DATA.spirit.energy.find(c => c.val === r.spirit.energy);
+            if (item) parts.push(`精力:${item.label}`);
+          }
+          if (r.bodyShape && r.bodyShape.bodyType) {
+            const item = TONGUE_DIAGNOSIS_DATA.bodyShape.bodyType.find(c => c.val === r.bodyShape.bodyType);
+            if (item) parts.push(`体型:${item.label}`);
+          }
+          summary = parts.join(' · ') || '已完成望诊';
+        } else {
+          // v1 旧版记录兼容
+          const faceMap = {}, colorMap = {}, coatingMap = {}, shapeMap = {};
+          TONGUE_DATA.faceColor.forEach(c => faceMap[c.val] = c.label);
+          TONGUE_DATA.color.forEach(c => colorMap[c.val] = c.label);
+          TONGUE_DATA.coating.forEach(c => coatingMap[c.val] = c.label);
+          TONGUE_DATA.shape.forEach(c => shapeMap[c.val] = c.label);
+          summary = `面色: ${faceMap[r.faceColor] || '—'} · 舌色: ${colorMap[r.color] || '—'} · 舌苔: ${coatingMap[r.coating] || '—'} · 舌形: ${shapeMap[r.shape] || '—'}`;
+        }
+        return `<div class="health-tongue-history-item"><div class="th-date">${ds}</div>${escapeHtml(summary)}</div>`;
       }).join('');
-    } catch (e) {}
+    } catch (e) { console.error('[Health] 加载望诊历史失败:', e); }
   }
 
   // ===== 功法引导 =====

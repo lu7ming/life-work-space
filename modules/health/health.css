@@ -986,6 +986,65 @@
   margin-bottom: 2px;
 }
 
+/* ===== 望诊升级：Tab 切换 ===== */
+.health-tongue-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.health-tongue-tabs::-webkit-scrollbar { display: none; }
+.health-tongue-tab {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-main);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.health-tongue-tab:hover {
+  border-color: var(--accent-orange);
+}
+.health-tongue-tab.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.health-tongue-tab-icon {
+  font-size: 13px;
+}
+.health-tongue-content {
+  min-height: 120px;
+}
+.health-tongue-interpret {
+  margin-top: 8px;
+}
+.health-tongue-interpret-inner {
+  padding: 8px 12px;
+  background: rgba(232, 168, 124, 0.1);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px 8px 8px 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  animation: healthTongueFadeIn 0.3s ease;
+}
+@keyframes healthTongueFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ===== 功法引导 ===== */
 .health-qigong-tabs {
   display: flex;

@@ -6,6 +6,87 @@
     <p class="dash-greeting-subtitle" id="dash-greeting-sub"></p>
   </div>
 
+  <!-- 动态日晷时钟 (A组视觉优化) -->
+  <div class="dash-sundial-clock" id="dash-sundial-clock">
+    <div class="sundial-clock-face">
+      <svg viewBox="0 0 140 140" aria-hidden="true">
+        <!-- 12个小时刻度（主刻度） -->
+        <g class="sundial-ticks-major">
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(30 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(60 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(90 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(120 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(150 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(180 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(210 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(240 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(270 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(300 70 70)" />
+          <line class="sundial-tick major" x1="70" y1="12" x2="70" y2="20" transform="rotate(330 70 70)" />
+        </g>
+        <!-- 分钟小刻度 -->
+        <g class="sundial-ticks-minor">
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(6 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(12 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(18 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(24 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(36 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(42 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(48 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(54 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(66 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(72 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(78 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(84 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(96 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(102 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(108 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(114 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(126 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(132 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(138 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(144 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(156 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(162 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(168 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(174 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(186 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(192 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(198 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(204 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(216 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(222 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(228 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(234 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(246 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(252 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(258 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(264 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(276 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(282 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(288 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(294 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(306 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(312 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(318 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(324 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(336 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(342 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(348 70 70)" />
+          <line class="sundial-tick minor" x1="70" y1="14" x2="70" y2="18" transform="rotate(354 70 70)" />
+        </g>
+      </svg>
+      <div class="sundial-hand sundial-hand-hour" id="sundial-hand-hour"></div>
+      <div class="sundial-hand sundial-hand-minute" id="sundial-hand-minute"></div>
+      <div class="sundial-hand sundial-hand-second" id="sundial-hand-second"></div>
+      <div class="sundial-center-dot"></div>
+    </div>
+    <div class="sundial-digital-time" id="sundial-digital-time">
+      <span id="sundial-hh">00</span><span class="colon">:</span><span id="sundial-mm">00</span><span class="colon">:</span><span id="sundial-ss">00</span>
+    </div>
+  </div>
+
   <!-- 今日信息（天气+农历/节气合并） -->
   <div class="dash-info-row card">
     <div class="dash-info-col">

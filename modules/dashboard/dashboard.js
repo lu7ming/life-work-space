@@ -4369,5 +4369,108 @@ ${moodInfo}
     _nnBindEvents();
   }
 
-  return { init, showAnnualReview, destroy };
+  /**
+   * ===== A组视觉优化：动态日晷时钟 =====
+   * 极简模拟时钟，实时走动，暖色调表盘
+   */
+  let _sundialTimer = null;
+
+  function initSundialClock() {
+    const hourHand = document.getElementById('sundial-hand-hour');
+    const minuteHand = document.getElementById('sundial-hand-minute');
+    const secondHand = document.getElementById('sundial-hand-second');
+    const hhEl = document.getElementById('sundial-hh');
+    const mmEl = document.getElementById('sundial-mm');
+    const ssEl = document.getElementById('sundial-ss');
+
+    if (!hourHand || !minuteHand || !secondHand) return;
+
+    function updateClock() {
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+      const s = now.getSeconds();
+      const ms = now.getMilliseconds();
+
+      // 角度计算（12小时制）
+      const hourDeg = ((h % 12) + m / 60 + s / 3600) * 30; // 360/12 = 30
+      const minuteDeg = (m + s / 60) * 6; // 360/60 = 6
+      const secondDeg = (s + ms / 1000) * 6;
+
+      hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+      minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+      secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+
+      if (hhEl) hhEl.textContent = String(h).padStart(2, '0');
+      if (mmEl) mmEl.textContent = String(m).padStart(2, '0');
+      if (ssEl) ssEl.textContent = String(s).padStart(2, '0');
+    }
+
+    updateClock();
+
+    // 使用 requestAnimationFrame 获得更平滑的秒针
+    function tick() {
+      updateClock();
+      _sundialTimer = requestAnimationFrame(tick);
+    }
+    // 为了性能，用 setInterval 每秒更新，秒针用 CSS 过渡产生弹性
+    if (_sundialTimer) cancelAnimationFrame(_sundialTimer);
+    _sundialTimer = setInterval(updateClock, 1000);
+  }
+
+  function destroySundialClock() {
+    if (_sundialTimer) {
+      clearInterval(_sundialTimer);
+      _sundialTimer = null;
+    }
+  }
+
+  /**
+   * ===== A组视觉优化：模块图标动态化 =====
+   * 为 Widget 图标添加对应动画 class
+   * 映射规则：
+   *   天气类 -> 呼吸光晕（默认 .dash-weather-icon 已在 CSS 中处理）
+   *   任务/待办/列表类 -> box-shadow 脉动 (.icon-pulse-shadow)
+   *   健康类 -> 心跳脉冲 (.icon-heartbeat)
+   *   日记类 -> 摇摆旋转 (.icon-sway)
+   *   目标类 -> 扩散涟漪 (.icon-ripple)
+   *   财务类 -> 微浮动 (.icon-float)
+   */
+  function applyIconAnimations() {
+    const iconMap = [
+      { pattern: /✅|📋|任务|task|todo|待办|列表|list/i, cls: 'icon-pulse-shadow' },
+      { pattern: /💪|❤️|健康|health|步数|运动|跑步/i, cls: 'icon-heartbeat' },
+      { pattern: /📝|✏️|📓|日记|journal|笔记/i, cls: 'icon-sway' },
+      { pattern: /🎯|🎪|目标|goal|完成率|进度/i, cls: 'icon-ripple' },
+      { pattern: /💰|💵|💎|财务|finance|消费|收入|支出|账单/i, cls: 'icon-float' }
+    ];
+
+    // 给所有 widget 图标应用动画
+    document.querySelectorAll('.dash-widget-item-icon').forEach(el => {
+      const text = el.textContent.trim();
+      const parent = el.closest('.dash-widget-item');
+      const title = parent?.querySelector('.dash-widget-item-title')?.textContent?.trim() || '';
+      const combined = text + ' ' + title;
+
+      for (const { pattern, cls } of iconMap) {
+        if (pattern.test(combined)) {
+          el.classList.add(cls);
+          break;
+        }
+      }
+    });
+
+    // 给聚焦卡片图标也加
+    document.querySelectorAll('.dash-focus-icon, .dash-focus-item-icon').forEach(el => {
+      const text = el.textContent.trim();
+      for (const { pattern, cls } of iconMap) {
+        if (pattern.test(text)) {
+          el.classList.add(cls);
+          break;
+        }
+      }
+    });
+  }
+
+  return { init, showAnnualReview, destroy, initSundialClock, applyIconAnimations, destroySundialClock };
 })();

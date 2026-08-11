@@ -437,6 +437,21 @@ export const App = (() => {
             reportMod.ReportModule.init();
           }
         } catch (e) { /* 静默 */ }
+
+        // A组视觉优化：日晷时钟 + 图标动画
+        try {
+          if (moduleObj && typeof moduleObj.initSundialClock === 'function') {
+            moduleObj.initSundialClock();
+          }
+          if (moduleObj && typeof moduleObj.applyIconAnimations === 'function') {
+            // 延迟一帧确保 Widget 已渲染完毕
+            requestAnimationFrame(() => {
+              setTimeout(() => moduleObj.applyIconAnimations(), 100);
+            });
+          }
+        } catch (e) {
+          console.warn('[App] A组视觉优化初始化失败:', e);
+        }
       }
     } catch (err) {
       console.error(`[App] 加载模块 ${routeName} 失败:`, err);

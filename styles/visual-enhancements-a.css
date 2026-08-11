@@ -1,0 +1,522 @@
+/**
+ * visual-enhancements-a.css - A组视觉优化合集
+ * 人生工作台 · v105
+ *
+ * 1. 动态日晷时钟 (Sundial Clock)
+ * 2. 毛玻璃分层 (Glassmorphism Cards)
+ * 3. 模块图标动态化 (Module Icon Animations)
+ *
+ * 纯 CSS/SVG 实现，深浅模式双适配，动画克制优雅
+ */
+
+/* ============================================================
+   1. 动态日晷时钟 (Sundial Clock)
+   ============================================================ */
+
+/* 时钟容器：位于问候区下方 */
+.dash-sundial-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+  user-select: none;
+}
+
+/* 表盘外框 */
+.sundial-clock-face {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), transparent 60%),
+    linear-gradient(145deg, #F5E6D3, #E8D4BC);
+  box-shadow:
+    0 4px 20px rgba(61, 44, 30, 0.12),
+    inset 0 2px 6px rgba(255, 255, 255, 0.5),
+    inset 0 -3px 10px rgba(61, 44, 30, 0.1);
+  border: 1.5px solid rgba(232, 168, 124, 0.4);
+}
+
+/* 表盘刻度 SVG 容器 */
+.sundial-clock-face svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 刻度线 */
+.sundial-tick {
+  stroke: var(--text-primary);
+  stroke-linecap: round;
+  transform-origin: 70px 70px;
+  opacity: 0.4;
+}
+
+.sundial-tick.major {
+  stroke-width: 2;
+  opacity: 0.7;
+}
+
+.sundial-tick.minor {
+  stroke-width: 1;
+  opacity: 0.3;
+}
+
+/* 指针公共样式 */
+.sundial-hand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  transform-origin: bottom center;
+  border-radius: 4px;
+  transition: transform 0.1s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+}
+
+/* 时针：暖棕渐变，粗短 */
+.sundial-hand-hour {
+  width: 4px;
+  height: 38px;
+  margin-left: -2px;
+  background: linear-gradient(to top, #8B6F47, #C8966C);
+  box-shadow: 0 1px 3px rgba(61, 44, 30, 0.3);
+}
+
+/* 分针：琥珀渐变，中长 */
+.sundial-hand-minute {
+  width: 3px;
+  height: 52px;
+  margin-left: -1.5px;
+  background: linear-gradient(to top, #A67B4A, #E8A87C);
+  box-shadow: 0 1px 3px rgba(61, 44, 30, 0.25);
+}
+
+/* 秒针：珊瑚红渐变，细长 */
+.sundial-hand-second {
+  width: 1.5px;
+  height: 58px;
+  margin-left: -0.75px;
+  background: linear-gradient(to top, #D4765A, #E8A87C);
+  box-shadow: 0 1px 2px rgba(212, 118, 90, 0.4);
+  transition: transform 0.15s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+}
+
+/* 秒针末端小圆点 */
+.sundial-hand-second::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #E8A87C;
+  box-shadow: 0 0 6px rgba(232, 168, 124, 0.6);
+}
+
+/* 中心轴心 */
+.sundial-center-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #E8A87C, #C88A5A);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.6),
+    0 2px 6px rgba(61, 44, 30, 0.3);
+  z-index: 10;
+}
+
+/* 数字时间显示 */
+.sundial-digital-time {
+  margin-top: 14px;
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text-primary);
+  letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+  font-family: "SF Mono", "Monaco", "Menlo", "Consolas", monospace;
+  opacity: 0.85;
+}
+
+.sundial-digital-time .colon {
+  display: inline-block;
+  animation: sundial-blink 1s steps(2) infinite;
+  margin: 0 1px;
+}
+
+@keyframes sundial-blink {
+  50% { opacity: 0.3; }
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] .sundial-clock-face {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08), transparent 60%),
+    linear-gradient(145deg, #3D342C, #2A231E);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 2px 6px rgba(255, 255, 255, 0.05),
+    inset 0 -3px 10px rgba(0, 0, 0, 0.3);
+  border-color: rgba(232, 168, 124, 0.3);
+}
+
+[data-theme="dark"] .sundial-tick {
+  stroke: var(--text-primary);
+}
+
+[data-theme="dark"] .sundial-tick.major {
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .sundial-tick.minor {
+  opacity: 0.25;
+}
+
+[data-theme="dark"] .sundial-digital-time {
+  opacity: 0.75;
+}
+
+[data-theme="dark"] .sundial-center-dot {
+  box-shadow:
+    0 0 0 2px rgba(42, 35, 30, 0.8),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   2. 毛玻璃分层 (Glassmorphism Cards)
+   ============================================================
+   与现有渐变边框 + 多层阴影共存，
+   通过叠加 backdrop-filter 增强质感。
+   为避免与现有渐变边框冲突，使用 ::before 伪元素承载玻璃效果
+*/
+
+.card,
+.dash-widget,
+.module-card {
+  /* 半透明底色，让 backdrop-filter 生效 */
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  /* 保留渐变边框的描边效果（通过 box-shadow 叠加实现） */
+  box-shadow:
+    var(--shadow-layered-sm),
+    inset 0 0 0 1.5px transparent,
+    0 0 0 0 rgba(232, 168, 124, 0);
+}
+
+/* 用 border-image 方式重新引入渐变边框（兼容毛玻璃） */
+.card::after,
+.dash-widget::after,
+.module-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    135deg,
+    rgba(232, 168, 124, 0.6),
+    rgba(218, 165, 110, 0.3),
+    rgba(255, 215, 150, 0.5)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+/* hover 时渐变描边更明显 */
+.card:hover::after,
+.dash-widget:hover::after,
+.module-card:hover::after {
+  background: linear-gradient(
+    135deg,
+    rgba(232, 168, 124, 0.8),
+    rgba(218, 165, 110, 0.5),
+    rgba(255, 215, 150, 0.7)
+  );
+}
+
+/* 深色模式毛玻璃调整 */
+[data-theme="dark"] .card,
+[data-theme="dark"] .dash-widget,
+[data-theme="dark"] .module-card {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .card::after,
+[data-theme="dark"] .dash-widget::after,
+[data-theme="dark"] .module-card::after {
+  background: linear-gradient(
+    135deg,
+    rgba(232, 168, 124, 0.35),
+    rgba(180, 130, 80, 0.2),
+    rgba(218, 185, 120, 0.3)
+  );
+}
+
+[data-theme="dark"] .card:hover::after,
+[data-theme="dark"] .dash-widget:hover::after,
+[data-theme="dark"] .module-card:hover::after {
+  background: linear-gradient(
+    135deg,
+    rgba(232, 168, 124, 0.55),
+    rgba(200, 145, 95, 0.35),
+    rgba(232, 195, 130, 0.45)
+  );
+}
+
+/* 确保卡片内子元素在玻璃效果之上 */
+.card > *,
+.dash-widget > *,
+.module-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 特殊卡片处理：侧边栏也加毛玻璃 */
+.sidebar {
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  background-color: rgba(200, 173, 148, 0.7) !important;
+}
+
+[data-theme="dark"] .sidebar {
+  background-color: rgba(36, 31, 26, 0.75) !important;
+}
+
+/* 顶部栏毛玻璃 */
+.topbar {
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  background-color: rgba(212, 186, 159, 0.65) !important;
+}
+
+[data-theme="dark"] .topbar {
+  background-color: rgba(30, 26, 22, 0.65) !important;
+}
+
+/* ============================================================
+   3. 模块图标动态化 (Module Icon Animations)
+   ============================================================
+   各模块图标加微妙持续动画，克制优雅
+*/
+
+/* 通用容器：让动画不溢出 */
+.dash-widget-item-icon,
+.dash-weather-icon,
+.dash-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  will-change: transform, box-shadow, filter;
+}
+
+/* ----- 3.1 天气：呼吸光晕 ----- */
+.dash-weather-icon {
+  animation: icon-breath-glow 3.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 0 rgba(232, 168, 124, 0));
+}
+
+@keyframes icon-breath-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(232, 168, 124, 0.2));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(232, 168, 124, 0.5));
+    transform: scale(1.04);
+  }
+}
+
+[data-theme="dark"] .dash-weather-icon {
+  animation-name: icon-breath-glow-dark;
+}
+
+@keyframes icon-breath-glow-dark {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px rgba(232, 168, 124, 0.3));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(232, 168, 124, 0.6));
+    transform: scale(1.04);
+  }
+}
+
+/* ----- 3.2 待办/任务：box-shadow 脉动 -----
+   针对任务类 widget 图标（📋），我们通过 :has() 选择器或 data 方式识别，
+   此处直接给所有 dash-widget-item-icon 添加差异化动画，
+   通过 nth-child 和内容匹配的方式会太复杂，
+   改为用 JS 给对应图标加 class 名称。
+   先定义基础脉动类 */
+.icon-pulse-shadow {
+  animation: icon-pulse-shadow 2.2s ease-in-out infinite;
+}
+
+@keyframes icon-pulse-shadow {
+  0%, 100% {
+    filter: drop-shadow(0 0 0 rgba(139, 111, 71, 0));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 2px 6px rgba(139, 111, 71, 0.4));
+    transform: scale(1.03);
+  }
+}
+
+[data-theme="dark"] .icon-pulse-shadow {
+  animation-name: icon-pulse-shadow-dark;
+}
+
+@keyframes icon-pulse-shadow-dark {
+  0%, 100% {
+    filter: drop-shadow(0 0 0 rgba(232, 168, 124, 0));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 2px 8px rgba(232, 168, 124, 0.35));
+    transform: scale(1.03);
+  }
+}
+
+/* ----- 3.3 健康：心跳 scale 脉冲 ----- */
+.icon-heartbeat {
+  animation: icon-heartbeat 1.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes icon-heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.12); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.08); }
+  70% { transform: scale(1); }
+}
+
+/* ----- 3.4 日记：轻微摇摆旋转 ±2度 ----- */
+.icon-sway {
+  animation: icon-sway 4s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes icon-sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+/* ----- 3.5 目标：扩散涟漪 ----- */
+.icon-ripple {
+  position: relative;
+  animation: icon-ripple-pulse 3s ease-in-out infinite;
+}
+
+.icon-ripple::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(232, 168, 124, 0.5);
+  animation: icon-ripple-expand 3s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes icon-ripple-expand {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes icon-ripple-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+[data-theme="dark"] .icon-ripple::before {
+  border-color: rgba(232, 168, 124, 0.4);
+}
+
+/* ----- 3.6 财务：微浮动 translateY ----- */
+.icon-float {
+  animation: icon-float 3.2s ease-in-out infinite;
+}
+
+@keyframes icon-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* 防止图标动画导致文字闪烁 */
+.dash-widget-item-icon,
+.dash-weather-icon {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* 响应式：移动端减弱动画幅度 */
+@media (max-width: 768px) {
+  .dash-sundial-clock {
+    margin-bottom: 20px;
+  }
+
+  .sundial-clock-face {
+    width: 110px;
+    height: 110px;
+  }
+
+  .sundial-hand-hour {
+    height: 30px;
+  }
+
+  .sundial-hand-minute {
+    height: 42px;
+  }
+
+  .sundial-hand-second {
+    height: 46px;
+  }
+
+  .sundial-digital-time {
+    margin-top: 10px;
+    font-size: 17px;
+  }
+}
+
+/* 降低动画偏好：尊重用户系统设置 */
+@media (prefers-reduced-motion: reduce) {
+  .sundial-hand,
+  .sundial-digital-time .colon,
+  .dash-weather-icon,
+  .icon-pulse-shadow,
+  .icon-heartbeat,
+  .icon-sway,
+  .icon-ripple,
+  .icon-ripple::before,
+  .icon-float {
+    animation: none !important;
+    transition: none !important;
+  }
+}

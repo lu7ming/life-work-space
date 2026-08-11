@@ -85,6 +85,7 @@ export const ToolboxModule = (() => {
       }
     } catch (e) {
       console.warn('[Toolbox] localStorage 读取失败，使用默认数据:', e);
+      if (window.App) window.App.showToast('本地数据读取异常，已恢复默认网址 ⚠️');
     }
     // 首次使用，写入默认数据
     saveLinks(DEFAULT_LINKS);
@@ -96,6 +97,7 @@ export const ToolboxModule = (() => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
       console.error('[Toolbox] localStorage 写入失败:', e);
+      if (window.App) window.App.showToast('数据保存失败（浏览器存储可能已满） ⚠️');
     }
   }
 

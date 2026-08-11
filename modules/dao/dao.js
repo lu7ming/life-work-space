@@ -2092,9 +2092,12 @@ const GUADATA = [
       </div>
     `).join('');
 
+    // 先清理旧监听器再绑定新的（防止重复渲染导致累积）
+    _clearContainerListeners(listEl);
+
     // 绑定点击事件
     listEl.querySelectorAll('.dao-gua-list-item').forEach(item => {
-      item.addEventListener('click', () => {
+      _bindEvent(item, 'click', () => {
         const idx = parseInt(item.dataset.guaIdx);
         showGuaDetail(idx);
       });
@@ -2346,8 +2349,10 @@ const GUADATA = [
         </div>
       `).join('');
 
+      _clearContainerListeners(list);
+
       list.querySelectorAll('.dao-tutorial-item-header').forEach(header => {
-        header.addEventListener('click', () => {
+        _bindEvent(header, 'click', () => {
           header.parentElement.classList.toggle('expanded');
         });
       });
@@ -2501,9 +2506,12 @@ const GUADATA = [
       </div>
     `).join('');
 
+    // 先清理旧监听器
+    _clearContainerListeners(listEl);
+
     // 绑定卡片展开/收起
     listEl.querySelectorAll('.dao-yangsheng-card').forEach(card => {
-      card.addEventListener('click', (e) => {
+      _bindEvent(card, 'click', (e) => {
         // 如果点击的是健康链接，不触发展开/收起
         if (e.target.closest('.dao-yangsheng-health-link')) return;
         const body = card.querySelector('.dao-yangsheng-body');
@@ -2523,7 +2531,7 @@ const GUADATA = [
 
     // 绑定健康模块跳转
     listEl.querySelectorAll('.dao-yangsheng-health-link').forEach(link => {
-      link.addEventListener('click', async (e) => {
+      _bindEvent(link, 'click', async (e) => {
         e.stopPropagation();
         const tab = link.dataset.healthTab;
         const target = link.dataset.healthTarget;
@@ -2591,9 +2599,12 @@ const GUADATA = [
       </div>
     `).join('');
 
+    // 先清理旧监听器，再绑定新的
+    _clearContainerListeners(listEl);
+
     // 绑定展开/收起事件
     listEl.querySelectorAll('.dao-djd-item-header').forEach(header => {
-      header.addEventListener('click', () => {
+      _bindEvent(header, 'click', () => {
         header.parentElement.classList.toggle('expanded');
       });
     });
@@ -2661,9 +2672,12 @@ const GUADATA = [
       `;
     }).join('');
 
+    // 先清理旧监听器，再绑定新的
+    _clearContainerListeners(listEl);
+
     // 绑定展开/收起事件
     listEl.querySelectorAll('.dao-zz-item-header').forEach(header => {
-      header.addEventListener('click', () => {
+      _bindEvent(header, 'click', () => {
         header.parentElement.classList.toggle('expanded');
       });
     });
@@ -2673,7 +2687,7 @@ const GUADATA = [
   function bindTabEvents() {
     // 主Tab
     document.querySelectorAll('.dao-tab-item').forEach(tab => {
-      tab.addEventListener('click', () => {
+      _bindEvent(tab, 'click', () => {
         const target = tab.dataset.daoTab;
         document.querySelectorAll('.dao-tab-item').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
@@ -2685,7 +2699,7 @@ const GUADATA = [
 
     // 子Tab
     document.querySelectorAll('.dao-sub-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
+      _bindEvent(tab, 'click', () => {
         const target = tab.dataset.yiTab;
         document.querySelectorAll('.dao-sub-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
@@ -2698,7 +2712,7 @@ const GUADATA = [
     // 搜索
     const searchInput = document.getElementById('dao-gua-search');
     if (searchInput) {
-      searchInput.addEventListener('input', e => {
+      _bindEvent(searchInput, 'input', e => {
         renderGuaList(e.target.value);
       });
     }
@@ -2706,21 +2720,21 @@ const GUADATA = [
     // 卦象详情关闭
     const closeBtn = document.getElementById('dao-detail-close');
     const mask = document.getElementById('dao-gua-detail-mask');
-    if (closeBtn) closeBtn.addEventListener('click', hideGuaDetail);
+    if (closeBtn) _bindEvent(closeBtn, 'click', hideGuaDetail);
     if (mask) {
-      mask.addEventListener('click', e => {
+      _bindEvent(mask, 'click', e => {
         if (e.target === mask) hideGuaDetail();
       });
     }
 
     // 梅花易数按钮
     const meihuaBtn = document.getElementById('dao-meihua-btn');
-    if (meihuaBtn) meihuaBtn.addEventListener('click', doMeihuaQigua);
+    if (meihuaBtn) _bindEvent(meihuaBtn, 'click', doMeihuaQigua);
 
     // 道德经搜索
     const djdSearch = document.getElementById('dao-djd-search');
     if (djdSearch) {
-      djdSearch.addEventListener('input', e => {
+      _bindEvent(djdSearch, 'input', e => {
         renderDaodejing(e.target.value);
       });
     }
@@ -2728,23 +2742,23 @@ const GUADATA = [
     // 庄子搜索
     const zzSearch = document.getElementById('dao-zz-search');
     if (zzSearch) {
-      zzSearch.addEventListener('input', e => {
+      _bindEvent(zzSearch, 'input', e => {
         renderZhuangzi(e.target.value);
       });
     }
     // 养生智慧搜索
     const ysSearch = document.getElementById('dao-ys-search');
     if (ysSearch) {
-      ysSearch.addEventListener('input', e => {
+      _bindEvent(ysSearch, 'input', e => {
         renderYangsheng(e.target.value);
       });
     }
 
     // 六爻摇卦按钮
     const shakeBtn = document.getElementById('dao-shake-btn');
-    if (shakeBtn) shakeBtn.addEventListener('click', shakeCoins);
+    if (shakeBtn) _bindEvent(shakeBtn, 'click', shakeCoins);
     const resetBtn = document.getElementById('dao-reset-btn');
-    if (resetBtn) resetBtn.addEventListener('click', initLiuyaoState);
+    if (resetBtn) _bindEvent(resetBtn, 'click', initLiuyaoState);
   }
 
   // ===== 公共API：供其他模块调用（如首页每日卦象） =====
@@ -2761,6 +2775,37 @@ const GUADATA = [
 
   function getBagua() {
     return BAGUA_XIANTIAN;
+  }
+
+
+  // ===== 事件监听器与定时器追踪（用于 destroy 清理） =====
+  let _eventListeners = [];
+  let _intervalIds = [];
+
+  function _bindEvent(el, event, handler) {
+    if (el) {
+      el.addEventListener(event, handler);
+      _eventListeners.push({ el, event, handler });
+    }
+  }
+
+  function _clearContainerListeners(container) {
+    if (!container) return;
+    _eventListeners = _eventListeners.filter(item => {
+      // 判断该元素是否是 container 的后代，或者就是 container 本身
+      const isChild = (item.el === container) || (container.contains && container.contains(item.el));
+      if (isChild) {
+        try { item.el.removeEventListener(item.event, item.handler); } catch(e) {}
+        return false;
+      }
+      return true;
+    });
+  }
+
+  function _setInterval(fn, delay) {
+    const id = setInterval(fn, delay);
+    _intervalIds.push(id);
+    return id;
   }
 
   // ===== 初始化 =====
@@ -2799,7 +2844,7 @@ const GUADATA = [
     }
 
     // 每分钟更新一次梅花易数时间
-    setInterval(renderMeihuaTime, 60000);
+    _setInterval(renderMeihuaTime, 60000);
   }
 
   // 切换主Tab（供外部调用）
@@ -2808,8 +2853,27 @@ const GUADATA = [
     if (tab) tab.click();
   }
 
+  // ===== 销毁模块 =====
+  function destroy() {
+    // 清理所有定时器
+    _intervalIds.forEach(id => clearInterval(id));
+    _intervalIds = [];
+
+    // 移除所有事件监听器
+    _eventListeners.forEach(({ el, event, handler }) => {
+      if (el && el.removeEventListener) {
+        try { el.removeEventListener(event, handler); } catch(e) {}
+      }
+    });
+    _eventListeners = [];
+
+    console.log('[DaoModule] 模块已销毁，定时器 & 事件监听器已清理');
+  }
+
+
   return {
     init,
+    destroy,
     getDailyGua,
     getGuaByIdx,
     getBagua,

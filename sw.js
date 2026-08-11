@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v106 - flip-digit counter + ink-wash page transition
+ * v107 - C组2项视觉优化（卷轴展开面板/手绘风分隔元素）
  */
 
-const CACHE_NAME = 'life-work-space-v106';
+const CACHE_NAME = 'life-work-space-v107';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -20,6 +20,7 @@ const CACHE_ASSETS = [
   './styles/templates.css',
   './styles/visual-enhancements.css',
   './styles/visual-enhancements-a.css',
+  './styles/visual-c-group.css',
   // 核心 ES Modules（首屏静态导入）
   './core/app.js',
   './core/storage.js',
@@ -49,6 +50,7 @@ const CACHE_ASSETS = [
   './core/theme.js',
   './core/bg-effects.js',
   './core/visual-enhancements.js',
+  './core/visual-c-group.js',
   './core/sync.js',
   './core/quickinput.js',
   './core/user-profile.js',

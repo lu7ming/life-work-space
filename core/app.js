@@ -189,6 +189,15 @@ export const App = (() => {
       console.warn('[App] 视觉增强模块初始化失败:', err);
     }
 
+    // 11. 初始化 C 组视觉优化（2 项：卷轴展开 + 手绘分隔）
+    try {
+      const { VisualCGroup } = await import('./visual-c-group.js?v=107');
+      VisualCGroup.init();
+      console.log('[App] C 组视觉优化初始化完成');
+    } catch (err) {
+      console.warn('[App] C 组视觉优化初始化失败:', err);
+    }
+
     // 18. 自动保存定时器（30秒）
     _autoSaveTimer = setInterval(() => {
       const saveIndicator = document.getElementById('auto-save-indicator');

@@ -1184,12 +1184,11 @@ export const DashboardModule = (() => {
     const valueStr = String(value);
     const flipHtml = buildFlipCounter(valueStr);
     container.innerHTML = `
+      <div class="dash-widget-counter-label"><span class="dash-widget-counter-icon">${icon}</span> ${label}</div>
       <div class="dash-widget-counter">
-        <span class="dash-widget-counter-icon">${icon}</span>
         <span class="dash-widget-counter-value flip-counter" data-value="${valueStr}">${flipHtml}</span>
         <span class="dash-widget-counter-unit">${unit}</span>
       </div>
-      <div class="dash-widget-counter-label">${label}</div>
     `;
   }
 

@@ -80,6 +80,58 @@ body::before {
   overflow: hidden;
 }
 
+
+/* ========== 季节增强：顶部渐变条 + 角隅装饰 ========== */
+.seasonal-top-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 1000;
+  pointer-events: none;
+  transition: background 1s ease;
+}
+[data-season="spring"] .seasonal-top-banner {
+  background: linear-gradient(90deg, transparent, rgba(255,182,193,0.6) 20%, rgba(255,140,170,0.4) 50%, rgba(255,182,193,0.6) 80%, transparent);
+}
+[data-season="summer"] .seasonal-top-banner {
+  background: linear-gradient(90deg, transparent, rgba(100,180,100,0.5) 20%, rgba(140,200,120,0.4) 50%, rgba(100,180,100,0.5) 80%, transparent);
+}
+[data-season="autumn"] .seasonal-top-banner {
+  background: linear-gradient(90deg, transparent, rgba(210,120,50,0.6) 20%, rgba(230,150,70,0.4) 50%, rgba(210,120,50,0.6) 80%, transparent);
+}
+[data-season="winter"] .seasonal-top-banner {
+  background: linear-gradient(90deg, transparent, rgba(200,210,220,0.5) 20%, rgba(220,225,235,0.4) 50%, rgba(200,210,220,0.5) 80%, transparent);
+}
+
+.seasonal-corner {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.35;
+}
+.seasonal-corner-left {
+  left: 8px;
+  top: 12px;
+  width: 40px;
+  height: 60px;
+  border-left: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  border-bottom-left-radius: 12px;
+}
+.seasonal-corner-right {
+  right: 8px;
+  top: 12px;
+  width: 40px;
+  height: 60px;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  border-bottom-right-radius: 12px;
+}
+[data-theme="dark"] .seasonal-corner { opacity: 0.2; }
+[data-theme="dark"] .seasonal-top-banner { opacity: 0.7; }
+
 /* 季节装饰 Canvas 层（在纸纹之上，内容之下） */
 #seasonal-decoration {
   position: fixed;

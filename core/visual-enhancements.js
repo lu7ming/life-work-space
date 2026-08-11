@@ -21,6 +21,28 @@ export const VisualEnhancements = (() => {
   let W = 0;
   let H = 0;
 
+
+  // 设置季节属性并创建装饰元素
+  function setSeasonAttribute() {
+    const season = getCurrentSeason();
+    document.documentElement.setAttribute('data-season', season);
+    if (!document.querySelector('.seasonal-top-banner')) {
+      const banner = document.createElement('div');
+      banner.className = 'seasonal-top-banner';
+      document.body.appendChild(banner);
+    }
+    if (!document.querySelector('.seasonal-corner-left')) {
+      const cL = document.createElement('div');
+      cL.className = 'seasonal-corner seasonal-corner-left';
+      document.body.appendChild(cL);
+    }
+    if (!document.querySelector('.seasonal-corner-right')) {
+      const cR = document.createElement('div');
+      cR.className = 'seasonal-corner seasonal-corner-right';
+      document.body.appendChild(cR);
+    }
+  }
+
   // 季节配置
   const SEASONS = {
     spring: { months: [3, 4, 5], name: 'spring' },  // 3-5月 樱花
@@ -78,6 +100,7 @@ export const VisualEnhancements = (() => {
     currentSeason = getCurrentSeason();
     resizeCanvas();
     createParticles();
+    setSeasonAttribute();
 
     resizeHandler = () => {
       resizeCanvas();

@@ -1145,6 +1145,78 @@ html[data-bg-mode="hokkaido"] #bg-effects-layer {
 html[data-bg-mode="hokkaido"] #bg-effects-layer::after {
   background: radial-gradient(ellipse, rgba(255, 200, 100, 0.08) 0%, transparent 70%);
 }
+/* 10. 水墨山水 — 灰墨渐变（远山留白） */
+html[data-bg-mode="ink-mountain"] #bg-effects-layer {
+  background: linear-gradient(180deg, #f0ece8 0%, #e8e4df 25%, #d8d4cf 55%, #c8c4bf 80%, #b8b4af 100%);
+}
+html[data-bg-mode="ink-mountain"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 30% 30%, rgba(180, 140, 100, 0.06) 0%, transparent 60%);
+}
+
+/* 11. 月下荷塘 — 深蓝夜色（月光荷塘） */
+html[data-bg-mode="moonlit-pond"] #bg-effects-layer {
+  background: linear-gradient(180deg, #0a0f1e 0%, #0f1628 30%, #142030 55%, #0a1525 80%, #050d18 100%);
+}
+html[data-bg-mode="moonlit-pond"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 70% 18%, rgba(240, 235, 200, 0.12) 0%, transparent 50%);
+}
+
+/* 12. 烟雨江南 — 灰绿色调（朦胧水乡） */
+html[data-bg-mode="jiangnan-rain"] #bg-effects-layer {
+  background: linear-gradient(180deg, #2a3038 0%, #353c44 30%, #3d4548 55%, #30383c 80%, #252c30 100%);
+}
+html[data-bg-mode="jiangnan-rain"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 50% 60%, rgba(120, 150, 140, 0.08) 0%, transparent 55%);
+}
+
+/* 13. 星河倒影 — 深紫蓝色（银河湖面） */
+html[data-bg-mode="starry-lake"] #bg-effects-layer {
+  background: linear-gradient(180deg, #050818 0%, #0a1030 35%, #101838 50%, #0a1228 70%, #060a18 100%);
+}
+html[data-bg-mode="starry-lake"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 20% 15%, rgba(180, 200, 255, 0.06) 0%, transparent 50%);
+}
+
+/* 14. 桃花雨 — 淡青粉色（落英缤纷） */
+html[data-bg-mode="peach-rain"] #bg-effects-layer {
+  background: linear-gradient(180deg, #d8d8d0 0%, #d0d0c8 30%, #c8c8c0 60%, #d8d0c8 85%, #e0d8d0 100%);
+}
+html[data-bg-mode="peach-rain"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 60% 40%, rgba(255, 200, 210, 0.15) 0%, transparent 55%);
+}
+
+/* 15. 枯山水 — 暖白砂色（禅意庭院） */
+html[data-bg-mode="zen-garden"] #bg-effects-layer {
+  background: linear-gradient(180deg, #f2ede5 0%, #ebe5da 35%, #e5ddd0 65%, #ddd5c8 85%, #d8cfc0 100%);
+}
+html[data-bg-mode="zen-garden"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 50% 65%, rgba(120, 100, 80, 0.08) 0%, transparent 50%);
+}
+
+/* 16. 竹林雨雾 — 翠绿色调（雨中竹林） */
+html[data-bg-mode="bamboo-mist"] #bg-effects-layer {
+  background: linear-gradient(180deg, #1a2a20 0%, #253528 30%, #2d4032 55%, #25352a 80%, #1a2820 100%);
+}
+html[data-bg-mode="bamboo-mist"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 50% 30%, rgba(100, 160, 110, 0.10) 0%, transparent 55%);
+}
+
+/* 17. 金色麦浪 — 暖橙金色（黄昏麦田） */
+html[data-bg-mode="golden-wheat"] #bg-effects-layer {
+  background: linear-gradient(180deg, #3a2a18 0%, #4a3520 25%, #5a4028 45%, #6a4a30 60%, #5a3c20 80%, #3a2515 100%);
+}
+html[data-bg-mode="golden-wheat"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 85% 25%, rgba(255, 150, 80, 0.18) 0%, transparent 50%);
+}
+
+/* 18. 雪落庭院 — 冷白灰色（中式庭院雪夜） */
+html[data-bg-mode="snowy-court"] #bg-effects-layer {
+  background: linear-gradient(180deg, #1f242a 0%, #252a32 30%, #2a3038 55%, #20262e 80%, #1a1f26 100%);
+}
+html[data-bg-mode="snowy-court"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 15% 30%, rgba(255, 100, 80, 0.12) 0%, transparent 45%);
+}
+
 
 /* ----- 浅色主题 + 地域氛围：使用浅色渐变背景 ----- */
 /* 浅色模式下覆盖深色渐变，使用 !important 确保优先级 */
@@ -1220,6 +1292,78 @@ html[data-bg-mode="hokkaido"][data-theme="light"] #bg-effects-layer {
 html[data-bg-mode="hokkaido"][data-theme="light"] #bg-effects-layer::after {
   background: radial-gradient(ellipse, rgba(255, 210, 130, 0.10) 0%, transparent 70%) !important;
 }
+/* 10. 水墨山水 — 浅灰米色（白昼山水） */
+html[data-bg-mode="ink-mountain"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #faf8f5 0%, #f5f2ed 25%, #eeeaE3 55%, #e8e3db 80%, #e0dbd3 100%) !important;
+}
+html[data-bg-mode="ink-mountain"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 30% 30%, rgba(200, 160, 120, 0.08) 0%, transparent 60%) !important;
+}
+
+/* 11. 月下荷塘 — 浅蓝月色（荷塘月色白昼版） */
+html[data-bg-mode="moonlit-pond"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #dce5f0 0%, #d2dce8 30%, #c8d4e0 55%, #d0dae5 80%, #d8e0ea 100%) !important;
+}
+html[data-bg-mode="moonlit-pond"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 70% 18%, rgba(240, 230, 180, 0.12) 0%, transparent 50%) !important;
+}
+
+/* 12. 烟雨江南 — 浅灰绿（水乡烟雨白昼） */
+html[data-bg-mode="jiangnan-rain"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #d8dcd8 0%, #d0d5d0 30%, #c8cec8 55%, #d0d4d0 80%, #d8dcd8 100%) !important;
+}
+html[data-bg-mode="jiangnan-rain"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 50% 60%, rgba(140, 170, 160, 0.10) 0%, transparent 55%) !important;
+}
+
+/* 13. 星河倒影 — 浅蓝紫（湖畔星空白昼版偏淡） */
+html[data-bg-mode="starry-lake"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #d8e0f0 0%, #d0d8eb 35%, #c8d0e5 50%, #cfd7ea 70%, #d5dcee 100%) !important;
+}
+html[data-bg-mode="starry-lake"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 20% 15%, rgba(180, 200, 240, 0.10) 0%, transparent 50%) !important;
+}
+
+/* 14. 桃花雨 — 淡粉青灰（春日落英） */
+html[data-bg-mode="peach-rain"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #f0ebe8 0%, #ebe5e2 30%, #e5e0dc 60%, #ece4e0 85%, #f0e8e4 100%) !important;
+}
+html[data-bg-mode="peach-rain"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 60% 40%, rgba(255, 200, 210, 0.20) 0%, transparent 55%) !important;
+}
+
+/* 15. 枯山水 — 米白砂色（禅意白昼） */
+html[data-bg-mode="zen-garden"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #faf7f0 0%, #f5f0e8 35%, #f0ebe0 65%, #ebe5d8 85%, #e5ddce 100%) !important;
+}
+html[data-bg-mode="zen-garden"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 50% 65%, rgba(150, 120, 90, 0.10) 0%, transparent 50%) !important;
+}
+
+/* 16. 竹林雨雾 — 淡翠绿（竹林白昼） */
+html[data-bg-mode="bamboo-mist"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #d8e0d8 0%, #ced8d0 30%, #c4d0c8 55%, #ced8d0 80%, #d8e0d8 100%) !important;
+}
+html[data-bg-mode="bamboo-mist"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 50% 30%, rgba(100, 170, 120, 0.12) 0%, transparent 55%) !important;
+}
+
+/* 17. 金色麦浪 — 暖金色（麦田黄昏白昼版） */
+html[data-bg-mode="golden-wheat"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #f5e8d0 0%, #f0e0c0 25%, #ead8b0 45%, #e5d0a0 60%, #e0c890 80%, #d8c080 100%) !important;
+}
+html[data-bg-mode="golden-wheat"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 85% 25%, rgba(255, 180, 100, 0.20) 0%, transparent 50%) !important;
+}
+
+/* 18. 雪落庭院 — 浅灰白（庭院雪日） */
+html[data-bg-mode="snowy-court"][data-theme="light"] #bg-effects-layer {
+  background: linear-gradient(180deg, #e8ebee 0%, #e0e4e8 30%, #d8dde2 55%, #dce0e5 80%, #e0e4e8 100%) !important;
+}
+html[data-bg-mode="snowy-court"][data-theme="light"] #bg-effects-layer::after {
+  background: radial-gradient(ellipse at 15% 30%, rgba(255, 120, 100, 0.15) 0%, transparent 45%) !important;
+}
+
 
 /* ----- 背景模式激活时的布局调整 ----- */
 /* html/body 背景透明，让背景层透出 */

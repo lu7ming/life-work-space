@@ -15,7 +15,16 @@ export const BG_MODES = {
   HELSINKI:   'helsinki',
   BERGEN:     'bergen',
   STOCKHOLM:  'stockholm',
-  HOKKAIDO:   'hokkaido'
+  HOKKAIDO:   'hokkaido',
+  INK_MOUNTAIN: 'ink-mountain',
+  MOONLIT_POND: 'moonlit-pond',
+  JIANGNAN_RAIN: 'jiangnan-rain',
+  STARRY_LAKE:  'starry-lake',
+  PEACH_RAIN:   'peach-rain',
+  ZEN_GARDEN:   'zen-garden',
+  BAMBOO_MIST:  'bamboo-mist',
+  GOLDEN_WHEAT: 'golden-wheat',
+  SNOWY_COURT:  'snowy-court'
 };
 
 /** 背景模式元数据（供 UI 渲染） */
@@ -29,7 +38,16 @@ export const BG_MODE_META = [
   { value: BG_MODES.HELSINKI,  label: '赫尔辛基',   icon: '🧊' },
   { value: BG_MODES.BERGEN,    label: '卑尔根',     icon: '🌫️' },
   { value: BG_MODES.STOCKHOLM, label: '斯德哥尔摩', icon: '🌉' },
-  { value: BG_MODES.HOKKAIDO,  label: '北海道',     icon: '⛄' }
+  { value: BG_MODES.HOKKAIDO,  label: '北海道',     icon: '⛄' },
+  { value: BG_MODES.INK_MOUNTAIN, label: '水墨山水', icon: '🏔️' },
+  { value: BG_MODES.MOONLIT_POND, label: '月下荷塘', icon: '🪷' },
+  { value: BG_MODES.JIANGNAN_RAIN, label: '烟雨江南', icon: '🏯' },
+  { value: BG_MODES.STARRY_LAKE,  label: '星河倒影', icon: '🌌' },
+  { value: BG_MODES.PEACH_RAIN,   label: '桃花雨',   icon: '🌸' },
+  { value: BG_MODES.ZEN_GARDEN,   label: '枯山水',   icon: '⛩️' },
+  { value: BG_MODES.BAMBOO_MIST,  label: '竹林雨雾', icon: '🎋' },
+  { value: BG_MODES.GOLDEN_WHEAT, label: '金色麦浪', icon: '🌾' },
+  { value: BG_MODES.SNOWY_COURT,  label: '雪落庭院', icon: '🏮' }
 ];
 
 export const ThemeManager = (() => {

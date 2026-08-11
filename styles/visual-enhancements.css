@@ -1,6 +1,6 @@
 /**
  * visual-enhancements.css - 7 项视觉优化合集
- * 人生工作台 · v104
+ * 人生工作台 · v110
  * 1. 纸纹质感  2. 季节装饰  3. 渐变边框卡片
  * 4. 模块封面插画  5. 多层阴影悬浮  6. 通知气泡动效  7. 底部山水装饰
  */
@@ -71,9 +71,12 @@ body::before {
 }
 
 /* 确保需要绝对定位的卡片有 position: relative */
+.notif-panel {
+  overflow: hidden;
+}
+
 .card,
 .sidebar,
-.notif-panel,
 .dash-widget,
 .module-card {
   position: relative;

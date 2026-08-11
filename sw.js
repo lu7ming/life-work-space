@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v107 - C组2项视觉优化（卷轴展开面板/手绘风分隔元素）
+ * v108 - 日晷时钟布局优化（与问候区并排，消除两侧空白）
  */
 
-const CACHE_NAME = 'life-work-space-v107';
+const CACHE_NAME = 'life-work-space-v108';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

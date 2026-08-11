@@ -8,6 +8,21 @@
   max-width: 960px;
 }
 
+/* ===== 顶部栏：问候 + 日晷时钟 并排 ===== */
+.dash-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.dash-top-row .dash-greeting {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
 /* ===== 问候区域 ===== */
 .dash-greeting {
   margin-bottom: 28px;

@@ -13,12 +13,12 @@
    1. 动态日晷时钟 (Sundial Clock)
    ============================================================ */
 
-/* 时钟容器：位于问候区下方 */
+/* 时钟容器：位于问候区右侧，并排布局 */
 .dash-sundial-clock {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 24px;
+  flex-shrink: 0;
   user-select: none;
 }
 
@@ -476,10 +476,16 @@
   -webkit-backface-visibility: hidden;
 }
 
-/* 响应式：移动端减弱动画幅度 */
+/* 响应式：移动端减弱动画幅度 + 时钟改回居中堆叠 */
 @media (max-width: 768px) {
+  .dash-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
   .dash-sundial-clock {
-    margin-bottom: 20px;
+    align-self: center;
   }
 
   .sundial-clock-face {

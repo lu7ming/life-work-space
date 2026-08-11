@@ -848,7 +848,13 @@ export const MusicModule = (() => {
 
     // 创建增益节点
     gainNode = ctx.createGain();
-    const savedVolume = parseFloat(localStorage.getItem('music_volume') || '0.5');
+    let savedVolume;
+    try {
+        savedVolume = parseFloat(localStorage.getItem('music_volume') || '0.5');
+    } catch (e) {
+        console.warn('localStorage.getItem failed:', e);
+        savedVolume = 0.5;
+    }
     gainNode.gain.value = savedVolume;
     gainNode.connect(ctx.destination);
 
@@ -933,7 +939,11 @@ export const MusicModule = (() => {
     if (gainNode) {
       gainNode.gain.value = value;
     }
-    localStorage.setItem('music_volume', String(value));
+    try {
+        localStorage.setItem('music_volume', String(value));
+    } catch (e) {
+        console.warn('localStorage.setItem failed:', e);
+    }
   }
 
   // ===== 定时器 =====
@@ -1130,7 +1140,13 @@ export const MusicModule = (() => {
 
     // 音量
     const slider = panelEl.querySelector('#music-volume-slider');
-    const savedVol = parseFloat(localStorage.getItem('music_volume') || '0.5');
+    let savedVol;
+    try {
+        savedVol = parseFloat(localStorage.getItem('music_volume') || '0.5');
+    } catch (e) {
+        console.warn('localStorage.getItem failed:', e);
+        savedVol = 0.5;
+    }
     slider.value = savedVol;
     _bindEvent(slider, 'input', (e) => setVolume(parseFloat(e.target.value)));
 

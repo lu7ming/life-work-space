@@ -199,6 +199,7 @@ export const App = (() => {
     }
 
     // 18. 自动保存定时器（30秒）
+    if (_autoSaveTimer) { clearInterval(_autoSaveTimer); _autoSaveTimer = null; }
     _autoSaveTimer = setInterval(() => {
       const saveIndicator = document.getElementById('auto-save-indicator');
       if (saveIndicator) {

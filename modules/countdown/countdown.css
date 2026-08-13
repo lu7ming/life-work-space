@@ -177,8 +177,8 @@
 
 .countdown-fab {
   position: fixed;
-  left: 28px;
-  bottom: 28px;
+  right: 20px;
+  bottom: 24px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -381,7 +381,7 @@
     opacity: 1;
   }
   .countdown-fab {
-    left: 16px;
+    right: 16px;
     bottom: 16px;
     width: 52px;
     height: 52px;

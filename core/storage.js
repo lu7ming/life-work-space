@@ -4,7 +4,7 @@
  */
 
 export const DB_NAME = 'LifeWorkSpace';
-export const DB_VERSION = 14;
+export const DB_VERSION = 15;
 
 /**
  * 存储管理器
@@ -206,6 +206,12 @@ export const Storage = (() => {
             shoppingItems.createIndex('status', 'status', { unique: false });
             shoppingItems.createIndex('category', 'category', { unique: false });
             console.log('[Storage] v14 迁移：已创建 shopping_items 表（购物车模块）');
+          },
+          // v15: 倒数日模块
+          15: (db) => {
+            const countdown = db.createObjectStore('countdown', { keyPath: 'id', autoIncrement: true });
+            countdown.createIndex('date', 'date', { unique: false });
+            console.log('[Storage] v15 迁移：已创建 countdown 表（倒数日模块）');
           },
         };
 

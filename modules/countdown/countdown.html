@@ -1,0 +1,57 @@
+<!--
+  countdown.html - 倒数日模块
+  人生工作台 · 重要日子倒计时 · 纪念日管理
+-->
+<div class="module-container page-enter countdown">
+
+  <!-- 顶部标题 -->
+  <div class="module-header countdown-header">
+    <h1 class="module-title countdown-title">⏳ 倒数日</h1>
+    <div class="module-actions countdown-actions">
+    </div>
+  </div>
+
+  <!-- 倒数日列表 -->
+  <div class="countdown-list" id="countdownList"></div>
+
+  <!-- 空状态 -->
+  <div class="countdown-empty" id="countdownEmpty" style="display:none;">
+    <div class="countdown-empty-icon">⏳</div>
+    <p class="countdown-empty-text">还没有倒数日</p>
+    <p class="countdown-empty-hint">点击右下角按钮添加你的第一个重要日子</p>
+  </div>
+
+  <!-- FAB -->
+  <button class="module-fab countdown-fab" id="countdownFab" title="添加倒数日">＋</button>
+
+  <!-- 添加弹窗 -->
+  <div class="countdown-modal-overlay" id="countdownModalOverlay" style="display:none;">
+    <div class="countdown-modal">
+      <div class="countdown-modal-header">
+        <h2 class="countdown-modal-title">添加倒数日</h2>
+        <button class="countdown-modal-close" id="countdownModalClose">✕</button>
+      </div>
+      <form class="countdown-form" id="countdownForm">
+        <div class="countdown-field">
+          <label class="countdown-label">事件名称 *</label>
+          <input type="text" class="countdown-input" id="countdownName" placeholder="例如：生日、考试、旅行" required maxlength="30">
+        </div>
+        <div class="countdown-row">
+          <div class="countdown-field countdown-field-half">
+            <label class="countdown-label">目标日期 *</label>
+            <input type="date" class="countdown-input" id="countdownDate" required>
+          </div>
+          <div class="countdown-field countdown-field-half">
+            <label class="countdown-label">Emoji 图标</label>
+            <input type="text" class="countdown-input" id="countdownEmoji" placeholder="🎂" maxlength="10">
+          </div>
+        </div>
+        <div class="countdown-form-actions">
+          <button type="button" class="countdown-btn countdown-btn-ghost" id="countdownBtnCancel">取消</button>
+          <button type="submit" class="countdown-btn countdown-btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>

@@ -36,6 +36,7 @@ const MODULE_REGISTRY = {
   calendar:    { js: '../modules/calendar/calendar.js?v=95',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
   toolbox:     { js: '../modules/toolbox/toolbox.js?v=95',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
   travel:      { js: '../modules/travel/travel.js?v=95',           html: 'travel/travel.html',           css: 'travel/travel.css' },
+  countdown:   { js: '../modules/countdown/countdown.js?v=116',     html: 'countdown/countdown.html',     css: 'countdown/countdown.css' },
 };
 
 // 模块名映射：路由名 → 导出的模块对象名
@@ -59,6 +60,7 @@ const MODULE_NAME_MAP = {
   calendar: 'CalendarModule',
   toolbox: 'ToolboxModule',
   travel: 'TravelModule',
+  countdown: 'CountdownModule',
 };
 
 // ===== 懒加载核心模块缓存 =====

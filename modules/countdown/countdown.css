@@ -177,7 +177,7 @@
 
 .countdown-fab {
   position: fixed;
-  right: 28px;
+  left: 28px;
   bottom: 28px;
   width: 56px;
   height: 56px;
@@ -192,7 +192,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 80;
+  z-index: 9000;
 }
 
 .countdown-fab:hover {
@@ -381,7 +381,7 @@
     opacity: 1;
   }
   .countdown-fab {
-    right: 16px;
+    left: 16px;
     bottom: 16px;
     width: 52px;
     height: 52px;

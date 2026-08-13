@@ -1,9 +1,9 @@
 /**
  * Service Worker - 人生工作台
- * v116 - 新增倒数日模块
+ * v109 - 日晷时钟布局优化（与问候区并排，消除两侧空白）
  */
 
-const CACHE_NAME = 'life-work-space-v116';
+const CACHE_NAME = 'life-work-space-v115';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [

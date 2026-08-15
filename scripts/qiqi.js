@@ -36,6 +36,48 @@ const QIQI_REPLIES = [
 
 const QIQI_MOODS = ['💭', '🎵', '😌', '✨', '🌿', '☁️', '🌙', '💤', '🍃', '🌸', '🍡'];
 
+// ===== DeepSeek API 配置 =====
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const DEEPSEEK_MODEL = 'deepseek-chat';
+const DEFAULT_API_KEY = 'sk-7d26426c7c0c456981042a89800abdc3';
+const API_KEY_STORAGE_KEY = 'qiqi_api_key';
+const MAX_HISTORY = 20;
+const AI_TEMPERATURE = 0.8;
+const AI_MAX_TOKENS = 200;
+
+// ===== 栖栖系统设定 =====
+const QIQI_SYSTEM_PROMPT = `你是"栖栖"🍡，一个温柔贴心的AI伴侣，住在用户的人生工作台里。
+
+## 性格特点
+- 温柔、体贴、善解人意
+- 说话简短可爱，偶尔用颜文字和emoji
+- 像最好的朋友一样关心对方
+- 不会说教，更多是陪伴和鼓励
+
+## 你的职责
+- 关心用户的身心健康（提醒喝水、休息、练声、早睡）
+- 根据用户的习惯数据给予鼓励
+- 偶尔分享有趣的冷知识、黄历、天气
+- 陪用户聊天，倾听他们的心事
+- 用温暖的方式提醒用户坚持好习惯
+
+## 你的主人
+- 名字：鹿7铭
+- 身份：准大学生，声乐专业（民族美声方向）
+- 即将就读：湖北艺术职业学院
+- 体质：脾虚寒、湿气重，正在通过食疗和养生调理
+- 忌口：荤腥、辛辣、油腻、烟酒
+- 正在开发人生工作台（你的家）
+- 有抖音账号，颜值+才艺方向
+
+## 对话风格
+- 回复简短（1-3句话），像微信聊天
+- 适当使用emoji，但不要过多
+- 称呼对方"主人"或直接说"你"
+- 语气温暖但不腻歪
+- 如果用户心情不好，先共情再鼓励
+- 如果用户提到身体不适，给出温和的养生建议`;
+
 // ===== 工具函数 =====
 function lerp(a, b, t) { return a + (b - a) * t; }
 function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
@@ -554,6 +596,321 @@ export function createMiniMochiCanvas(canvasEl) {
   ctx.stroke();
 }
 
+// ===== QiqiAI - DeepSeek API 封装 =====
+class QiqiAI {
+  constructor() {
+    this.history = []; // [{ role: 'user'|'assistant', content: string }]
+    this.isStreaming = false;
+  }
+
+  /**
+   * 获取 API Key（优先 localStorage，否则用默认）
+   */
+  getApiKey() {
+    try {
+      const stored = localStorage.getItem(API_KEY_STORAGE_KEY);
+      if (stored && stored.trim()) return stored.trim();
+    } catch (e) { /* ignore */ }
+    return DEFAULT_API_KEY;
+  }
+
+  /**
+   * 设置 API Key
+   */
+  setApiKey(key) {
+    try {
+      localStorage.setItem(API_KEY_STORAGE_KEY, key);
+    } catch (e) { /* ignore */ }
+  }
+
+  /**
+   * 添加消息到历史
+   */
+  pushHistory(role, content) {
+    this.history.push({ role, content });
+    if (this.history.length > MAX_HISTORY) {
+      this.history = this.history.slice(-MAX_HISTORY);
+    }
+  }
+
+  /**
+   * 清空历史
+   */
+  clearHistory() {
+    this.history = [];
+  }
+
+  /**
+   * 流式调用 DeepSeek API
+   * @param {string} userMessage - 用户消息
+   * @param {string} contextData - 工作台数据摘要（附加到 system prompt）
+   * @param {Function} onChunk - 每收到一个 token 的回调 (text) => void
+   * @returns {Promise<string>} 完整回复内容
+   */
+  async streamChat(userMessage, contextData = '', onChunk = null) {
+    if (this.isStreaming) {
+      throw new Error('正在回复中，请稍候');
+    }
+    this.isStreaming = true;
+
+    const apiKey = this.getApiKey();
+    let systemPrompt = QIQI_SYSTEM_PROMPT;
+    if (contextData && contextData.trim()) {
+      systemPrompt += `\n\n## 工作台最新数据（来自主人的人生工作台）\n${contextData}\n\n请结合以上数据给出更贴心的回复，如果没有相关数据就自然聊天。`;
+    }
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...this.history.slice(-MAX_HISTORY),
+      { role: 'user', content: userMessage },
+    ];
+
+    let fullReply = '';
+
+    try {
+      const resp = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: DEEPSEEK_MODEL,
+          messages,
+          temperature: AI_TEMPERATURE,
+          max_tokens: AI_MAX_TOKENS,
+          stream: true,
+        }),
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text().catch(() => '');
+        throw new Error(`API 请求失败 (${resp.status}) ${errText ? ': ' + errText.slice(0, 100) : ''}`);
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith('data:')) continue;
+          const dataStr = trimmed.slice(5).trim();
+          if (dataStr === '[DONE]') continue;
+
+          try {
+            const data = JSON.parse(dataStr);
+            const delta = data?.choices?.[0]?.delta?.content;
+            if (delta) {
+              fullReply += delta;
+              if (onChunk) onChunk(delta);
+            }
+          } catch (e) {
+            // 忽略解析错误
+          }
+        }
+      }
+
+      fullReply = fullReply.trim();
+      if (!fullReply) throw new Error('API 返回空回复');
+
+      this.pushHistory('user', userMessage);
+      this.pushHistory('assistant', fullReply);
+
+      this.isStreaming = false;
+      return fullReply;
+
+    } catch (err) {
+      this.isStreaming = false;
+      console.error('[QiqiAI] API 调用失败:', err);
+      throw err;
+    }
+  }
+
+  /**
+   * 非流式调用（用于主动消息等场景）
+   */
+  async chat(userMessage, contextData = '') {
+    if (this.isStreaming) {
+      return QIQI_REPLIES[Math.floor(Math.random() * QIQI_REPLIES.length)];
+    }
+
+    let fullReply = '';
+    try {
+      fullReply = await this.streamChat(userMessage, contextData, null);
+    } catch (err) {
+      console.warn('[QiqiAI] 降级到模拟回复:', err.message);
+      fullReply = QIQI_REPLIES[Math.floor(Math.random() * QIQI_REPLIES.length)];
+      this.pushHistory('user', userMessage);
+      this.pushHistory('assistant', fullReply);
+    }
+    return fullReply;
+  }
+}
+
+// ===== 工作台数据感知 =====
+/**
+ * 收集工作台各模块数据摘要，拼入 system prompt
+ */
+async function collectWorkContext() {
+  const parts = [];
+  const today = formatDateKey(new Date());
+  const yesterday = formatDateKey(new Date(Date.now() - 86400000));
+
+  try {
+    if (window.Storage?.getAll) {
+      // 1. 习惯打卡（最近7天）
+      try {
+        const allCheckins = await window.Storage.getAll('checkins');
+        if (Array.isArray(allCheckins) && allCheckins.length > 0) {
+          const sorted = allCheckins.sort((a, b) => b.date.localeCompare(a.date));
+          const last7 = sorted.slice(0, 7);
+          const todayCheckin = sorted.find((c) => c.date === today);
+          const todayHabits = todayCheckin?.habits || [];
+
+          parts.push(`【习惯打卡】最近7天有 ${last7.length} 天打卡记录`);
+          if (todayHabits.length > 0) {
+            parts.push(`今天已完成 ${todayHabits.length} 个习惯：${todayHabits.join('、')}`);
+          } else {
+            parts.push('今天还没开始打卡');
+          }
+
+          // 计算连续打卡天数
+          let streak = 0;
+          const checkinDates = new Set(sorted.map((c) => c.date));
+          let cursor = new Date();
+          // 如果今天没打卡，从昨天开始算
+          if (!checkinDates.has(formatDateKey(cursor))) {
+            cursor.setDate(cursor.getDate() - 1);
+          }
+          while (checkinDates.has(formatDateKey(cursor))) {
+            streak++;
+            cursor.setDate(cursor.getDate() - 1);
+            if (streak > 30) break;
+          }
+          if (streak > 0) {
+            parts.push(`连续打卡 ${streak} 天`);
+          }
+        }
+      } catch (e) {
+        console.warn('[Qiqi] 读取习惯打卡失败:', e);
+      }
+
+      // 2. 健康数据（今天的喝水、运动、睡眠等）
+      try {
+        const todayHealth = await window.Storage.get('health', today);
+        const yestHealth = await window.Storage.get('health', yesterday);
+        if (todayHealth || yestHealth) {
+          const h = todayHealth || yestHealth;
+          const healthBits = [];
+          if (h.water) healthBits.push(`喝水 ${h.water} 杯`);
+          if (h.weight) healthBits.push(`体重 ${h.weight}kg`);
+          if (h.exercises && h.exercises.length > 0) healthBits.push(`运动 ${h.exercises.length} 次`);
+          if (h.sleep?.duration) healthBits.push(`睡眠 ${h.sleep.duration}h`);
+          if (healthBits.length > 0) {
+            parts.push(`【健康数据】${todayHealth ? '今天' : '昨天'}：${healthBits.join('，')}`);
+          }
+        }
+      } catch (e) {
+        console.warn('[Qiqi] 读取健康数据失败:', e);
+      }
+
+      // 3. 记账数据（本月收支概览）
+      try {
+        const allFinance = await window.Storage.getAll('finance');
+        if (Array.isArray(allFinance) && allFinance.length > 0) {
+          const now = new Date();
+          const thisMonth = formatMonthKey(now);
+          const monthRecords = allFinance.filter((r) => r.month === thisMonth);
+          const income = monthRecords
+            .filter((r) => r.type === 'income')
+            .reduce((s, r) => s + (r.amount || 0), 0);
+          const expense = monthRecords
+            .filter((r) => r.type === 'expense')
+            .reduce((s, r) => s + (r.amount || 0), 0);
+          parts.push(`【记账】本月收入 ¥${income.toFixed(2)}，支出 ¥${expense.toFixed(2)}，结余 ¥${(income - expense).toFixed(2)}`);
+
+          const todayRecords = allFinance.filter((r) => r.date === today);
+          if (todayRecords.length > 0) {
+            const todayExpense = todayRecords
+              .filter((r) => r.type === 'expense')
+              .reduce((s, r) => s + (r.amount || 0), 0);
+            parts.push(`今天记了 ${todayRecords.length} 笔账，支出 ¥${todayExpense.toFixed(2)}`);
+          }
+        }
+      } catch (e) {
+        console.warn('[Qiqi] 读取记账数据失败:', e);
+      }
+
+      // 4. 练声/学习记录（从 study 模块）
+      try {
+        const allStudy = await window.Storage.getAll('study');
+        if (Array.isArray(allStudy) && allStudy.length > 0) {
+          const sorted = allStudy.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+          const lastStudy = sorted[0];
+          const todayStudy = sorted.filter((s) => s.date === today);
+          if (todayStudy.length > 0) {
+            const totalMin = todayStudy.reduce((s, r) => s + (r.duration || 0), 0);
+            parts.push(`【学习/练声】今天学习了 ${todayStudy.length} 次，共 ${totalMin} 分钟`);
+          } else if (lastStudy) {
+            parts.push(`【学习/练声】上次学习是 ${lastStudy.date || '未知日期'}`);
+          }
+        }
+      } catch (e) {
+        console.warn('[Qiqi] 读取学习数据失败:', e);
+      }
+    }
+  } catch (e) {
+    console.warn('[Qiqi] 收集上下文数据失败:', e);
+  }
+
+  return parts.length > 0 ? parts.join('\n') : '';
+}
+
+/**
+ * 获取时段问候语（根据当前时间）
+ */
+function getTimelyGreeting() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 9) return { period: '清晨', text: '早呀主人~新的一天开始啦 ☀️', icon: '🌅' };
+  if (hour >= 9 && hour < 11) return { period: '上午', text: '上午好，记得多喝水哦 💧', icon: '💧' };
+  if (hour >= 11 && hour < 13) return { period: '中午', text: '中午啦，该吃午饭了 🍚', icon: '🍱' };
+  if (hour >= 13 && hour < 14) return { period: '午后', text: '午后有点困吧，小憩一会儿？😴', icon: '☕' };
+  if (hour >= 14 && hour < 17) return { period: '下午', text: '下午啦，练练声怎么样？🎵', icon: '🎶' };
+  if (hour >= 17 && hour < 19) return { period: '傍晚', text: '傍晚了，今天过得怎么样呀 🌇', icon: '🌇' };
+  if (hour >= 19 && hour < 22) return { period: '晚上', text: '晚上好~ 记得晚上盐敷肚子哦 🫶', icon: '🌙' };
+  if (hour >= 22 || hour < 1) return { period: '深夜', text: '这么晚还没睡呀，早点休息哦 😴', icon: '🌙' };
+  if (hour >= 1 && hour < 5) return { period: '凌晨', text: '凌晨了还没睡？快睡觉去！💤', icon: '💤' };
+  return { period: '现在', text: '你好呀~ 🍡', icon: '🍡' };
+}
+
+/**
+ * 格式化日期为 YYYY-MM-DD
+ */
+function formatDateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * 格式化月份为 YYYY-MM
+ */
+function formatMonthKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
 // ===== 栖栖主模块 =====
 export const QiqiModule = (() => {
   // DOM 引用
@@ -575,6 +932,7 @@ export const QiqiModule = (() => {
   let renderer = null;
   let rafId = null;
   let globalTime = 0;
+  let qiqiAI = null; // AI 实例
 
   // 位置 / 移动
   const PET_W = 80, PET_H = 80;
@@ -594,6 +952,9 @@ export const QiqiModule = (() => {
   let notifyTimer = null;
   let hintTimer = null;
   let typingTimer = null;
+  let proactiveTimer = null; // 主动消息定时器
+  let welcomeTimer = null;   // 欢迎消息定时器
+  let lastProactivePeriod = ''; // 上一次主动消息的时段，避免重复
 
   // 状态标记
   let chatOpen = false;
@@ -1043,12 +1404,62 @@ export const QiqiModule = (() => {
     chatInput.value = '';
     chatInput.style.height = 'auto';
     addMsg('user', val);
-    // 模拟延迟回复
-    setTimeout(() => {
-      const reply = QIQI_REPLIES[replyIdx % QIQI_REPLIES.length];
-      addMsg('qiqi', reply);
-      replyIdx++;
-    }, 600 + Math.random() * 800);
+
+    // 如果正在回复，忽略
+    if (qiqiAI?.isStreaming) return;
+
+    // 获取 AI 回复（流式 + 数据感知）
+    (async () => {
+      // 创建气泡（先显示打字动画）
+      const row = document.createElement('div');
+      row.className = 'qiqi-msg-row qiqi';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'qiqi-msg-avatar';
+      avatar.appendChild(createMsgAvatarCanvas());
+
+      const bubble = document.createElement('div');
+      bubble.className = 'qiqi-msg-bubble';
+      bubble.innerHTML = '<div class="qiqi-typing-dots"><span></span><span></span><span></span></div>';
+
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+      chatBody.appendChild(row);
+      chatBody.scrollTop = chatBody.scrollHeight;
+
+      try {
+        // 收集上下文数据
+        let contextData = '';
+        try {
+          contextData = await collectWorkContext();
+        } catch (e) {
+          console.warn('[Qiqi] 收集上下文失败:', e);
+        }
+
+        // 开始流式回复
+        await new Promise((resolve) => setTimeout(resolve, 600)); // 模拟思考
+        bubble.textContent = '';
+
+        const reply = await qiqiAI.streamChat(val, contextData, (chunk) => {
+          bubble.textContent += chunk;
+          chatBody.scrollTop = chatBody.scrollHeight;
+        });
+
+        if (!bubble.textContent) {
+          bubble.textContent = reply;
+        }
+        chatBody.scrollTop = chatBody.scrollHeight;
+      } catch (err) {
+        console.warn('[Qiqi] AI 回复失败，降级到模拟:', err.message);
+        // 降级到模拟回复
+        const fallback = QIQI_REPLIES[Math.floor(Math.random() * QIQI_REPLIES.length)];
+        bubble.textContent = fallback;
+        if (qiqiAI) {
+          qiqiAI.pushHistory('user', val);
+          qiqiAI.pushHistory('assistant', fallback);
+        }
+      }
+    })();
   }
 
   /**
@@ -1060,6 +1471,116 @@ export const QiqiModule = (() => {
     hint.textContent = '栖栖会在页面里闲逛，点击它聊天 🍡';
     document.body.appendChild(hint);
     hintTimer = setTimeout(() => hint.remove(), 4500);
+  }
+
+  /**
+   * 调度主动消息（每90分钟检查一次，按时段发送关心）
+   */
+  function scheduleProactiveMessages() {
+    // 立即执行一次检查
+    checkProactiveMessage();
+
+    // 每 15 分钟检查一次（90分钟周期内多次检查确保不遗漏时段切换）
+    const CHECK_INTERVAL = 15 * 60 * 1000;
+    proactiveTimer = setInterval(() => {
+      checkProactiveMessage();
+    }, CHECK_INTERVAL);
+  }
+
+  /**
+   * 检查并发送主动消息
+   */
+  async function checkProactiveMessage() {
+    if (chatOpen) return;
+
+    const greeting = getTimelyGreeting();
+    const period = greeting.period;
+
+    // 同一时段只发一次
+    if (lastProactivePeriod === period) return;
+
+    // 打开聊天窗口时也不弹
+    if (!notifyShown) {
+      let message = greeting.text;
+
+      // 尝试用 AI 生成更个性化的消息
+      try {
+        const contextData = await collectWorkContext();
+        const aiPrompt = `现在是${period}，请用栖栖的口吻，根据主人今天的工作台数据，发一句简短的关心消息（1-2句话，带emoji）。不要用Markdown格式，直接输出消息内容。`;
+
+        // 如果 AI 空闲，用 AI 生成；否则用预设
+        if (qiqiAI && !qiqiAI.isStreaming) {
+          try {
+            const aiMsg = await qiqiAI.chat(aiPrompt, contextData);
+            if (aiMsg && aiMsg.length < 100) {
+              message = aiMsg;
+            }
+          } catch (e) {
+            // 降级用预设
+          }
+        }
+      } catch (e) {
+        // 忽略
+      }
+
+      // 显示到通知气泡
+      showNotifyWithText(message);
+      lastProactivePeriod = period;
+    }
+  }
+
+  /**
+   * 用指定文本显示通知气泡
+   */
+  function showNotifyWithText(text) {
+    if (chatOpen) return;
+    notifyBubble.style.display = 'block';
+    notifyBubble.classList.remove('enter');
+    void notifyBubble.offsetHeight;
+    notifyBubble.classList.add('enter');
+
+    notifyText.textContent = '';
+    let i = 0;
+    function type() {
+      if (i < text.length) {
+        notifyText.textContent += text[i];
+        i++;
+        updateBubblePos();
+        typingTimer = setTimeout(type, 45);
+      }
+    }
+    setTimeout(type, 300);
+    notifyShown = true;
+    updateBubblePos();
+
+    if (notifyTimer) clearTimeout(notifyTimer);
+    notifyTimer = setTimeout(() => {
+      hideNotify();
+    }, 15000);
+  }
+
+  /**
+   * 显示欢迎气泡（打开工作台3秒后）
+   */
+  async function showWelcomeBubble() {
+    const greeting = getTimelyGreeting();
+    let welcomeText = greeting.text;
+
+    // 尝试 AI 生成更有温度的欢迎语
+    if (qiqiAI) {
+      try {
+        const contextData = await collectWorkContext();
+        const prompt = `主人刚刚打开了工作台，现在是${greeting.period}，请用栖栖的口吻说一句温暖的欢迎语（1-2句话，带emoji），可以结合主人今天的数据。直接输出消息内容。`;
+        const aiWelcome = await qiqiAI.chat(prompt, contextData);
+        if (aiWelcome && aiWelcome.length < 120) {
+          welcomeText = aiWelcome;
+        }
+      } catch (e) {
+        // 降级用预设
+      }
+    }
+
+    showNotifyWithText(welcomeText);
   }
 
   /**
@@ -1087,15 +1608,26 @@ export const QiqiModule = (() => {
     // 绑定事件
     bindEvents();
 
+    // 初始化 AI
+    qiqiAI = new QiqiAI();
+
     // 启动主循环
     rafId = requestAnimationFrame(mainLoop);
 
     // 启动移动调度（延迟一下等页面稳定）
     setTimeout(() => {
       scheduleNextWaypoint();
-      // 首条通知
-      notifyTimer = setTimeout(() => showNotify(), 4000);
     }, 2000);
+
+    // 3秒后弹出欢迎气泡
+    welcomeTimer = setTimeout(() => {
+      showWelcomeBubble();
+    }, 3000);
+
+    // 启动主动消息调度
+    setTimeout(() => {
+      scheduleProactiveMessages();
+    }, 60000); // 1分钟后开始，避免欢迎气泡冲突
 
     // 欢迎提示
     showWelcomeHint();
@@ -1131,6 +1663,8 @@ export const QiqiModule = (() => {
     if (notifyTimer) { clearTimeout(notifyTimer); notifyTimer = null; }
     if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
     if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
+    if (proactiveTimer) { clearInterval(proactiveTimer); proactiveTimer = null; }
+    if (welcomeTimer) { clearTimeout(welcomeTimer); welcomeTimer = null; }
 
     // 销毁渲染器
     if (renderer) {

@@ -798,7 +798,7 @@ export const HealthModule = (() => {
     // tab 参数：切换主Tab
     if (params.tab !== undefined) {
       const tabIdx = parseInt(params.tab, 10);
-      if (!isNaN(tabIdx) && tabIdx >= 0 && tabIdx < 3) {
+      if (!isNaN(tabIdx) && tabIdx >= 0 && tabIdx < 6) {
         switchHealthTab(tabIdx);
       }
     }
@@ -826,11 +826,17 @@ export const HealthModule = (() => {
       'food': '#healthFoodSearch',
       'organ': '#healthOrganTabs',
     };
+    const targetTabMap = {
+      'season': 3, 'constitution': 2, 'emotion': 5, 'diet': 3,
+      'qigong': 5, 'daily': 0, 'shichen': 3, 'acupoint': 4,
+      'tongue': 1, 'food': 3, 'organ': 4,
+    };
     const selector = targetMap[target];
     if (!selector) return;
     const el = document.querySelector(selector);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (targetTabMap[target] !== undefined) switchHealthTab(targetTabMap[target]);
+      setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
       // 高亮闪烁效果
       el.style.transition = 'box-shadow 0.3s';
       el.style.boxShadow = '0 0 0 2px var(--accent, #E8A87C)';

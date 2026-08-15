@@ -19,8 +19,11 @@
   <div class="health-tab-bar" id="healthTabBar">
     <div class="health-tab-indicator" id="healthTabIndicator"></div>
     <div class="health-tab-item active" data-tab="0">📋 日常记录</div>
-    <div class="health-tab-item" data-tab="1">🌿 养生</div>
-    <div class="health-tab-item" data-tab="2">🏥 症状自查</div>
+    <div class="health-tab-item" data-tab="1">👅 望诊自测</div>
+    <div class="health-tab-item" data-tab="2">🧬 体质辨识</div>
+    <div class="health-tab-item" data-tab="3">🍂 时令食养</div>
+    <div class="health-tab-item" data-tab="4">🫀 脏腑调养</div>
+    <div class="health-tab-item" data-tab="5">🧘 气功养生</div>
   </div>
 
   <!-- ==================== Tab 1: 日常记录 ==================== -->
@@ -231,23 +234,59 @@
 
   </div>
 
-  <!-- ==================== Tab 2: 养生 ==================== -->
+  <!-- ==================== Tab 1: 望诊自测 ==================== -->
   <div class="health-tab-content" id="healthTab1">
-
-    <!-- 四季养生 -->
+    <!-- 望诊自测卡片 -->
     <div class="health-card card">
-      <div class="health-card-title"><span class="icon">🍂</span> 四季养生</div>
-      <div class="health-season-tabs" id="healthSeasonTabs">
-        <button class="health-season-tab" data-season="spring">春</button>
-        <button class="health-season-tab" data-season="summer">夏</button>
-        <button class="health-season-tab" data-season="longsummer">长夏</button>
-        <button class="health-season-tab" data-season="autumn">秋</button>
-        <button class="health-season-tab" data-season="winter">冬</button>
-      </div>
-      <div class="health-season-content" id="healthSeasonContent"></div>
+      <div class="health-card-title"><span class="icon">👅</span> 望诊自测</div>
+      <div class="health-tongue-tabs" id="healthTongueTabs"></div>
+      <div class="health-tongue-content" id="healthTongueContent"></div>
+      <div class="health-tongue-result" id="healthTongueResult"></div>
+      <button class="health-tongue-save-btn" id="healthTongueSaveBtn" style="display:none;">💾 保存记录</button>
+      <div class="health-tongue-history" id="healthTongueHistory"></div>
     </div>
+    <!-- 症状自查卡片 -->
+    <div class="health-card card">
+      <div class="health-card-title"><span class="icon">🔍</span> 症状自查</div>
+      <div class="health-step-nav">
+        <div class="health-step-dot active" id="healthStepDot1">1</div>
+        <div class="health-step-line" id="healthStepLine1"></div>
+        <div class="health-step-dot" id="healthStepDot2">2</div>
+        <div class="health-step-line" id="healthStepLine2"></div>
+        <div class="health-step-dot" id="healthStepDot3">3</div>
+        <div class="health-step-line" id="healthStepLine3"></div>
+        <div class="health-step-dot" id="healthStepDot4">4</div>
+      </div>
+      <div class="health-step-panel active" id="healthStep1">
+        <div class="health-step-prompt">请选择不适部位：</div>
+        <div class="health-body-grid" id="healthBodyGrid"></div>
+      </div>
+      <div class="health-step-panel" id="healthStep2">
+        <button class="health-step-back" id="healthStepBack1">← 返回选择部位</button>
+        <div class="health-step-prompt" id="healthSymptomPrompt">请勾选具体症状：</div>
+        <div class="health-symptom-list" id="healthSymptomList"></div>
+        <button class="health-next-btn" id="healthSymptomNext">下一步 →</button>
+      </div>
+      <div class="health-step-panel" id="healthStep3">
+        <button class="health-step-back" id="healthStepBack2">← 返回症状选择</button>
+        <div class="health-step-prompt">补充以下信息（可选）：</div>
+        <div class="health-supplement-grid" id="healthSupplementGrid"></div>
+        <button class="health-analyze-btn" id="healthAnalyzeBtn">🔬 开始辨证</button>
+      </div>
+      <div class="health-step-panel" id="healthStep4">
+        <div class="health-result-panel" id="healthResultPanel"></div>
+        <button class="health-restart-btn" id="healthRestartBtn">🔄 重新自查</button>
+      </div>
+    </div>
+    <!-- 自查历史 -->
+    <div class="health-card card">
+      <div class="health-card-title"><span class="icon">📜</span> 自查历史</div>
+      <div class="health-symptom-history" id="healthSymptomHistory"></div>
+    </div>
+  </div>
 
-    <!-- 体质辨识 -->
+  <!-- ==================== Tab 2: 体质辨识 ==================== -->
+  <div class="health-tab-content" id="healthTab2">
     <div class="health-card card">
       <div class="health-card-title"><span class="icon">🧬</span> 体质辨识</div>
       <div class="health-constitution-placeholder" id="healthConstitutionPlaceholder">
@@ -264,7 +303,22 @@
         <button class="health-reassess-btn" id="healthReassessBtn">🔄 重新评估</button>
       </div>
     </div>
+  </div>
 
+  <!-- ==================== Tab 3: 时令食养 ==================== -->
+  <div class="health-tab-content" id="healthTab3">
+    <!-- 四季养生 -->
+    <div class="health-card card">
+      <div class="health-card-title"><span class="icon">🍂</span> 四季养生</div>
+      <div class="health-season-tabs" id="healthSeasonTabs">
+        <button class="health-season-tab" data-season="spring">春</button>
+        <button class="health-season-tab" data-season="summer">夏</button>
+        <button class="health-season-tab" data-season="longsummer">长夏</button>
+        <button class="health-season-tab" data-season="autumn">秋</button>
+        <button class="health-season-tab" data-season="winter">冬</button>
+      </div>
+      <div class="health-season-content" id="healthSeasonContent"></div>
+    </div>
     <!-- 子午流注 -->
     <div class="health-card card">
       <div class="health-card-title"><span class="icon">🕐</span> 子午流注</div>
@@ -275,8 +329,7 @@
       <div class="health-tip" id="healthShichenTip"></div>
       <div class="health-shichen-timeline" id="healthShichenTimeline"></div>
     </div>
-
-    <!-- 推荐茶饮 -->
+    <!-- 食疗方 -->
     <div class="health-card card">
       <div class="health-card-title"><span class="icon">🍲</span> 食疗方</div>
       <div class="health-tea-filter" id="healthTeaFilter">
@@ -288,8 +341,43 @@
       <div class="health-tea-list" id="healthTeaList"></div>
       <button class="health-view-all-btn" id="healthTeaViewAll">查看全部食疗方 →</button>
     </div>
+    <!-- 食物性味速查库 -->
+    <div class="health-card card">
+      <div class="health-card-title"><span class="icon">🍎</span> 食物性味速查库</div>
+      <div class="health-food-search-wrap">
+        <input type="text" class="health-food-search" id="healthFoodSearch" placeholder="搜索食物名称...">
+      </div>
+      <div class="health-food-categories" id="healthFoodCategories">
+        <button class="health-food-cat-btn active" data-cat="全部">全部</button>
+        <button class="health-food-cat-btn" data-cat="谷物">谷物</button>
+        <button class="health-food-cat-btn" data-cat="蔬菜">蔬菜</button>
+        <button class="health-food-cat-btn" data-cat="水果">水果</button>
+        <button class="health-food-cat-btn" data-cat="肉蛋">肉蛋</button>
+        <button class="health-food-cat-btn" data-cat="水产">水产</button>
+        <button class="health-food-cat-btn" data-cat="豆类">豆类</button>
+        <button class="health-food-cat-btn" data-cat="调料">调料</button>
+        <button class="health-food-cat-btn" data-cat="饮品">饮品</button>
+      </div>
+      <div class="health-food-list" id="healthFoodList"></div>
+    </div>
+  </div>
 
-    <!-- 护嗓穴位 -->
+  <!-- ==================== Tab 4: 脏腑调养 ==================== -->
+  <div class="health-tab-content" id="healthTab4">
+    <!-- 五脏知识库 -->
+    <div class="health-card card">
+      <div class="health-card-title"><span class="icon">🫀</span> 五脏知识库</div>
+      <div class="health-organ-tabs" id="healthOrganTabs">
+        <button class="health-organ-tab active" data-organ="心">心</button>
+        <button class="health-organ-tab" data-organ="肝">肝</button>
+        <button class="health-organ-tab" data-organ="脾">脾</button>
+        <button class="health-organ-tab" data-organ="肺">肺</button>
+        <button class="health-organ-tab" data-organ="肾">肾</button>
+        <button class="health-organ-tab" data-organ="气血">气血</button>
+      </div>
+      <div class="health-organ-detail" id="healthOrganDetail"></div>
+    </div>
+    <!-- 经络穴位 -->
     <div class="health-card card">
       <div class="health-card-title"><span class="icon">🤲</span> 经络穴位</div>
       <div class="health-acupoint-layout">
@@ -297,17 +385,10 @@
         <div class="health-acupoint-list" id="healthAcupointList"></div>
       </div>
     </div>
+  </div>
 
-    <!-- 望诊自测 -->
-    <div class="health-card card">
-      <div class="health-card-title"><span class="icon">👅</span> 望诊自测</div>
-      <div class="health-tongue-tabs" id="healthTongueTabs"></div>
-      <div class="health-tongue-content" id="healthTongueContent"></div>
-      <div class="health-tongue-result" id="healthTongueResult"></div>
-      <button class="health-tongue-save-btn" id="healthTongueSaveBtn" style="display:none;">💾 保存记录</button>
-      <div class="health-tongue-history" id="healthTongueHistory"></div>
-    </div>
-
+  <!-- ==================== Tab 5: 气功养生 ==================== -->
+  <div class="health-tab-content" id="healthTab5">
     <!-- 功法引导 -->
     <div class="health-card card">
       <div class="health-card-title"><span class="icon">🧘</span> 功法引导</div>
@@ -329,41 +410,6 @@
       <div class="health-qigong-panel" id="healthQgSixSounds"></div>
       <div class="health-qigong-panel" id="healthQgBaduanjin"></div>
     </div>
-
-    <!-- 食物性味速查库 -->
-    <div class="health-card card">
-      <div class="health-card-title"><span class="icon">🍎</span> 食物性味速查库</div>
-      <div class="health-food-search-wrap">
-        <input type="text" class="health-food-search" id="healthFoodSearch" placeholder="搜索食物名称...">
-      </div>
-      <div class="health-food-categories" id="healthFoodCategories">
-        <button class="health-food-cat-btn active" data-cat="全部">全部</button>
-        <button class="health-food-cat-btn" data-cat="谷物">谷物</button>
-        <button class="health-food-cat-btn" data-cat="蔬菜">蔬菜</button>
-        <button class="health-food-cat-btn" data-cat="水果">水果</button>
-        <button class="health-food-cat-btn" data-cat="肉蛋">肉蛋</button>
-        <button class="health-food-cat-btn" data-cat="水产">水产</button>
-        <button class="health-food-cat-btn" data-cat="豆类">豆类</button>
-        <button class="health-food-cat-btn" data-cat="调料">调料</button>
-        <button class="health-food-cat-btn" data-cat="饮品">饮品</button>
-      </div>
-      <div class="health-food-list" id="healthFoodList"></div>
-    </div>
-
-    <!-- 五脏知识库 -->
-    <div class="health-card card">
-      <div class="health-card-title"><span class="icon">🫀</span> 五脏知识库</div>
-      <div class="health-organ-tabs" id="healthOrganTabs">
-        <button class="health-organ-tab active" data-organ="心">心</button>
-        <button class="health-organ-tab" data-organ="肝">肝</button>
-        <button class="health-organ-tab" data-organ="脾">脾</button>
-        <button class="health-organ-tab" data-organ="肺">肺</button>
-        <button class="health-organ-tab" data-organ="肾">肾</button>
-        <button class="health-organ-tab" data-organ="气血">气血</button>
-      </div>
-      <div class="health-organ-detail" id="healthOrganDetail"></div>
-    </div>
-
     <!-- 情志调养 -->
     <div class="health-card card">
       <div class="health-card-title"><span class="icon">🎭</span> 情志调养</div>
@@ -393,59 +439,6 @@
         </div>
         <div class="health-emotion-diary-records" id="healthDiaryRecords"></div>
       </div>
-    </div>
-
-  </div>
-
-  <!-- ==================== Tab 3: 症状自查 ==================== -->
-  <div class="health-tab-content" id="healthTab2">
-    <div class="health-card card">
-      <div class="health-card-title"><span class="icon">🔍</span> 症状自查</div>
-
-      <!-- 步骤导航 -->
-      <div class="health-step-nav">
-        <div class="health-step-dot active" id="healthStepDot1">1</div>
-        <div class="health-step-line" id="healthStepLine1"></div>
-        <div class="health-step-dot" id="healthStepDot2">2</div>
-        <div class="health-step-line" id="healthStepLine2"></div>
-        <div class="health-step-dot" id="healthStepDot3">3</div>
-        <div class="health-step-line" id="healthStepLine3"></div>
-        <div class="health-step-dot" id="healthStepDot4">4</div>
-      </div>
-
-      <!-- Step 1: 选部位 -->
-      <div class="health-step-panel active" id="healthStep1">
-        <div class="health-step-prompt">请选择不适部位：</div>
-        <div class="health-body-grid" id="healthBodyGrid"></div>
-      </div>
-
-      <!-- Step 2: 勾选症状 -->
-      <div class="health-step-panel" id="healthStep2">
-        <button class="health-step-back" id="healthStepBack1">← 返回选择部位</button>
-        <div class="health-step-prompt" id="healthSymptomPrompt">请勾选具体症状：</div>
-        <div class="health-symptom-list" id="healthSymptomList"></div>
-        <button class="health-next-btn" id="healthSymptomNext">下一步 →</button>
-      </div>
-
-      <!-- Step 3: 补充信息 -->
-      <div class="health-step-panel" id="healthStep3">
-        <button class="health-step-back" id="healthStepBack2">← 返回症状选择</button>
-        <div class="health-step-prompt">补充以下信息（可选）：</div>
-        <div class="health-supplement-grid" id="healthSupplementGrid"></div>
-        <button class="health-analyze-btn" id="healthAnalyzeBtn">🔬 开始辨证</button>
-      </div>
-
-      <!-- Step 4: 辨证结果 -->
-      <div class="health-step-panel" id="healthStep4">
-        <div class="health-result-panel" id="healthResultPanel"></div>
-        <button class="health-restart-btn" id="healthRestartBtn">🔄 重新自查</button>
-      </div>
-    </div>
-
-    <!-- 自查历史 -->
-    <div class="health-card card">
-      <div class="health-card-title"><span class="icon">📜</span> 自查历史</div>
-      <div class="health-symptom-history" id="healthSymptomHistory"></div>
     </div>
   </div>
 

@@ -2636,3 +2636,128 @@
 [data-theme="dark"] .health-result-constitution-ref {
   background: var(--accent-orange-light);
 }
+
+
+/* ===== H1: 置信度评分样式 ===== */
+.health-confidence-block {
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: var(--bg-secondary, #f8f6f3);
+}
+.health-confidence-block.health-confidence-high { background: rgba(76, 175, 80, 0.08); border-left: 3px solid #4CAF50; }
+.health-confidence-block.health-confidence-medium { background: rgba(255, 152, 0, 0.08); border-left: 3px solid #FF9800; }
+.health-confidence-block.health-confidence-low { background: rgba(255, 193, 7, 0.08); border-left: 3px solid #FFC107; }
+.health-confidence-block.health-confidence-very_low { background: rgba(158, 158, 158, 0.08); border-left: 3px solid #9E9E9E; }
+
+.health-confidence-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.health-confidence-label {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 80px;
+}
+.health-confidence-high .health-confidence-label { color: #2E7D32; }
+.health-confidence-medium .health-confidence-label { color: #E65100; }
+.health-confidence-low .health-confidence-label { color: #F57F17; }
+.health-confidence-very_low .health-confidence-label { color: #616161; }
+
+.health-confidence-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.health-confidence-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+.health-confidence-high .health-confidence-fill { background: linear-gradient(90deg, #66BB6A, #4CAF50); }
+.health-confidence-medium .health-confidence-fill { background: linear-gradient(90deg, #FFA726, #FF9800); }
+.health-confidence-low .health-confidence-fill { background: linear-gradient(90deg, #FFEE58, #FFC107); }
+.health-confidence-very_low .health-confidence-fill { background: linear-gradient(90deg, #BDBDBD, #9E9E9E); }
+
+.health-confidence-score {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  min-width: 36px;
+  text-align: right;
+}
+.health-confidence-hint {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  margin-top: 6px;
+  padding-left: 4px;
+}
+
+/* ===== H2: 辨证依据链样式 ===== */
+.health-evidence-summary {
+  font-size: 12px;
+  font-weight: normal;
+  color: var(--text-secondary, #888);
+  margin-left: 8px;
+}
+.health-evidence-group {
+  margin: 8px 0;
+}
+.health-evidence-group-label {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.health-evidence-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.health-evidence-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.health-evidence-core {
+  background: rgba(232, 168, 124, 0.15);
+  color: #C17A4A;
+  border: 1px solid rgba(232, 168, 124, 0.3);
+}
+.health-evidence-secondary {
+  background: rgba(160, 190, 160, 0.15);
+  color: #5A7A5A;
+  border: 1px solid rgba(160, 190, 160, 0.3);
+}
+.health-evidence-unmatched {
+  background: rgba(0,0,0,0.04);
+  color: var(--text-disabled, #bbb);
+  border: 1px solid rgba(0,0,0,0.06);
+  text-decoration: line-through;
+  text-decoration-color: rgba(0,0,0,0.2);
+}
+.health-evidence-missing {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.health-evidence-missing-label {
+  font-size: 11px;
+  color: var(--text-disabled, #bbb);
+}
+
+/* Dark mode support for H1/H2 */
+.dark-mode .health-evidence-core { background: rgba(232, 168, 124, 0.1); color: #E8A87C; border-color: rgba(232, 168, 124, 0.2); }
+.dark-mode .health-evidence-secondary { background: rgba(120, 160, 120, 0.1); color: #8FBC8F; border-color: rgba(120, 160, 120, 0.2); }
+.dark-mode .health-evidence-unmatched { background: rgba(255,255,255,0.04); color: #666; border-color: rgba(255,255,255,0.06); }
+.dark-mode .health-confidence-block { background: rgba(255,255,255,0.03); }
+.dark-mode .health-confidence-block.health-confidence-high { background: rgba(76, 175, 80, 0.06); }
+.dark-mode .health-confidence-block.health-confidence-medium { background: rgba(255, 152, 0, 0.06); }
+.dark-mode .health-confidence-block.health-confidence-low { background: rgba(255, 193, 7, 0.06); }
+.dark-mode .health-confidence-block.health-confidence-very_low { background: rgba(158, 158, 158, 0.04); }

@@ -2097,18 +2097,68 @@ export const HealthModule = (() => {
       const mapped = supplementSymptomMap[key]?.[val];
       if (mapped && !selected.includes(mapped)) selected.push(mapped);
     });
-    // Calculate match scores
+    // Calculate match scores with confidence scoring (H1) + evidence chain (H2)
     const results = SYNDROME_TYPES.map(syn => {
       let totalWeight = 0, matchedWeight = 0;
+      const matchedSymptoms = [];
+      const unmatchedSymptoms = [];
+      const coreSymptoms = [];
+      const secondarySymptoms = [];
+      
       for (const [sym, weight] of Object.entries(syn.symptoms)) {
         if (weight > 0) {
           totalWeight += weight;
-          if (selected.includes(sym)) matchedWeight += weight;
+          if (selected.includes(sym)) {
+            matchedWeight += weight;
+            matchedSymptoms.push({ name: sym, weight });
+            if (weight >= 2) coreSymptoms.push(sym);
+            else secondarySymptoms.push(sym);
+          } else {
+            unmatchedSymptoms.push({ name: sym, weight });
+          }
         }
       }
+      
       const matchPct = totalWeight > 0 ? Math.round((matchedWeight / totalWeight) * 100) : 0;
-      return { syndrome: syn, matchPct };
-    }).filter(r => r.matchPct > 0).sort((a, b) => b.matchPct - a.matchPct);
+      const matchedCount = matchedSymptoms.length;
+      const totalSymptomCount = Object.values(syn.symptoms).filter(w => w > 0).length;
+      
+      // H1: Confidence scoring algorithm
+      // Factors: match ratio (40%), core symptom coverage (30%), symptom count (20%), specificity (10%)
+      const matchRatioScore = (matchedWeight / Math.max(totalWeight, 1)) * 100;
+      const coreCoverageScore = totalSymptomCount > 0 ? (coreSymptoms.length / Math.max(totalSymptomCount * 0.5, 1)) * 100 : 0;
+      const countScore = matchedCount >= 4 ? 100 : matchedCount >= 3 ? 75 : matchedCount >= 2 ? 50 : 25;
+      // Specificity: higher weight symptoms matched = more specific
+      const avgWeight = matchedCount > 0 ? matchedWeight / matchedCount : 0;
+      const specificityScore = Math.min(100, (avgWeight / 2.5) * 100);
+      
+      const confidenceScore = Math.round(
+        matchRatioScore * 0.4 +
+        Math.min(coreCoverageScore, 100) * 0.3 +
+        countScore * 0.2 +
+        specificityScore * 0.1
+      );
+      
+      let confidenceLevel, confidenceLabel;
+      if (confidenceScore >= 80) { confidenceLevel = 'high'; confidenceLabel = '高可信度'; }
+      else if (confidenceScore >= 60) { confidenceLevel = 'medium'; confidenceLabel = '中等可信度'; }
+      else if (confidenceScore >= 40) { confidenceLevel = 'low'; confidenceLabel = '低可信度'; }
+      else { confidenceLevel = 'very_low'; confidenceLabel = '仅供参考'; }
+      
+      return { 
+        syndrome: syn, 
+        matchPct, 
+        confidenceScore: Math.min(confidenceScore, 100),
+        confidenceLevel,
+        confidenceLabel,
+        matchedSymptoms,
+        unmatchedSymptoms,
+        coreSymptoms,
+        secondarySymptoms,
+        matchedCount,
+        totalSymptomCount
+      };
+    }).filter(r => r.matchPct > 0).sort((a, b) => b.confidenceScore - a.confidenceScore);
     const top = results.slice(0, 2);
     // 气血辨证分析
     const qiBloodAnalysis = analyzeQiBlood(selected);
@@ -2174,10 +2224,59 @@ export const HealthModule = (() => {
     top.forEach((r, idx) => {
       const syn = r.syndrome;
       const isPrimary = idx === 0;
+      
+      // Header with confidence badge
       html += `<div class="health-result-header">`;
       html += `<div class="health-result-type">${syn.name}</div>`;
       html += `<div class="health-result-match">匹配度 <strong>${r.matchPct}%</strong></div>`;
       html += `</div>`;
+      
+      // H1: Confidence indicator
+      html += `<div class="health-confidence-block health-confidence-${r.confidenceLevel}">`;
+      html += `<div class="health-confidence-bar-wrap">`;
+      html += `<span class="health-confidence-label">${r.confidenceLabel}</span>`;
+      html += `<div class="health-confidence-bar"><div class="health-confidence-fill" style="width:${r.confidenceScore}%"></div></div>`;
+      html += `<span class="health-confidence-score">${r.confidenceScore}分</span>`;
+      html += `</div>`;
+      if (r.confidenceLevel === 'very_low' || r.confidenceLevel === 'low') {
+        html += `<div class="health-confidence-hint">💡 匹配症状较少，建议补充更多症状信息或咨询专业医师</div>`;
+      }
+      html += `</div>`;
+      
+      // H2: Evidence chain - symptom matching visualization
+      if (r.matchedSymptoms && r.matchedSymptoms.length > 0) {
+        html += `<div class="health-result-section">`;
+        html += `<div class="health-result-section-title">🔗 辨证依据 <span class="health-evidence-summary">${r.coreSymptoms.length}个核心 + ${r.secondarySymptoms.length}个次要</span></div>`;
+        
+        // Core symptoms (weight >= 2)
+        if (r.coreSymptoms.length > 0) {
+          html += `<div class="health-evidence-group"><div class="health-evidence-group-label">核心依据（权重≥2）</div><div class="health-evidence-tags">`;
+          r.coreSymptoms.forEach(sym => {
+            html += `<span class="health-evidence-tag health-evidence-core">${sym}</span>`;
+          });
+          html += `</div></div>`;
+        }
+        
+        // Secondary symptoms (weight = 1)
+        if (r.secondarySymptoms.length > 0) {
+          html += `<div class="health-evidence-group"><div class="health-evidence-group-label">次要依据（权重=1）</div><div class="health-evidence-tags">`;
+          r.secondarySymptoms.forEach(sym => {
+            html += `<span class="health-evidence-tag health-evidence-secondary">${sym}</span>`;
+          });
+          html += `</div></div>`;
+        }
+        
+        // Missing symptoms (for reference)
+        const missingTop = r.unmatchedSymptoms.slice(0, 3);
+        if (missingTop.length > 0) {
+          html += `<div class="health-evidence-missing"><span class="health-evidence-missing-label">未匹配：</span>`;
+          html += missingTop.map(s => `<span class="health-evidence-tag health-evidence-unmatched">${s.name}</span>`).join('');
+          html += `</div>`;
+        }
+        html += `</div>`;
+      }
+      
+      // Standard sections
       html += `<div class="health-result-section"><div class="health-result-section-title">📖 证型解读</div><p>${syn.interpretation}</p></div>`;
       html += `<div class="health-result-section"><div class="health-result-section-title">🍵 推荐茶饮</div><ul class="health-recommendation-list">${syn.tea.map(t => `<li>${t}</li>`).join('')}</ul></div>`;
       html += `<div class="health-result-section"><div class="health-result-section-title">🤲 推荐穴位</div><ul class="health-recommendation-list">${syn.acupoints.map(a => `<li>${a}</li>`).join('')}</ul></div>`;

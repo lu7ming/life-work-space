@@ -2901,3 +2901,203 @@
   background: rgba(255,255,255,0.05);
   border-color: rgba(255,255,255,0.1);
 }
+
+/* ===== H4: 干预方案+打卡样式 ===== */
+.health-intervention-card {
+  background: linear-gradient(135deg, rgba(232,168,124,0.08), rgba(200,160,100,0.04));
+  border: 1px solid var(--border-color, #e8e4df);
+  border-radius: 14px;
+  padding: 18px;
+  margin: 16px 0;
+}
+
+.health-intervention-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color, #e8e4df);
+}
+.health-intervention-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2520);
+}
+.health-intervention-streak {
+  font-size: 13px;
+  font-weight: 600;
+  color: #E8A87C;
+  background: rgba(232,168,124,0.12);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.health-intervention-plan {
+  margin-bottom: 16px;
+}
+
+.health-plan-section {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(0,0,0,0.06);
+}
+.health-plan-section:last-child {
+  border-bottom: none;
+}
+.health-plan-section-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+  padding-top: 2px;
+}
+.health-plan-section-content {
+  flex: 1;
+}
+.health-plan-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2520);
+  margin-bottom: 4px;
+}
+.health-plan-section-detail {
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+  line-height: 1.5;
+  margin-bottom: 2px;
+}
+.health-plan-section-sub {
+  font-size: 12px;
+  color: var(--text-secondary, #999);
+  margin-top: 2px;
+}
+
+/* 打卡区域 */
+.health-checkin-section {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #e8e4df);
+  border-radius: 12px;
+  padding: 14px;
+}
+.health-checkin-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2520);
+  margin-bottom: 12px;
+}
+.health-checkin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.health-checkin-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color, #e8e4df);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-secondary, #faf9f7);
+}
+.health-checkin-item:hover {
+  border-color: var(--accent, #E8A87C);
+  background: rgba(232,168,124,0.04);
+}
+.health-checkin-item.checked {
+  border-color: #4CAF50;
+  background: rgba(76,175,80,0.06);
+}
+.health-checkin-checkbox {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border-color, #ccc);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.health-checkin-item.checked .health-checkin-checkbox {
+  background: #4CAF50;
+  border-color: #4CAF50;
+}
+.health-checkin-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.health-checkin-type {
+  font-size: 14px;
+}
+.health-checkin-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #2C2520);
+}
+.health-checkin-item.checked .health-checkin-name {
+  color: var(--text-secondary, #999);
+  text-decoration: line-through;
+}
+.health-checkin-detail {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+}
+
+/* 进度条 */
+.health-checkin-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.health-checkin-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-secondary, #eee);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.health-checkin-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #E8A87C, #4CAF50);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.health-checkin-progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #888);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Dark mode for H4 */
+.dark-mode .health-intervention-card {
+  background: linear-gradient(135deg, rgba(232,168,124,0.1), rgba(200,160,100,0.05));
+  border-color: rgba(255,255,255,0.08);
+}
+.dark-mode .health-plan-section {
+  border-bottom-color: rgba(255,255,255,0.06);
+}
+.dark-mode .health-checkin-section {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.08);
+}
+.dark-mode .health-checkin-item {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.08);
+}
+.dark-mode .health-checkin-item.checked {
+  border-color: #4CAF50;
+  background: rgba(76,175,80,0.08);
+}

@@ -750,6 +750,37 @@ export const HealthModule = (() => {
     { id: 'rsbj', name: '风湿热痹证', category: '其他', symptoms: { '关节疼痛': 2, '关节红肿': 3, '肢体麻木': 1, '低热': 1, '口干口苦': 1, '面红目赤': 1 }, interpretation: '风湿热邪壅滞经络关节。表现为关节红肿热痛、活动不利、口渴烦闷。多因感受风湿热邪或素体阳盛。', tea: ['金银花茶', '桑枝茶'], acupoints: ['曲池穴', '合谷穴', '阳陵泉'], diet: { good: '绿豆、薏米、冬瓜、丝瓜、苦瓜', bad: '辛辣燥热、羊肉、酒类' } }
   ];
 
+  // ===== H4: 个性化干预方案数据 =====
+  const INTERVENTION_PLANS = {
+    // 呼吸类
+    'fqx': { daily_habits: ['早起一杯温水', '避免受凉感冒', '练习腹式呼吸'], food_recipes: [{ name: '黄芪山药粥', ingredients: '黄芪15g、山药30g、大米50g', method: '黄芪煮水取汁，加山药大米煮粥', frequency: '每周3次' }], acupoint_plan: [{ name: '肺俞穴', method: '按揉', duration: '3分钟', timing: '早晚' }, { name: '足三里', method: '按揉', duration: '3分钟', timing: '饭后' }], tea_plan: { name: '黄芪防风茶', method: '黄芪10g、防风5g沸水冲泡', frequency: '每日1杯' }, exercise: { name: '八段锦·左右开弓似射雕', duration: '5分钟', timing: '晨起' } },
+    'fyx': { daily_habits: ['避免熬夜', '保持室内湿度', '少吃辛辣'], food_recipes: [{ name: '银耳百合羹', ingredients: '银耳10g、百合15g、冰糖适量', method: '银耳泡发撕小朵，与百合同煮1小时', frequency: '每周3次' }], acupoint_plan: [{ name: '太渊穴', method: '按揉', duration: '3分钟', timing: '早晚' }, { name: '照海穴', method: '按揉', duration: '3分钟', timing: '睡前' }], tea_plan: { name: '银耳百合茶', method: '银耳5g、百合10g煮水', frequency: '每日1杯' }, exercise: { name: '深呼吸放松', duration: '10分钟', timing: '睡前' } },
+    'fsr': { daily_habits: ['注意保暖', '多喝温水', '避免吹风'], food_recipes: [{ name: '生姜葱白粥', ingredients: '生姜3片、葱白2段、大米50g', method: '大米煮粥，快熟时加生姜葱白', frequency: '感冒初期每日1次' }], acupoint_plan: [{ name: '列缺穴', method: '按揉', duration: '3分钟', timing: '早晚' }, { name: '风池穴', method: '按揉', duration: '3分钟', timing: '早晚' }], tea_plan: { name: '生姜红糖水', method: '生姜3片、红糖适量煮水', frequency: '每日1杯' }, exercise: { name: '适度散步', duration: '20分钟', timing: '午后' } },
+    // 消化类
+    'pxq': { daily_habits: ['三餐定时', '细嚼慢咽', '饭后散步15分钟'], food_recipes: [{ name: '四神汤', ingredients: '山药15g、莲子15g、芡实15g、茯苓15g、排骨适量', method: '所有材料炖1.5小时', frequency: '每周2-3次' }, { name: '山药薏米粥', ingredients: '山药30g、薏米20g、大米30g', method: '薏米提前浸泡，与山药大米同煮', frequency: '每周3次' }], acupoint_plan: [{ name: '足三里', method: '按揉或艾灸', duration: '5分钟', timing: '饭后1小时' }, { name: '中脘穴', method: '顺时针揉腹', duration: '5分钟', timing: '早晚' }], tea_plan: { name: '陈皮茯苓茶', method: '陈皮5g、茯苓10g煮水', frequency: '每日1杯' }, exercise: { name: '饭后散步', duration: '15-20分钟', timing: '饭后30分钟' } },
+    'pyx': { daily_habits: ['忌生冷寒凉', '腹部保暖', '睡前热水泡脚'], food_recipes: [{ name: '生姜羊肉汤', ingredients: '生姜15g、羊肉100g、当归5g', method: '羊肉焯水，与生姜当归炖1.5小时', frequency: '每周1-2次' }], acupoint_plan: [{ name: '神阙穴', method: '艾灸或热敷', duration: '10分钟', timing: '睡前' }, { name: '关元穴', method: '按揉', duration: '5分钟', timing: '早晚' }], tea_plan: { name: '干姜红茶', method: '干姜3g、红茶5g冲泡', frequency: '每日1杯' }, exercise: { name: '太极云手', duration: '10分钟', timing: '晨起' } },
+    'psy': { daily_habits: ['忌油腻辛辣', '多吃清淡蔬菜', '保持心情舒畅'], food_recipes: [{ name: '薏米赤小豆汤', ingredients: '薏米30g、赤小豆30g、冰糖适量', method: '薏米赤小豆提前浸泡，煮至软烂', frequency: '每周3次' }], acupoint_plan: [{ name: '阴陵泉', method: '按揉', duration: '3分钟', timing: '早晚' }, { name: '中脘穴', method: '按揉', duration: '3分钟', timing: '饭后' }], tea_plan: { name: '薏米赤小豆茶', method: '薏米10g、赤小豆10g煮水', frequency: '每日1杯' }, exercise: { name: '散步或瑜伽', duration: '20分钟', timing: '午后' } },
+    // 全身类
+    'qxs': { daily_habits: ['避免过度劳累', '保证充足睡眠', '适度运动'], food_recipes: [{ name: '黄芪炖鸡', ingredients: '黄芪30g、党参15g、红枣5枚、鸡肉200g', method: '所有材料炖1.5小时', frequency: '每周1-2次' }], acupoint_plan: [{ name: '足三里', method: '按揉或艾灸', duration: '5分钟', timing: '早晚' }, { name: '气海穴', method: '按揉', duration: '3分钟', timing: '早晚' }], tea_plan: { name: '黄芪红枣茶', method: '黄芪15g、红枣5枚煮水', frequency: '每日1杯' }, exercise: { name: '八段锦', duration: '15分钟', timing: '晨起' } },
+    'yxs': { daily_habits: ['注意保暖', '多吃温热食物', '避免熬夜'], food_recipes: [{ name: '当归生姜羊肉汤', ingredients: '当归10g、生姜15g、羊肉150g', method: '羊肉焯水，与当归生姜炖1.5小时', frequency: '每周1-2次' }], acupoint_plan: [{ name: '关元穴', method: '艾灸', duration: '10分钟', timing: '睡前' }, { name: '命门穴', method: '按揉', duration: '3分钟', timing: '早晚' }], tea_plan: { name: '桂圆红枣茶', method: '桂圆5粒、红枣5枚煮水', frequency: '每日1杯' }, exercise: { name: '慢跑', duration: '20分钟', timing: '午后' } },
+    'yys': { daily_habits: ['忌辛辣燥热', '多吃滋润食物', '避免熬夜'], food_recipes: [{ name: '百合银耳羹', ingredients: '百合15g、银耳10g、枸杞10g、冰糖适量', method: '银耳泡发，与百合枸杞煮1小时', frequency: '每周3次' }], acupoint_plan: [{ name: '太溪穴', method: '按揉', duration: '3分钟', timing: '早晚' }, { name: '三阴交', method: '按揉', duration: '3分钟', timing: '睡前' }], tea_plan: { name: '枸杞麦冬茶', method: '枸杞10g、麦冬10g冲泡', frequency: '每日1杯' }, exercise: { name: '瑜伽或太极', duration: '20分钟', timing: '晨起或睡前' } },
+    'xsx': { daily_habits: ['避免过度用眼', '保证营养均衡', '适度运动'], food_recipes: [{ name: '当归红枣鸡蛋汤', ingredients: '当归10g、红枣10枚、鸡蛋2个', method: '当归红枣煮水，打入鸡蛋', frequency: '每周2次' }], acupoint_plan: [{ name: '三阴交', method: '按揉', duration: '3分钟', timing: '早晚' }, { name: '血海穴', method: '按揉', duration: '3分钟', timing: '早晚' }], tea_plan: { name: '桂圆红枣茶', method: '桂圆5粒、红枣5枚煮水', frequency: '每日1杯' }, exercise: { name: '散步', duration: '30分钟', timing: '午后' } },
+    'qyz': { daily_habits: ['保持心情舒畅', '多与人交流', '培养兴趣爱好'], food_recipes: [{ name: '玫瑰花茶', ingredients: '玫瑰花5g、佛手5g', method: '沸水冲泡', frequency: '每日1杯' }], acupoint_plan: [{ name: '太冲穴', method: '按揉', duration: '5分钟', timing: '情绪低落时' }, { name: '膻中穴', method: '按揉', duration: '3分钟', timing: '胸闷时' }], tea_plan: { name: '玫瑰花茶', method: '玫瑰花5g沸水冲泡', frequency: '每日1杯' }, exercise: { name: '户外活动', duration: '30分钟', timing: '每日' } },
+    // 其他类
+    'tsx': { daily_habits: ['少吃甜腻油腻', '多运动出汗', '避免久坐'], food_recipes: [{ name: '薏米冬瓜汤', ingredients: '薏米30g、冬瓜200g、陈皮5g', method: '薏米提前浸泡，与冬瓜陈皮同煮', frequency: '每周3次' }], acupoint_plan: [{ name: '丰隆穴', method: '按揉', duration: '5分钟', timing: '早晚' }, { name: '阴陵泉', method: '按揉', duration: '3分钟', timing: '早晚' }], tea_plan: { name: '陈皮茯苓茶', method: '陈皮5g、茯苓10g煮水', frequency: '每日1杯' }, exercise: { name: '快走或慢跑', duration: '30分钟', timing: '每日' } },
+    'srx': { daily_habits: ['忌辛辣油腻', '多吃清淡蔬菜', '多喝水'], food_recipes: [{ name: '绿豆薏米汤', ingredients: '绿豆30g、薏米30g、冰糖适量', method: '绿豆薏米提前浸泡，煮至软烂', frequency: '每周3次' }], acupoint_plan: [{ name: '阴陵泉', method: '按揉', duration: '3分钟', timing: '早晚' }, { name: '曲池穴', method: '按揉', duration: '3分钟', timing: '早晚' }], tea_plan: { name: '菊花茶', method: '菊花5g沸水冲泡', frequency: '每日1杯' }, exercise: { name: '游泳或瑜伽', duration: '30分钟', timing: '每日' } },
+    'xxy': { daily_habits: ['保持心情舒畅', '适度运动', '避免受寒'], food_recipes: [{ name: '山楂玫瑰花茶', ingredients: '山楂10g、玫瑰花5g', method: '沸水冲泡', frequency: '每日1杯' }], acupoint_plan: [{ name: '血海穴', method: '按揉', duration: '3分钟', timing: '早晚' }, { name: '膈俞穴', method: '按揉', duration: '3分钟', timing: '早晚' }], tea_plan: { name: '山楂茶', method: '山楂10g煮水', frequency: '每日1杯' }, exercise: { name: '太极或散步', duration: '30分钟', timing: '每日' } }
+  };
+
+  // 默认干预方案（未匹配到时使用）
+  const DEFAULT_INTERVENTION = {
+    daily_habits: ['规律作息', '均衡饮食', '适度运动'],
+    food_recipes: [{ name: '养生粥', ingredients: '山药、薏米、红枣各适量', method: '同煮成粥', frequency: '每周2-3次' }],
+    acupoint_plan: [{ name: '足三里', method: '按揉', duration: '3分钟', timing: '早晚' }],
+    tea_plan: { name: '养生茶', method: '枸杞、红枣冲泡', frequency: '每日1杯' },
+    exercise: { name: '散步', duration: '20分钟', timing: '每日' }
+  };
+
   // ===== 工具函数 =====
   function getWeekdayName(date) {
     const names = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -2428,6 +2459,257 @@ export const HealthModule = (() => {
     }).filter(function(r) { return r.matchPct > 0; }).sort(function(a, b) { return b.confidenceScore - a.confidenceScore; });
   }
   
+  // ===== H4: 干预方案生成与跟踪 =====
+  
+  // 生成个性化干预方案
+  function generateInterventionPlan(syndromeId) {
+    return INTERVENTION_PLANS[syndromeId] || DEFAULT_INTERVENTION;
+  }
+  
+  // 构建今日打卡项列表
+  function buildCheckinItems(plan) {
+    const items = [];
+    // 茶饮
+    if (plan.tea_plan) {
+      items.push({ type: 'tea', name: plan.tea_plan.name, detail: plan.tea_plan.method, done: false });
+    }
+    // 穴位
+    if (plan.acupoint_plan) {
+      plan.acupoint_plan.forEach(ap => {
+        items.push({ type: 'acupoint', name: ap.name, detail: ap.method + ' ' + ap.duration, done: false });
+      });
+    }
+    // 食疗
+    if (plan.food_recipes && plan.food_recipes.length > 0) {
+      items.push({ type: 'food', name: plan.food_recipes[0].name, detail: plan.food_recipes[0].ingredients, done: false });
+    }
+    // 习惯
+    if (plan.daily_habits) {
+      plan.daily_habits.slice(0, 2).forEach(h => {
+        items.push({ type: 'habit', name: h, detail: '', done: false });
+      });
+    }
+    // 运动
+    if (plan.exercise) {
+      items.push({ type: 'exercise', name: plan.exercise.name, detail: plan.exercise.duration, done: false });
+    }
+    return items;
+  }
+  
+  // 获取今日跟踪数据
+  async function getTodayTracking(syndromeId) {
+    const today = formatDate(new Date());
+    const key = 'health/tracking/' + today;
+    try {
+      const data = await Storage.get('tracking', key);
+      if (data && data.syndromeId === syndromeId) return data;
+    } catch(e) {}
+    return null;
+  }
+  
+  // 保存跟踪数据
+  async function saveTracking(syndromeId, items, date) {
+    const key = 'health/tracking/' + (date || formatDate(new Date()));
+    const doneCount = items.filter(i => i.done).length;
+    const total = items.length;
+    
+    // 获取昨天的数据计算连续天数
+    let streak = 1;
+    try {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yKey = 'health/tracking/' + formatDate(yesterday);
+      const yData = await Storage.get('tracking', yKey);
+      if (yData && yData.syndromeId === syndromeId && yData.doneCount > 0) {
+        streak = (yData.streak || 1) + 1;
+      }
+    } catch(e) {}
+    
+    const data = {
+      id: key,
+      syndromeId: syndromeId,
+      date: date || formatDate(new Date()),
+      items: items,
+      doneCount: doneCount,
+      total: total,
+      streak: streak,
+      lastCheckin: new Date().toISOString()
+    };
+    
+    try {
+      await Storage.set('tracking', key, data);
+    } catch(e) { console.error('saveTracking error:', e); }
+    return data;
+  }
+  
+  // 获取连续打卡统计
+  async function getTrackingStats(syndromeId) {
+    let totalDays = 0, currentStreak = 0, lastDate = null;
+    const today = new Date();
+    
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = 'health/tracking/' + formatDate(d);
+      try {
+        const data = await Storage.get('tracking', key);
+        if (data && data.syndromeId === syndromeId && data.doneCount > 0) {
+          totalDays++;
+          if (i <= 1) currentStreak++;
+        }
+      } catch(e) {}
+    }
+    
+    return { totalDays, currentStreak };
+  }
+  
+  // 渲染干预方案卡片
+  async function renderInterventionCard(syndrome) {
+    const plan = generateInterventionPlan(syndrome.id);
+    const tracking = await getTodayTracking(syndrome.id);
+    const items = tracking ? tracking.items : buildCheckinItems(plan);
+    const stats = await getTrackingStats(syndrome.id);
+    
+    let html = '<div class="health-intervention-card">';
+    
+    // 标题栏
+    html += '<div class="health-intervention-header">';
+    html += '<span class="health-intervention-title">📋 个性化调理方案</span>';
+    if (stats.currentStreak > 0) {
+      html += '<span class="health-intervention-streak">🔥 连续 ' + stats.currentStreak + ' 天</span>';
+    }
+    html += '</div>';
+    
+    // 方案详情
+    html += '<div class="health-intervention-plan">';
+    
+    // 茶饮
+    if (plan.tea_plan) {
+      html += '<div class="health-plan-section">';
+      html += '<div class="health-plan-section-icon">🍵</div>';
+      html += '<div class="health-plan-section-content">';
+      html += '<div class="health-plan-section-title">每日茶饮</div>';
+      html += '<div class="health-plan-section-detail">' + plan.tea_plan.name + ' — ' + plan.tea_plan.method + '</div>';
+      html += '</div></div>';
+    }
+    
+    // 穴位
+    if (plan.acupoint_plan && plan.acupoint_plan.length > 0) {
+      html += '<div class="health-plan-section">';
+      html += '<div class="health-plan-section-icon">🤲</div>';
+      html += '<div class="health-plan-section-content">';
+      html += '<div class="health-plan-section-title">穴位按摩</div>';
+      plan.acupoint_plan.forEach(ap => {
+        html += '<div class="health-plan-section-detail">' + ap.name + ' · ' + ap.method + ' ' + ap.duration + (ap.timing ? '（' + ap.timing + '）' : '') + '</div>';
+      });
+      html += '</div></div>';
+    }
+    
+    // 食疗
+    if (plan.food_recipes && plan.food_recipes.length > 0) {
+      html += '<div class="health-plan-section">';
+      html += '<div class="health-plan-section-icon">🥣</div>';
+      html += '<div class="health-plan-section-content">';
+      html += '<div class="health-plan-section-title">食疗方</div>';
+      plan.food_recipes.forEach(r => {
+        html += '<div class="health-plan-section-detail"><strong>' + r.name + '</strong>（' + r.frequency + '）</div>';
+        html += '<div class="health-plan-section-sub">' + r.ingredients + '</div>';
+      });
+      html += '</div></div>';
+    }
+    
+    // 日常习惯
+    if (plan.daily_habits && plan.daily_habits.length > 0) {
+      html += '<div class="health-plan-section">';
+      html += '<div class="health-plan-section-icon">🌿</div>';
+      html += '<div class="health-plan-section-content">';
+      html += '<div class="health-plan-section-title">日常习惯</div>';
+      plan.daily_habits.forEach(h => {
+        html += '<div class="health-plan-section-detail">• ' + h + '</div>';
+      });
+      html += '</div></div>';
+    }
+    
+    html += '</div>'; // end plan
+    
+    // 今日打卡
+    html += '<div class="health-checkin-section">';
+    html += '<div class="health-checkin-title">✅ 今日打卡</div>';
+    html += '<div class="health-checkin-list" id="healthCheckinList">';
+    
+    items.forEach((item, idx) => {
+      const typeIcon = { tea: '🍵', acupoint: '🤲', food: '🥣', habit: '🌿', exercise: '🏃' }[item.type] || '•';
+      html += '<div class="health-checkin-item' + (item.done ? ' checked' : '') + '" data-idx="' + idx + '">';
+      html += '<div class="health-checkin-checkbox">' + (item.done ? '✓' : '') + '</div>';
+      html += '<div class="health-checkin-content">';
+      html += '<span class="health-checkin-type">' + typeIcon + '</span>';
+      html += '<span class="health-checkin-name">' + item.name + '</span>';
+      if (item.detail) html += '<span class="health-checkin-detail">' + item.detail + '</span>';
+      html += '</div></div>';
+    });
+    
+    html += '</div>'; // end checkin list
+    
+    // 进度条
+    const doneCount = items.filter(i => i.done).length;
+    const progress = items.length > 0 ? Math.round(doneCount / items.length * 100) : 0;
+    html += '<div class="health-checkin-progress">';
+    html += '<div class="health-checkin-progress-bar"><div class="health-checkin-progress-fill" style="width:' + progress + '%"></div></div>';
+    html += '<span class="health-checkin-progress-text">' + doneCount + '/' + items.length + '</span>';
+    html += '</div>';
+    
+    html += '</div>'; // end checkin section
+    html += '</div>'; // end intervention card
+    
+    // 存储当前方案数据到DOM供打卡事件使用
+    setTimeout(function() {
+      const card = document.querySelector('.health-intervention-card');
+      if (card) {
+        card.dataset.syndromeId = syndrome.id;
+        card.dataset.items = JSON.stringify(items);
+      }
+      bindCheckinEvents(syndrome.id, items);
+    }, 100);
+    
+    return html;
+  }
+  
+  // 绑定打卡事件
+  function bindCheckinEvents(syndromeId, items) {
+    const list = document.getElementById('healthCheckinList');
+    if (!list) return;
+    
+    list.querySelectorAll('.health-checkin-item').forEach(function(el) {
+      _bindEvent(el, 'click', async function() {
+        const idx = parseInt(el.dataset.idx);
+        items[idx].done = !items[idx].done;
+        el.classList.toggle('checked', items[idx].done);
+        const checkbox = el.querySelector('.health-checkin-checkbox');
+        if (checkbox) checkbox.textContent = items[idx].done ? '✓' : '';
+        
+        // 更新进度条
+        const doneCount = items.filter(function(i) { return i.done; }).length;
+        const progress = items.length > 0 ? Math.round(doneCount / items.length * 100) : 0;
+        const fill = document.querySelector('.health-checkin-progress-fill');
+        const text = document.querySelector('.health-checkin-progress-text');
+        if (fill) fill.style.width = progress + '%';
+        if (text) text.textContent = doneCount + '/' + items.length;
+        
+        // 更新连续打卡显示
+        if (doneCount === items.length) {
+          const streakEl = document.querySelector('.health-intervention-streak');
+          if (streakEl) {
+            const current = parseInt(streakEl.textContent.match(/\d+/)[0]) || 0;
+            if (current === 0) streakEl.textContent = '🔥 今日完成！';
+          }
+        }
+        
+        // 保存到Storage
+        await saveTracking(syndromeId, items);
+      });
+    });
+  }
+  
   async function renderResult(top, selected, qiBloodAnalysis) {
     const panel = document.getElementById('healthResultPanel');
     if (!panel) return;
@@ -2535,6 +2817,12 @@ export const HealthModule = (() => {
         <div class="health-empty-state">暂无明显气血异常倾向</div>
       </div>`;
     }
+    // H4: 个性化干预方案（仅为主证型生成）
+    if (top.length > 0 && top[0].syndrome) {
+      const interventionHtml = await renderInterventionCard(top[0].syndrome);
+      html += interventionHtml;
+    }
+    
     html += `<div class="health-medical-notice"><span class="warn-icon">⚠️</span><span>以上结果仅供参考，不能替代专业医疗诊断。如症状持续或加重，请及时就医咨询专业医师。</span></div>`;
     panel.innerHTML = html;
   }

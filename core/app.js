@@ -95,6 +95,7 @@ async function lazyImport(name) {
     knowledgeExtractor: './knowledge-extractor.js?v=95',
     nicole: './nicole.js?v=95',
     xiaolu: './xiaolu.js?v=95',
+    qiqi: '../scripts/qiqi.js?v=1',
     music: '../modules/music/music.js?v=95',
     report: '../modules/report/report.js?v=95',
     rest: '../modules/rest/rest.js?v=95',
@@ -463,6 +464,25 @@ export const App = (() => {
       }
     }
 
+    // 初始化栖栖团子伴侣（延迟到首屏后再加载，不影响首屏性能）
+    try {
+      const qiqiMod = await lazyImport('qiqi');
+      if (qiqiMod.QiqiModule) {
+        // 延迟 2 秒再初始化，让首屏完全稳定
+        setTimeout(() => {
+          try {
+            qiqiMod.QiqiModule.init();
+            window.QiqiModule = qiqiMod.QiqiModule;
+            console.log('[App] 栖栖团子伴侣初始化完成');
+          } catch (e) {
+            console.warn('[App] 栖栖团子伴侣初始化失败:', e);
+          }
+        }, 2000);
+      }
+    } catch (e) {
+      console.warn('[App] 栖栖模块加载失败:', e);
+    }
+
     // 初始化键盘快捷键（AppUtils 内置）
     if (AppUtils.KeyboardShortcuts) {
       try {
@@ -641,7 +661,8 @@ export const App = (() => {
       'nicole.css',
       'xiaolu.css',
       'audit-log.css',
-      'quickinput.css'
+      'quickinput.css',
+      'qiqi.css',
     ];
     // 延迟到首屏渲染后加载，避免竞争
     requestAnimationFrame(() => {

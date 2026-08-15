@@ -3,7 +3,7 @@
  * v109 - 日晷时钟布局优化（与问候区并排，消除两侧空白）
  */
 
-const CACHE_NAME = 'life-work-space-v116-perf';
+const CACHE_NAME = 'life-work-space-v117-qiqi';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -16,6 +16,7 @@ const CACHE_ASSETS = [
   './styles/visual-enhancements.css',
   './styles/visual-enhancements-a.css',
   './styles/visual-c-group.css',
+  './styles/qiqi.css',
   // 核心 ES Modules（首屏静态导入）
   './core/app.js',
   './core/storage.js',
@@ -52,6 +53,8 @@ const CACHE_ASSETS = [
   './core/preference-learner.js',
   './core/predictive-engine.js',
   './core/achievements.js',
+  // 栖栖团子伴侣
+  './scripts/qiqi.js',
   // 功能模块（动态 import 按需加载，但预缓存以保离线可用）
   './modules/dashboard/dashboard.html',
   './modules/dashboard/dashboard.css',

@@ -4,7 +4,7 @@
  */
 
 export const DB_NAME = 'LifeWorkSpace';
-export const DB_VERSION = 15;
+export const DB_VERSION = 16;
 
 /**
  * 存储管理器
@@ -213,6 +213,14 @@ export const Storage = (() => {
             countdown.createIndex('date', 'date', { unique: false });
             console.log('[Storage] v15 迁移：已创建 countdown 表（倒数日模块）');
           },
+          // v16: 栖栖长期记忆模块
+          16: (db) => {
+            const qiqiConversations = db.createObjectStore('qiqi_conversations', { keyPath: 'date' });
+            qiqiConversations.createIndex('timestamp', 'timestamp', { unique: false });
+
+            const qiqiMemory = db.createObjectStore('qiqi_memory', { keyPath: 'key' });
+            console.log('[Storage] v16 迁移：已创建 qiqi_conversations / qiqi_memory 表（栖栖长期记忆）');
+          },
         };
 
         // 按版本顺序依次执行迁移
@@ -257,7 +265,8 @@ export const Storage = (() => {
 
   /** 同步无关的表，不记录到 sync_queue */
   const SYNC_EXCLUDED_STORES = new Set([
-    'settings', 'meta', 'audit_logs', 'sync_queue'
+    'settings', 'meta', 'audit_logs', 'sync_queue',
+    'qiqi_conversations', 'qiqi_memory'
   ]);
 
   /**

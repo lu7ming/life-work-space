@@ -645,9 +645,10 @@ class QiqiAI {
    * @param {string} userMessage - 用户消息
    * @param {string} contextData - 工作台数据摘要（附加到 system prompt）
    * @param {Function} onChunk - 每收到一个 token 的回调 (text) => void
+   * @param {string} [memoryContext] - 长期记忆上下文（附加到 system prompt）
    * @returns {Promise<string>} 完整回复内容
    */
-  async streamChat(userMessage, contextData = '', onChunk = null) {
+  async streamChat(userMessage, contextData = '', onChunk = null, memoryContext = '') {
     if (this.isStreaming) {
       throw new Error('正在回复中，请稍候');
     }
@@ -655,6 +656,12 @@ class QiqiAI {
 
     const apiKey = this.getApiKey();
     let systemPrompt = QIQI_SYSTEM_PROMPT;
+
+    // 注入长期记忆（优先于工作台数据，更贴近人格）
+    if (memoryContext && memoryContext.trim()) {
+      systemPrompt += `\n\n${memoryContext.trim()}`;
+    }
+
     if (contextData && contextData.trim()) {
       systemPrompt += `\n\n## 工作台最新数据（来自主人的人生工作台）\n${contextData}\n\n请结合以上数据给出更贴心的回复，如果没有相关数据就自然聊天。`;
     }
@@ -738,14 +745,14 @@ class QiqiAI {
   /**
    * 非流式调用（用于主动消息等场景）
    */
-  async chat(userMessage, contextData = '') {
+  async chat(userMessage, contextData = '', memoryContext = '') {
     if (this.isStreaming) {
       return QIQI_REPLIES[Math.floor(Math.random() * QIQI_REPLIES.length)];
     }
 
     let fullReply = '';
     try {
-      fullReply = await this.streamChat(userMessage, contextData, null);
+      fullReply = await this.streamChat(userMessage, contextData, null, memoryContext);
     } catch (err) {
       console.warn('[QiqiAI] 降级到模拟回复:', err.message);
       fullReply = QIQI_REPLIES[Math.floor(Math.random() * QIQI_REPLIES.length)];
@@ -753,6 +760,510 @@ class QiqiAI {
       this.pushHistory('assistant', fullReply);
     }
     return fullReply;
+  }
+}
+
+// ===== 长期记忆系统 =====
+const MEMORY_KEY_PREFIX = 'qiqi/memory';
+const MEMORY_COMPRESS_THRESHOLD = 50; // 累积对话超过多少条触发压缩
+const MEMORY_KEEP_DAYS = 3;           // 详细对话保留天数
+
+/**
+ * 栖栖长期记忆管理器
+ *
+ * 存储结构：
+ *   qiqi_conversations 表 — 按日期存对话，key: date (YYYY-MM-DD), value: {date, messages:[...]}
+ *   qiqi_memory 表       — key-value 记忆元数据
+ *     summary/latest   →  "..."                        记忆摘要文本
+ *     facts            →  {preferences:[], events:[], habits:[]}
+ *     conv_count       →  number                       未压缩对话累计条数
+ */
+class QiqiMemory {
+  constructor() {
+    this._compressing = false;
+    this._extracting = false;
+  }
+
+  /** 获取 Storage 引用（全局挂载） */
+  _getStorage() {
+    if (window.Storage?.put && window.Storage?.get) return window.Storage;
+    return null;
+  }
+
+  /** 格式化日期 key */
+  _dateKey(date = new Date()) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // ---------- 对话保存 ----------
+
+  /**
+   * 保存一条对话到当天记录
+   * @param {'user'|'assistant'} role
+   * @param {string} content
+   */
+  async saveConversation(role, content) {
+    try {
+      const storage = this._getStorage();
+      if (!storage) return;
+
+      const dateKey = this._dateKey();
+      let record = await storage.get('qiqi_conversations', dateKey);
+      if (!record) {
+        record = { date: dateKey, messages: [] };
+      }
+      record.messages.push({
+        role,
+        content: String(content || ''),
+        timestamp: Date.now(),
+      });
+
+      await storage.put('qiqi_conversations', record);
+
+      // 更新累计计数
+      await this._incConvCount(1);
+    } catch (e) {
+      console.warn('[QiqiMemory] 保存对话失败:', e);
+    }
+  }
+
+  /** 累计未压缩对话条数 */
+  async _incConvCount(delta) {
+    try {
+      const storage = this._getStorage();
+      if (!storage) return 0;
+      const key = 'conv_count';
+      const record = await storage.get('qiqi_memory', key);
+      const count = (record?.value || 0) + delta;
+      await storage.put('qiqi_memory', { key, value: count });
+      return count;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  async _getConvCount() {
+    try {
+      const storage = this._getStorage();
+      if (!storage) return 0;
+      const key = 'conv_count';
+      const record = await storage.get('qiqi_memory', key);
+      return record?.value || 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  async _resetConvCount() {
+    try {
+      const storage = this._getStorage();
+      if (!storage) return;
+      const key = 'conv_count';
+      await storage.put('qiqi_memory', { key, value: 0 });
+    } catch (e) { /* ignore */ }
+  }
+
+  // ---------- 对话读取 ----------
+
+  /**
+   * 加载最近 N 条对话（跨天倒序取最近）
+   * @param {number} n
+   * @returns {Promise<Array<{role, content, timestamp}>>}
+   */
+  async loadRecentConversations(n = 10) {
+    const results = [];
+    try {
+      const storage = this._getStorage();
+      if (!storage) return results;
+
+      // 从今天往回找，最多扫 7 天
+      const cursor = new Date();
+      for (let i = 0; i < 7; i++) {
+        const dateKey = this._dateKey(cursor);
+        const record = await storage.get('qiqi_conversations', dateKey);
+        const messages = record?.messages || [];
+        if (messages.length > 0) {
+          // 倒序插入到前面
+          for (let j = messages.length - 1; j >= 0; j--) {
+            results.unshift(messages[j]);
+            if (results.length > n) results.shift();
+          }
+          if (results.length >= n) break;
+        }
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      // 截取最后 n 条
+      return results.slice(-n);
+    } catch (e) {
+      console.warn('[QiqiMemory] 加载最近对话失败:', e);
+      return results;
+    }
+  }
+
+  /**
+   * 加载指定天数内的所有对话（用于压缩摘要）
+   * @param {number} days
+   */
+  async loadConversationsForDays(days = 7) {
+    const all = [];
+    try {
+      const storage = this._getStorage();
+      if (!storage) return all;
+
+      const cursor = new Date();
+      for (let i = 0; i < days; i++) {
+        const dateKey = this._dateKey(cursor);
+        const record = await storage.get('qiqi_conversations', dateKey);
+        const messages = record?.messages || [];
+        for (const m of messages) {
+          all.push({ ...m, date: dateKey });
+        }
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      return all;
+    } catch (e) {
+      return all;
+    }
+  }
+
+  // ---------- 摘要 ----------
+
+  /** 加载记忆摘要 */
+  async loadSummary() {
+    try {
+      const storage = this._getStorage();
+      if (!storage) return '';
+      const record = await storage.get('qiqi_memory', 'summary/latest');
+      return record?.value || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /** 保存记忆摘要 */
+  async _saveSummary(text) {
+    try {
+      const storage = this._getStorage();
+      if (!storage) return;
+      await storage.put('qiqi_memory', { key: 'summary/latest', value: String(text || '') });
+    } catch (e) {
+      console.warn('[QiqiMemory] 保存摘要失败:', e);
+    }
+  }
+
+  // ---------- 事实 ----------
+
+  /** 加载用户事实 */
+  async loadFacts() {
+    try {
+      const storage = this._getStorage();
+      if (!storage) return { preferences: [], events: [], habits: [] };
+      const record = await storage.get('qiqi_memory', 'facts');
+      const v = record?.value;
+      if (v && typeof v === 'object') {
+        return {
+          preferences: Array.isArray(v.preferences) ? v.preferences : [],
+          events: Array.isArray(v.events) ? v.events : [],
+          habits: Array.isArray(v.habits) ? v.habits : [],
+        };
+      }
+      return { preferences: [], events: [], habits: [] };
+    } catch (e) {
+      return { preferences: [], events: [], habits: [] };
+    }
+  }
+
+  /** 合并新事实（去重） */
+  async _mergeFacts(newFacts) {
+    try {
+      if (!Array.isArray(newFacts) || newFacts.length === 0) return;
+      const current = await this.loadFacts();
+      const storage = this._getStorage();
+      if (!storage) return;
+
+      const seen = new Set();
+      const addUnique = (list, item) => {
+        const key = String(item || '').trim().slice(0, 80);
+        if (!key) return;
+        if (seen.has(key)) return;
+        seen.add(key);
+        list.push(item);
+      };
+
+      for (const f of current.preferences) addUnique(current.preferences, f);
+      for (const f of current.events) addUnique(current.events, f);
+      for (const f of current.habits) addUnique(current.habits, f);
+
+      for (const f of newFacts) {
+        const content = f?.content ? String(f.content).trim() : '';
+        if (!content) continue;
+        const type = f?.type || 'preference';
+        const dated = f?.date ? `（${f.date}）${content}` : content;
+        if (type === 'event') addUnique(current.events, dated);
+        else if (type === 'habit') addUnique(current.habits, dated);
+        else addUnique(current.preferences, dated);
+      }
+
+      // 控制数量，每个类别最多 30 条
+      current.preferences = current.preferences.slice(-30);
+      current.events = current.events.slice(-30);
+      current.habits = current.habits.slice(-30);
+
+      await storage.put('qiqi_memory', { key: 'facts', value: current });
+    } catch (e) {
+      console.warn('[QiqiMemory] 合并事实失败:', e);
+    }
+  }
+
+  // ---------- 记忆压缩 ----------
+
+  /**
+   * 检查是否需要压缩，需要则异步调用 API 生成摘要
+   * 不阻塞 UI，失败静默降级
+   */
+  async compressIfNeeded() {
+    if (this._compressing) return;
+    try {
+      const count = await this._getConvCount();
+      if (count < MEMORY_COMPRESS_THRESHOLD) return;
+
+      this._compressing = true;
+      console.log('[QiqiMemory] 触发记忆压缩，当前对话数:', count);
+
+      const messages = await this.loadConversationsForDays(7);
+      if (messages.length === 0) {
+        this._compressing = false;
+        return;
+      }
+
+      // 调用 DeepSeek 生成摘要
+      const summaryText = await this._generateSummary(messages);
+      if (summaryText && summaryText.trim()) {
+        // 合并旧摘要 + 新摘要
+        const oldSummary = await this.loadSummary();
+        const merged = oldSummary
+          ? `${oldSummary}\n\n[新补充] ${summaryText.trim()}`
+          : summaryText.trim();
+        await this._saveSummary(merged);
+        console.log('[QiqiMemory] 记忆摘要已更新');
+      }
+
+      // 重置计数
+      await this._resetConvCount();
+
+      // 清理旧对话
+      await this.cleanupOldConversations(MEMORY_KEEP_DAYS);
+    } catch (e) {
+      console.warn('[QiqiMemory] 记忆压缩失败:', e);
+    } finally {
+      this._compressing = false;
+    }
+  }
+
+  /** 调用 DeepSeek 生成摘要 */
+  async _generateSummary(messages) {
+    try {
+      const apiKey = this._getApiKey();
+      if (!apiKey) return '';
+
+      const dialogueText = messages
+        .map((m) => `${m.role === 'user' ? '主人' : '栖栖'}：${m.content}`)
+        .join('\n');
+
+      const prompt = `以下是你和用户最近的对话记录，请提取关键信息作为你的长期记忆：
+1. 用户的重要事件和决定
+2. 用户的情绪变化和状态
+3. 用户的偏好和习惯
+4. 你们之间的重要约定
+
+用简洁的要点形式总结，每条不超过20字。
+
+对话记录：
+${dialogueText.slice(-3000)}`;
+
+      const resp = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: DEEPSEEK_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.5,
+          max_tokens: 500,
+          stream: false,
+        }),
+      });
+
+      if (!resp.ok) return '';
+      const data = await resp.json();
+      return data?.choices?.[0]?.message?.content || '';
+    } catch (e) {
+      console.warn('[QiqiMemory] 生成摘要 API 失败:', e);
+      return '';
+    }
+  }
+
+  // ---------- 事实提取 ----------
+
+  /**
+   * 从对话中提取用户事实/偏好/事件（异步，不阻塞）
+   * @param {Array<{role, content}>} messages - 最近几条对话
+   */
+  async extractFacts(messages) {
+    if (this._extracting) return;
+    if (!Array.isArray(messages) || messages.length === 0) return;
+
+    // 只在有用户消息时才提取
+    const hasUserMsg = messages.some((m) => m.role === 'user');
+    if (!hasUserMsg) return;
+
+    this._extracting = true;
+    try {
+      const facts = await this._callExtractFacts(messages);
+      if (facts && facts.length > 0) {
+        await this._mergeFacts(facts);
+        console.log('[QiqiMemory] 已提取并合并事实:', facts.length, '条');
+      }
+    } catch (e) {
+      console.warn('[QiqiMemory] 事实提取失败:', e);
+    } finally {
+      this._extracting = false;
+    }
+  }
+
+  async _callExtractFacts(messages) {
+    try {
+      const apiKey = this._getApiKey();
+      if (!apiKey) return [];
+
+      const dialogueText = messages
+        .map((m) => `${m.role === 'user' ? '主人' : '栖栖'}：${m.content}`)
+        .join('\n');
+
+      const prompt = `从以下对话中提取用户的重要事实、偏好、事件：
+${dialogueText.slice(-2000)}
+
+返回JSON格式：{"facts": [{"type": "event/preference/habit", "content": "...", "date": "..."}]}
+只返回JSON，不要额外文字。如果没有值得记录的信息，返回 {"facts": []}。`;
+
+      const resp = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: DEEPSEEK_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3,
+          max_tokens: 400,
+          stream: false,
+          response_format: { type: 'json_object' },
+        }),
+      });
+
+      if (!resp.ok) return [];
+      const data = await resp.json();
+      const content = data?.choices?.[0]?.message?.content || '';
+      const parsed = JSON.parse(content);
+      return parsed?.facts || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  _getApiKey() {
+    try {
+      const stored = localStorage.getItem(API_KEY_STORAGE_KEY);
+      if (stored && stored.trim()) return stored.trim();
+    } catch (e) { /* ignore */ }
+    return DEFAULT_API_KEY;
+  }
+
+  // ---------- 构建记忆上下文 ----------
+
+  /**
+   * 构建完整的记忆上下文，注入到 system prompt
+   * @returns {Promise<string>}
+   */
+  async buildMemoryContext() {
+    try {
+      const [summary, facts, recent] = await Promise.all([
+        this.loadSummary(),
+        this.loadFacts(),
+        this.loadRecentConversations(10),
+      ]);
+
+      const parts = [];
+
+      if (summary && summary.trim()) {
+        parts.push(`## 长期记忆\n${summary.trim()}`);
+      }
+
+      const factLines = [];
+      if (facts.preferences.length > 0) {
+        factLines.push(`偏好：${facts.preferences.slice(-5).join('；')}`);
+      }
+      if (facts.events.length > 0) {
+        factLines.push(`重要事件：${facts.events.slice(-5).join('；')}`);
+      }
+      if (facts.habits.length > 0) {
+        factLines.push(`习惯：${facts.habits.slice(-5).join('；')}`);
+      }
+      if (factLines.length > 0) {
+        parts.push(`## 你的用户事实备忘\n${factLines.join('\n')}`);
+      }
+
+      if (recent.length > 0) {
+        const convText = recent
+          .map((m) => `${m.role === 'user' ? '主人' : '栖栖'}：${m.content}`)
+          .join('\n');
+        parts.push(`## 今天的对话记录\n${convText}`);
+      }
+
+      if (parts.length > 0) {
+        return parts.join('\n\n') + '\n\n记住以上信息，在对话中自然地体现你对用户的了解和关心。';
+      }
+      return '';
+    } catch (e) {
+      console.warn('[QiqiMemory] 构建记忆上下文失败:', e);
+      return '';
+    }
+  }
+
+  // ---------- 旧对话清理 ----------
+
+  /**
+   * 清理 keepDays 天以前的详细对话记录
+   */
+  async cleanupOldConversations(keepDays = 3) {
+    try {
+      const storage = this._getStorage();
+      if (!storage) return;
+
+      // 从 keepDays+1 天前开始，往回扫 30 天删除
+      const cursor = new Date();
+      cursor.setDate(cursor.getDate() - keepDays - 1);
+      let deleted = 0;
+      for (let i = 0; i < 30; i++) {
+        const dateKey = this._dateKey(cursor);
+        try {
+          await storage.remove('qiqi_conversations', dateKey);
+          deleted++;
+        } catch (e) {
+          // 不存在就跳过
+        }
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      console.log(`[QiqiMemory] 已清理 ${deleted} 天前的旧对话`);
+    } catch (e) {
+      console.warn('[QiqiMemory] 清理旧对话失败:', e);
+    }
   }
 }
 
@@ -933,6 +1444,7 @@ export const QiqiModule = (() => {
   let rafId = null;
   let globalTime = 0;
   let qiqiAI = null; // AI 实例
+  let qiqiMemory = null; // 长期记忆实例
 
   // 位置 / 移动
   const PET_W = 80, PET_H = 80;
@@ -1408,7 +1920,7 @@ export const QiqiModule = (() => {
     // 如果正在回复，忽略
     if (qiqiAI?.isStreaming) return;
 
-    // 获取 AI 回复（流式 + 数据感知）
+    // 获取 AI 回复（流式 + 数据感知 + 长期记忆）
     (async () => {
       // 创建气泡（先显示打字动画）
       const row = document.createElement('div');
@@ -1428,12 +1940,25 @@ export const QiqiModule = (() => {
       chatBody.scrollTop = chatBody.scrollHeight;
 
       try {
-        // 收集上下文数据
+        // 收集上下文数据 + 长期记忆
         let contextData = '';
+        let memoryContext = '';
         try {
           contextData = await collectWorkContext();
         } catch (e) {
           console.warn('[Qiqi] 收集上下文失败:', e);
+        }
+        try {
+          if (qiqiMemory) {
+            memoryContext = await qiqiMemory.buildMemoryContext();
+          }
+        } catch (e) {
+          console.warn('[Qiqi] 构建记忆上下文失败:', e);
+        }
+
+        // 先保存用户消息到长期记忆
+        if (qiqiMemory) {
+          qiqiMemory.saveConversation('user', val).catch(() => {});
         }
 
         // 开始流式回复
@@ -1443,12 +1968,29 @@ export const QiqiModule = (() => {
         const reply = await qiqiAI.streamChat(val, contextData, (chunk) => {
           bubble.textContent += chunk;
           chatBody.scrollTop = chatBody.scrollHeight;
-        });
+        }, memoryContext);
 
         if (!bubble.textContent) {
           bubble.textContent = reply;
         }
         chatBody.scrollTop = chatBody.scrollHeight;
+
+        // 保存栖栖回复到长期记忆（异步，不阻塞）
+        if (qiqiMemory && reply) {
+          qiqiMemory.saveConversation('assistant', reply).catch(() => {});
+
+          // 异步触发记忆压缩检查
+          qiqiMemory.compressIfNeeded().catch(() => {});
+
+          // 异步提取事实（基于最近一轮对话）
+          try {
+            const recentPair = [
+              { role: 'user', content: val },
+              { role: 'assistant', content: reply },
+            ];
+            qiqiMemory.extractFacts(recentPair).catch(() => {});
+          } catch (e) { /* ignore */ }
+        }
       } catch (err) {
         console.warn('[Qiqi] AI 回复失败，降级到模拟:', err.message);
         // 降级到模拟回复
@@ -1457,6 +1999,10 @@ export const QiqiModule = (() => {
         if (qiqiAI) {
           qiqiAI.pushHistory('user', val);
           qiqiAI.pushHistory('assistant', fallback);
+        }
+        // 降级回复也保存到记忆
+        if (qiqiMemory) {
+          qiqiMemory.saveConversation('assistant', fallback).catch(() => {});
         }
       }
     })();
@@ -1511,7 +2057,11 @@ export const QiqiModule = (() => {
         // 如果 AI 空闲，用 AI 生成；否则用预设
         if (qiqiAI && !qiqiAI.isStreaming) {
           try {
-            const aiMsg = await qiqiAI.chat(aiPrompt, contextData);
+            let memoryCtx = '';
+            try {
+              if (qiqiMemory) memoryCtx = await qiqiMemory.buildMemoryContext();
+            } catch (e) { /* ignore */ }
+            const aiMsg = await qiqiAI.chat(aiPrompt, contextData, memoryCtx);
             if (aiMsg && aiMsg.length < 100) {
               message = aiMsg;
             }
@@ -1571,7 +2121,7 @@ export const QiqiModule = (() => {
       try {
         const contextData = await collectWorkContext();
         const prompt = `主人刚刚打开了工作台，现在是${greeting.period}，请用栖栖的口吻说一句温暖的欢迎语（1-2句话，带emoji），可以结合主人今天的数据。直接输出消息内容。`;
-        const aiWelcome = await qiqiAI.chat(prompt, contextData);
+        const aiWelcome = await qiqiAI.chat(prompt, contextData, await qiqiMemory?.buildMemoryContext().catch(() => ''));
         if (aiWelcome && aiWelcome.length < 120) {
           welcomeText = aiWelcome;
         }
@@ -1610,6 +2160,9 @@ export const QiqiModule = (() => {
 
     // 初始化 AI
     qiqiAI = new QiqiAI();
+
+    // 初始化长期记忆
+    qiqiMemory = new QiqiMemory();
 
     // 启动主循环
     rafId = requestAnimationFrame(mainLoop);

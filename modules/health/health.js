@@ -2001,7 +2001,62 @@ export const HealthModule = (() => {
       renderSupplementGrid();
       goToStep(3);
     });
-    if (analyzeBtn) _bindEvent(analyzeBtn, 'click', async () => { await analyzeSymptoms(); goToStep(4); });
+    const followupSubmitBtn = document.getElementById('healthFollowupSubmitBtn');
+    const followupSkipBtn = document.getElementById('healthFollowupSkipBtn');
+    
+    if (analyzeBtn) _bindEvent(analyzeBtn, 'click', async () => {
+      symptomState.followUpDone = false;
+      symptomState.followUpAnswered = new Set();
+      await analyzeSymptoms();
+      goToStep(4);
+    });
+    
+    if (followupSubmitBtn) _bindEvent(followupSubmitBtn, 'click', async () => {
+      // Collect follow-up answers
+      const answers = collectFollowUpAnswers();
+      const selected = [...symptomState.symptoms];
+      answers.forEach(a => {
+        if (a.answer && !selected.includes(a.symptom)) {
+          selected.push(a.symptom);
+          symptomState.symptoms.add(a.symptom);
+        }
+        if (!symptomState.followUpAnswered) symptomState.followUpAnswered = new Set();
+        symptomState.followUpAnswered.add(a.symptom);
+      });
+      symptomState.followUpDone = true;
+      
+      // Recalculate with updated symptoms
+      const newResults = recalculateResults(selected);
+      const top = newResults.slice(0, 2);
+      const qiBloodAnalysis = analyzeQiBlood(selected);
+      
+      // Show result panel, hide follow-up
+      const followupPanel = document.getElementById('healthFollowupPanel');
+      const resultPanel = document.getElementById('healthResultPanel');
+      if (followupPanel) followupPanel.style.display = 'none';
+      if (resultPanel) resultPanel.style.display = 'block';
+      document.getElementById('healthRestartBtn').style.display = '';
+      
+      await renderResult(top, selected, qiBloodAnalysis);
+      saveSymptomHistory(top, selected);
+    });
+    
+    if (followupSkipBtn) _bindEvent(followupSkipBtn, 'click', async () => {
+      symptomState.followUpDone = true;
+      const top = symptomState.preAnalysisTop || [];
+      const selected = [...symptomState.symptoms];
+      const qiBloodAnalysis = analyzeQiBlood(selected);
+      
+      const followupPanel = document.getElementById('healthFollowupPanel');
+      const resultPanel = document.getElementById('healthResultPanel');
+      if (followupPanel) followupPanel.style.display = 'none';
+      if (resultPanel) resultPanel.style.display = 'block';
+      document.getElementById('healthRestartBtn').style.display = '';
+      
+      await renderResult(top, selected, qiBloodAnalysis);
+      saveSymptomHistory(top, selected);
+    });
+    
     if (restartBtn) _bindEvent(restartBtn, 'click', () => {
       symptomState = { part: null, symptoms: new Set(), supplements: {}, step: 1 };
       document.querySelectorAll('.health-body-part').forEach(p => p.classList.remove('selected'));
@@ -2160,11 +2215,30 @@ export const HealthModule = (() => {
       };
     }).filter(r => r.matchPct > 0).sort((a, b) => b.confidenceScore - a.confidenceScore);
     const top = results.slice(0, 2);
-    // 气血辨证分析
+    
+    // H3: 动态追问 - 如果第一次分析且有两个候选，生成追问问题
+    if (!symptomState.followUpDone && top.length >= 2) {
+      const followUpQs = generateFollowUpQuestions(top, selected);
+      if (followUpQs.length > 0) {
+        symptomState.preAnalysisResults = results;
+        symptomState.preAnalysisTop = top;
+        symptomState.followUpQuestions = followUpQs;
+        const followupPanel = document.getElementById('healthFollowupPanel');
+        const resultPanel = document.getElementById('healthResultPanel');
+        if (followupPanel) followupPanel.style.display = 'block';
+        if (resultPanel) resultPanel.style.display = 'none';
+        document.getElementById('healthRestartBtn').style.display = 'none';
+        renderFollowUpQuestions(followUpQs);
+        return;
+      }
+    }
+    
+    // 最终结果渲染
     const qiBloodAnalysis = analyzeQiBlood(selected);
-    // 读取体质数据
     await renderResult(top, selected, qiBloodAnalysis);
     saveSymptomHistory(top, selected);
+    const followupPanel = document.getElementById('healthFollowupPanel');
+    if (followupPanel) followupPanel.style.display = 'none';
   }
   // 气血辨证分析
   function analyzeQiBlood(selected) {
@@ -2194,6 +2268,166 @@ export const HealthModule = (() => {
     }
     return results;
   }
+
+  // ===== H3: 动态追问 - 生成区分性问题 =====
+  function generateFollowUpQuestions(topResults, selectedSymptoms) {
+    if (!topResults || topResults.length < 2) return [];
+    const top1 = topResults[0];
+    const top2 = topResults[1];
+    if (!top1 || !top2) return [];
+    
+    const questions = [];
+    const allCandidates = [top1, top2];
+    
+    allCandidates.forEach(candidate => {
+      const syn = candidate.syndrome;
+      for (const [sym, weight] of Object.entries(syn.symptoms)) {
+        if (weight <= 0) continue;
+        if (selectedSymptoms.includes(sym)) continue;
+        
+        const inOther = allCandidates.some(other => 
+          other !== candidate && other.syndrome.symptoms[sym] && other.syndrome.symptoms[sym] > 0
+        );
+        
+        const discrimination = !inOther ? weight * 3 : weight;
+        const alreadyAsked = symptomState.followUpAnswered && symptomState.followUpAnswered.has(sym);
+        
+        if (!alreadyAsked) {
+          questions.push({
+            symptom: sym,
+            weight: discrimination,
+            supportsCandidate: candidate.syndrome.name,
+            sourceWeight: weight,
+            isDiscriminating: !inOther
+          });
+        }
+      }
+    });
+    
+    questions.sort((a, b) => b.weight - a.weight);
+    
+    const discriminating = questions.filter(q => q.isDiscriminating);
+    const supporting = questions.filter(q => !q.isDiscriminating);
+    const result = [...discriminating, ...supporting].slice(0, 3);
+    
+    if (result.length === 0 && top1) {
+      const syn1 = top1.syndrome;
+      for (const [sym, weight] of Object.entries(syn1.symptoms)) {
+        if (weight >= 2 && !selectedSymptoms.includes(sym) && 
+            !(symptomState.followUpAnswered && symptomState.followUpAnswered.has(sym))) {
+          result.push({ symptom: sym, weight, supportsCandidate: syn1.name, sourceWeight: weight, isDiscriminating: false });
+          if (result.length >= 2) break;
+        }
+      }
+    }
+    
+    return result;
+  }
+  
+  function renderFollowUpQuestions(questions) {
+    const container = document.getElementById('healthFollowupQuestions');
+    if (!container) return;
+    
+    if (questions.length === 0) {
+      container.innerHTML = '<div class="health-followup-empty">暂无需要追问的问题</div>';
+      return;
+    }
+    
+    let html = '';
+    questions.forEach((q, idx) => {
+      html += '<div class="health-followup-question" data-symptom="' + q.symptom + '" data-index="' + idx + '">';
+      html += '<div class="health-followup-q-text">' + q.symptom + '</div>';
+      html += '<div class="health-followup-q-hint">您是否有"' + q.symptom + '"的表现？</div>';
+      html += '<div class="health-followup-q-options">';
+      html += '<button class="health-followup-opt-btn health-followup-opt-yes" data-idx="' + idx + '" data-val="yes">是</button>';
+      html += '<button class="health-followup-opt-btn health-followup-opt-no" data-idx="' + idx + '" data-val="no">否</button>';
+      html += '</div></div>';
+    });
+    
+    container.innerHTML = html;
+    
+    container.querySelectorAll('.health-followup-opt-btn').forEach(function(btn) {
+      _bindEvent(btn, 'click', function(e) {
+        const parent = e.target.closest('.health-followup-question');
+        parent.querySelectorAll('.health-followup-opt-btn').forEach(function(b) { b.classList.remove('selected'); });
+        e.target.classList.add('selected');
+        parent.classList.add('answered');
+      });
+    });
+  }
+  
+  function collectFollowUpAnswers() {
+    const answers = [];
+    document.querySelectorAll('.health-followup-question.answered').forEach(function(q) {
+      const symptom = q.dataset.symptom;
+      const selectedBtn = q.querySelector('.health-followup-opt-btn.selected');
+      if (selectedBtn) {
+        answers.push({
+          symptom: symptom,
+          answer: selectedBtn.dataset.val === 'yes'
+        });
+      }
+    });
+    return answers;
+  }
+  
+  // Helper: recalculate results with current selected symptoms
+  function recalculateResults(selected) {
+    return SYNDROME_TYPES.map(function(syn) {
+      let totalWeight = 0, matchedWeight = 0;
+      const matchedSymptoms = [];
+      const unmatchedSymptoms = [];
+      const coreSymptoms = [];
+      const secondarySymptoms = [];
+      
+      for (const [sym, weight] of Object.entries(syn.symptoms)) {
+        if (weight > 0) {
+          totalWeight += weight;
+          if (selected.includes(sym)) {
+            matchedWeight += weight;
+            matchedSymptoms.push({ name: sym, weight: weight });
+            if (weight >= 2) coreSymptoms.push(sym);
+            else secondarySymptoms.push(sym);
+          } else {
+            unmatchedSymptoms.push({ name: sym, weight: weight });
+          }
+        }
+      }
+      
+      const matchPct = totalWeight > 0 ? Math.round((matchedWeight / totalWeight) * 100) : 0;
+      const matchedCount = matchedSymptoms.length;
+      const totalSymptomCount = Object.values(syn.symptoms).filter(function(w) { return w > 0; }).length;
+      
+      const matchRatioScore = (matchedWeight / Math.max(totalWeight, 1)) * 100;
+      const coreCoverageScore = totalSymptomCount > 0 ? (coreSymptoms.length / Math.max(totalSymptomCount * 0.5, 1)) * 100 : 0;
+      const countScore = matchedCount >= 4 ? 100 : matchedCount >= 3 ? 75 : matchedCount >= 2 ? 50 : 25;
+      const avgWeight = matchedCount > 0 ? matchedWeight / matchedCount : 0;
+      const specificityScore = Math.min(100, (avgWeight / 2.5) * 100);
+      
+      const confidenceScore = Math.round(
+        matchRatioScore * 0.4 +
+        Math.min(coreCoverageScore, 100) * 0.3 +
+        countScore * 0.2 +
+        specificityScore * 0.1
+      );
+      
+      let confidenceLevel, confidenceLabel;
+      if (confidenceScore >= 80) { confidenceLevel = 'high'; confidenceLabel = '高可信度'; }
+      else if (confidenceScore >= 60) { confidenceLevel = 'medium'; confidenceLabel = '中等可信度'; }
+      else if (confidenceScore >= 40) { confidenceLevel = 'low'; confidenceLabel = '低可信度'; }
+      else { confidenceLevel = 'very_low'; confidenceLabel = '仅供参考'; }
+      
+      return { 
+        syndrome: syn, matchPct: matchPct,
+        confidenceScore: Math.min(confidenceScore, 100),
+        confidenceLevel: confidenceLevel, confidenceLabel: confidenceLabel,
+        matchedSymptoms: matchedSymptoms, unmatchedSymptoms: unmatchedSymptoms,
+        coreSymptoms: coreSymptoms, secondarySymptoms: secondarySymptoms,
+        matchedCount: matchedCount, totalSymptomCount: totalSymptomCount
+      };
+    }).filter(function(r) { return r.matchPct > 0; }).sort(function(a, b) { return b.confidenceScore - a.confidenceScore; });
+  }
+  
   async function renderResult(top, selected, qiBloodAnalysis) {
     const panel = document.getElementById('healthResultPanel');
     if (!panel) return;

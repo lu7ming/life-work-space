@@ -2761,3 +2761,143 @@
 .dark-mode .health-confidence-block.health-confidence-medium { background: rgba(255, 152, 0, 0.06); }
 .dark-mode .health-confidence-block.health-confidence-low { background: rgba(255, 193, 7, 0.06); }
 .dark-mode .health-confidence-block.health-confidence-very_low { background: rgba(158, 158, 158, 0.04); }
+
+/* ===== H3: 动态追问样式 ===== */
+.health-followup-panel {
+  padding: 4px 0 12px;
+}
+.health-followup-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.health-followup-icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.health-followup-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2520);
+  margin-bottom: 4px;
+}
+.health-followup-hint {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+}
+
+.health-followup-question {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #e8e4df);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+.health-followup-question.answered {
+  border-color: var(--accent, #E8A87C);
+  background: rgba(232, 168, 124, 0.04);
+}
+
+.health-followup-q-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #2C2520);
+  margin-bottom: 4px;
+}
+.health-followup-q-hint {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  margin-bottom: 10px;
+}
+
+.health-followup-q-options {
+  display: flex;
+  gap: 10px;
+}
+.health-followup-opt-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border: 1.5px solid var(--border-color, #e8e4df);
+  border-radius: 8px;
+  background: var(--bg-secondary, #f8f6f3);
+  color: var(--text-primary, #2C2520);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.health-followup-opt-btn:hover {
+  border-color: var(--accent, #E8A87C);
+}
+.health-followup-opt-btn.selected {
+  border-color: var(--accent, #E8A87C);
+  background: rgba(232, 168, 124, 0.12);
+  color: var(--accent, #E8A87C);
+  font-weight: 600;
+}
+.health-followup-opt-yes.selected {
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.1);
+  color: #2E7D32;
+}
+.health-followup-opt-no.selected {
+  border-color: #FF9800;
+  background: rgba(255, 152, 0, 0.1);
+  color: #E65100;
+}
+
+.health-followup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.health-followup-submit-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent, #E8A87C), #D4946A);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.health-followup-submit-btn:hover { opacity: 0.9; }
+.health-followup-skip-btn {
+  width: 100%;
+  padding: 10px;
+  border: 1.5px solid var(--border-color, #e8e4df);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary, #888);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.health-followup-skip-btn:hover {
+  border-color: var(--text-secondary, #888);
+  color: var(--text-primary, #2C2520);
+}
+
+.health-followup-empty {
+  text-align: center;
+  color: var(--text-secondary, #888);
+  padding: 20px;
+  font-size: 14px;
+}
+
+/* Dark mode for H3 */
+.dark-mode .health-followup-question {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.08);
+}
+.dark-mode .health-followup-question.answered {
+  border-color: var(--accent, #E8A87C);
+  background: rgba(232, 168, 124, 0.05);
+}
+.dark-mode .health-followup-opt-btn {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}

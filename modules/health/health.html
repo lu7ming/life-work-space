@@ -274,6 +274,18 @@
         <button class="health-analyze-btn" id="healthAnalyzeBtn">🔬 开始辨证</button>
       </div>
       <div class="health-step-panel" id="healthStep4">
+        <div class="health-followup-panel" id="healthFollowupPanel" style="display:none;">
+          <div class="health-followup-header">
+            <div class="health-followup-icon">🔍</div>
+            <div class="health-followup-title">为了更准确地辨证，请补充以下信息</div>
+            <div class="health-followup-hint">这些问题能帮助区分相似的证型</div>
+          </div>
+          <div class="health-followup-questions" id="healthFollowupQuestions"></div>
+          <div class="health-followup-actions">
+            <button class="health-followup-submit-btn" id="healthFollowupSubmitBtn">✓ 提交，查看辨证结果</button>
+            <button class="health-followup-skip-btn" id="healthFollowupSkipBtn">跳过，直接看结果</button>
+          </div>
+        </div>
         <div class="health-result-panel" id="healthResultPanel"></div>
         <button class="health-restart-btn" id="healthRestartBtn">🔄 重新自查</button>
       </div>

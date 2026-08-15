@@ -32,7 +32,7 @@ const MODULE_REGISTRY = {
   content:     { js: '../modules/content/content.js?v=95',       html: 'content/content.html',       css: 'content/content.css' },
   achievements:{ js: '../modules/achievements/achievements.js?v=95', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
   timetracker: { js: '../modules/timetracker/timetracker.js?v=95', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
-  templates:   { js: '../modules/templates/templates_module.js?v=95', html: 'templates/templates.html' },
+  templates:   { js: '../modules/templates/templates_module.js?v=95', html: 'templates/templates.html', css: 'templates/templates.css' },
   calendar:    { js: '../modules/calendar/calendar.js?v=95',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
   toolbox:     { js: '../modules/toolbox/toolbox.js?v=95',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
   travel:      { js: '../modules/travel/travel.js?v=95',           html: 'travel/travel.html',           css: 'travel/travel.css' },
@@ -133,6 +133,9 @@ export const App = (() => {
    */
   async function init() {
     console.log('[App] 人生工作台启动中...');
+
+    // 0. 动态注入非首屏全局组件 CSS（减少首屏阻塞资源）
+    injectGlobalStylesCSS();
 
     // 1. 初始化 IndexedDB
     try {
@@ -431,6 +434,7 @@ export const App = (() => {
     }
     if (musicMod.MusicModule) {
       try {
+        loadModuleCSS('music/music.css');
         musicMod.MusicModule.init();
         window.MusicModule = musicMod.MusicModule;
       } catch (e) {
@@ -441,6 +445,7 @@ export const App = (() => {
     // 初始化休息模式
     if (restMod.RestModule) {
       try {
+        loadModuleCSS('rest/rest.css');
         restMod.RestModule.init();
         window.RestModule = restMod.RestModule;
       } catch (e) {
@@ -526,6 +531,7 @@ export const App = (() => {
       // Dashboard 特殊：同时初始化 Report 模块
       if (routeName === 'dashboard') {
         try {
+          loadModuleCSS('report/report.css');
           const reportMod = await lazyImport('report');
           if (reportMod.ReportModule?.init) {
             reportMod.ReportModule.init();
@@ -612,6 +618,38 @@ export const App = (() => {
       console.warn('[App] fetchModule 请求失败:', e);
       throw e;
     }
+  }
+
+  /**
+   * 动态加载 styles/ 目录下的全局组件 CSS
+   */
+  function loadGlobalCSS(filename) {
+    const id = `css-global-${filename.replace(/[\/\.]/g, '-')}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = `styles/${filename}?v=${window.__APP_VERSION__ || 'v110'}`;
+    document.head.appendChild(link);
+  }
+
+  /**
+   * 注入非首屏全局组件 CSS（异步加载，不阻塞首屏）
+   */
+  function injectGlobalStylesCSS() {
+    const globalCSS = [
+      'nicole.css',
+      'xiaolu.css',
+      'audit-log.css',
+      'quickinput.css'
+    ];
+    // 延迟到首屏渲染后加载，避免竞争
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        globalCSS.forEach(f => loadGlobalCSS(f));
+        console.log('[App] 全局组件 CSS 动态加载完成');
+      }, 0);
+    });
   }
 
   /**

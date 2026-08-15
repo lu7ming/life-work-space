@@ -16,6 +16,7 @@ export const BgEffects = (() => {
   let currentTheme = 'dark';   // 'light' | 'dark'
   let animationId = null;
   let resizeHandler = null;
+  let visibilityHandler = null;
 
   // ========== 颜色调色板 ==========
   // 深色模式和浅色模式各有独立的颜色方案
@@ -1486,6 +1487,22 @@ const THEME_CONFIG = {
     resize();
     resizeHandler = () => resize();
     window.addEventListener('resize', resizeHandler);
+
+    // 页面可见性变化时暂停/恢复动画，节省后台性能
+    visibilityHandler = () => {
+      if (document.hidden) {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+      } else {
+        if (currentMode && currentMode !== 'none') {
+          animate();
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', visibilityHandler);
+
     console.log('[BgEffects] 模块已初始化');
   }
 
@@ -1555,6 +1572,10 @@ const THEME_CONFIG = {
     if (resizeHandler) {
       window.removeEventListener('resize', resizeHandler);
       resizeHandler = null;
+    }
+    if (visibilityHandler) {
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      visibilityHandler = null;
     }
     particles = [];
     canvas = null;

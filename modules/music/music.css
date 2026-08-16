@@ -250,6 +250,16 @@
   user-select: none;
 }
 
+/* 音频文件类型标识 */
+.music-card-audio-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 10px;
+  opacity: 0.5;
+  line-height: 1;
+}
+
 .music-card:hover {
   background: var(--bg-hover);
   transform: translateY(-1px);
@@ -312,33 +322,6 @@
   text-align: center;
   margin-top: 4px;
   line-height: 1.2;
-}
-
-/* ===== 档位切换（雨声/风声等多档） ===== */
-.music-card-intensity {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 8px;
-}
-
-.music-intensity-btn {
-  padding: 2px 8px;
-  font-size: 10px;
-  border-radius: 10px;
-  background: var(--bg-hover);
-  color: var(--text-secondary, #7A6E63);
-  transition: all 0.15s ease;
-  cursor: pointer;
-}
-
-.music-intensity-btn:hover {
-  background: var(--border-light);
-}
-
-.music-intensity-btn.active {
-  background: var(--accent-orange, #E8A87C);
-  color: #fff;
-  font-weight: 500;
 }
 
 /* ===== 脉冲动画（播放中） ===== */
@@ -502,20 +485,6 @@
 [data-theme="dark"] .music-card.playing .music-card-play {
   background: var(--text-secondary);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-[data-theme="dark"] .music-intensity-btn {
-  background: var(--bg-hover);
-  color: var(--text-secondary);
-}
-
-[data-theme="dark"] .music-intensity-btn:hover {
-  background: var(--border-light);
-}
-
-[data-theme="dark"] .music-intensity-btn.active {
-  background: var(--accent-orange);
-  color: #fff;
 }
 
 [data-theme="dark"] .music-card-headphone-tip {

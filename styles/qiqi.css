@@ -387,3 +387,80 @@
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
   }
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .qiqi-notify-bubble {
+  background: rgba(42, 36, 32, 0.95);
+  border-color: rgba(232, 168, 124, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .qiqi-notify-bubble .text {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .qiqi-notify-tail {
+  background: rgba(42, 36, 32, 0.95);
+  border-right-color: rgba(232, 168, 124, 0.3);
+  border-bottom-color: rgba(232, 168, 124, 0.3);
+}
+
+[data-theme="dark"] .qiqi-chat-panel {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .qiqi-chat-header {
+  background: var(--bg-card);
+  border-bottom-color: var(--border-color);
+}
+[data-theme="dark"] .qiqi-chat-header .name {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .qiqi-chat-header .close-btn {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .qiqi-chat-header .close-btn:hover {
+  background: var(--bg-hover);
+}
+
+[data-theme="dark"] .qiqi-chat-body {
+  background: var(--bg-main);
+}
+[data-theme="dark"] .qiqi-chat-body::-webkit-scrollbar-thumb {
+  background: rgba(122, 114, 104, 0.5);
+}
+
+[data-theme="dark"] .qiqi-msg-row.qiqi .qiqi-msg-bubble {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+[data-theme="dark"] .qiqi-msg-row.user .qiqi-msg-bubble {
+  background: var(--accent);
+  color: #fff;
+}
+[data-theme="dark"] .qiqi-msg-row.user .qiqi-msg-avatar {
+  background: var(--accent-blue-light);
+}
+
+[data-theme="dark"] .qiqi-chat-input-bar {
+  background: var(--bg-card);
+  border-top-color: var(--border-color);
+}
+[data-theme="dark"] .qiqi-chat-input {
+  background: var(--bg-main);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+[data-theme="dark"] .qiqi-chat-input::placeholder {
+  color: var(--text-muted);
+}
+[data-theme="dark"] .qiqi-chat-input:focus {
+  border-color: var(--accent);
+}
+
+[data-theme="dark"] .qiqi-time-divider {
+  color: var(--text-muted);
+}
+[data-theme="dark"] .qiqi-typing-dots span {
+  background: var(--text-muted);
+}

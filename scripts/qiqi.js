@@ -4,7 +4,7 @@
  *
  * 功能：
  * 1. Mochi Pet Canvas 渲染（80x80，DPR 适配）
- * 2. 移动系统（8 停靠点 + easeInOutCubic 缓动 + 8 秒决策）
+ * 2. 移动系统（8 停靠点 + easeInOutCubic 缓动 + 18-25 秒决策 + 40% 静止概率）
  * 3. 通知气泡（rAF 跟随 + 打字效果）
  * 4. 微信式聊天窗口（模拟回复 + 打字动画）
  *
@@ -1449,7 +1449,7 @@ export const QiqiModule = (() => {
   // 位置 / 移动
   const PET_W = 80, PET_H = 80;
   const BUBBLE_W = 240;
-  const MOVE_DURATION = 3000;
+  const MOVE_DURATION = 4000;
   let curX = 0, curY = 0;
   let animating = false;
   let animStart = 0;
@@ -1698,8 +1698,30 @@ export const QiqiModule = (() => {
    */
   function scheduleNextWaypoint() {
     if (chatOpen) return; // 聊天时不移动
+
+    // 根据当前姿态决定下一次决策的等待时间
+    // sitting 状态停留更久（15-30秒），其他状态 18-25 秒
+    let decisionDelay;
+    if (currentPose === 'sitting') {
+      decisionDelay = 15000 + Math.random() * 15000; // 15-30s
+    } else {
+      decisionDelay = 18000 + Math.random() * 7000;  // 18-25s
+    }
+
     waypointTimer = setTimeout(() => {
       if (chatOpen) return;
+
+      // 40% 概率选择"原地不动"，安静待着
+      if (Math.random() < 0.4) {
+        // 保持当前位置和姿态，更新一下状态表现为静态
+        if (renderer) renderer.setMoveState(currentPose);
+        // 偶尔显示心情
+        if (Math.random() > 0.5) showMood();
+        // 直接调度下一次决策
+        scheduleNextWaypoint();
+        return;
+      }
+
       const wps = getWaypoints();
       wpIdx = (wpIdx + 1) % wps.length;
       const wp = wps[wpIdx];
@@ -1714,9 +1736,9 @@ export const QiqiModule = (() => {
       idleRemaining = 1 + Math.floor(Math.random() * 2);
       startMoveTo(wp.x, wp.y, wp.pose);
 
-      // 约 8 秒后再决策
+      // 调度下一次决策（实际延迟在函数开头根据 pose 计算）
       scheduleNextWaypoint();
-    }, 6000 + Math.random() * 4000);
+    }, decisionDelay);
   }
 
   function startMoveTo(targetX, targetY, pose) {
@@ -2167,10 +2189,10 @@ export const QiqiModule = (() => {
     // 启动主循环
     rafId = requestAnimationFrame(mainLoop);
 
-    // 启动移动调度（延迟一下等页面稳定）
+    // 启动移动调度（延迟一下等页面稳定，先安静待一会儿）
     setTimeout(() => {
       scheduleNextWaypoint();
-    }, 2000);
+    }, 5000);
 
     // 3秒后弹出欢迎气泡
     welcomeTimer = setTimeout(() => {

@@ -768,6 +768,20 @@ const MEMORY_KEY_PREFIX = 'qiqi/memory';
 const MEMORY_COMPRESS_THRESHOLD = 50; // 累积对话超过多少条触发压缩
 const MEMORY_KEEP_DAYS = 3;           // 详细对话保留天数
 
+// ===== GitHub 同步（懒加载，避免阻塞首屏）=====
+let _githubSyncPromise = null;
+function _loadGithubSync() {
+  if (_githubSyncPromise) return _githubSyncPromise;
+  _githubSyncPromise = import('./github-sync.js')
+    .then((mod) => mod.GithubSync)
+    .catch((e) => {
+      console.warn('[Qiqi] 加载 github-sync 模块失败:', e);
+      _githubSyncPromise = null;
+      return null;
+    });
+  return _githubSyncPromise;
+}
+
 /**
  * 栖栖长期记忆管理器
  *
@@ -825,8 +839,52 @@ class QiqiMemory {
 
       // 更新累计计数
       await this._incConvCount(1);
+
+      // 异步触发 GitHub 同步（静默，失败不影响主流程）
+      this._triggerSync();
     } catch (e) {
       console.warn('[QiqiMemory] 保存对话失败:', e);
+    }
+  }
+
+  // ---------- GitHub 同步 ----------
+
+  /**
+   * 触发一次 GitHub 同步（防抖：5 秒内只执行一次）
+   * 静默失败，不阻塞用户操作
+   */
+  _triggerSync() {
+    if (this._syncScheduled) return;
+    this._syncScheduled = true;
+    setTimeout(async () => {
+      this._syncScheduled = false;
+      try {
+        const GithubSync = await _loadGithubSync();
+        if (!GithubSync) return;
+        if (!GithubSync.hasToken()) return;
+        if (!navigator.onLine) return;
+        await GithubSync.syncQiqiMemory();
+      } catch (e) {
+        // 静默降级
+        console.debug('[QiqiMemory] 自动同步失败（已降级到本地）:', e.message);
+      }
+    }, 5000);
+  }
+
+  /**
+   * 主动拉取远程记忆并合并到本地（初始化时调用）
+   */
+  async pullFromRemote() {
+    try {
+      const GithubSync = await _loadGithubSync();
+      if (!GithubSync) return false;
+      if (!GithubSync.hasToken()) return false;
+      if (!navigator.onLine) return false;
+      const result = await GithubSync.syncQiqiMemory();
+      return result.success;
+    } catch (e) {
+      console.debug('[QiqiMemory] 拉取远程记忆失败:', e.message);
+      return false;
     }
   }
 
@@ -949,6 +1007,7 @@ class QiqiMemory {
       const storage = this._getStorage();
       if (!storage) return;
       await storage.put('qiqi_memory', { key: 'summary/latest', value: String(text || '') });
+      this._triggerSync();
     } catch (e) {
       console.warn('[QiqiMemory] 保存摘要失败:', e);
     }
@@ -1013,6 +1072,7 @@ class QiqiMemory {
       current.habits = current.habits.slice(-30);
 
       await storage.put('qiqi_memory', { key: 'facts', value: current });
+      this._triggerSync();
     } catch (e) {
       console.warn('[QiqiMemory] 合并事实失败:', e);
     }
@@ -2185,6 +2245,11 @@ export const QiqiModule = (() => {
 
     // 初始化长期记忆
     qiqiMemory = new QiqiMemory();
+
+    // 异步拉取远程记忆（不阻塞首屏，失败静默降级）
+    qiqiMemory.pullFromRemote().then((ok) => {
+      if (ok) console.log('[Qiqi] 远程记忆已同步到本地');
+    });
 
     // 启动主循环
     rafId = requestAnimationFrame(mainLoop);

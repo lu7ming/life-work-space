@@ -248,5 +248,31 @@
   <!-- ES Module 入口：核心依赖静态导入，功能模块按需动态加载 -->
   <script type="module" src="core/app.js?v=97"></script>
 
+  <!-- GitHub 同步临时入口（console 调用 setupGithubSync(token) 配置） -->
+  <script type="module">
+    import { GithubSync } from './scripts/github-sync.js?v=1';
+    // 暴露到全局，供控制台调用
+    window.GithubSync = GithubSync;
+    window.setupGithubSync = async function(token) {
+      if (!token || typeof token !== 'string') {
+        console.log('%c[GithubSync] 用法: setupGithubSync("ghp_your_token")', 'color:#6a9');
+        console.log('%c  Token 保存在 localStorage.github_sync_token', 'color:#999');
+        console.log('%c  仓库: lu7ming/life-work-space-data', 'color:#999');
+        console.log('%c  目标: data/qiqi/memories.json', 'color:#999');
+        return;
+      }
+      GithubSync.setupToken(token);
+      console.log('%c[GithubSync] Token 已保存，开始同步...', 'color:#4a9');
+      const result = await GithubSync.syncQiqiMemory();
+      if (result.success) {
+        console.log('%c[GithubSync] 栖栖记忆同步成功 ✅', 'color:#4a9;font-weight:bold');
+      } else {
+        console.log('%c[GithubSync] 同步失败: ' + (result.reason || result.action), 'color:#e77');
+      }
+      return result;
+    };
+    console.log('%c[GithubSync] 已就绪。输入 setupGithubSync(token) 配置同步。', 'color:#6a9;font-size:12px');
+  </script>
+
 </body>
 </html>

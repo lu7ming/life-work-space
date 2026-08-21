@@ -3,7 +3,7 @@
  * v109 - 日晷时钟布局优化（与问候区并排，消除两侧空白）
  */
 
-const CACHE_NAME = 'life-work-space-v120';
+const CACHE_NAME = 'life-work-space-v121';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -86,42 +86,27 @@ const CACHE_ASSETS = [
   './modules/relations/relations.html',
   './modules/relations/relations.css',
   './modules/relations/relations.js',
-  './modules/lifetree/lifetree.html',
-  './modules/lifetree/lifetree.css',
-  './modules/lifetree/lifetree.js',
+  './modules/dao/dao-data.js',
   './modules/content/content.html',
   './modules/content/content.css',
   './modules/content/content.js',
-  './modules/achievements/achievements.html',
-  './modules/achievements/achievements.css',
-  './modules/achievements/achievements.js',
-  './modules/report/report.html',
-  './modules/report/report.js',
   './modules/rest/rest.html',
   './modules/rest/rest.js',
   './modules/music/music.js',
   './modules/music/music.html',
-  './modules/templates/templates.html',
-  './modules/templates/templates_module.js',
-  './modules/timetracker/timetracker.html',
-  './modules/timetracker/timetracker.css',
-  './modules/timetracker/timetracker.js',
-  // 日历视图
-  './modules/calendar/calendar.html',
-  './modules/calendar/calendar.css',
-  './modules/calendar/calendar.js',
   './modules/toolbox/toolbox.html',
   './modules/toolbox/toolbox.css',
   './modules/toolbox/toolbox.js',
-  // 旅行计划模块
   './modules/travel/travel.html',
   './modules/travel/travel.css',
   './modules/travel/travel.js',
-  // 道模块
   './modules/dao/dao.html',
   './modules/dao/dao.css',
   './modules/dao/dao.js',
-  './modules/dao/dao-data.js',
+  // 复盘模块（report + templates 整合）
+  './modules/review/review.html',
+  './modules/review/review.css',
+  './modules/review/review.js',
   // PWA
   './manifest.json',
   // 数据文件

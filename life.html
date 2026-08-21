@@ -10,7 +10,7 @@
   <title>人生工作台</title>
 
   <!-- 应用版本号（集中管理，升级时只需修改此处和 sw.js） -->
-  <script>window.__APP_VERSION__ = 'v120';</script>
+  <script>window.__APP_VERSION__ = 'v121';</script>
   <!-- PWA -->
   <link rel="icon" href="assets/icons/icon-192.png" type="image/png">
   <link rel="manifest" href="manifest.json">
@@ -19,10 +19,10 @@
   <link rel="preconnect" href="https://api.github.com">
 
   <!-- 样式 -->
-  <link rel="stylesheet" href="styles/main.css?v=120">
-  <link rel="stylesheet" href="styles/sidebar.css?v=120">
-  <link rel="stylesheet" href="styles/dashboard.css?v=120">
-  <link rel="stylesheet" href="styles/search.css?v=120">
+  <link rel="stylesheet" href="styles/main.css?v=121">
+  <link rel="stylesheet" href="styles/sidebar.css?v=121">
+  <link rel="stylesheet" href="styles/dashboard.css?v=121">
+  <link rel="stylesheet" href="styles/search.css?v=121">
 
   <!-- 防闪白：在页面渲染前立即应用主题 -->
   <script>
@@ -46,10 +46,10 @@
       } catch(e) {}
     })();
   </script>
-  <link rel="stylesheet" href="styles/visual-enhancements.css?v=120">
-  <link rel="stylesheet" href="styles/visual-enhancements-a.css?v=120">
-  <link rel="stylesheet" href="styles/visual-c-group.css?v=120">
-  <link rel="stylesheet" href="styles/qiqi.css?v=120">
+  <link rel="stylesheet" href="styles/visual-enhancements.css?v=121">
+  <link rel="stylesheet" href="styles/visual-enhancements-a.css?v=121">
+  <link rel="stylesheet" href="styles/visual-c-group.css?v=121">
+  <link rel="stylesheet" href="styles/qiqi.css?v=121">
 
   <!-- 版本号同步：将所有 stylesheet 的版本号参数同步为 __APP_VERSION__ -->
   <script>
@@ -129,14 +129,6 @@
           <span class="nav-icon">💰</span>
           <span>财务</span>
         </div>
-        <div class="sidebar-nav-item" data-route="goals">
-          <span class="nav-icon">🎯</span>
-          <span>目标</span>
-        </div>
-        <div class="sidebar-nav-item" data-route="dao">
-          <span class="nav-icon">☯️</span>
-          <span>道</span>
-        </div>
 
         <!-- 更多（展开子菜单） -->
         <div class="sidebar-nav-group">
@@ -147,11 +139,11 @@
           </div>
           <div class="sidebar-submenu">
             <div class="sidebar-submenu-item" data-route="journal">📝 日记</div>
-            <div class="sidebar-submenu-item" data-route="calendar">📅 日历</div>
-            <div class="sidebar-submenu-item" data-route="content">🎬 创作日程</div>
-            <div class="sidebar-submenu-item" data-route="templates">📊 复盘</div>
-            <div class="sidebar-submenu-item" data-route="toolbox">🧰 工具箱</div>
-            <div class="sidebar-submenu-item" data-route="travel">✈️ 旅行计划</div>
+            <div class="sidebar-submenu-item" data-route="goals">🎯 目标</div>
+            <div class="sidebar-submenu-item" data-route="dao">☯️ 道</div>
+            <div class="sidebar-submenu-item" data-route="travel">✈️ 旅行</div>
+            <div class="sidebar-submenu-item" data-route="content">🎬 创作</div>
+            <div class="sidebar-submenu-item" data-route="review">📊 复盘</div>
           </div>
         </div>
       </nav>
@@ -246,7 +238,7 @@
   </div>
 
   <!-- ES Module 入口：核心依赖静态导入，功能模块按需动态加载 -->
-  <script type="module" src="core/app.js?v=120"></script>
+  <script type="module" src="core/app.js?v=121"></script>
 
   <!-- GitHub 同步临时入口（console 调用 setupGithubSync(token) 配置） -->
   <script type="module">

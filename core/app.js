@@ -17,25 +17,21 @@ import { Router } from './router.js';
 // ===== 动态导入：模块注册表 =====
 // 路由名 → { jsPath, cssPath?, htmlPath? }
 const MODULE_REGISTRY = {
-  dashboard:   { js: '../modules/dashboard/dashboard.js?v=120',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
-  habits:      { js: '../modules/habits/habits.js?v=120',         html: 'habits/habits.html',         css: 'habits/habits.css' },
-  tasks:       { js: '../modules/tasks/tasks.js?v=120',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
-  study:       { js: '../modules/study/study.js?v=120',           html: 'study/study.html',           css: 'study/study.css' },
-  health:      { js: '../modules/health/health.js?v=120',         html: 'health/health.html',         css: 'health/health.css' },
-  finance:     { js: '../modules/finance/finance.js?v=120',       html: 'finance/finance.html',       css: 'finance/finance.css' },
-  journal:     { js: '../modules/journal/journal.js?v=120',       html: 'journal/journal.html',       css: 'journal/journal.css' },
-  relations:   { js: '../modules/relations/relations.js?v=120',   html: 'relations/relations.html',   css: 'relations/relations.css' },
-  knowledge:   { js: '../modules/knowledge/knowledge.js?v=120',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
-  goals:       { js: '../modules/goals/goals.js?v=120',           html: 'goals/goals.html',           css: 'goals/goals.css' },
-  dao:         { js: '../modules/dao/dao.js?v=120',               html: 'dao/dao.html',               css: 'dao/dao.css' },
-  lifetree:    { js: '../modules/lifetree/lifetree.js?v=120',     html: 'lifetree/lifetree.html',     css: 'lifetree/lifetree.css' },
-  content:     { js: '../modules/content/content.js?v=120',       html: 'content/content.html',       css: 'content/content.css' },
-  achievements:{ js: '../modules/achievements/achievements.js?v=120', html: 'achievements/achievements.html', css: 'achievements/achievements.css' },
-  timetracker: { js: '../modules/timetracker/timetracker.js?v=120', html: 'timetracker/timetracker.html', css: 'timetracker/timetracker.css' },
-  templates:   { js: '../modules/templates/templates_module.js?v=120', html: 'templates/templates.html', css: 'templates/templates.css' },
-  calendar:    { js: '../modules/calendar/calendar.js?v=120',        html: 'calendar/calendar.html',     css: 'calendar/calendar.css' },
-  toolbox:     { js: '../modules/toolbox/toolbox.js?v=120',          html: 'toolbox/toolbox.html',        css: 'toolbox/toolbox.css' },
-  travel:      { js: '../modules/travel/travel.js?v=120',           html: 'travel/travel.html',           css: 'travel/travel.css' },
+  dashboard:   { js: '../modules/dashboard/dashboard.js?v=121',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
+  habits:      { js: '../modules/habits/habits.js?v=121',         html: 'habits/habits.html',         css: 'habits/habits.css' },
+  tasks:       { js: '../modules/tasks/tasks.js?v=121',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
+  study:       { js: '../modules/study/study.js?v=121',           html: 'study/study.html',           css: 'study/study.css' },
+  health:      { js: '../modules/health/health.js?v=121',         html: 'health/health.html',         css: 'health/health.css' },
+  finance:     { js: '../modules/finance/finance.js?v=121',       html: 'finance/finance.html',       css: 'finance/finance.css' },
+  journal:     { js: '../modules/journal/journal.js?v=121',       html: 'journal/journal.html',       css: 'journal/journal.css' },
+  relations:   { js: '../modules/relations/relations.js?v=121',   html: 'relations/relations.html',   css: 'relations/relations.css' },
+  knowledge:   { js: '../modules/knowledge/knowledge.js?v=121',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
+  goals:       { js: '../modules/goals/goals.js?v=121',           html: 'goals/goals.html',           css: 'goals/goals.css' },
+  dao:         { js: '../modules/dao/dao.js?v=121',               html: 'dao/dao.html',               css: 'dao/dao.css' },
+  content:     { js: '../modules/content/content.js?v=121',       html: 'content/content.html',       css: 'content/content.css' },
+  toolbox:     { js: '../modules/toolbox/toolbox.js?v=121',       html: 'toolbox/toolbox.html',       css: 'toolbox/toolbox.css' },
+  travel:      { js: '../modules/travel/travel.js?v=121',         html: 'travel/travel.html',         css: 'travel/travel.css' },
+  review:      { js: '../modules/review/review.js?v=121',         html: 'review/review.html',         css: 'review/review.css' },
 };
 
 // 模块名映射：路由名 → 导出的模块对象名
@@ -51,14 +47,10 @@ const MODULE_NAME_MAP = {
   knowledge: 'KnowledgeModule',
   goals: 'GoalsModule',
   dao: 'DaoModule',
-  lifetree: 'LifeTreeModule',
   content: 'ContentModule',
-  achievements: 'AchievementsModule',
-  timetracker: 'TimeTrackerModule',
-  templates: 'TemplatesModule',
-  calendar: 'CalendarModule',
   toolbox: 'ToolboxModule',
   travel: 'TravelModule',
+  review: 'ReviewModule',
 };
 
 // ===== 懒加载核心模块缓存 =====
@@ -70,36 +62,35 @@ let _lazyModules = {};
 async function lazyImport(name) {
   if (_lazyModules[name]) return _lazyModules[name];
   const pathMap = {
-    secureStorage: './secure-storage.js?v=120',
-    theme: './theme.js?v=120',
-    bgEffects: './bg-effects.js?v=120',
-    notifications: './notifications.js?v=120',
-    smartReminder: './smart-reminder.js?v=120',
-    templates: './templates.js?v=120',
-    userProfile: './user-profile.js?v=120',
-    preferenceLearner: './preference-learner.js?v=120',
-    predictiveEngine: './predictive-engine.js?v=120',
-    auditLog: './audit-log.js?v=120',
-    localAI: './local-ai.js?v=120',
-    quickinput: './quickinput.js?v=120',
-    sharedKnowledge: './shared-knowledge.js?v=120',
-    orchestrator: './orchestrator.js?v=120',
-    modelRouter: './model-router.js?v=120',
-    smartSuggestion: './smart-suggestion.js?v=120',
-    crossLinker: './cross-linker.js?v=120',
-    sync: './sync.js?v=120',
-    search: './search.js?v=120',
-    export: './export.js?v=120',
-    emotionAnalyzer: './emotion-analyzer.js?v=120',
-    dataMinimizer: './data-minimizer.js?v=120',
-    knowledgeExtractor: './knowledge-extractor.js?v=120',
-    nicole: './nicole.js?v=120',
-    xiaolu: './xiaolu.js?v=120',
-    qiqi: '../scripts/qiqi.js?v=120',
-    music: '../modules/music/music.js?v=120',
-    report: '../modules/report/report.js?v=120',
-    rest: '../modules/rest/rest.js?v=120',
-    achievements: './achievements.js?v=120',
+    secureStorage: './secure-storage.js?v=121',
+    theme: './theme.js?v=121',
+    bgEffects: './bg-effects.js?v=121',
+    notifications: './notifications.js?v=121',
+    smartReminder: './smart-reminder.js?v=121',
+    templates: './templates.js?v=121',
+    userProfile: './user-profile.js?v=121',
+    preferenceLearner: './preference-learner.js?v=121',
+    predictiveEngine: './predictive-engine.js?v=121',
+    auditLog: './audit-log.js?v=121',
+    localAI: './local-ai.js?v=121',
+    quickinput: './quickinput.js?v=121',
+    sharedKnowledge: './shared-knowledge.js?v=121',
+    orchestrator: './orchestrator.js?v=121',
+    modelRouter: './model-router.js?v=121',
+    smartSuggestion: './smart-suggestion.js?v=121',
+    crossLinker: './cross-linker.js?v=121',
+    sync: './sync.js?v=121',
+    search: './search.js?v=121',
+    export: './export.js?v=121',
+    emotionAnalyzer: './emotion-analyzer.js?v=121',
+    dataMinimizer: './data-minimizer.js?v=121',
+    knowledgeExtractor: './knowledge-extractor.js?v=121',
+    nicole: './nicole.js?v=121',
+    xiaolu: './xiaolu.js?v=121',
+    qiqi: '../scripts/qiqi.js?v=121',
+    music: '../modules/music/music.js?v=121',
+    rest: '../modules/rest/rest.js?v=121',
+    achievements: './achievements.js?v=121',
   };
   const path = pathMap[name];
   if (!path) throw new Error(`Unknown lazy module: ${name}`);
@@ -186,7 +177,7 @@ export const App = (() => {
 
     // 10. 初始化视觉增强（7 项视觉优化）
     try {
-      const { VisualEnhancements } = await import('./visual-enhancements.js?v=120');
+      const { VisualEnhancements } = await import('./visual-enhancements.js?v=121');
       VisualEnhancements.init();
       console.log('[App] 视觉增强模块初始化完成');
     } catch (err) {
@@ -195,7 +186,7 @@ export const App = (() => {
 
     // 11. 初始化 C 组视觉优化（2 项：卷轴展开 + 手绘分隔）
     try {
-      const { VisualCGroup } = await import('./visual-c-group.js?v=120');
+      const { VisualCGroup } = await import('./visual-c-group.js?v=121');
       VisualCGroup.init();
       console.log('[App] C 组视觉优化初始化完成');
     } catch (err) {
@@ -546,18 +537,14 @@ export const App = (() => {
       if (moduleObj && moduleObj.init) {
         moduleObj.init(params);
         _activeModule = moduleObj;
+        // 暴露 DashboardModule 到全局，供顶栏生命树等按钮调用
+        if (routeName === 'dashboard') {
+          window.DashboardModule = moduleObj;
+        }
       }
 
-      // Dashboard 特殊：同时初始化 Report 模块
+      // Dashboard 特殊：A组视觉优化
       if (routeName === 'dashboard') {
-        try {
-          loadModuleCSS('report/report.css');
-          const reportMod = await lazyImport('report');
-          if (reportMod.ReportModule?.init) {
-            reportMod.ReportModule.init();
-          }
-        } catch (e) { /* 静默 */ }
-
         // A组视觉优化：日晷时钟 + 图标动画
         try {
           if (moduleObj && typeof moduleObj.initSundialClock === 'function') {
@@ -906,7 +893,19 @@ export const App = (() => {
         }
         const tip = btn.dataset.tip || '功能开发中';
         if (tip.includes('生命树')) {
-          Router.navigate('lifetree');
+          // 生命树按钮：如果在 Dashboard 页面，直接打开全屏生命树；否则先跳转到 Dashboard 再打开
+          const currentRoute = Router.getCurrentRoute?.() || 'dashboard';
+          if (currentRoute === 'dashboard' && window.DashboardModule?.openLifeTreeFullView) {
+            window.DashboardModule.openLifeTreeFullView();
+          } else {
+            Router.navigate('dashboard');
+            // 延迟打开，等 Dashboard 加载完成
+            setTimeout(() => {
+              if (window.DashboardModule?.openLifeTreeFullView) {
+                window.DashboardModule.openLifeTreeFullView();
+              }
+            }, 500);
+          }
         } else {
           showToast(tip);
         }

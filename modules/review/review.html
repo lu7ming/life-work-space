@@ -1,0 +1,116 @@
+<!-- review.html - 复盘模块（周报/月报 + 复盘模板） -->
+<div class="review-page page-enter" id="review-page">
+
+  <!-- ===== 顶部：Tab 切换 ===== -->
+  <div class="review-header">
+    <h1 class="review-title">📊 复盘</h1>
+    <div class="review-tabs" id="review-tabs">
+      <button class="review-tab active" data-tab="report">周报/月报</button>
+      <button class="review-tab" data-tab="templates">复盘模板</button>
+    </div>
+  </div>
+
+  <!-- ===== 内容区 ===== -->
+  <div class="review-content" id="review-content">
+
+    <!-- ===== 报告 Tab ===== -->
+    <div class="review-panel active" data-panel="report">
+      <!-- 类型选择区 -->
+      <div class="review-report-type-selector">
+        <button class="review-type-btn active" data-type="weekly">📊 周报</button>
+        <button class="review-type-btn" data-type="monthly">📋 月报</button>
+      </div>
+
+      <!-- 日期范围 -->
+      <div class="review-date-range" id="review-date-range">加载中...</div>
+
+      <!-- 报告内容容器 -->
+      <div class="review-report-body" id="review-report-body">
+        <div class="review-empty">
+          <div class="review-empty-icon">⏳</div>
+          <div class="review-empty-text">正在汇总数据...</div>
+        </div>
+      </div>
+
+      <!-- 底部操作 -->
+      <div class="report-footer-actions">
+        <button class="report-action-btn" id="review-export-btn">📤 导出</button>
+      </div>
+    </div>
+
+    <!-- ===== 模板 Tab ===== -->
+    <div class="review-panel" data-panel="templates">
+
+      <!-- 主列表视图 -->
+      <div id="review-templates-list-view">
+        <!-- 月份选择 -->
+        <div class="review-templates-month-picker">
+          <button id="review-tpl-prev-month" title="上个月">◀</button>
+          <span id="review-tpl-current-month"></span>
+          <button id="review-tpl-next-month" title="下个月">▶</button>
+        </div>
+
+        <!-- 月末提醒卡片 -->
+        <div class="templates-reminder-card hidden" id="review-tpl-reminder-card">
+          <div class="templates-reminder-left">
+            <span class="templates-reminder-icon">🌟</span>
+            <div class="templates-reminder-text">
+              <h3>本月即将结束</h3>
+              <p>是时候做一次月度复盘，回顾收获与成长了！</p>
+            </div>
+          </div>
+          <button class="templates-reminder-btn" id="review-tpl-start-summary">开始总结</button>
+        </div>
+
+        <!-- 模板卡片网格 -->
+        <div class="templates-grid" id="review-templates-grid">
+          <!-- JS 动态生成 -->
+        </div>
+
+        <!-- 历史报告 -->
+        <div class="report-history-section" id="review-tpl-history-section">
+          <h3 class="report-history-title">📁 历史报告</h3>
+          <div class="report-history-list" id="review-tpl-history-list">
+            <!-- JS 动态生成 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 报告详情视图 -->
+      <div class="report-detail" id="review-templates-detail-view" style="display:none;">
+        <div class="report-detail-header">
+          <button class="report-back-btn" id="review-tpl-back-btn">
+            ← 返回列表
+          </button>
+          <div class="report-actions">
+            <button class="report-action-btn" id="review-tpl-export-md" title="导出 Markdown">📄 Markdown</button>
+            <button class="report-action-btn" id="review-tpl-export-json" title="导出 JSON">📋 JSON</button>
+            <button class="report-action-btn primary" id="review-tpl-save-report" title="保存报告">💾 保存</button>
+          </div>
+        </div>
+        <div id="review-tpl-report-content">
+          <!-- JS 动态生成 -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== 导出面板（overlay） ===== -->
+  <div class="report-export-overlay" id="review-export-overlay" style="display:none;">
+    <div class="report-export-panel">
+      <div class="report-export-header">
+        <span class="report-export-title" id="review-export-title">📤 导出</span>
+        <button class="report-close-btn" id="review-export-close">✕</button>
+      </div>
+      <div class="report-export-body">
+        <textarea class="report-export-textarea" id="review-export-textarea" readonly></textarea>
+      </div>
+      <div class="report-export-footer">
+        <button class="report-export-btn secondary" id="review-export-cancel">取消</button>
+        <button class="report-export-btn primary" id="review-export-copy">复制到剪贴板</button>
+      </div>
+    </div>
+  </div>
+
+</div>

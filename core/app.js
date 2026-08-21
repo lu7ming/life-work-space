@@ -175,7 +175,7 @@ export const App = (() => {
 
     // 10. 初始化视觉增强（7 项视觉优化）
     try {
-      const { VisualEnhancements } = await import('./visual-enhancements.js?v=121');
+      const { VisualEnhancements } = await import('./visual-enhancements.js?v=124');
       VisualEnhancements.init();
       console.log('[App] 视觉增强模块初始化完成');
     } catch (err) {
@@ -184,7 +184,7 @@ export const App = (() => {
 
     // 11. 初始化 C 组视觉优化（2 项：卷轴展开 + 手绘分隔）
     try {
-      const { VisualCGroup } = await import('./visual-c-group.js?v=121');
+      const { VisualCGroup } = await import('./visual-enhancements.js?v=124');
       VisualCGroup.init();
       console.log('[App] C 组视觉优化初始化完成');
     } catch (err) {

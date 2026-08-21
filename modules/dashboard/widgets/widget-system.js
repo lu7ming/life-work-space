@@ -92,9 +92,12 @@ const WidgetSystem = (() => {
 
   const DEFAULT_WIDGET_CONFIG = [
     { type: 'progress-ring', size: 1, id: 'w_progress_1' },
+    { type: 'counter', size: 1, id: 'w_counter_1' },
+    { type: 'mini-line-chart', size: 2, id: 'w_line_1' },
+    { type: 'list-widget', size: 2, id: 'w_list_1' }
+  ];
 
-
-    function _loadWidgetStyles() {
+  function _loadWidgetStyles() {
     if (document.getElementById('dashboard-widgets-css')) return;
     const link = document.createElement('link');
     link.id = 'dashboard-widgets-css';

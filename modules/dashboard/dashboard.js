@@ -37,25 +37,34 @@ export const DashboardModule = (() => {
   async function init() {
     console.log('[Dashboard] 初始化总面板...');
     try {
+      // 每个任务独立 try-catch，单个失败不影响整体
+      const safeRun = async (name, fn) => {
+        try {
+          await fn();
+        } catch (e) {
+          console.error(`[Dashboard] ${name} 初始化失败:`, e);
+        }
+      };
+
       await Promise.all([
-        renderGreeting(),
-        WeatherWidget.init(),
-        renderCountdown(),
-        renderCalendar(),
-        renderHighlights(),
-        DailyRecommendWidget.init(),
-        renderBirthdayReminder(),
-        renderFeed(),
-        FocusCardWidget.init(),
-        renderTemplateReminder(),
-        SmartFocusWidget.init(),
-        WidgetSystem.init(),
-        renderTravelCard(),
-        NianNianWidget.init()
+        safeRun('renderGreeting', renderGreeting),
+        safeRun('WeatherWidget', () => WeatherWidget.init()),
+        safeRun('renderCountdown', renderCountdown),
+        safeRun('renderCalendar', renderCalendar),
+        safeRun('renderHighlights', renderHighlights),
+        safeRun('DailyRecommendWidget', () => DailyRecommendWidget.init()),
+        safeRun('renderBirthdayReminder', renderBirthdayReminder),
+        safeRun('renderFeed', renderFeed),
+        safeRun('FocusCardWidget', () => FocusCardWidget.init()),
+        safeRun('renderTemplateReminder', renderTemplateReminder),
+        safeRun('SmartFocusWidget', () => SmartFocusWidget.init()),
+        safeRun('WidgetSystem', () => WidgetSystem.init()),
+        safeRun('renderTravelCard', renderTravelCard),
+        safeRun('NianNianWidget', () => NianNianWidget.init())
       ]);
-      bindAnnualEvents();
-      bindCalendarEvents();
-      ClockWidget.init();
+      try { bindAnnualEvents(); } catch (e) { console.error('[Dashboard] bindAnnualEvents 失败:', e); }
+      try { bindCalendarEvents(); } catch (e) { console.error('[Dashboard] bindCalendarEvents 失败:', e); }
+      try { ClockWidget.init(); } catch (e) { console.error('[Dashboard] ClockWidget 失败:', e); }
     } catch (err) {
       console.error('[Dashboard] 初始化失败:', err);
       if (window.App) window.App?.showToast('总览加载失败，请刷新重试');
@@ -691,8 +700,6 @@ export const DashboardModule = (() => {
  * calendar.js - 日历总览模块（子模块，已迁移至 Dashboard）
  * 人生工作台 · 多模块数据投射到日历，一眼看出"哪些天过得好"
  */
-
-  }
 
   // ===== 日历视图切换 =====
   let _calendarInitialized = false;

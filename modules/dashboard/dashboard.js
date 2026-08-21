@@ -6631,7 +6631,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-    return { init, showAnnualReview, destroy, initSundialClock, applyIconAnimations, destroySundialClock, toggleCalendarView };
+    return { init, showAnnualReview, destroy, initSundialClock, applyIconAnimations, destroySundialClock, toggleCalendarView, openLifeTreeFullView, openAchievementsFullView };
 
 
 })();

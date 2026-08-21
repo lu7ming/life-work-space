@@ -3,7 +3,7 @@
  * v109 - 日晷时钟布局优化（与问候区并排，消除两侧空白）
  */
 
-const CACHE_NAME = 'life-work-space-v122';
+const CACHE_NAME = 'life-work-space-v123';
 
 // 需要缓存的资源列表（所有模块仍缓存以确保离线可用）
 const CACHE_ASSETS = [
@@ -59,6 +59,10 @@ const CACHE_ASSETS = [
   './modules/dashboard/dashboard.html',
   './modules/dashboard/dashboard.css',
   './modules/dashboard/dashboard.js',
+  './modules/dashboard/widgets/calendar-widget.js',
+  './modules/dashboard/widgets/achievements-widget.js',
+  './modules/dashboard/widgets/lifetree-widget.js',
+  './modules/dashboard/widgets/widgets.css',
   './modules/habits/habits.html',
   './modules/habits/habits.css',
   './modules/habits/habits.js',

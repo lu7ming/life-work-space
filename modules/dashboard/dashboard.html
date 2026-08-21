@@ -277,11 +277,58 @@
       <div class="dash-widget-header">
         <h4 class="dash-widget-subtitle">📈 数据看板</h4>
         <div class="dash-widget-actions">
+          <button class="dash-widget-btn" id="dash-calendar-view-btn" title="日历视图">📅 日历视图</button>
           <button class="dash-widget-btn" id="dash-widget-edit-btn" title="编辑首页">✏️ 编辑</button>
         </div>
       </div>
       <div class="dash-widget-grid" id="dash-widget-grid">
         <!-- JS 动态渲染 Widget -->
+      </div>
+
+      <!-- ===== 日历视图面板（可展开/收起） ===== -->
+      <div class="dash-calendar-panel" id="dash-calendar-panel" style="display:none;">
+        <div class="dash-calendar-header">
+          <div class="dash-calendar-title">📅 日历总览</div>
+          <div class="dash-calendar-controls">
+            <button class="dash-calendar-nav-btn" id="dash-cal-prev-month" title="上个月">‹</button>
+            <span class="dash-calendar-month-label" id="dash-cal-month-label"></span>
+            <button class="dash-calendar-nav-btn" id="dash-cal-next-month" title="下个月">›</button>
+            <button class="dash-calendar-today-btn" id="dash-cal-today-btn">今天</button>
+          </div>
+        </div>
+
+        <!-- 图例 -->
+        <div class="calendar-legend dash-calendar-legend">
+          <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:var(--cal-habits);"></span>打卡</span>
+          <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:var(--cal-tasks);"></span>任务</span>
+          <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:var(--cal-journal);"></span>日记</span>
+          <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:var(--cal-expense);"></span>支出</span>
+          <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:var(--cal-income);"></span>收入</span>
+          <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:var(--cal-health);"></span>健康</span>
+          <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:var(--cal-study);"></span>学习</span>
+        </div>
+
+        <!-- 月历网格 -->
+        <div class="calendar-grid-wrapper dash-calendar-grid-wrapper">
+          <div class="calendar-weekdays">
+            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+          </div>
+          <div class="calendar-days" id="dash-cal-days">
+            <!-- JS 动态渲染 -->
+          </div>
+        </div>
+
+        <!-- 日期详情面板（底部滑入） -->
+        <div class="calendar-detail-overlay" id="dash-cal-detail-overlay"></div>
+        <div class="calendar-detail-panel" id="dash-cal-detail-panel">
+          <div class="calendar-detail-header">
+            <span class="calendar-detail-date" id="dash-cal-detail-date"></span>
+            <button class="calendar-detail-close" id="dash-cal-detail-close">✕</button>
+          </div>
+          <div class="calendar-detail-body" id="dash-cal-detail-body">
+            <!-- JS 动态渲染 -->
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -377,6 +424,83 @@
       </div>
       <div class="dash-modal-footer">
         <button class="dash-modal-confirm" id="dash-widget-config-confirm">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 成就全屏弹窗 ===== -->
+  <div class="achievement-full-overlay" id="dash-ach-full-overlay" style="display:none;">
+    <div class="achievement-full-panel">
+      <div class="achievement-full-header">
+        <span class="achievement-full-title">🎖️ 成就勋章</span>
+        <button class="achievement-full-close" id="dash-ach-full-close-btn">✕</button>
+      </div>
+      <div class="achievement-full-summary">
+        <span id="dash-ach-full-unlocked-count">0</span> / <span id="dash-ach-full-total-count">15</span> 已解锁
+      </div>
+      <div class="achievements-progress-bar achievement-full-progress">
+        <div class="achievements-progress-fill" id="dash-ach-full-progress-fill" style="width: 0%"></div>
+      </div>
+      <div class="achievements-filters" id="dash-ach-full-filters">
+        <button class="achievements-filter-btn active" data-filter="all">全部</button>
+        <button class="achievements-filter-btn" data-filter="checkin">打卡</button>
+        <button class="achievements-filter-btn" data-filter="journal">记录</button>
+        <button class="achievements-filter-btn" data-filter="finance">财务</button>
+        <button class="achievements-filter-btn" data-filter="study">学习</button>
+        <button class="achievements-filter-btn" data-filter="health">健康</button>
+        <button class="achievements-filter-btn" data-filter="content">创作</button>
+        <button class="achievements-filter-btn" data-filter="tasks">任务</button>
+        <button class="achievements-filter-btn" data-filter="usage">使用</button>
+      </div>
+      <div class="achievements-grid" id="dash-ach-full-grid"></div>
+    </div>
+    <!-- 成就详情弹窗 -->
+    <div class="achievement-detail-overlay" id="dash-ach-detail-overlay">
+      <div class="achievement-detail-card" id="dash-ach-detail-card">
+        <button class="achievement-detail-close" id="dash-ach-detail-close">✕</button>
+        <div class="achievement-detail-icon" id="dash-ach-detail-icon"></div>
+        <div class="achievement-detail-name" id="dash-ach-detail-name"></div>
+        <div class="achievement-detail-desc" id="dash-ach-detail-desc"></div>
+        <div class="achievement-detail-status" id="dash-ach-detail-status"></div>
+        <div class="achievement-detail-progress" id="dash-ach-detail-progress"></div>
+        <div class="achievement-detail-date" id="dash-ach-detail-date"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 生命树全屏弹窗 ===== -->
+  <div class="lifetree-full-overlay" id="dash-lt-full-overlay" style="display:none;">
+    <div class="lifetree-full-panel">
+      <div class="lifetree-full-header">
+        <span class="lifetree-full-title">🌳 我的生命树</span>
+        <div class="lifetree-full-badges">
+          <span class="season-badge" id="dash-lt-season-badge">🌱 春</span>
+          <span class="weather-badge" id="dash-lt-weather-badge">☀️ 晴天</span>
+        </div>
+        <button class="lifetree-full-close" id="dash-lt-full-close-btn">✕</button>
+      </div>
+      <div class="lifetree-full-body">
+        <div class="lifetree-full-svg" id="dash-lt-svg-wrapper">
+          <!-- SVG 由 JS 动态生成 -->
+          <div class="tree-bottom-info" id="dash-lt-tree-bottom-info"></div>
+        </div>
+        <div class="lifetree-full-sidebar">
+          <div class="panel-section">
+            <h3 class="panel-section-title">🌍 土壤状态</h3>
+            <div class="soil-grid" id="dash-lt-soil-grid"></div>
+          </div>
+          <div class="panel-section">
+            <h3 class="panel-section-title">🌿 生命维度</h3>
+            <div class="dimension-list" id="dash-lt-dimension-list"></div>
+          </div>
+          <div class="panel-section">
+            <h3 class="panel-section-title">📊 近期状态</h3>
+            <div class="stats-row" id="dash-lt-stats-row"></div>
+          </div>
+        </div>
+      </div>
+      <div class="lifetree-full-footer">
+        <span id="dash-lt-footer-info">用每一天的行动，滋养你的生命之树 🌱</span>
       </div>
     </div>
   </div>

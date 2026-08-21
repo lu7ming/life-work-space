@@ -3412,3 +3412,1820 @@
     animation: none;
   }
 }
+/**
+ * calendar.css - 日历视图样式
+ * 人生工作台 · 暖棕色系 + 深色模式适配
+ */
+
+/* ===== 日历专属 CSS 变量 ===== */
+:root {
+  --cal-habits: #6DBF7E;
+  --cal-tasks: #7AACCE;
+  --cal-journal: #E8A87C;
+  --cal-expense: #D87878;
+  --cal-income: #6DBF7E;
+  --cal-health: #A88EC8;
+  --cal-study: #4DB6AC;
+  --cal-today-bg: rgba(109, 191, 126, 0.15);
+  --cal-weekend-bg: rgba(0, 0, 0, 0.04);
+  --cal-cell-bg: var(--bg-card);
+  --cal-cell-border: rgba(0, 0, 0, 0.06);
+  --cal-dot-size: 6px;
+}
+
+[data-theme="dark"] {
+  --cal-habits: #6DBF7E;
+  --cal-tasks: #7AACCE;
+  --cal-journal: #E8A87C;
+  --cal-expense: #D87878;
+  --cal-income: #6DBF7E;
+  --cal-health: #A88EC8;
+  --cal-study: #6DD5C8;
+  --cal-today-bg: rgba(109, 191, 126, 0.18);
+  --cal-weekend-bg: rgba(255, 255, 255, 0.03);
+  --cal-cell-bg: var(--bg-card);
+  --cal-cell-border: rgba(255, 255, 255, 0.06);
+  --cal-dot-size: 6px;
+}
+
+/* ===== 页面容器 ===== */
+.calendar {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ===== 顶部 ===== */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.calendar-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.calendar-month-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-month-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--cal-cell-border);
+  background: var(--cal-cell-bg);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-month-btn:hover {
+  background: var(--bg-hover);
+}
+
+.calendar-month-label {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 100px;
+  text-align: center;
+}
+
+.calendar-today-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--cal-cell-border);
+  background: var(--cal-cell-bg);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.calendar-today-btn:hover {
+  background: var(--accent-green);
+  color: #fff;
+  border-color: var(--accent-green);
+}
+
+/* ===== 图例 ===== */
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--cal-cell-bg);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.calendar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.calendar-legend-dot {
+  width: var(--cal-dot-size);
+  height: var(--cal-dot-size);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ===== 月历网格 ===== */
+.calendar-grid-wrapper {
+  background: var(--cal-cell-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--bg-hover);
+}
+
+.calendar-weekdays span {
+  text-align: center;
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+/* ===== 日期格子 ===== */
+.calendar-day {
+  position: relative;
+  min-height: 72px;
+  padding: 6px;
+  border-right: 1px solid var(--cal-cell-border);
+  border-bottom: 1px solid var(--cal-cell-border);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.calendar-day:nth-child(7n) {
+  border-right: none;
+}
+
+.calendar-day:hover {
+  background: var(--bg-hover);
+}
+
+.calendar-day.empty {
+  cursor: default;
+  background: transparent;
+}
+
+.calendar-day.empty:hover {
+  background: transparent;
+}
+
+/* 周末背景 */
+.calendar-day.weekend {
+  background: var(--cal-weekend-bg);
+}
+
+.calendar-day.weekend:hover {
+  background: var(--bg-hover);
+}
+
+/* 今天高亮 */
+.calendar-day.today {
+  background: var(--cal-today-bg);
+}
+
+.calendar-day.today .calendar-day-number {
+  background: var(--accent-green);
+  color: #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 日期数字 */
+.calendar-day-number {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+/* 标记圆点容器 */
+.calendar-day-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.calendar-day-dot {
+  width: var(--cal-dot-size);
+  height: var(--cal-dot-size);
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.calendar-day:hover .calendar-day-dot {
+  transform: scale(1.3);
+}
+
+/* 打卡深浅度 - 通过 opacity 变化 */
+.calendar-day-dot.habits-1 { opacity: 0.5; background: var(--cal-habits); }
+.calendar-day-dot.habits-2 { opacity: 0.7; background: var(--cal-habits); }
+.calendar-day-dot.habits-3 { opacity: 0.85; background: var(--cal-habits); }
+.calendar-day-dot.habits-4 { opacity: 1; background: var(--cal-habits); }
+
+.calendar-day-dot.tasks { background: var(--cal-tasks); }
+.calendar-day-dot.tasks-open { border: 1.5px solid var(--cal-tasks); background: transparent; }
+
+.calendar-day-dot.journal { background: var(--cal-journal); }
+.calendar-day-dot.expense { background: var(--cal-expense); }
+.calendar-day-dot.income { background: var(--cal-income); }
+.calendar-day-dot.health { background: var(--cal-health); }
+.calendar-day-dot.study { background: var(--cal-study); }
+
+/* ===== 详情面板（底部滑入） ===== */
+.calendar-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 900;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.calendar-detail-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.calendar-detail-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 70vh;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 901;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.calendar-detail-panel.active {
+  transform: translateY(0);
+}
+
+.calendar-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cal-cell-border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  z-index: 1;
+}
+
+.calendar-detail-date {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.calendar-detail-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.calendar-detail-close:hover {
+  background: var(--accent-red-light);
+  color: var(--accent-red);
+}
+
+.calendar-detail-body {
+  padding: 16px 20px 24px;
+}
+
+/* ===== 详情：各模块卡片 ===== */
+.calendar-detail-section {
+  margin-bottom: 16px;
+}
+
+.calendar-detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.calendar-detail-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.calendar-detail-section-icon {
+  font-size: 16px;
+}
+
+.calendar-detail-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.calendar-detail-section-go {
+  margin-left: auto;
+  padding: 3px 10px;
+  font-size: 12px;
+  border: 1px solid var(--cal-cell-border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.calendar-detail-section-go:hover {
+  background: var(--accent-green);
+  color: #fff;
+  border-color: var(--accent-green);
+}
+
+.calendar-detail-content {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  padding-left: 24px;
+}
+
+.calendar-detail-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding-left: 24px;
+  font-style: italic;
+}
+
+/* 打卡习惯列表 */
+.calendar-detail-habit-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-left: 24px;
+}
+
+.calendar-detail-habit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--accent-green-light);
+  color: var(--accent-green);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* 任务列表 */
+.calendar-detail-task-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.calendar-detail-task-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--cal-tasks);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: transparent;
+}
+
+.calendar-detail-task-check.done {
+  background: var(--cal-tasks);
+  color: #fff;
+}
+
+.calendar-detail-task-text {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.calendar-detail-task-text.done {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* 财务摘要 */
+.calendar-detail-finance-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.calendar-detail-finance-label {
+  color: var(--text-secondary);
+}
+
+.calendar-detail-finance-value {
+  font-weight: 600;
+}
+
+.calendar-detail-finance-value.income {
+  color: var(--cal-income);
+}
+
+.calendar-detail-finance-value.expense {
+  color: var(--cal-expense);
+}
+
+/* ===== 空状态 ===== */
+.calendar-detail-no-data {
+  text-align: center;
+  padding: 24px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ===== 活跃度条 ===== */
+.calendar-day-activity-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+}
+
+.calendar-day-activity-bar-fill {
+  height: 100%;
+  border-radius: 0 0 0 0;
+  transition: width var(--transition-normal);
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .calendar {
+    padding: 12px;
+  }
+
+  .calendar-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .calendar-title {
+    font-size: 20px;
+  }
+
+  .calendar-legend {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .calendar-legend-item {
+    font-size: 11px;
+  }
+
+  .calendar-day {
+    min-height: 56px;
+    padding: 4px;
+  }
+
+  .calendar-day-number {
+    font-size: 12px;
+  }
+
+  .calendar-day-dot {
+    width: 5px;
+    height: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar {
+    padding: 8px;
+  }
+
+  .calendar-day {
+    min-height: 48px;
+    padding: 3px;
+  }
+
+  .calendar-day-number {
+    font-size: 11px;
+  }
+
+  .calendar-day-dot {
+    width: 4px;
+    height: 4px;
+  }
+
+  .calendar-legend {
+    gap: 6px;
+  }
+
+  .calendar-month-label {
+    font-size: 15px;
+    min-width: 80px;
+  }
+}
+
+/* ========== Calendar View in Dashboard ========== */
+.dash-calendar-panel {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color, #eee);
+}
+
+.dash-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dash-calendar-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dash-calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-calendar-nav-btn {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #eee);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.dash-calendar-nav-btn:hover {
+  border-color: var(--accent-color, #6a8d6a);
+}
+
+.dash-calendar-month-label {
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 80px;
+  text-align: center;
+}
+
+.dash-calendar-today-btn {
+  background: var(--accent-color, #6a8d6a);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dash-calendar-today-btn:hover {
+  opacity: 0.9;
+}
+
+.dash-calendar-legend {
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+.dash-calendar-grid-wrapper {
+  max-height: none;
+}
+
+/* 日历视图按钮激活状态 */
+.dash-calendar-view-active {
+  background: var(--accent-color, #6a8d6a) !important;
+  color: #fff !important;
+  border-color: var(--accent-color, #6a8d6a) !important;
+}
+/**
+ * achievements.css - 成就展示面板样式
+ * 人生工作台 · 暖棕色系 + 深色模式适配
+ */
+
+/* ===== 页面布局 ===== */
+.achievements-page {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.achievements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.achievements-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.achievements-summary {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ===== 进度总览条 ===== */
+.achievements-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.achievements-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #C8963E, #F0C864);
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease;
+}
+
+/* ===== 筛选按钮 ===== */
+.achievements-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.achievements-filter-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.achievements-filter-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.achievements-filter-btn.active {
+  background: #C8963E;
+  color: #fff;
+  border-color: #C8963E;
+}
+
+/* ===== 成就卡片网格 ===== */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* ===== 成就卡片 ===== */
+.achievement-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.achievement-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* 已解锁 - 金色边框 */
+.achievement-card.unlocked {
+  border-color: #C8963E;
+  background: var(--bg-card);
+}
+
+.achievement-card.unlocked .achievement-card-icon {
+  filter: none;
+}
+
+/* 未解锁 - 灰色 */
+.achievement-card.locked {
+  opacity: 0.55;
+  border-color: transparent;
+}
+
+.achievement-card.locked .achievement-card-icon {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.achievement-card.locked .achievement-card-name {
+  color: var(--text-muted);
+}
+
+.achievement-card.locked .achievement-card-desc {
+  color: var(--text-light);
+}
+
+/* 卡片图标 */
+.achievement-card-icon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: all var(--transition-normal);
+}
+
+.achievement-card.unlocked .achievement-card-icon {
+  animation: achievementIconPulse 2s ease-in-out infinite;
+}
+
+@keyframes achievementIconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* 卡片信息 */
+.achievement-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.achievement-card-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* 卡片解锁标记 */
+.achievement-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  background: #C8963E;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* 卡片日期 */
+.achievement-card-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ===== 卡片进度条 ===== */
+.achievement-card-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.achievement-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.achievement-progress-fill {
+  height: 100%;
+  background: #C8963E;
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.achievement-progress-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ===== 详情弹窗 ===== */
+.achievement-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-normal);
+}
+
+.achievement-detail-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.achievement-detail-card {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  min-width: 300px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.9);
+  transition: transform var(--transition-normal);
+}
+
+.achievement-detail-overlay.show .achievement-detail-card {
+  transform: scale(1);
+}
+
+.achievement-detail-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.achievement-detail-close:hover {
+  color: var(--text-primary);
+}
+
+.achievement-detail-icon {
+  font-size: 64px;
+  margin-bottom: 12px;
+  filter: grayscale(100%);
+  opacity: 0.4;
+}
+
+.achievement-detail-icon.unlocked {
+  filter: none;
+  opacity: 1;
+  animation: achievementIconPulse 2s ease-in-out infinite;
+}
+
+.achievement-detail-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.achievement-detail-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.achievement-detail-status {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.achievement-detail-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.achievement-detail-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.achievement-detail-progress-fill {
+  height: 100%;
+  background: #C8963E;
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.achievement-detail-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ===== 解锁 Toast ===== */
+.achievement-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: var(--bg-card);
+  border: 2px solid #C8963E;
+  border-radius: 12px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 24px rgba(200, 150, 62, 0.3);
+  z-index: 10001;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+
+.achievement-toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+.achievement-toast-icon {
+  font-size: 28px;
+}
+
+.achievement-toast-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.achievement-toast-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.achievement-toast-name {
+  font-size: 15px;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .achievement-card.unlocked {
+  border-color: #D4A853;
+  background: rgba(200, 150, 62, 0.08);
+}
+
+[data-theme="dark"] .achievements-filter-btn.active {
+  background: #A07830;
+  border-color: #A07830;
+}
+
+[data-theme="dark"] .achievements-progress-fill {
+  background: linear-gradient(90deg, #A07830, #D4A853);
+}
+
+[data-theme="dark"] .achievement-progress-fill,
+[data-theme="dark"] .achievement-detail-progress-fill {
+  background: #D4A853;
+}
+
+[data-theme="dark"] .achievement-card-badge {
+  background: #D4A853;
+}
+
+[data-theme="dark"] .achievement-toast {
+  border-color: #D4A853;
+  box-shadow: 0 4px 24px rgba(212, 168, 83, 0.25);
+}
+
+[data-theme="dark"] .achievement-detail-card {
+  background: var(--bg-card);
+}
+
+[data-theme="dark"] .achievement-card.locked {
+  opacity: 0.4;
+}
+
+/* ===== 解锁动画 ===== */
+@keyframes achievementUnlock {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.achievement-card.just-unlocked {
+  animation: achievementUnlock 0.5s ease-out;
+}
+/* ===== 生命树模块样式（SVG版） ===== */
+
+/* 主容器 */
+.lifetree-main {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  padding: 0 16px 8px;
+}
+
+/* ===== SVG 树容器 ===== */
+.svg-wrapper {
+  flex: 0 0 60%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.tree-svg {
+  flex: 1;
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  min-height: 0;
+}
+
+/* 树底部维度标签 */
+.tree-bottom-info {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--text-light);
+  gap: 4px;
+}
+
+.tree-bottom-info .dim-tag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 40px;
+}
+
+.tree-bottom-info .dim-tag .dim-icon {
+  font-size: 16px;
+}
+
+.tree-bottom-info .dim-tag .dim-bar {
+  width: 32px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--text-light);
+  overflow: hidden;
+}
+
+.tree-bottom-info .dim-tag .dim-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* ===== SVG 动画 ===== */
+
+/* 树枝微风摇摆 */
+.branches-group {
+  animation: branch-sway 5s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+
+@keyframes branch-sway {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(0.5deg); }
+  75% { transform: rotate(-0.4deg); }
+}
+
+/* 叶簇轻柔摆动 */
+.leaf {
+  animation: leaf-sway 3.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes leaf-sway {
+  0%, 100% { transform: rotate(0deg) translate(0, 0); }
+  30% { transform: rotate(1.5deg) translate(0.5px, -0.3px); }
+  70% { transform: rotate(-1deg) translate(-0.3px, 0.2px); }
+}
+
+/* 树冠整体呼吸 */
+.canopy-fill {
+  animation: canopy-breathe 6s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+@keyframes canopy-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.008); }
+}
+
+/* 维度标记浮动 */
+.dim-marker {
+  animation: marker-float 4s ease-in-out infinite;
+}
+
+@keyframes marker-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* 树干微动 */
+.tree-trunk-group {
+  animation: trunk-sway 7s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+@keyframes trunk-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(0.2deg); }
+}
+
+/* ===== 天气动画 ===== */
+
+/* 云朵飘动 */
+.cloud {
+  animation: cloud-drift 20s linear infinite;
+}
+
+@keyframes cloud-drift {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(30px); }
+  100% { transform: translateX(0); }
+}
+
+/* 雨滴下落 */
+.raindrop {
+  animation: rain-fall 1.2s linear infinite;
+}
+
+@keyframes rain-fall {
+  0% { opacity: 0.5; transform: translateY(0); }
+  70% { opacity: 0.4; }
+  100% { opacity: 0; transform: translateY(120px); }
+}
+
+/* 星星闪烁 */
+.star-dot {
+  animation: star-twinkle 3s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* 太阳光晕脉动 */
+.sun-glow {
+  animation: sun-pulse 4s ease-in-out infinite;
+}
+
+@keyframes sun-pulse {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.sun-core {
+  animation: sun-core-pulse 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes sun-core-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.7; }
+}
+
+/* 彩虹弧呼吸 */
+.rainbow-arc {
+  animation: rainbow-fade 6s ease-in-out infinite;
+}
+
+@keyframes rainbow-fade {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.6; }
+}
+
+/* 休眠光点飘落 */
+.dormant-dot {
+  animation: dormant-fall 6s ease-in-out infinite;
+}
+
+@keyframes dormant-fall {
+  0% { opacity: 0.3; transform: translateY(0) translateX(0); }
+  50% { opacity: 0.5; transform: translateY(30px) translateX(5px); }
+  100% { opacity: 0; transform: translateY(60px) translateX(-3px); }
+}
+
+/* ===== 右侧详情面板 ===== */
+.detail-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding-right: 4px;
+  min-width: 0;
+}
+
+/* 面板分区 */
+.panel-section {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px;
+}
+
+.panel-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 10px;
+}
+
+/* 土壤状态网格 */
+.soil-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.soil-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+}
+
+.soil-item .soil-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.soil-item .soil-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.soil-item .soil-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.soil-item .soil-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.soil-item .soil-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--text-light);
+  border-radius: 2px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.soil-item .soil-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* 维度列表 */
+.dimension-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dim-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  transition: background var(--transition-fast);
+}
+
+.dim-item:hover {
+  background: var(--bg-hover);
+}
+
+.dim-item .dim-emoji {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.dim-item .dim-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dim-item .dim-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dim-item .dim-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.dim-item .dim-progress {
+  width: 100%;
+  height: 5px;
+  background: var(--text-light);
+  border-radius: 3px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.dim-item .dim-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s ease;
+}
+
+.dim-item .dim-score {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* 统计行 */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 10px 6px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+}
+
+.stat-card .stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-card .stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* 徽章样式 */
+.season-badge,
+.weather-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--bg-sidebar);
+  color: var(--text-secondary);
+}
+
+/* 底部信息 */
+.lifetree-footer {
+  padding: 8px 20px 12px;
+  text-align: center;
+}
+
+.lifetree-footer span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  .lifetree-main {
+    flex-direction: column;
+    padding: 0 12px 8px;
+  }
+
+  .svg-wrapper {
+    flex: none;
+    height: 50vh;
+    min-height: 300px;
+  }
+
+  .detail-panel {
+    flex: none;
+  }
+
+  .soil-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .soil-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tree-bottom-info .dim-tag {
+    font-size: 10px;
+  }
+}
+
+/* iPad 横屏优化 */
+@media (min-width: 768px) and (orientation: landscape) {
+  .svg-wrapper {
+    flex: 0 0 62%;
+  }
+
+  .detail-panel {
+    gap: 12px;
+  }
+
+  .panel-section {
+    padding: 12px 14px;
+  }
+}
+
+/* ===== 深色模式适配 ===== */
+[data-theme="dark"] .svg-wrapper { background: var(--bg-card); }
+[data-theme="dark"] .panel-section { background: var(--bg-card); }
+[data-theme="dark"] .tree-bottom-info { background: var(--bg-card); border-top-color: var(--border-light); }
+
+/* 维度项深色 */
+[data-theme="dark"] .soil-item,
+[data-theme="dark"] .dim-item,
+[data-theme="dark"] .stat-card { background: var(--bg-hover); }
+
+/* 进度条深色 */
+[data-theme="dark"] .soil-item .soil-bar,
+[data-theme="dark"] .dim-item .dim-progress { background: var(--text-light); }
+
+/* ========== Achievement Widget ========== */
+.dash-widget-achievement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.dash-widget-achievement-count {
+  color: var(--accent-color, #6a8d6a);
+  font-weight: 600;
+}
+
+.dash-widget-achievement-bar {
+  height: 6px;
+  background: var(--border-color, #eee);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.dash-widget-achievement-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7EBF8E, #5a9d6a);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.dash-widget-achievement-recent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--bg-secondary, #f9f9f9);
+  border-radius: 6px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.dash-widget-achievement-icon {
+  font-size: 16px;
+}
+
+.dash-widget-achievement-name {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.dash-widget-achievement-more {
+  background: none;
+  border: none;
+  color: var(--accent-color, #6a8d6a);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+/* ========== LifeTree Widget ========== */
+.dash-widget-lifetree-container {
+  text-align: center;
+}
+
+.dash-widget-lifetree-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.dash-widget-lifetree-mini {
+  width: 100%;
+  max-width: 120px;
+  margin: 0 auto 8px;
+}
+
+.dash-widget-lifetree-svg {
+  width: 100%;
+  height: auto;
+}
+
+.dash-widget-lifetree-expand {
+  background: none;
+  border: none;
+  color: var(--accent-color, #6a8d6a);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+/* ========== Achievement Full View Overlay ========== */
+.achievement-full-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.achievement-full-overlay.show {
+  display: flex;
+}
+
+.achievement-full-panel {
+  background: var(--card-bg, #fff);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-full-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.achievement-full-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.achievement-full-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+}
+
+.achievement-full-summary {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.achievement-full-progress {
+  margin-bottom: 20px;
+}
+
+/* ========== LifeTree Full View Overlay ========== */
+.lifetree-full-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.lifetree-full-overlay.show {
+  display: flex;
+}
+
+.lifetree-full-panel {
+  background: var(--card-bg, #fff);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1000px;
+  max-height: 85vh;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.lifetree-full-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color, #eee);
+}
+
+.lifetree-full-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.lifetree-full-badges {
+  display: flex;
+  gap: 8px;
+  margin-right: 16px;
+}
+
+.lifetree-full-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+}
+
+.lifetree-full-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.lifetree-full-svg {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 300px;
+}
+
+.lifetree-full-svg svg {
+  max-width: 100%;
+  max-height: 60vh;
+}
+
+.lifetree-full-sidebar {
+  width: 280px;
+  padding: 20px;
+  overflow-y: auto;
+  border-left: 1px solid var(--border-color, #eee);
+}
+
+.lifetree-full-footer {
+  padding: 12px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  border-top: 1px solid var(--border-color, #eee);
+}
+
+@media (max-width: 768px) {
+  .lifetree-full-body {
+    flex-direction: column;
+  }
+  .lifetree-full-sidebar {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border-color, #eee);
+  }
+}

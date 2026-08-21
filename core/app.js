@@ -29,7 +29,6 @@ const MODULE_REGISTRY = {
   goals:       { js: '../modules/goals/goals.js?v=121',           html: 'goals/goals.html',           css: 'goals/goals.css' },
   dao:         { js: '../modules/dao/dao.js?v=121',               html: 'dao/dao.html',               css: 'dao/dao.css' },
   content:     { js: '../modules/content/content.js?v=121',       html: 'content/content.html',       css: 'content/content.css' },
-  toolbox:     { js: '../modules/toolbox/toolbox.js?v=121',       html: 'toolbox/toolbox.html',       css: 'toolbox/toolbox.css' },
   travel:      { js: '../modules/travel/travel.js?v=121',         html: 'travel/travel.html',         css: 'travel/travel.css' },
   review:      { js: '../modules/review/review.js?v=121',         html: 'review/review.html',         css: 'review/review.css' },
 };
@@ -48,7 +47,6 @@ const MODULE_NAME_MAP = {
   goals: 'GoalsModule',
   dao: 'DaoModule',
   content: 'ContentModule',
-  toolbox: 'ToolboxModule',
   travel: 'TravelModule',
   review: 'ReviewModule',
 };

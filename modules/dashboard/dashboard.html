@@ -9,7 +9,7 @@
     </div>
 
     <!-- 动态日晷时钟 (A组视觉优化) -->
-    <div class="dash-sundial-clock" id="dash-sundial-clock">
+    <div class="dash-sundial-clock" id="dash-sundial-clock" data-widget="clock">
       <div class="sundial-clock-face">
         <svg viewBox="0 0 140 140" aria-hidden="true">
           <!-- 12个小时刻度（主刻度） -->
@@ -91,7 +91,7 @@
   </div>
 
   <!-- 今日信息（天气+农历/节气合并） -->
-  <div class="dash-info-row card">
+  <div class="dash-info-row card" data-widget="weather">
     <div class="dash-info-col">
       <div class="dash-info-label" id="dash-weather-label">今日天气 · 定位中…</div>
       <div class="dash-weather-main">
@@ -110,7 +110,7 @@
   </div>
 
   <!-- 今日推荐（文字推荐 + 生活推荐卡片） -->
-  <div class="dash-daily-recommend card" id="dash-daily-recommend">
+  <div class="dash-daily-recommend card" id="dash-daily-recommend" data-widget="daily-recommend">
     <div class="dash-daily-recommend-header">
       <span class="dash-daily-recommend-title">☀️ 今日推荐</span>
       <span class="dash-daily-recommend-update" id="dash-daily-recommend-update">每日 8:00 更新</span>
@@ -153,7 +153,7 @@
   </div>
 
   <!-- 碎碎念 -->
-  <div class="dash-nn card" id="dash-nn">
+  <div class="dash-nn card" id="dash-nn" data-widget="nian-nian">
     <!-- 收起状态 -->
     <div class="dash-nn-collapsed" id="dash-nn-collapsed">
       <span class="dash-nn-collapsed-text">📝 碎碎念...</span>
@@ -194,7 +194,7 @@
   </div>
 
   <!-- 每日卦象 -->
-  <div class="dash-daily-gua card" id="dash-daily-gua">
+  <div class="dash-daily-gua card" id="dash-daily-gua" data-widget="gua">
     <div class="dash-daily-gua-header">
       <div class="dash-daily-gua-title">☯️ 每日卦象</div>
       <div class="dash-daily-gua-date" id="dash-gua-date"></div>
@@ -227,7 +227,7 @@
   </div>
 
   <!-- 今日聚焦 -->
-  <div class="dash-focus-card card" id="dash-focus-card">
+  <div class="dash-focus-card card" id="dash-focus-card" data-widget="focus-card">
     <div class="dash-focus-header">
       <h3 class="dash-focus-title">🎯 今日聚焦</h3>
       <div class="dash-focus-actions">
@@ -256,12 +256,12 @@
   </div>
 
   <!-- 智能聚焦卡片 - 根据时段自动切换内容 -->
-  <div class="dash-smart-focus card" id="dash-smart-focus" style="display:none;">
+  <div class="dash-smart-focus card" id="dash-smart-focus" data-widget="smart-focus" data-widget="smart-focus" style="display:none;">
     <!-- JS 动态渲染 -->
   </div>
 
   <!-- 数据总览（今日动态 + 数据看板合并） -->
-  <div class="dash-data-overview card" id="dash-data-overview">
+  <div class="dash-data-overview card" id="dash-data-overview" data-widget="data-overview">
     <div class="dash-data-overview-header">
       <h3 class="dash-data-overview-title">📊 数据总览</h3>
     </div>
@@ -348,12 +348,12 @@
   </div>
 
   <!-- 智能建议区域 -->
-  <div class="dash-smart-suggestions card" id="dash-smart-suggestions" style="display:none;">
+  <div class="dash-smart-suggestions card" id="dash-smart-suggestions" data-widget="smart-suggestions" data-widget="smart-suggestions" style="display:none;">
     <!-- JS 动态渲染 -->
   </div>
 
   <!-- 「猜你想做」预测操作区域 -->
-  <div class="dash-predictive-actions card" id="dash-predictive-actions" style="display:none;">
+  <div class="dash-predictive-actions card" id="dash-predictive-actions" data-widget="predictive-actions" data-widget="predictive-actions" style="display:none;">
     <!-- JS 动态渲染 -->
   </div>
 

@@ -13,7 +13,7 @@ const WeatherWidget = (() => {
 
     try {
       // 动态导入 DaoModule（避免循环依赖）
-      const mod = await import('../dao/dao.js');
+      const mod = await import('../../dao/dao.js');
       if (!mod || !mod.DaoModule) return;
 
       const result = mod.DaoModule.getDailyGua(new Date());

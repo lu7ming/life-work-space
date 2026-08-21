@@ -10,7 +10,6 @@ import { ModuleLifecycle } from '../../core/module-lifecycle.js';
 import { CrossLinker } from '../../core/cross-linker.js';
 import { Router } from '../../core/router.js';
 import { SmartSuggestion } from '../../core/smart-suggestion.js';
-import { ReviewModule } from '../review/review.js';
 import { CalendarWidget } from './widgets/calendar-widget.js';
 import { AchievementsWidget } from './widgets/achievements-widget.js';
 import { LifeTreeWidget } from './widgets/lifetree-widget.js';

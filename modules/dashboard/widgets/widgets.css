@@ -793,7 +793,7 @@
 }
 
 .dash-calendar-nav-btn {
-  background: var(--card-bg, #fff);
+  background: var(--bg-card, #fff);
   border: 1px solid var(--border-color, #eee);
   border-radius: 6px;
   width: 28px;
@@ -809,7 +809,7 @@
 }
 
 .dash-calendar-nav-btn:hover {
-  border-color: var(--accent-color, #6a8d6a);
+  border-color: var(--accent, #6a8d6a);
 }
 
 .dash-calendar-month-label {
@@ -820,7 +820,7 @@
 }
 
 .dash-calendar-today-btn {
-  background: var(--accent-color, #6a8d6a);
+  background: var(--accent, #6a8d6a);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -846,9 +846,9 @@
 
 /* 日历视图按钮激活状态 */
 .dash-calendar-view-active {
-  background: var(--accent-color, #6a8d6a) !important;
+  background: var(--accent, #6a8d6a) !important;
   color: #fff !important;
-  border-color: var(--accent-color, #6a8d6a) !important;
+  border-color: var(--accent, #6a8d6a) !important;
 }
 /**
  * achievements.css - 成就展示面板样式
@@ -1764,7 +1764,7 @@
 }
 
 .dash-widget-achievement-count {
-  color: var(--accent-color, #6a8d6a);
+  color: var(--accent, #6a8d6a);
   font-weight: 600;
 }
 
@@ -1788,7 +1788,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  background: var(--bg-secondary, #f9f9f9);
+  background: var(--bg-subtle, #f9f9f9);
   border-radius: 6px;
   font-size: 12px;
   margin-bottom: 8px;
@@ -1806,7 +1806,7 @@
 .dash-widget-achievement-more {
   background: none;
   border: none;
-  color: var(--accent-color, #6a8d6a);
+  color: var(--accent, #6a8d6a);
   font-size: 12px;
   cursor: pointer;
   padding: 4px 0;
@@ -1838,7 +1838,7 @@
 .dash-widget-lifetree-expand {
   background: none;
   border: none;
-  color: var(--accent-color, #6a8d6a);
+  color: var(--accent, #6a8d6a);
   font-size: 12px;
   cursor: pointer;
   padding: 4px 0;
@@ -1864,7 +1864,7 @@
 }
 
 .achievement-full-panel {
-  background: var(--card-bg, #fff);
+  background: var(--bg-card, #fff);
   border-radius: 16px;
   width: 100%;
   max-width: 900px;
@@ -1927,7 +1927,7 @@
 }
 
 .lifetree-full-panel {
-  background: var(--card-bg, #fff);
+  background: var(--bg-card, #fff);
   border-radius: 16px;
   width: 100%;
   max-width: 1000px;
@@ -4119,7 +4119,7 @@
   flex-direction: column;
   gap: 6px;
   box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.04));
-  border-top: 3px solid var(--card-accent, #E8A87C);
+  border-top: 3px solid var(--accent-light, #E8A87C);
   transition: transform var(--transition-fast, 0.2s ease), box-shadow var(--transition-fast, 0.2s ease);
   cursor: default;
   position: relative;
@@ -4139,7 +4139,7 @@
 .dash-daily-card-category {
   font-size: 10px;
   font-weight: 600;
-  color: var(--card-accent, #E8A87C);
+  color: var(--accent-light, #E8A87C);
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -4178,7 +4178,7 @@
   padding: 2px 7px;
   border-radius: var(--radius-full, 8px);
   background: rgba(232, 168, 124, 0.1);
-  color: var(--card-accent, #E8A87C);
+  color: var(--accent-light, #E8A87C);
   font-weight: 500;
   white-space: nowrap;
 }

@@ -1248,8 +1248,8 @@ textarea.report-input-field {
 }
 
 .review-tab.active {
-  color: var(--accent-color, #6a8d6a);
-  border-bottom-color: var(--accent-color, #6a8d6a);
+  color: var(--accent, #6a8d6a);
+  border-bottom-color: var(--accent, #6a8d6a);
   font-weight: 500;
 }
 
@@ -1277,7 +1277,7 @@ textarea.report-input-field {
   padding: 12px 20px;
   border: 1px solid var(--border-color, #eee);
   border-radius: var(--radius-md, 12px);
-  background: var(--card-bg, #fff);
+  background: var(--bg-card, #fff);
   color: var(--text-primary);
   font-size: 15px;
   cursor: pointer;
@@ -1285,13 +1285,13 @@ textarea.report-input-field {
 }
 
 .review-type-btn:hover {
-  border-color: var(--accent-color, #6a8d6a);
+  border-color: var(--accent, #6a8d6a);
 }
 
 .review-type-btn.active {
-  background: var(--accent-color, #6a8d6a);
+  background: var(--accent, #6a8d6a);
   color: #fff;
-  border-color: var(--accent-color, #6a8d6a);
+  border-color: var(--accent, #6a8d6a);
 }
 
 .review-date-range {
@@ -1337,7 +1337,7 @@ textarea.report-input-field {
 }
 
 .review-templates-month-picker button {
-  background: var(--card-bg, #fff);
+  background: var(--bg-card, #fff);
   border: 1px solid var(--border-color, #eee);
   border-radius: 8px;
   padding: 4px 12px;
@@ -1347,7 +1347,7 @@ textarea.report-input-field {
 }
 
 .review-templates-month-picker button:hover {
-  border-color: var(--accent-color, #6a8d6a);
+  border-color: var(--accent, #6a8d6a);
 }
 
 /* 模板 Tab 历史区 */
@@ -1372,7 +1372,7 @@ textarea.report-input-field {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  background: var(--card-bg, #fff);
+  background: var(--bg-card, #fff);
   border-radius: var(--radius-md, 12px);
   border: 1px solid var(--border-color, #eee);
   cursor: pointer;
@@ -1380,7 +1380,7 @@ textarea.report-input-field {
 }
 
 .report-history-item:hover {
-  border-color: var(--accent-color, #6a8d6a);
+  border-color: var(--accent, #6a8d6a);
   transform: translateY(-1px);
 }
 

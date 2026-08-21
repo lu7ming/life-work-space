@@ -2643,7 +2643,7 @@
   padding: 10px 14px;
   border-radius: 10px;
   margin-bottom: 12px;
-  background: var(--bg-secondary, #f8f6f3);
+  background: var(--bg-subtle, #f8f6f3);
 }
 .health-confidence-block.health-confidence-high { background: rgba(76, 175, 80, 0.08); border-left: 3px solid #4CAF50; }
 .health-confidence-block.health-confidence-medium { background: rgba(255, 152, 0, 0.08); border-left: 3px solid #FF9800; }
@@ -2735,7 +2735,7 @@
 }
 .health-evidence-unmatched {
   background: rgba(0,0,0,0.04);
-  color: var(--text-disabled, #bbb);
+  color: var(--text-light, #bbb);
   border: 1px solid rgba(0,0,0,0.06);
   text-decoration: line-through;
   text-decoration-color: rgba(0,0,0,0.2);
@@ -2749,7 +2749,7 @@
 }
 .health-evidence-missing-label {
   font-size: 11px;
-  color: var(--text-disabled, #bbb);
+  color: var(--text-light, #bbb);
 }
 
 /* Dark mode support for H1/H2 */
@@ -2819,7 +2819,7 @@
   padding: 8px 16px;
   border: 1.5px solid var(--border-color, #e8e4df);
   border-radius: 8px;
-  background: var(--bg-secondary, #f8f6f3);
+  background: var(--bg-subtle, #f8f6f3);
   color: var(--text-primary, #2C2520);
   font-size: 14px;
   font-weight: 500;
@@ -3001,7 +3001,7 @@
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: var(--bg-secondary, #faf9f7);
+  background: var(--bg-subtle, #faf9f7);
 }
 .health-checkin-item:hover {
   border-color: var(--accent, #E8A87C);
@@ -3063,7 +3063,7 @@
 .health-checkin-progress-bar {
   flex: 1;
   height: 6px;
-  background: var(--bg-secondary, #eee);
+  background: var(--bg-subtle, #eee);
   border-radius: 3px;
   overflow: hidden;
 }

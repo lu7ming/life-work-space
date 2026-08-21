@@ -17,20 +17,20 @@ import { Router } from './router.js';
 // ===== 动态导入：模块注册表 =====
 // 路由名 → { jsPath, cssPath?, htmlPath? }
 const MODULE_REGISTRY = {
-  dashboard:   { js: '../modules/dashboard/dashboard.js?v=121',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
-  habits:      { js: '../modules/habits/habits.js?v=121',         html: 'habits/habits.html',         css: 'habits/habits.css' },
-  tasks:       { js: '../modules/tasks/tasks.js?v=121',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
-  study:       { js: '../modules/study/study.js?v=121',           html: 'study/study.html',           css: 'study/study.css' },
-  health:      { js: '../modules/health/health.js?v=121',         html: 'health/health.html',         css: 'health/health.css' },
-  finance:     { js: '../modules/finance/finance.js?v=121',       html: 'finance/finance.html',       css: 'finance/finance.css' },
-  journal:     { js: '../modules/journal/journal.js?v=121',       html: 'journal/journal.html',       css: 'journal/journal.css' },
-  relations:   { js: '../modules/relations/relations.js?v=121',   html: 'relations/relations.html',   css: 'relations/relations.css' },
-  knowledge:   { js: '../modules/knowledge/knowledge.js?v=121',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
-  goals:       { js: '../modules/goals/goals.js?v=121',           html: 'goals/goals.html',           css: 'goals/goals.css' },
-  dao:         { js: '../modules/dao/dao.js?v=121',               html: 'dao/dao.html',               css: 'dao/dao.css' },
-  content:     { js: '../modules/content/content.js?v=121',       html: 'content/content.html',       css: 'content/content.css' },
-  travel:      { js: '../modules/travel/travel.js?v=121',         html: 'travel/travel.html',         css: 'travel/travel.css' },
-  review:      { js: '../modules/review/review.js?v=121',         html: 'review/review.html',         css: 'review/review.css' },
+  dashboard:   { js: '../modules/dashboard/dashboard.js?v=128',   html: 'dashboard/dashboard.html',   css: 'dashboard/dashboard.css' },
+  habits:      { js: '../modules/habits/habits.js?v=128',         html: 'habits/habits.html',         css: 'habits/habits.css' },
+  tasks:       { js: '../modules/tasks/tasks.js?v=128',           html: 'tasks/tasks.html',           css: 'tasks/tasks.css' },
+  study:       { js: '../modules/study/study.js?v=128',           html: 'study/study.html',           css: 'study/study.css' },
+  health:      { js: '../modules/health/health.js?v=128',         html: 'health/health.html',         css: 'health/health.css' },
+  finance:     { js: '../modules/finance/finance.js?v=128',       html: 'finance/finance.html',       css: 'finance/finance.css' },
+  journal:     { js: '../modules/journal/journal.js?v=128',       html: 'journal/journal.html',       css: 'journal/journal.css' },
+  relations:   { js: '../modules/relations/relations.js?v=128',   html: 'relations/relations.html',   css: 'relations/relations.css' },
+  knowledge:   { js: '../modules/knowledge/knowledge.js?v=128',   html: 'knowledge/knowledge.html',   css: 'knowledge/knowledge.css' },
+  goals:       { js: '../modules/goals/goals.js?v=128',           html: 'goals/goals.html',           css: 'goals/goals.css' },
+  dao:         { js: '../modules/dao/dao.js?v=128',               html: 'dao/dao.html',               css: 'dao/dao.css' },
+  content:     { js: '../modules/content/content.js?v=128',       html: 'content/content.html',       css: 'content/content.css' },
+  travel:      { js: '../modules/travel/travel.js?v=128',         html: 'travel/travel.html',         css: 'travel/travel.css' },
+  review:      { js: '../modules/review/review.js?v=128',         html: 'review/review.html',         css: 'review/review.css' },
 };
 
 // 模块名映射：路由名 → 导出的模块对象名
@@ -60,35 +60,35 @@ let _lazyModules = {};
 async function lazyImport(name) {
   if (_lazyModules[name]) return _lazyModules[name];
   const pathMap = {
-    secureStorage: './secure-storage.js?v=121',
-    theme: './theme.js?v=121',
-    bgEffects: './bg-effects.js?v=121',
-    notifications: './notifications.js?v=121',
-    smartReminder: './smart-reminder.js?v=121',
-    templates: './templates.js?v=121',
-    userProfile: './user-profile.js?v=121',
-    preferenceLearner: './preference-learner.js?v=121',
-    predictiveEngine: './predictive-engine.js?v=121',
-    auditLog: './audit-log.js?v=121',
-    localAI: './local-ai.js?v=121',
-    quickinput: './quickinput.js?v=121',
-    sharedKnowledge: './shared-knowledge.js?v=121',
-    orchestrator: './orchestrator.js?v=121',
-    modelRouter: './model-router.js?v=121',
-    smartSuggestion: './smart-suggestion.js?v=121',
-    crossLinker: './cross-linker.js?v=121',
-    sync: './sync.js?v=121',
-    search: './search.js?v=121',
-    export: './export.js?v=121',
-    emotionAnalyzer: './emotion-analyzer.js?v=121',
-    dataMinimizer: './data-minimizer.js?v=121',
-    knowledgeExtractor: './knowledge-extractor.js?v=121',
-    nicole: './nicole.js?v=121',
-    xiaolu: './xiaolu.js?v=121',
-    qiqi: '../scripts/qiqi.js?v=121',
-    music: '../modules/music/music.js?v=121',
-    rest: '../modules/rest/rest.js?v=121',
-    achievements: './achievements.js?v=121',
+    secureStorage: './secure-storage.js?v=128',
+    theme: './theme.js?v=128',
+    bgEffects: './bg-effects.js?v=128',
+    notifications: './notifications.js?v=128',
+    smartReminder: './smart-reminder.js?v=128',
+    templates: './templates.js?v=128',
+    userProfile: './user-profile.js?v=128',
+    preferenceLearner: './preference-learner.js?v=128',
+    predictiveEngine: './predictive-engine.js?v=128',
+    auditLog: './audit-log.js?v=128',
+    localAI: './local-ai.js?v=128',
+    quickinput: './quickinput.js?v=128',
+    sharedKnowledge: './shared-knowledge.js?v=128',
+    orchestrator: './orchestrator.js?v=128',
+    modelRouter: './model-router.js?v=128',
+    smartSuggestion: './smart-suggestion.js?v=128',
+    crossLinker: './cross-linker.js?v=128',
+    sync: './sync.js?v=128',
+    search: './search.js?v=128',
+    export: './export.js?v=128',
+    emotionAnalyzer: './emotion-analyzer.js?v=128',
+    dataMinimizer: './data-minimizer.js?v=128',
+    knowledgeExtractor: './knowledge-extractor.js?v=128',
+    nicole: './nicole.js?v=128',
+    xiaolu: './xiaolu.js?v=128',
+    qiqi: '../scripts/qiqi.js?v=128',
+    music: '../modules/music/music.js?v=128',
+    rest: '../modules/rest/rest.js?v=128',
+    achievements: './achievements.js?v=128',
   };
   const path = pathMap[name];
   if (!path) throw new Error(`Unknown lazy module: ${name}`);
@@ -175,7 +175,7 @@ export const App = (() => {
 
     // 10. 初始化视觉增强（7 项视觉优化）
     try {
-      const { VisualEnhancements } = await import('./visual-enhancements.js?v=124');
+      const { VisualEnhancements } = await import('./visual-enhancements.js?v=128');
       VisualEnhancements.init();
       console.log('[App] 视觉增强模块初始化完成');
     } catch (err) {
@@ -184,7 +184,7 @@ export const App = (() => {
 
     // 11. 初始化 C 组视觉优化（2 项：卷轴展开 + 手绘分隔）
     try {
-      const { VisualCGroup } = await import('./visual-enhancements.js?v=124');
+      const { VisualCGroup } = await import('./visual-enhancements.js?v=128');
       VisualCGroup.init();
       console.log('[App] C 组视觉优化初始化完成');
     } catch (err) {
